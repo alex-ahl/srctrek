@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "ignorePatterns": ["dist/", "evals/fixtures/"],
+  "rules": {
+    "complexity": ["error", 10],
+    "max-depth": ["error", 3],
+    "react/react-in-jsx-scope": "off",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/restrict-template-expressions": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/no-unnecessary-condition": "error"
+  },
+  "overrides": [
+    {
+      "files": ["packages/core/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@codetrail/tui", "**/tui/**"],
+                "message": "core never imports UI code."
+              },
+              {
+                "group": ["@opentui/*", "react", "react/*"],
+                "message": "core never imports UI code."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/tui/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/core/src/**", "@codetrail/core/*"],
+                "message": "Front-ends import only from @codetrail/core."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
