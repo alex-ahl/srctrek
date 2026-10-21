@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/codetrail-icon.svg" width="128" alt="codetrail icon">
+</p>
+
 # codetrail
 
 A debugger session for code you haven't run. `trail` takes a change — a git range or pull
