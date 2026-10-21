@@ -2,7 +2,7 @@
   <img src="docs/assets/codetrail-icon.svg" width="128" alt="codetrail icon">
 </p>
 
-# codetrail
+<h1 align="center">codetrail</h1>
 
 A debugger session for code you haven't run. `trail` takes a change — a git range or pull
 requests, across one or more repos — and follows one example scenario from its trigger to
