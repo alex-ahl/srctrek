@@ -8,7 +8,6 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - **Tours travel with the PR:** committed on the branch or attached to the PR.
 - **Comparing tours:** a producer's and a reviewer's tour of the same change side by side;
   disagreements are where to look first.
-- **Tours of existing code:** a scenario with no range, every step unchanged.
 
 ## Stepping
 

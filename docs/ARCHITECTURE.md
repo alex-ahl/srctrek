@@ -107,6 +107,22 @@ The user's agent builds the tour through `trail mcp`:
    call is validated; the TUI shows the overview as soon as `start_tour` lands and steps as
    they arrive.
 
+The agent is started one of two ways:
+
+- From the agent's own chat, with `trail mcp` registered.
+- By `trail` itself, when there is no tour for the change: it runs the user's agent CLI
+  headless with `trail mcp` attached, detected and launched as for Asking, and shows the
+  build view while the tour arrives.
+
+Without a change (a repo the user doesn't know), `trail` builds a tour of existing code: the
+agent proposes candidate triggers (CLI commands, HTTP routes, event handlers, scheduled
+jobs), the user picks one or types their own, and the tour follows it with every step
+unchanged and no range.
+
+A tour from anywhere — an agent, a teammate, written by hand — is validated when loaded:
+the schema, cited lines at their recorded revisions, and steps whose files changed since
+marked stale.
+
 ## Following in the editor
 
 The tour is stepped in the editor, in files from the cached worktree.

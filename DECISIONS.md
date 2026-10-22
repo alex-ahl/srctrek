@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-22 — `trail` builds tours by launching the user's agent; existing code in version 1
+
+With no tour for a change, `trail` runs the user's agent headless with `trail mcp` attached,
+the same mechanism as asking from the editor. Without a change, it builds a tour of existing
+code from a trigger the user picks among the agent's proposals. Both join version 1. Any tour,
+however built, is validated on load.
+
+This restores the one-command flow that building through MCP gave up, still without a model
+call of codetrail's own, and covers the onboarding case: a repo the user doesn't know. Moves
+"tours of existing code" from the roadmap into version 1.
+
 ## 2026-10-22 — The editor is where you step; the TUI is for everything around it
 
 The Neovim plugin is the main surface for following a tour. The TUI covers the rest: a home

@@ -36,7 +36,8 @@
   fetch into a cache; reading files at a revision; editor worktrees; tour schema (with
   severity on `uncertain` and the cross-repo evidence rule); save and load.
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
-  validation (schema and cited lines); evals driving an agent headless, including a fixture that is hard to read statically, one whose trigger is in
+  validation (schema and cited lines); `trail` launching the user's agent when there is no
+  tour; tours of existing code from a picked trigger; evals driving an agent headless, including a fixture that is hard to read statically, one whose trigger is in
   an unchanged file, and one that crosses repos.
 - 4: core as a long-lived process with the stepping session; the Neovim plugin (stepping,
   narration, change signs, details); the TUI's home screen, build view, route map, and

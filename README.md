@@ -25,18 +25,19 @@ bun run build
 
 ## Usage
 
-Register `trail mcp` as a stdio MCP server in your agent, then ask it for a trail:
+Run `trail` in a repo. With no tour for the current change, it runs your agent to build
+one; with no change at all, it offers entry points to trail from.
+
+```sh
+trail                 # the latest tour, or build one
+trail <tour-name>     # a saved tour
+```
+
+Or register `trail mcp` as a stdio MCP server in your agent and ask it for a trail:
 
 ```text
 Trail PR <pr-url>, and <pr-url> in the api repo.
 Trail main...HEAD in this repo.
-```
-
-Then step through it:
-
-```sh
-trail                 # the latest tour
-trail <tour-name>     # a saved tour
 ```
 
 | Key           | Action                      |
