@@ -32,6 +32,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - PR URLs from GitLab and other hosts.
 - PR descriptions and linked issues, through the host's CLI (`gh`, `glab`).
 - `--spec` files and URLs.
+- Companion PRs found automatically from cross-repo links in PR descriptions ("Depends on
+  api#12"), through the host's CLI.
 
 ## Editors
 
