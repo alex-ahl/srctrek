@@ -38,8 +38,9 @@
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
   validation (schema and cited lines); evals driving an agent headless, including a fixture that is hard to read statically, one whose trigger is in
   an unchanged file, and one that crosses repos.
-- 4: stepping session in core; TUI controller and Neovim following: stepping, call stack, details, collapsing context
-  and trivial steps, code panel when the editor can't follow.
+- 4: core as a long-lived process with the stepping session; the Neovim plugin (stepping,
+  narration, change signs, details); the TUI's home screen, build view, route map, and
+  fallback stepping view.
 - 5: asking from the editor: `trail ask`, answers through MCP, notes on steps, branch trails
   for what-if questions.
 
@@ -48,6 +49,8 @@
 **Open**
 
 - Whether `trail` with no arguments includes uncommitted changes.
+- Whether OpenTUI is still worth its native code and pre-1.0 risk for the TUI's narrower
+  role: review after Milestone 2.
 - WSL not yet tested.
 - `bun test` would collect `*.test.ts` files inside eval fixtures.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under

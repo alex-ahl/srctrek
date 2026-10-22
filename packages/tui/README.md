@@ -7,9 +7,9 @@ binary's entry point.
 
 ## What it does, and does not
 
-Does: show the overview and the current step, handle stepping keys, show the call stack,
-collapse context and trivial steps, move the editor to each step, and show the code itself
-when the editor can't follow.
+Does: show a home screen of tours and PRs awaiting review, a live view while a tour is
+built, and a route map of the whole trail; and step through a tour with a code panel for
+editors without a plugin.
 
 Does not: talk to git or the model, or define the tour format. That is all in core.
 

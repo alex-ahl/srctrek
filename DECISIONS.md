@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-22 — The editor is where you step; the TUI is for everything around it
+
+The Neovim plugin is the main surface for following a tour. The TUI covers the rest: a home
+screen of tours and PRs awaiting review, a live view while a tour is built, a route map of
+the whole trail, and a fallback stepping view for editors without a plugin. Core runs as a
+long-lived `trail` process that editor plugins talk to over JSON on stdio.
+
+In the spike, the controller pane went unused once Neovim could step on its own; a separate
+pane repeats what the editor shows. The TUI keeps codetrail usable without a supported
+editor and gives the overview the editor can't. OpenTUI is reviewed after Milestone 2
+against the TUI's narrower role.
+
 ## 2026-10-22 — Questions are asked from the editor
 
 The user asks about the current step from the editor; `trail ask` runs the user's own agent

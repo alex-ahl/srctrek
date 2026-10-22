@@ -19,8 +19,9 @@ requests, across one or more repos — picks one concrete example scenario, and 
 from its trigger (a request, an event, a cron job, a command) to its outcome (a response,
 a write, an emitted event) in execution order.
 
-- **Drives your editor.** Each step moves your editor to its file and lines; `trail` is the
-  controller beside it: step over, into, out, with a call stack.
+- **In your editor.** You step through the trail in your editor: step over, into, out, with
+  a call stack. The terminal is for everything around it: choosing a change, watching a
+  trail being built, and seeing the whole route at once.
 - **Whole flow, change highlighted.** Unchanged code on the path is included and collapsed
   by default; changed code is where attention goes.
 - **Across repos.** One trail crosses repos and async boundaries (HTTP calls, queues,

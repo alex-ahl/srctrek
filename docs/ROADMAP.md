@@ -50,6 +50,10 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 
 ## Front-ends
 
+- TUI sidebar mode: narration, call stack, watched values, and boundary cards in a pane, for
+  an editor kept free of inline text.
+- `trail doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
+- Presenting: a tour walked through for a team, with large narration and the route map.
 - Web GUI served by the same binary (`trail --gui`).
 
 ## Accuracy

@@ -3,11 +3,11 @@
 ## Shape
 
 ```
-local repos / PR URLs ──► core ◄──► mcp ◄──► user's agent
-                           │
-                           ▼
-              tour (.codetrail/tours/<name>.json) ──► tui ──► editor
-                                                      (gui later)
+local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──► user's agent
+                           │        ▲
+                           ▼        │ JSON over stdio
+        tour (.codetrail/tours/<name>.json)   ├── Neovim plugin (stepping, in the editor)
+                                              └── tui (home, build view, route map, fallback)
 ```
 
 - **`packages/core/`** — everything that is not presentation: resolving repos and ranges,
@@ -15,9 +15,16 @@ local repos / PR URLs ──► core ◄──► mcp ◄──► user's agent
   checkouts, prompts, the tour schema, validation, saving and loading tours, and the
   stepping session (current step, next, into, out, call stack) that every front-end and
   editor adapter renders. Exposes its API only
-  through `packages/core/src/index.ts`.
-- **`packages/tui/`** — the terminal controller (OpenTUI + React): overview, current step,
-  call stack, keys, and driving the editor. Holds no tour-building logic.
+  through `packages/core/src/index.ts`. Runs as a long-lived `trail` process that editor
+  plugins talk to over JSON on stdio, the way language servers do.
+- **Neovim plugin (Milestone 4)** — Lua; the main place a tour is followed. Renders core's
+  stepping session in the editor: highlights, one-line narration, change signs, details,
+  asking. Holds no stepping logic of its own.
+- **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
+  stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
+  live view while a tour is built; a route map of the whole trail across repos; and a
+  fallback stepping view with a code panel for editors without a plugin. Holds no
+  tour-building logic.
 - **mcp (Milestone 3)** — the MCP server (`trail mcp`, stdio) that the user's agent talks to.
   Exposes core's capabilities as MCP tools and prompts. Holds no tour logic of its own.
 - **cli (Milestone 2)** — the `trail` binary's entry point: parses arguments, resolves repos
@@ -102,13 +109,11 @@ The user's agent builds the tour through `trail mcp`:
 
 ## Following in the editor
 
-On each step the TUI moves the editor to the step's file and line in the cached worktree.
+The tour is stepped in the editor, in files from the cached worktree.
 
-- Neovim (version 1): `nvim --server <socket> --remote-send` to a running instance, which
-  also highlights the step's range.
-- Every other editor: `e` opens the step at its line with the editor's open-at-line command.
-
-Editor plugins (inline summaries, stepping from inside the editor) are optional adapters.
+- Neovim (version 1): the plugin steps from inside the editor and renders each step.
+- Every other editor: the TUI's fallback stepping view shows the code, and `e` opens the
+  step at its line with the editor's open-at-line command.
 
 ## Asking
 
