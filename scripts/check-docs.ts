@@ -16,12 +16,13 @@ export function linkTargets(markdown: string): string[] {
 }
 
 // Backticked text is checked only when it is unambiguously a path: no spaces, placeholders,
-// globs or npm scopes, and either a slash or a lowercase file extension.
+// globs or npm scopes, and either a lowercase file extension or a trailing slash. A bare
+// slash isn't enough: protocol methods like `build/progress` have one too.
 export function codePaths(markdown: string): string[] {
   const spans = [...markdown.matchAll(/`([^`\n]+)`/g)].map((m) => m[1] ?? "")
   return spans.filter(
     (s) =>
-      /^[\w.\-/]+$/.test(s) && !s.includes("..") && (s.includes("/") || /\.[a-z]{1,4}$/.test(s)),
+      /^[\w.\-/]+$/.test(s) && !s.includes("..") && (s.endsWith("/") || /\.[a-z]{1,4}$/.test(s)),
   )
 }
 

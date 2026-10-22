@@ -25,6 +25,7 @@ describe("codePaths", () => {
       "`@opentui/core`",
       "`.codetrail/tours/<name>.json`",
       "`$EDITOR`",
+      "`build/progress`",
     ].join(" ")
     expect(codePaths(md)).toEqual(["packages/core/", "AGENTS.md"])
   })
