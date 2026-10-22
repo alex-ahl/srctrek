@@ -50,6 +50,7 @@
 
 **Open**
 
+- Check the name before going public.
 - Whether `trail` with no arguments includes uncommitted changes.
 - Whether OpenTUI is still worth its native code and pre-1.0 risk for the TUI's narrower
   role: review after Milestone 2.
