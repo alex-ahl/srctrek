@@ -4,31 +4,44 @@
 
 **Done**
 
-- Milestone 0: OpenTUI 0.6.6 + React compiles to a single working binary on macOS arm64.
-  Linux binaries cross-compile and embed the Linux native library; running them is
-  covered by the CI smoke job, not yet observed passing.
+- Milestone 0: OpenTUI 0.6.6 + React compiles to a single working binary. Verified on
+  macOS arm64 by hand, and on Linux x64, Linux arm64, and macOS by the CI smoke job.
 - Milestone 1: workspace layout, docs, typecheck, lint, format, tests, docs check, CI.
 - Product sharpened: trigger to outcome, across repos, from local ranges or pull requests,
   driving the editor, with evidence on every link (`docs/PRODUCT.md`, `DECISIONS.md`).
 
-**Next: quality spike, before Milestone 2**
+## 2026-10-22 — Quality spike
 
-- A hand-written tour of a single-repo pipeline exists outside the repo.
-- Run that pipeline on made-up input with call tracing and compare against the tour.
-- Value test: questions on the flow, tour against a plain chat explanation.
-- Follow-mode script: step the tour and drive the editor.
-- The deciding test: a tour of a real multi-repo PR the user has already reviewed, judged
-  without running anything.
+**Done**
+
+- Fixture `evals/fixtures/refund/`: a refund feature across a TypeScript web client, a
+  TypeScript API, and a Python worker, with a planted units bug; ground truth in
+  `evals/fixtures/refund/expected.json`.
+- A reviewer agent, given only the three repos, built a 20-step tour: every ground-truth
+  step in order, both hops, all cited lines valid, and the planted bug found with correct
+  numbers. It also raised five real unplanted issues.
+- Weaknesses: the queue hop's link was a topic-name match across repos but cited only one
+  side and was not marked guessed; 13 of 20 steps carried `uncertain`, burying the bug.
+- Follow mode works in Neovim: stepping from inside the editor, step highlight, one-line
+  narration, `+`/`~` signs on changed lines, a details popup. Judged workable by the user.
+
+**Not yet tested**
+
+- A real multi-repo PR, read by the user without running anything.
+- Larger and messier code than the fixture.
 
 **Milestones**
 
 - 2: cli package; repos and ranges from local paths or GitHub PR URLs; base detection; remote
-  fetch into a cache; reading files at a revision; editor worktrees; tour schema; save and load.
+  fetch into a cache; reading files at a revision; editor worktrees; tour schema (with
+  severity on `uncertain` and the cross-repo evidence rule); save and load.
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
   validation (schema and cited lines); evals driving an agent headless, including a fixture that is hard to read statically, one whose trigger is in
   an unchanged file, and one that crosses repos.
-- 4: TUI controller and Neovim following: stepping, call stack, details, collapsing context
+- 4: stepping session in core; TUI controller and Neovim following: stepping, call stack, details, collapsing context
   and trivial steps, code panel when the editor can't follow.
+- 5: asking from the editor: `trail ask`, answers through MCP, notes on steps, branch trails
+  for what-if questions.
 
 **Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
 

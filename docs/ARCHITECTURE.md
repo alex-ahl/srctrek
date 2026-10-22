@@ -12,7 +12,9 @@ local repos / PR URLs ──► core ◄──► mcp ◄──► user's agent
 
 - **`packages/core/`** — everything that is not presentation: resolving repos and ranges,
   fetching remote refs, reading and searching files at a revision, preparing editor
-  checkouts, prompts, the tour schema, validation, saving and loading tours. Exposes its API only
+  checkouts, prompts, the tour schema, validation, saving and loading tours, and the
+  stepping session (current step, next, into, out, call stack) that every front-end and
+  editor adapter renders. Exposes its API only
   through `packages/core/src/index.ts`.
 - **`packages/tui/`** — the terminal controller (OpenTUI + React): overview, current step,
   call stack, keys, and driving the editor. Holds no tour-building logic.
@@ -76,10 +78,14 @@ Defined in code under `packages/core/schema/`. Saved as `.codetrail/tours/<name>
   - `blob`: the file's git blob id at the tour's revision; a mismatch marks the step stale
   - `kind`: `call`, `return`, `hop` (async or cross-process: the call stack resets), or `context`
   - `changed`: whether the range touches these lines
-  - `via`: the evidence for arriving here — `{ repo, file, line }` of the call site, route,
-    config line, message name, or spec entry — plus `guessed: true` when the link is a
-    name match
-  - optional: `predicted_values`, `calls` (id of the step stepped into), `uncertain`, `trivial`
+  - `via`: the evidence for arriving here — one or more `{ repo, file, line }` citing the
+    call site, route, config line, message name, or spec entry — plus `guessed: true` when
+    the link is a name match. A link that crosses repos cites both sides or is guessed;
+    validation rejects anything else.
+  - optional: `predicted_values`, `calls` (id of the step stepped into), `trivial`, and
+    `uncertain`: `{ severity, note }`, severity `high` (likely wrong behaviour), `medium`
+    (risky), or `low` (worth knowing). Front-ends show `high` inline and the rest in details.
+  - `notes[]`: questions asked on this step and their answers (see Asking)
 
 ## Building a tour
 
@@ -103,6 +109,25 @@ On each step the TUI moves the editor to the step's file and line in the cached 
 - Every other editor: `e` opens the step at its line with the editor's open-at-line command.
 
 Editor plugins (inline summaries, stepping from inside the editor) are optional adapters.
+
+## Asking
+
+The user asks a question about the current step from the editor; codetrail runs the user's
+agent to answer it.
+
+1. The editor sends the question, the current step, the call stack, and any selected lines
+   to `trail ask`.
+2. `trail ask` builds the prompt from `packages/core/prompts/` and runs the user's agent CLI
+   headless, with `trail mcp` attached for reading code at the tour's revisions.
+3. The agent answers through an MCP tool. Core validates the answer like a tour: cited lines
+   exist, values are labeled predicted.
+4. The editor shows the answer beside the code with jumpable citations, and core saves it on
+   the step as a note.
+
+Answers by kind: explain (text with citations), navigate (locations), what-if (a branch
+trail from the current step), verify (a flag raised, lowered, or cleared, with the reason).
+
+The agent CLI is detected from those installed; one setting overrides it.
 
 ## Modes
 

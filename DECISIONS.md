@@ -2,6 +2,21 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-22 — Questions are asked from the editor
+
+The user asks about the current step from the editor; `trail ask` runs the user's own agent
+headless with the step's context and `trail mcp` attached, and the answer comes back through
+MCP, validated, and saved on the step. Asking from inside the agent's chat was the
+alternative; the user wants to stay in the editor. codetrail still makes no model call of
+its own. Planned as Milestone 5.
+
+## 2026-10-22 — Severity on flags; cross-repo links cite both sides
+
+`uncertain` carries a severity, and only `high` shows inline. A link that crosses repos cites
+evidence on both sides or is marked guessed, enforced by validation. In the quality spike, a
+reviewer flagged 13 of 20 steps, so the real bug read like a CORS note, and it cited one side
+of a topic-name match across repos without marking it guessed.
+
 ## 2026-10-21 — Tours are built by the user's agent, through MCP
 
 `trail mcp` is an MCP server. It resolves repos and ranges, serves git-backed read tools at
