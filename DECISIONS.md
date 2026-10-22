@@ -2,6 +2,27 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-22 — Supported editors: Neovim, then VS Code and its forks
+
+Full editor integration covers Neovim (version 1) and VS Code with its forks (after version
+1, one extension published to both marketplaces). Every other editor gets the TUI's fallback
+stepping view and opens steps at their line. An LSP facade and a debug-protocol adapter for
+the long tail are not planned: each is another translation layer over core, and these two
+editors cover the intended users.
+
+## 2026-10-22 — Editor protocol; editor integrations live in this repo
+
+Editors talk to core over JSON-RPC 2.0 on stdio with language-server framing, through
+`trail serve` started by the client. Core owns the stepping session and pushes
+ready-to-render payloads; clients hold no logic. An `initialize` handshake checks one integer
+protocol version. Messages are defined in core and covered by contract tests that run each
+editor client headless against `trail serve`. Specified in `docs/PROTOCOL.md`.
+
+Editor integrations live in an editors directory in this repo while the protocol changes;
+every protocol change then touches core and clients in one commit and one CI run. The Neovim
+plugin is mirrored into its own repo on release, because plugin managers install from a
+repo root. The VS Code extension needs no mirror.
+
 ## 2026-10-22 — `trail` builds tours by launching the user's agent; existing code in version 1
 
 With no tour for a change, `trail` runs the user's agent headless with `trail mcp` attached,

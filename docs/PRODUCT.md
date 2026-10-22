@@ -29,7 +29,8 @@ a write, an emitted event) in execution order.
 - **No setup.** Reads code and history from git, local or remote; runs nothing.
 - **Checkable.** Every link from one step to the next cites the line that causes it.
   Predicted values are labeled as predicted; guessed links and risky spots are flagged.
-- **Any editor, any agent.**
+- **Any agent.** Neovim and VS Code (and its forks) get full editor integration; any other
+  editor gets the terminal view and opens steps at their line.
 
 ## What it is not
 

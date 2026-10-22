@@ -36,16 +36,10 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 
 ## Editors
 
-- Following in VS Code and Cursor (`code -g`), Zed, and Sublime.
-- Editor plugins: inline summaries, stepping from inside the editor. Each plugin renders
-  core's stepping session; none holds stepping logic of its own.
-- VS Code extension: steps revealed and highlighted with decorations, summaries as CodeLens,
-  `uncertain` flags as diagnostics, changed lines from the built-in git gutter, steps and
-  call stack in a tree view, progress in the status bar.
-- Spike: a tour presented as a narrated debug session over the Debug Adapter Protocol, so
-  any editor with a debugger UI gets stepping, the call stack, and a variables pane without
-  a plugin of its own. Predicted values appear in a scope labeled as predicted. Spike it
-  before writing per-editor plugins beyond Neovim.
+- VS Code extension, also for its forks: steps revealed and highlighted with decorations,
+  summaries as CodeLens, `uncertain` flags as diagnostics, changed lines from the built-in
+  git gutter, steps and call stack in a tree view, progress in the status bar. Renders core's
+  stepping session; holds no stepping logic of its own.
 
 ## Front-ends
 
@@ -54,6 +48,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - `trail doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
 - Presenting: a tour walked through for a team, with large narration and the route map.
 - Web GUI served by the same binary (`trail --gui`).
+- Several clients on one stepping session (the TUI's route map following the editor),
+  through a local socket.
 
 ## Accuracy
 
@@ -71,5 +67,9 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - Release workflow: per-platform binaries built on native runners, with checksums.
 - Install script; Homebrew tap; an npm package with per-platform binaries.
 - macOS notarization; Windows builds.
+- The Neovim plugin mirrored on release into its own repo for plugin managers; development
+  stays in this repo.
+- The VS Code extension published to both the VS Code Marketplace and Open VSX, so forks can
+  install it.
 - Versioning: release-please from Conventional Commits; semver covers the CLI, key
   bindings, the tour format, and the workspace file; 0.x until those settle.

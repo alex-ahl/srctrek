@@ -9,7 +9,8 @@ requests, across one or more repos — and follows one example scenario from its
 its outcome in execution order, moving your editor to each step: step over, step into,
 step out, with a call stack.
 
-Reads code from git, local or remote, and runs nothing. Works with any editor and any agent.
+Reads code from git, local or remote, and runs nothing. Works with any agent; steps through
+trails in Neovim, and in VS Code and its forks later.
 
 > **Status:** pre-release, not usable yet. See `docs/HANDOFF.md`.
 
