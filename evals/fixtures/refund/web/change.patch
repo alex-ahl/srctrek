@@ -1,0 +1,46 @@
+diff --git a/src/actions.ts b/src/actions.ts
+index 0bb2dc6..9ee4867 100644
+--- a/src/actions.ts
++++ b/src/actions.ts
+@@ -1,6 +1,13 @@
++import { requestRefund } from "./refunds"
++
+ // Handlers for elements with a data-action attribute; see main.ts.
+ export type Action = (el: HTMLElement) => void | Promise<void>
+ 
+ export const actions: Record<string, Action> = {
+   print: () => window.print(),
++  refund: async (el) => {
++    el.setAttribute("disabled", "")
++    await requestRefund(el.dataset.orderId!, Number(el.dataset.amount))
++    el.closest("#app")!.querySelector(".status")!.textContent = "refund requested"
++  },
+ }
+diff --git a/src/orders.ts b/src/orders.ts
+index c9c237a..2a6280f 100644
+--- a/src/orders.ts
++++ b/src/orders.ts
+@@ -18,5 +18,10 @@ export function renderOrder(order: Order, root: HTMLElement): void {
+     <p>${order.customer}</p>
+     <p>${order.total.toFixed(2)} ${order.currency}</p>
+     <p class="status">${order.status}</p>
++    ${
++      order.status === "refunded"
++        ? ""
++        : `<button data-action="refund" data-order-id="${order.id}" data-amount="${order.total}">Refund order</button>`
++    }
+   `
+ }
+diff --git a/src/refunds.ts b/src/refunds.ts
+new file mode 100644
+index 0000000..beeb0d5
+--- /dev/null
++++ b/src/refunds.ts
+@@ -0,0 +1,7 @@
++import { post } from "./api"
++
++export type RefundRequested = { refund_id: string; status: "requested" }
++
++export function requestRefund(orderId: string, amount: number): Promise<RefundRequested> {
++  return post<RefundRequested>("/refunds", { order_id: orderId, amount })
++}
