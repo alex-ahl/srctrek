@@ -3,6 +3,8 @@
 --   ]t / [t next / previous step     <leader>ti step into   <leader>to step out
 --   <leader>tt details (overview before step 1)               <leader>tq quit
 --   <leader>ta ask about the current step (enter on a cited repo/file:line jumps there)
+-- Every key is also a command (:TrailNext, :TrailPrev, :TrailInto, :TrailOut,
+-- :TrailDetails, :TrailAsk, :TrailQuit) for rebinding when a key clashes.
 -- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), else the first of
 -- claude, codex, opencode on PATH. Each step fires `User CodetrailStep` with
 -- { path, line, repo } for file explorers or user config to follow.
@@ -67,10 +69,31 @@ local function clear()
   end
 end
 
+-- Set by M.start; binds the trail keys to one buffer.
+local bind_keys = function(_) end
+
+-- A normal editor window for the step's file, not a file tree or other side window.
+local function editor_window()
+  local current = vim.api.nvim_get_current_win()
+  if vim.bo[vim.api.nvim_win_get_buf(current)].buftype == "" then
+    return current
+  end
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local normal = vim.api.nvim_win_get_config(win).relative == ""
+    if normal and vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "" then
+      return win
+    end
+  end
+  return current
+end
+
 local function show(step)
   clear()
+  vim.api.nvim_set_current_win(editor_window())
   vim.cmd("edit " .. vim.fn.fnameescape(step.path))
   local buf = vim.api.nvim_get_current_buf()
+  -- bound after the buffer loads, so they beat other plugins' mappings for the same keys
+  bind_keys(buf)
   local last = vim.api.nvim_buf_line_count(buf)
   local s, e = math.min(step.start_line, last), math.min(step.end_line, last)
 
@@ -118,7 +141,7 @@ local function show(step)
 end
 
 -- Stepping from inside the editor.
-local trail = { tour = nil, index = 0, stack = {}, by_id = {}, roots = {}, changed = {}, notes = {} }
+local trail = { tour = nil, index = 0, stack = {}, by_id = {}, roots = {}, changed = {}, notes = {}, bound = {} }
 
 -- A repo's source is a local directory, absolute or relative to Neovim's working directory.
 -- Returns nil and the first repo whose source isn't one.
@@ -204,6 +227,7 @@ local function float(lines, title)
   })
   vim.wo.wrap = true
   vim.wo.linebreak = true
+  bind_keys(buf)
   vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
   vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = buf })
   return buf
@@ -482,14 +506,36 @@ local function out()
   end
 end
 
+local KEYS = { "]t", "[t", "<leader>ti", "<leader>to", "<leader>tt", "<leader>ta", "<leader>tq" }
+
 local function quit()
   clear()
   vim.wo.winbar = ""
-  for _, lhs in ipairs({ "]t", "[t", "<leader>ti", "<leader>to", "<leader>tt", "<leader>ta", "<leader>tq" }) do
+  for _, lhs in ipairs(KEYS) do
     pcall(vim.keymap.del, "n", lhs)
+    for buf in pairs(trail.bound) do
+      if vim.api.nvim_buf_is_valid(buf) then
+        pcall(vim.keymap.del, "n", lhs, { buffer = buf })
+      end
+    end
   end
-  trail.tour = nil
+  trail.tour, trail.bound = nil, {}
 end
+
+local function previous_step()
+  go(trail.index - 1)
+end
+
+-- Each action as a key and as a command, so clashing keys can be rebound to the commands.
+local ACTIONS = {
+  { key = "]t", command = "TrailNext", desc = "next step", fn = function() next_step() end },
+  { key = "[t", command = "TrailPrev", desc = "previous step", fn = function() previous_step() end },
+  { key = "<leader>ti", command = "TrailInto", desc = "step into", fn = function() into() end },
+  { key = "<leader>to", command = "TrailOut", desc = "step out", fn = function() out() end },
+  { key = "<leader>tt", command = "TrailDetails", desc = "details", fn = function() details() end },
+  { key = "<leader>ta", command = "TrailAsk", desc = "ask about this step", fn = function() ask() end },
+  { key = "<leader>tq", command = "TrailQuit", desc = "quit", fn = function() quit() end },
+}
 
 -- Lines the change touches come from <tour>.changed.json beside the tour, when present:
 -- { [repo] = { [file] = { [line] = "added" | "changed" } } }.
@@ -508,18 +554,16 @@ function M.start(path)
   for i, s in ipairs(trail.tour.steps) do
     trail.by_id[s.id] = i
   end
-  local map = function(lhs, fn, desc)
-    vim.keymap.set("n", lhs, fn, { desc = "codetrail: " .. desc })
+  bind_keys = function(buf)
+    for _, a in ipairs(ACTIONS) do
+      vim.keymap.set("n", a.key, a.fn, { buffer = buf, desc = "codetrail: " .. a.desc })
+    end
+    trail.bound[buf] = true
   end
-  map("]t", next_step, "next step")
-  map("[t", function()
-    go(trail.index - 1)
-  end, "previous step")
-  map("<leader>ti", into, "step into")
-  map("<leader>to", out, "step out")
-  map("<leader>tt", details, "details")
-  map("<leader>ta", ask, "ask about this step")
-  map("<leader>tq", quit, "quit")
+  for _, a in ipairs(ACTIONS) do
+    vim.keymap.set("n", a.key, a.fn, { desc = "codetrail: " .. a.desc })
+    vim.api.nvim_create_user_command(a.command, a.fn, { desc = "codetrail: " .. a.desc })
+  end
   details()
 end
 
