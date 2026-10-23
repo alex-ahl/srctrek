@@ -74,6 +74,10 @@ code disagree, the step is flagged `uncertain`.
 
 Defined in code in `packages/core/src/schema/tour.ts`. Saved as `.codetrail/tours/<name>.json`.
 
+A step's narration (summary and details) is about the step's own lines. Any other code it
+mentions is a citation, `<repo>/<path>:<line>`, which the editor can jump to and validation
+can check; never a bare "line 5".
+
 - `format_version`, `title`, `created_at`, `prompt_hash`, `overview`
 - `author`: `{ role, agent, model }` — role is `producer` (the agent that wrote the change) or
   `reviewer` (an independent reading); `agent` is absent when core built the tour itself
