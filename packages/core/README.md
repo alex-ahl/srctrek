@@ -9,7 +9,7 @@ no UI code.
 
 Does: resolve repos, ranges, and base branches; fetch remote refs; read and search files at
 a revision; hold the prompts (`packages/core/prompts/`) and the tour schema
-(`packages/core/schema/`); validate submitted tours; save and load tours.
+(`packages/core/src/schema/`); validate submitted tours; save and load tours.
 
 Does not: render anything, read keys, open editors, speak MCP, or call a model.
 

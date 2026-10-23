@@ -57,4 +57,4 @@
 - WSL not yet tested.
 - `bun test` would collect `*.test.ts` files inside eval fixtures.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
-  `packages/core/schema/` and `evals/` is not typechecked or type-aware linted.
+  `evals/` is not typechecked or type-aware linted.

@@ -70,7 +70,7 @@ code disagree, the step is flagged `uncertain`.
 
 ## Tour format
 
-Defined in code under `packages/core/schema/`. Saved as `.codetrail/tours/<name>.json`.
+Defined in code in `packages/core/src/schema/tour.ts`. Saved as `.codetrail/tours/<name>.json`.
 
 - `format_version`, `title`, `created_at`, `prompt_hash`, `overview`
 - `author`: `{ role, agent, model }` — role is `producer` (the agent that wrote the change) or

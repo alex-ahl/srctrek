@@ -1,0 +1,618 @@
+{
+  "format_version": 1,
+  "title": "Full refund of order o_1001: button click to payment-provider refund",
+  "created_at": "2026-10-22T09:00:00Z",
+  "prompt_hash": "none",
+  "overview": "The web app renders a Refund button carrying the order's display total (major units) in data-amount. The click is routed through the delegated data-action handler to requestRefund, which POSTs {order_id, amount} to the API's /refunds. The API routes by operationId from openapi.json to createRefund, which validates amount as an integer in minor units, stores a RefundRow, appends a refund.requested message to a JSONL topic file, and returns 202. The Python worker polls that topic, calls the payment provider with amount_minor=int(amount), and publishes refund.completed. The major/minor unit mismatch between web and API means a full refund becomes a 1/100 refund for whole-number totals and a 400 for totals with cents.",
+  "author": {
+    "role": "reviewer",
+    "agent": "example-agent",
+    "model": "example-model"
+  },
+  "sources": [
+    {
+      "kind": "openapi",
+      "location": "api/openapi.json"
+    }
+  ],
+  "trigger": {
+    "kind": "event",
+    "input": "User opens the order page at ?order=o_1001 (seeded order: 49900 minor units SEK, status paid) and clicks the new 'Refund order' button"
+  },
+  "outcome": "API answers 202 and the page shows 'refund requested'; the worker picks up refund.requested and asks the payment provider to refund amount_minor=499 (4.99 SEK, not the 499.00 SEK order total), then publishes refund.completed, which nothing consumes. The order and refund rows in the API stay 'paid' / 'requested'.",
+  "repos": [
+    {
+      "name": "web",
+      "source": "evals/fixtures/refund/web",
+      "revision": "feature",
+      "range": "main...feature"
+    },
+    {
+      "name": "api",
+      "source": "evals/fixtures/refund/api",
+      "revision": "feature",
+      "range": "main...feature"
+    },
+    {
+      "name": "worker",
+      "source": "evals/fixtures/refund/worker",
+      "revision": "feature",
+      "range": "main...feature"
+    }
+  ],
+  "steps": [
+    {
+      "id": "s1",
+      "repo": "web",
+      "file": "src/main.ts",
+      "start_line": 4,
+      "end_line": 18,
+      "blob": "336bde3ec8b438aecd61ebb16b055405a33dd939",
+      "kind": "context",
+      "changed": false,
+      "summary": "On load, the page reads ?order=o_1001, fetches the order and renders it into #app.",
+      "details": "Setup for the scenario: the button only exists after renderOrder runs. fetchOrder calls GET /orders/o_1001 (web/src/orders.ts:12).",
+      "via": null,
+      "predicted_values": {
+        "orderId": "\"o_1001\""
+      },
+      "calls": "s2"
+    },
+    {
+      "id": "s2",
+      "repo": "api",
+      "file": "src/handlers/orders.ts",
+      "start_line": 4,
+      "end_line": 17,
+      "blob": "c37b0f1932339758f326126c9b25145102e5f5b2",
+      "kind": "hop",
+      "changed": false,
+      "summary": "GET /orders/{id} resolves to getOrder, which converts total_minor to major units via toPublic.",
+      "details": "Route comes from openapi.json operationId getOrder (api/openapi.json:7) mapped in handlers (api/src/handlers/index.ts:10). toPublic divides total_minor by 100, so the web receives total in major units, documented as such in api/openapi.json:19.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/orders.ts",
+            "line": 12
+          },
+          {
+            "repo": "api",
+            "file": "openapi.json",
+            "line": 5
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "body.total": "499 (predicted; 49900 / 100)",
+        "body.status": "\"paid\""
+      },
+      "calls": "s3"
+    },
+    {
+      "id": "s3",
+      "repo": "web",
+      "file": "src/orders.ts",
+      "start_line": 15,
+      "end_line": 27,
+      "blob": "2a6280f0fa7e713ed51b43c60e4071bd6b1a7e30",
+      "kind": "call",
+      "changed": true,
+      "summary": "renderOrder now adds a Refund button with data-order-id and data-amount set from the order.",
+      "details": "Status is 'paid', so the button is rendered. data-amount is order.total, which is the major-unit display value from GET /orders.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/main.ts",
+            "line": 17
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "button": "<button data-action=\"refund\" data-order-id=\"o_1001\" data-amount=\"499\">"
+      },
+      "uncertain": {
+        "severity": "high",
+        "note": "data-amount carries order.total in MAJOR units (499), but POST /refunds expects amount in MINOR units (api/openapi.json:43). Also the button only hides for status 'refunded'; nothing ever sets that status, so it reappears after reload."
+      }
+    },
+    {
+      "id": "s4",
+      "repo": "web",
+      "file": "src/main.ts",
+      "start_line": 7,
+      "end_line": 14,
+      "blob": "336bde3ec8b438aecd61ebb16b055405a33dd939",
+      "kind": "context",
+      "changed": false,
+      "summary": "The delegated click listener finds the closest [data-action] element and looks up actions['refund'].",
+      "details": "Existing dispatch mechanism; the feature plugs in by adding a 'refund' key. Rejections are caught and rendered as a <p class=\"error\">.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/orders.ts",
+            "line": 24
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "el.dataset.action": "\"refund\""
+      },
+      "calls": "s5"
+    },
+    {
+      "id": "s5",
+      "repo": "web",
+      "file": "src/actions.ts",
+      "start_line": 8,
+      "end_line": 12,
+      "blob": "9ee4867eecb9f4f488640f55e7488caf34a00c27",
+      "kind": "call",
+      "changed": true,
+      "summary": "The refund action disables the button and calls requestRefund with the order id and Number(data-amount).",
+      "details": "Reached by actions[el.dataset.action] at main.ts:9 and invoked at main.ts:11.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/main.ts",
+            "line": 11
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "orderId": "\"o_1001\"",
+        "amount": "499 (predicted; major units)"
+      },
+      "calls": "s6",
+      "uncertain": {
+        "severity": "low",
+        "note": "On failure the button stays disabled forever and the status line is not updated; only an error paragraph is appended."
+      }
+    },
+    {
+      "id": "s6",
+      "repo": "web",
+      "file": "src/refunds.ts",
+      "start_line": 5,
+      "end_line": 7,
+      "blob": "beeb0d5926b4332d0833930537c0a7239cae8a31",
+      "kind": "call",
+      "changed": true,
+      "summary": "requestRefund POSTs {order_id, amount} to /refunds and types the reply as RefundRequested.",
+      "details": "Passes amount through unchanged; no conversion to minor units.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/actions.ts",
+            "line": 10
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "body": "{\"order_id\":\"o_1001\",\"amount\":499}"
+      },
+      "calls": "s7",
+      "uncertain": {
+        "severity": "medium",
+        "note": "This is where the unit conversion (x100, rounded) is missing; the API treats 499 as 499 öre."
+      }
+    },
+    {
+      "id": "s7",
+      "repo": "web",
+      "file": "src/api.ts",
+      "start_line": 9,
+      "end_line": 17,
+      "blob": "07d1b7cb671d8d81089e2a26a833d3cd31bf7a56",
+      "kind": "call",
+      "changed": false,
+      "summary": "post() sends JSON to BASE_URL + /refunds and throws on non-2xx.",
+      "details": "202 is res.ok, so the JSON body is parsed and returned.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/refunds.ts",
+            "line": 6
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "url": "http://localhost:3000/refunds (predicted, unless VITE_API_URL is set)"
+      },
+      "calls": "s8",
+      "uncertain": {
+        "severity": "medium",
+        "note": "A cross-origin POST with content-type application/json triggers a CORS preflight; the API has no OPTIONS route or Access-Control-* headers (api/src/server.ts:33-44), so this only works if web and API share an origin or a proxy sits in front. Not verifiable from these repos."
+      }
+    },
+    {
+      "id": "s8",
+      "repo": "api",
+      "file": "src/server.ts",
+      "start_line": 33,
+      "end_line": 44,
+      "blob": "8e09842fdaf35ff6a52cb36739d7c4a6375c7aea",
+      "kind": "hop",
+      "changed": false,
+      "summary": "The HTTP server matches POST /refunds against the spec-derived routes and calls the handler with the parsed body.",
+      "details": "readBody JSON-parses the request; the handler's {status, body} is written back as JSON.",
+      "via": {
+        "cites": [
+          {
+            "repo": "web",
+            "file": "src/api.ts",
+            "line": 10
+          },
+          {
+            "repo": "api",
+            "file": "openapi.json",
+            "line": 31
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "req.method": "\"POST\"",
+        "url.pathname": "\"/refunds\""
+      },
+      "calls": "s9"
+    },
+    {
+      "id": "s9",
+      "repo": "api",
+      "file": "openapi.json",
+      "start_line": 31,
+      "end_line": 55,
+      "blob": "ea20d1479b6f88c58be8f322a1ce6d45285e2195",
+      "kind": "context",
+      "changed": true,
+      "summary": "The new /refunds POST operation (operationId createRefund) defines amount as an integer in minor units.",
+      "details": "loadRoutes reads this spec at startup and builds a route per operation; the operationId names the handler.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/server.ts",
+            "line": 31
+          }
+        ],
+        "guessed": false
+      },
+      "calls": "s10",
+      "uncertain": {
+        "severity": "low",
+        "note": "The spec is only used for routing; requestBody schema is not validated by the server, so the contract with web (which sends major units) is not enforced anywhere except by the handler's own checks."
+      }
+    },
+    {
+      "id": "s10",
+      "repo": "api",
+      "file": "src/handlers/index.ts",
+      "start_line": 8,
+      "end_line": 12,
+      "blob": "efe31e324e58dece50eff54cb3d29ceb391f1d08",
+      "kind": "context",
+      "changed": true,
+      "summary": "createRefund is registered under its operationId so loadRoutes can find it.",
+      "details": "createRefund is registered under its operationId so loadRoutes can find it.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/server.ts",
+            "line": 17
+          }
+        ],
+        "guessed": false
+      },
+      "calls": "s11"
+    },
+    {
+      "id": "s11",
+      "repo": "api",
+      "file": "src/handlers/refunds.ts",
+      "start_line": 8,
+      "end_line": 14,
+      "blob": "b69967fa2c2dd93cd5ae78fd15ac4dcdc12c6138",
+      "kind": "call",
+      "changed": true,
+      "summary": "createRefund looks up the order and validates amount as a positive integer no larger than total_minor.",
+      "details": "o_1001 exists. amount 499 is an integer, > 0 and <= 49900, so it passes.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/server.ts",
+            "line": 39
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "order.total_minor": "49900",
+        "amount": "499",
+        "validation": "passes"
+      },
+      "calls": "s12",
+      "uncertain": {
+        "severity": "high",
+        "note": "Validation accepts the web's major-unit 499 as 499 öre: a full refund silently becomes 4.99 SEK. An order with cents (e.g. total 499.5) would send 499.5 and get a 400. No check against previously requested refunds or order status, so repeated clicks (after reload) can over-refund."
+      }
+    },
+    {
+      "id": "s12",
+      "repo": "api",
+      "file": "src/handlers/refunds.ts",
+      "start_line": 16,
+      "end_line": 19,
+      "blob": "b69967fa2c2dd93cd5ae78fd15ac4dcdc12c6138",
+      "kind": "call",
+      "changed": true,
+      "summary": "Stores a 'requested' RefundRow, publishes refund.requested, and returns 202 {refund_id, status}.",
+      "details": "The published payload uses the key 'amount' (not amount_minor) with the same minor-unit value stored in the row.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/handlers/refunds.ts",
+            "line": 12
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "refund.id": "\"r_<uuid>\"",
+        "payload": "{\"refund_id\":\"r_<uuid>\",\"order_id\":\"o_1001\",\"amount\":499}",
+        "response": "202 {\"refund_id\":\"r_<uuid>\",\"status\":\"requested\"}"
+      },
+      "calls": "s13",
+      "uncertain": {
+        "severity": "medium",
+        "note": "Order status is never moved to 'refunded' and the RefundRow never leaves 'requested'; db is in-memory, so refunds are lost on API restart while the queue message persists."
+      }
+    },
+    {
+      "id": "s13",
+      "repo": "api",
+      "file": "src/bus.ts",
+      "start_line": 7,
+      "end_line": 11,
+      "blob": "59c7d6ac1c014b352bdfe7f15f5fc03cb169a413",
+      "kind": "call",
+      "changed": false,
+      "summary": "publish appends one JSON line {topic, sent_at, payload} to QUEUE_DIR/refund.requested.jsonl.",
+      "details": "publish appends one JSON line {topic, sent_at, payload} to QUEUE_DIR/refund.requested.jsonl.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/handlers/refunds.ts",
+            "line": 18
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "file": "/var/lib/shop/queue/refund.requested.jsonl (predicted, default QUEUE_DIR)"
+      },
+      "calls": "s14"
+    },
+    {
+      "id": "s14",
+      "repo": "web",
+      "file": "src/actions.ts",
+      "start_line": 10,
+      "end_line": 11,
+      "blob": "9ee4867eecb9f4f488640f55e7488caf34a00c27",
+      "kind": "return",
+      "changed": true,
+      "summary": "post() resolves with the 202 body and the action sets the .status text to 'refund requested'.",
+      "details": "The returned RefundRequested (refund_id) is discarded; the UI change is local only.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/server.ts",
+            "line": 40
+          },
+          {
+            "repo": "web",
+            "file": "src/actions.ts",
+            "line": 10
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        ".status textContent": "\"refund requested\""
+      },
+      "uncertain": {
+        "severity": "low",
+        "note": "UI says the refund is requested but nothing ever reports completion or failure back; a reload shows 'paid' and an enabled Refund button again."
+      }
+    },
+    {
+      "id": "s15",
+      "repo": "worker",
+      "file": "worker/main.py",
+      "start_line": 16,
+      "end_line": 22,
+      "blob": "d6e51f61c80e6ffe3144ffddeb861023ad009142",
+      "kind": "hop",
+      "changed": false,
+      "summary": "The worker's poll loop iterates HANDLERS, now including 'refund.requested', and reads new messages for each topic.",
+      "details": "Linked to the API by the topic string 'refund.requested' (worker/worker/handlers/__init__.py:8) and the shared file naming QUEUE_DIR/<topic>.jsonl (worker/worker/queue.py:20 vs api/src/bus.ts:10). Both default QUEUE_DIR to /var/lib/shop/queue.",
+      "via": {
+        "cites": [
+          {
+            "repo": "api",
+            "file": "src/bus.ts",
+            "line": 10
+          },
+          {
+            "repo": "worker",
+            "file": "worker/handlers/__init__.py",
+            "line": 8
+          }
+        ],
+        "guessed": false
+      },
+      "calls": "s16",
+      "uncertain": {
+        "severity": "medium",
+        "note": "A handler exception is logged and swallowed, and the offset still advances past the message (queue.py:29), so a failed refund (e.g. provider timeout) is never retried and nobody is told."
+      }
+    },
+    {
+      "id": "s16",
+      "repo": "worker",
+      "file": "worker/queue.py",
+      "start_line": 18,
+      "end_line": 29,
+      "blob": "5e058f209aea1d5c254c5a8eec694a1693266251",
+      "kind": "call",
+      "changed": false,
+      "summary": "read() seeks to the stored offset, yields each new message's payload, then saves the new offset.",
+      "details": "read() seeks to the stored offset, yields each new message's payload, then saves the new offset.",
+      "via": {
+        "cites": [
+          {
+            "repo": "worker",
+            "file": "worker/main.py",
+            "line": 18
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "payload": "{\"refund_id\":\"r_<uuid>\",\"order_id\":\"o_1001\",\"amount\":499}"
+      },
+      "calls": "s17",
+      "uncertain": {
+        "severity": "high",
+        "note": "The offset is written only after all lines are consumed: if the worker dies after payments.refund succeeds but before line 29, the message is replayed and the customer is refunded twice (no idempotency key is sent to the provider)."
+      }
+    },
+    {
+      "id": "s17",
+      "repo": "worker",
+      "file": "worker/handlers/refunds.py",
+      "start_line": 8,
+      "end_line": 9,
+      "blob": "6b4b8908132722cfe2bc138eedb5d2aacd9a6668",
+      "kind": "call",
+      "changed": true,
+      "summary": "handle_refund_requested passes order_id and amount_minor=int(payload['amount']) to payments.refund.",
+      "details": "handle_refund_requested passes order_id and amount_minor=int(payload['amount']) to payments.refund.",
+      "via": {
+        "cites": [
+          {
+            "repo": "worker",
+            "file": "worker/main.py",
+            "line": 20
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "amount_minor": "499 (predicted; intended 49900)"
+      },
+      "calls": "s18",
+      "uncertain": {
+        "severity": "high",
+        "note": "Key mismatch is handled (API sends 'amount', worker reads 'amount'), but the value is already wrong by 100x from the web; int() would also silently truncate any fractional value."
+      }
+    },
+    {
+      "id": "s18",
+      "repo": "worker",
+      "file": "worker/payments.py",
+      "start_line": 12,
+      "end_line": 19,
+      "blob": "a99faf23fc3fbc48ae006849c5f49f0124bd7c2f",
+      "kind": "call",
+      "changed": false,
+      "summary": "refund() POSTs {order_id, amount_minor} to the provider's /v2/refunds and returns its refund_id.",
+      "details": "refund() POSTs {order_id, amount_minor} to the provider's /v2/refunds and returns its refund_id.",
+      "via": {
+        "cites": [
+          {
+            "repo": "worker",
+            "file": "worker/handlers/refunds.py",
+            "line": 9
+          }
+        ],
+        "guessed": false
+      },
+      "predicted_values": {
+        "request body": "{\"order_id\":\"o_1001\",\"amount_minor\":499}",
+        "return": "provider refund id (predicted; unknown value)"
+      },
+      "calls": "s19",
+      "uncertain": {
+        "severity": "medium",
+        "note": "Refunds 4.99 SEK on a 499.00 SEK order. Our refund_id is not sent, so the provider cannot dedupe retries or replays."
+      }
+    },
+    {
+      "id": "s19",
+      "repo": "worker",
+      "file": "worker/handlers/refunds.py",
+      "start_line": 10,
+      "end_line": 14,
+      "blob": "6b4b8908132722cfe2bc138eedb5d2aacd9a6668",
+      "kind": "call",
+      "changed": true,
+      "summary": "Logs the provider id and publishes refund.completed with refund_id, order_id and provider_refund_id.",
+      "details": "Logs the provider id and publishes refund.completed with refund_id, order_id and provider_refund_id.",
+      "via": {
+        "cites": [
+          {
+            "repo": "worker",
+            "file": "worker/payments.py",
+            "line": 19
+          }
+        ],
+        "guessed": false
+      },
+      "calls": "s20"
+    },
+    {
+      "id": "s20",
+      "repo": "worker",
+      "file": "worker/queue.py",
+      "start_line": 32,
+      "end_line": 36,
+      "blob": "5e058f209aea1d5c254c5a8eec694a1693266251",
+      "kind": "call",
+      "changed": false,
+      "summary": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trail.",
+      "details": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trail.",
+      "via": {
+        "cites": [
+          {
+            "repo": "worker",
+            "file": "worker/handlers/refunds.py",
+            "line": 11
+          }
+        ],
+        "guessed": false
+      },
+      "uncertain": {
+        "severity": "low",
+        "note": "No consumer of refund.completed exists in any of the three repos: the API never marks the RefundRow 'completed' or the order 'refunded', and there is no 'failed' path at all."
+      }
+    }
+  ]
+}
