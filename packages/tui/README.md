@@ -9,7 +9,8 @@ binary's entry point.
 
 Does: show a home screen of tours and PRs awaiting review, a live view while a tour is
 built, and a route map of the whole trail; and step through a tour with a code panel for
-editors without a plugin.
+editors without a plugin. Today: lists the tours in the .codetrail/tours folder and opens the chosen
+one in Neovim.
 
 Does not: talk to git or the model, or define the tour format. That is all in core.
 

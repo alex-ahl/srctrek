@@ -1,14 +1,19 @@
 # Handoff
 
-## 2026-10-20 — Milestone 1: skeleton and docs
+## 2026-10-23 — Tour schema and an interim home screen
 
 **Done**
 
-- Milestone 0: OpenTUI 0.6.6 + React compiles to a single working binary. Verified on
-  macOS arm64 by hand, and on Linux x64, Linux arm64, and macOS by the CI smoke job.
-- Milestone 1: workspace layout, docs, typecheck, lint, format, tests, docs check, CI.
-- Product sharpened: trigger to outcome, across repos, from local ranges or pull requests,
-  driving the editor, with evidence on every link (`docs/PRODUCT.md`, `DECISIONS.md`).
+- Milestone 2, step 1: the tour schema (`packages/core/src/schema/tour.ts`) and saving,
+  loading, and listing tours (`packages/core/src/tours.ts`).
+- The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
+- An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
+  the .codetrail/tours folder and open a tour in Neovim.
+
+**Known gaps**
+
+- The cross-repo rule passes a hop whose evidence cites only the step's own repo.
+- The Neovim plugin has no automated tests or Lua formatter yet.
 
 ## 2026-10-22 — Quality spike
 
@@ -29,6 +34,16 @@
 
 - A real multi-repo PR, read by the user without running anything.
 - Larger and messier code than the fixture.
+
+## 2026-10-20 — Milestone 1: skeleton and docs
+
+**Done**
+
+- Milestone 0: OpenTUI 0.6.6 + React compiles to a single working binary. Verified on
+  macOS arm64 by hand, and on Linux x64, Linux arm64, and macOS by the CI smoke job.
+- Milestone 1: workspace layout, docs, typecheck, lint, format, tests, docs check, CI.
+- Product sharpened: trigger to outcome, across repos, from local ranges or pull requests,
+  driving the editor, with evidence on every link (`docs/PRODUCT.md`, `DECISIONS.md`).
 
 **Milestones**
 

@@ -17,10 +17,12 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   editor adapter renders. Exposes its API only
   through `packages/core/src/index.ts`. Runs as a long-lived `trail` process that editor
   plugins talk to over JSON on stdio, the way language servers do.
-- **Neovim plugin (Milestone 4)** — Lua, in an editors directory beside `packages/` (one
-  folder per editor). The main place a tour is followed. Renders core's stepping session in
-  the editor: highlights, one-line narration, change signs, details, asking. Holds no
-  stepping logic of its own. Talks to core through `docs/PROTOCOL.md`.
+- **`editors/nvim/`** — the Neovim plugin (Lua), the main place a tour is followed:
+  highlights, one-line narration, change signs, details, asking. Depends on no file
+  explorer; each step fires a `User CodetrailStep` event that explorers or user config can
+  follow. Today a prototype that reads tour files and steps through them itself; in
+  Milestone 4 it renders core's stepping session through `docs/PROTOCOL.md` and holds no
+  stepping logic of its own.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
   stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
   live view while a tour is built; a route map of the whole trail across repos; and a

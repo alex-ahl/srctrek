@@ -2,9 +2,11 @@
 import { App } from "./app"
 import { renderFrame } from "./render-frame"
 
-const frame = await renderFrame(<App onQuit={() => undefined} />)
+const frame = await renderFrame(
+  <App entries={[]} onOpen={() => undefined} onQuit={() => undefined} />,
+)
 console.log(frame)
-if (!frame.includes("No tour yet")) {
+if (!frame.includes("No tours")) {
   console.error("smoke: expected text missing from frame")
   process.exit(1)
 }
