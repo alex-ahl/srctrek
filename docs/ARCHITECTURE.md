@@ -55,6 +55,12 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 
 - A repo is a local path or a remote URL; a pull request URL resolves to a repo plus a range
   through its fetchable ref (`refs/pull/<n>/head` on GitHub, equivalents elsewhere).
+- Repos on the route without changes have no range. They come from the command (a repo
+  given without a range, e.g. `trail main...HEAD ../gateway`) or from the repos list
+  (`.codetrail/repos`, one path or URL per line, optionally `@revision`), read
+  automatically; their revision is the default branch unless pinned, recorded as an exact
+  commit. While building, the agent can ask to add a repo; with the user's approval it's
+  appended to the repos list.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.
 - Files are read at a revision through git objects, never from the working tree. The one
   exception is uncommitted changes, when the range includes them.

@@ -48,12 +48,14 @@
 
 **Milestones**
 
-- 2: cli package; repos and ranges from local paths or GitHub PR URLs; base detection; remote
+- 2: cli package; repos and ranges from local paths or GitHub PR URLs; repos without
+  changes from the command and `.codetrail/repos`; base detection; remote
   fetch into a cache; reading files at a revision; editor worktrees; tour schema (with
   severity on `uncertain` and the cross-repo evidence rule); save and load.
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
   validation (schema and cited lines); `trail` launching the user's agent when there is no
-  tour; tours of existing code from a picked trigger; the build loop's retry limit;
+  tour; tours of existing code from a picked trigger; an "add a repo" tool for the agent,
+  approved by the user; the build loop's retry limit;
   updating stale tours through the agent; evals driving an agent headless, including a
   fixture that is hard to read statically, one whose trigger is in an unchanged file, and
   one that crosses repos.
@@ -70,6 +72,8 @@
 **Open**
 
 - Check the name before going public.
+- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
+  out local-only files (demo tours, changed-lines files) first.
 - Whether `trail` with no arguments includes uncommitted changes.
 - Whether OpenTUI is still worth its native code and pre-1.0 risk for the TUI's narrower
   role: review after Milestone 2.

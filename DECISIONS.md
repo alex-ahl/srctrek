@@ -2,6 +2,21 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-24 — The .codetrail folder is committed, not ignored
+
+`.codetrail/` belongs in the repo: the repos list for the whole team, and tours that travel
+with a change. Committed tours must be portable, so repo sources are relative paths or URLs,
+never absolute local paths. This repo ignores the folder until codetrail writes portable
+tours; then the ignore goes.
+
+## 2026-10-24 — Repos without changes: listed simply, or added while building
+
+A repo the route passes through without changes is given like any repo, minus a range: in
+the command, or in `.codetrail/repos`, a plain list of paths and URLs read automatically.
+While building, the agent can ask to add a repo it finds on the route; once the user
+approves, it's appended to the list. A workspace format was the alternative; a list of lines
+needs nothing to learn.
+
 ## 2026-10-23 — Failed rules go back to the builder; saved tours are trusted
 
 A failed rule while building goes back to the agent, which cites the missing evidence or marks
