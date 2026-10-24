@@ -92,10 +92,12 @@ can check; never a bare "line 5".
   - `blob`: the file's git blob id at the tour's revision; a mismatch marks the step stale
   - `kind`: `call`, `return`, `hop` (async or cross-process: the call stack resets), or `context`
   - `changed`: whether the range touches these lines
+  - `from`: the id of the step execution came from, on every step but the first; for async
+    work it names the cause (the publish), not the step before it in the tour
   - `via`: the evidence for arriving here — one or more `{ repo, file, line }` citing the
     call site, route, config line, message name, or spec entry — plus `guessed: true` when
-    the link is a name match. A link that crosses repos cites both sides or is guessed;
-    validation rejects anything else.
+    the link is a name match. When `from` is in another repo, the evidence cites both repos
+    or the link is guessed; validation rejects anything else.
   - optional: `predicted_values`, `calls` (id of the step stepped into), `trivial`, and
     `uncertain`: `{ severity, note }`, severity `high` (likely wrong behaviour), `medium`
     (risky), or `low` (worth knowing). Front-ends show `high` inline and the rest in details.

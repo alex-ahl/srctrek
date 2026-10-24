@@ -39,6 +39,8 @@ const Step = z
     changed: z.boolean(),
     summary: nonEmpty,
     details: nonEmpty,
+    // the step execution came from; absent only on the first step
+    from: nonEmpty.optional(),
     via: Via.nullable(),
     predicted_values: z.record(z.string(), z.string()).optional(),
     calls: nonEmpty.optional(),

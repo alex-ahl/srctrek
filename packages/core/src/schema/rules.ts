@@ -55,27 +55,49 @@ function danglingCalls(tour: Tour): Issue[] {
 }
 
 // Every link cites its evidence: only the first step may arrive without one.
-function missingEvidence(tour: Tour): Issue[] {
+// Every step after the first is a link: it names where execution came from, and cites its
+// evidence.
+function missingLinks(tour: Tour): Issue[] {
+  return tour.steps.slice(1).flatMap((s, j) => {
+    const i = j + 1
+    const issues: Issue[] = []
+    if (s.from === undefined) {
+      issues.push({
+        path: ["steps", i, "from"],
+        message: "missing: name the step execution came from",
+      })
+    }
+    if (s.via === null) issues.push({ path: ["steps", i, "via"], message: "missing evidence" })
+    return issues
+  })
+}
+
+function danglingFrom(tour: Tour): Issue[] {
+  const ids = new Set(tour.steps.map((s) => s.id))
   return tour.steps.flatMap((s, i) =>
-    i > 0 && s.via === null ? [{ path: ["steps", i, "via"], message: "missing evidence" }] : [],
+    s.from === undefined || ids.has(s.from)
+      ? []
+      : [{ path: ["steps", i, "from"], message: `comes from unknown step ${s.from}` }],
   )
 }
 
-// A link that cites another repo crosses repos, so it must also cite the step's own repo,
-// or admit it is a guess.
+// A link from a step in another repo crosses repos; its evidence must cite both repos, or
+// the link must admit it is a guess. Tour order can't stand in for `from`: async work
+// (a queue consumer) runs after unrelated steps.
 function oneSidedCrossRepoLinks(tour: Tour): Issue[] {
+  const byId = new Map(tour.steps.map((s) => [s.id, s]))
   return tour.steps.flatMap((s, i) => {
-    if (!s.via || s.via.guessed) return []
+    const source = s.from === undefined ? undefined : byId.get(s.from)
+    if (!s.via || s.via.guessed || !source || source.repo === s.repo) return []
     const cited = new Set(s.via.cites.map((c) => c.repo))
-    const crosses = [...cited].some((repo) => repo !== s.repo)
-    return crosses && !cited.has(s.repo)
-      ? [
-          {
-            path: ["steps", i, "via"],
-            message: `crosses repos without citing ${s.repo}: cite both sides or mark guessed`,
-          },
-        ]
-      : []
+    const missing = [source.repo, s.repo].filter((repo) => !cited.has(repo))
+    if (missing.length === 0) return []
+    return [
+      {
+        path: ["steps", i, "via"],
+        message: `crosses from ${source.repo} to ${s.repo} without citing ${missing.join(" and ")}: cite both sides or mark guessed`,
+      },
+    ]
   })
 }
 
@@ -84,6 +106,7 @@ export const tourRules = [
   duplicateStepIds,
   unknownRepos,
   danglingCalls,
-  missingEvidence,
+  danglingFrom,
+  missingLinks,
   oneSidedCrossRepoLinks,
 ]

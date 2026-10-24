@@ -69,6 +69,7 @@
       "changed": false,
       "summary": "GET /orders/{id} resolves to getOrder, which converts total_minor to major units via toPublic.",
       "details": "Route comes from openapi.json operationId getOrder (api/openapi.json:7) mapped in handlers (api/src/handlers/index.ts:10). toPublic divides total_minor by 100, so the web receives total in major units, documented as such in api/openapi.json:19.",
+      "from": "s1",
       "via": {
         "cites": [
           {
@@ -101,8 +102,14 @@
       "changed": true,
       "summary": "renderOrder now adds a Refund button with data-order-id and data-amount set from the order.",
       "details": "Status is 'paid', so the button is rendered. data-amount is order.total, which is the major-unit display value from GET /orders.",
+      "from": "s2",
       "via": {
         "cites": [
+          {
+            "repo": "api",
+            "file": "src/handlers/orders.ts",
+            "line": 16
+          },
           {
             "repo": "web",
             "file": "src/main.ts",
@@ -130,6 +137,7 @@
       "changed": false,
       "summary": "The delegated click listener finds the closest [data-action] element and looks up actions['refund'].",
       "details": "Existing dispatch mechanism; the feature plugs in by adding a 'refund' key. Rejections are caught and rendered as a <p class=\"error\">.",
+      "from": "s3",
       "via": {
         "cites": [
           {
@@ -156,6 +164,7 @@
       "changed": true,
       "summary": "The refund action disables the button and calls requestRefund with the order id and Number(data-amount).",
       "details": "Reached by actions[el.dataset.action] at main.ts:9 and invoked at main.ts:11.",
+      "from": "s4",
       "via": {
         "cites": [
           {
@@ -187,6 +196,7 @@
       "changed": true,
       "summary": "requestRefund POSTs {order_id, amount} to /refunds and types the reply as RefundRequested.",
       "details": "Passes amount through unchanged; no conversion to minor units.",
+      "from": "s5",
       "via": {
         "cites": [
           {
@@ -217,6 +227,7 @@
       "changed": false,
       "summary": "post() sends JSON to BASE_URL + /refunds and throws on non-2xx.",
       "details": "202 is res.ok, so the JSON body is parsed and returned.",
+      "from": "s6",
       "via": {
         "cites": [
           {
@@ -247,6 +258,7 @@
       "changed": false,
       "summary": "The HTTP server matches POST /refunds against the spec-derived routes and calls the handler with the parsed body.",
       "details": "readBody JSON-parses the request; the handler's {status, body} is written back as JSON.",
+      "from": "s7",
       "via": {
         "cites": [
           {
@@ -279,6 +291,7 @@
       "changed": true,
       "summary": "The new /refunds POST operation (operationId createRefund) defines amount as an integer in minor units.",
       "details": "loadRoutes reads this spec at startup and builds a route per operation; the operationId names the handler.",
+      "from": "s8",
       "via": {
         "cites": [
           {
@@ -306,6 +319,7 @@
       "changed": true,
       "summary": "createRefund is registered under its operationId so loadRoutes can find it.",
       "details": "createRefund is registered under its operationId so loadRoutes can find it.",
+      "from": "s9",
       "via": {
         "cites": [
           {
@@ -329,6 +343,7 @@
       "changed": true,
       "summary": "createRefund looks up the order and validates amount as a positive integer no larger than total_minor.",
       "details": "o_1001 exists. amount 499 is an integer, > 0 and <= 49900, so it passes.",
+      "from": "s10",
       "via": {
         "cites": [
           {
@@ -361,6 +376,7 @@
       "changed": true,
       "summary": "Stores a 'requested' RefundRow, publishes refund.requested, and returns 202 {refund_id, status}.",
       "details": "The published payload uses the key 'amount' (not amount_minor) with the same minor-unit value stored in the row.",
+      "from": "s11",
       "via": {
         "cites": [
           {
@@ -393,6 +409,7 @@
       "changed": false,
       "summary": "publish appends one JSON line {topic, sent_at, payload} to QUEUE_DIR/refund.requested.jsonl.",
       "details": "publish appends one JSON line {topic, sent_at, payload} to QUEUE_DIR/refund.requested.jsonl.",
+      "from": "s12",
       "via": {
         "cites": [
           {
@@ -419,6 +436,7 @@
       "changed": true,
       "summary": "post() resolves with the 202 body and the action sets the .status text to 'refund requested'.",
       "details": "The returned RefundRequested (refund_id) is discarded; the UI change is local only.",
+      "from": "s12",
       "via": {
         "cites": [
           {
@@ -453,6 +471,7 @@
       "changed": false,
       "summary": "The worker's poll loop iterates HANDLERS, now including 'refund.requested', and reads new messages for each topic.",
       "details": "Linked to the API by the topic string 'refund.requested' (worker/worker/handlers/__init__.py:8) and the shared file naming QUEUE_DIR/<topic>.jsonl (worker/worker/queue.py:20 vs api/src/bus.ts:10). Both default QUEUE_DIR to /var/lib/shop/queue.",
+      "from": "s13",
       "via": {
         "cites": [
           {
@@ -485,6 +504,7 @@
       "changed": false,
       "summary": "read() seeks to the stored offset, yields each new message's payload, then saves the new offset.",
       "details": "read() seeks to the stored offset, yields each new message's payload, then saves the new offset.",
+      "from": "s15",
       "via": {
         "cites": [
           {
@@ -515,6 +535,7 @@
       "changed": true,
       "summary": "handle_refund_requested passes order_id and amount_minor=int(payload['amount']) to payments.refund.",
       "details": "handle_refund_requested passes order_id and amount_minor=int(payload['amount']) to payments.refund.",
+      "from": "s16",
       "via": {
         "cites": [
           {
@@ -545,6 +566,7 @@
       "changed": false,
       "summary": "refund() POSTs {order_id, amount_minor} to the provider's /v2/refunds and returns its refund_id.",
       "details": "refund() POSTs {order_id, amount_minor} to the provider's /v2/refunds and returns its refund_id.",
+      "from": "s17",
       "via": {
         "cites": [
           {
@@ -576,6 +598,7 @@
       "changed": true,
       "summary": "Logs the provider id and publishes refund.completed with refund_id, order_id and provider_refund_id.",
       "details": "Logs the provider id and publishes refund.completed with refund_id, order_id and provider_refund_id.",
+      "from": "s18",
       "via": {
         "cites": [
           {
@@ -599,6 +622,7 @@
       "changed": false,
       "summary": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trail.",
       "details": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trail.",
+      "from": "s19",
       "via": {
         "cites": [
           {

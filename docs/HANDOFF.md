@@ -7,12 +7,13 @@
 - Milestone 2, step 1: the tour schema (`packages/core/src/schema/tour.ts`) and saving,
   loading, and listing tours (`packages/core/src/tours.ts`).
 - The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
+- Step 2a: each step names where execution came from (`from`), and a link from another
+  repo must cite both repos or be marked guessed. Validation messages name the step id.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 
 **Known gaps**
 
-- The cross-repo rule passes a hop whose evidence cites only the step's own repo.
 - The Neovim plugin has no automated tests or Lua formatter yet.
 
 ## 2026-10-22 — Quality spike
