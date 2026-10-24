@@ -7,12 +7,9 @@ local M = {
   roots = {}, -- repo name -> directory
   changed = {}, -- repo -> file -> line -> "added" | "changed"
   notes = {}, -- step index -> questions asked there
-  bound = {}, -- buffers with the trail keys bound
+  saved_maps = {}, -- the user's own mappings on the trail's keys, restored when it ends
 }
 
 M.ns = vim.api.nvim_create_namespace("codetrail")
-
--- Set by init.start; binds the trail keys to one buffer.
-M.bind_keys = function(_) end
 
 return M

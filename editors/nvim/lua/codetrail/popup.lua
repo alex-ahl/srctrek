@@ -25,7 +25,6 @@ function M.float(lines, title)
   })
   vim.wo.wrap = true
   vim.wo.linebreak = true
-  state.bind_keys(buf)
   vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
   vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = buf })
   return buf

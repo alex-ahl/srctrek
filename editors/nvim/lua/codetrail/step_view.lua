@@ -73,8 +73,6 @@ function M.show(step)
   vim.api.nvim_set_current_win(editor_window())
   vim.cmd("edit " .. vim.fn.fnameescape(step.path))
   local buf = vim.api.nvim_get_current_buf()
-  -- bound after the buffer loads, so they beat other plugins' mappings for the same keys
-  state.bind_keys(buf)
   local last = vim.api.nvim_buf_line_count(buf)
   local s, e = math.min(step.start_line, last), math.min(step.end_line, last)
 
