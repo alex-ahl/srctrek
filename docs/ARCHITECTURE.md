@@ -132,6 +132,28 @@ A tour from anywhere — an agent, a teammate, written by hand — is validated 
 the schema, cited lines at their recorded revisions, and steps whose files changed since
 marked stale.
 
+## When validation fails
+
+While a tour is built, each submission is checked against every rule, and failures go back to
+the agent as messages naming the step. A failed link has two ways out: cite the missing
+evidence, or mark the link `guessed`. After about three rounds with the same failures, the
+build stops and the build view shows them; nothing is saved and nothing is fixed silently.
+
+Checks that read the code at the tour's revisions (cited lines exist; the two sides of a
+cross-repo link share a distinctive string such as a route or topic) downgrade a link to
+`guessed` instead of rejecting the tour.
+
+A saved tour has passed every rule. When one doesn't load:
+
+- **Other format version** (a teammate's tour from another codetrail): one plain message
+  naming the version, and an action to rebuild it.
+- **Otherwise invalid:** reported as a codetrail bug, since saving and building never let one
+  through.
+- **Stale** (a cited file's blob changed since): the tour opens with stale steps marked, and
+  an action asks the agent to update them.
+- **Unreachable** (a repo isn't where the tour says): the home screen names the repo and the
+  expected location.
+
 ## Following in the editor
 
 The tour is stepped in the editor, in files from the cached worktree.

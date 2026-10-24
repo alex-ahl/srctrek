@@ -53,12 +53,14 @@
   severity on `uncertain` and the cross-repo evidence rule); save and load.
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
   validation (schema and cited lines); `trail` launching the user's agent when there is no
-  tour; tours of existing code from a picked trigger; evals driving an agent headless, including a fixture that is hard to read statically, one whose trigger is in
-  an unchanged file, and one that crosses repos.
+  tour; tours of existing code from a picked trigger; the build loop's retry limit;
+  updating stale tours through the agent; evals driving an agent headless, including a
+  fixture that is hard to read statically, one whose trigger is in an unchanged file, and
+  one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
   protocol (`docs/PROTOCOL.md`); the Neovim plugin (stepping,
-  narration, change signs, details); the TUI's home screen, build view, route map, and
-  fallback stepping view.
+  narration, change signs, details, stale steps marked); the TUI's home screen (with
+  version, stale, and unreachable states), build view, route map, and fallback stepping view.
 - 5: asking from the editor: `trail ask`, answers through MCP, notes on steps, branch trails
   for what-if questions.
 

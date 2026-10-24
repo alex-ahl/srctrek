@@ -2,6 +2,16 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-23 — Failed rules go back to the builder; saved tours are trusted
+
+A failed rule while building goes back to the agent, which cites the missing evidence or marks
+the link guessed; after about three rounds the build stops with the failures shown. No
+auto-fixing: it would hide the agent's mistakes from it. The one exception is checks that read
+the code, which downgrade a link to guessed rather than reject. Saving checks every rule, so a
+saved tour that fails to load is another format version (rebuild), stale (open with marked
+steps, update through the agent), unreachable, or a codetrail bug. Hand-written tours aren't
+a case to design for.
+
 ## 2026-10-22 — Supported editors: Neovim, then VS Code and its forks
 
 Full editor integration covers Neovim (version 1) and VS Code with its forks (after version
