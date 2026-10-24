@@ -59,7 +59,8 @@
   one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
   protocol (`docs/PROTOCOL.md`); the Neovim plugin (stepping,
-  narration, change signs, details, stale steps marked); the TUI's home screen (with
+  narration, change signs, details, stale steps marked, keys configurable through `setup`, a
+  Lua API beside the commands); the TUI's home screen (with
   version, stale, and unreachable states), build view, route map, and fallback stepping view.
 - 5: asking from the editor: `trail ask`, answers through MCP, notes on steps, branch trails
   for what-if questions.

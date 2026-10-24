@@ -20,7 +20,11 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - **`editors/nvim/`** — the Neovim plugin (Lua), the main place a tour is followed:
   highlights, one-line narration, change signs, details, asking. Depends on no file
   explorer; each step fires a `User CodetrailStep` event that explorers or user config can
-  follow. Today a prototype that reads tour files and steps through them itself; in
+  follow. Every action is a command (`:TrailNext` and so on) and a Lua function; keys exist
+  only while a trail is active and are set through `setup({ keys = … })` or
+  `vim.g.codetrail`, where any can be changed or turned off. No integrations with other
+  plugins: users wire which-key, explorers, and the like to the commands, functions, and
+  the step event themselves. Today a prototype that reads tour files and steps through them itself; in
   Milestone 4 it renders core's stepping session through `docs/PROTOCOL.md` and holds no
   stepping logic of its own.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around

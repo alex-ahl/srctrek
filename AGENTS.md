@@ -13,7 +13,9 @@ migration layers. When something changes, change it everywhere at once.
 ## Rules that never relax
 
 - **`core` never imports UI code.** Front-ends only use what `packages/core/src/index.ts` exports.
-- **Never assume a specific editor or agent.**
+- **Never assume a specific editor, agent, or editor plugin.** codetrail ships no integrations
+  with other plugins (which-key, file explorers); it exposes commands, functions, and events
+  for the user to wire up.
 - **Predicted values are always labeled as predicted.** Never present them as real data.
 - **Every link between steps cites its evidence;** a link matched only by name is marked guessed.
 - **Prompts live in `packages/core/prompts/`,** never inline in code.
