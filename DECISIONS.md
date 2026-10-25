@@ -4,7 +4,7 @@ Newest first. Each entry: the decision, then why.
 
 ## 2026-10-24 — The .codetrail folder is committed, not ignored
 
-`.codetrail/` belongs in the repo: the repos list for the whole team, and tours that travel
+The .codetrail folder belongs in the repo: the repos list for the whole team, and tours that travel
 with a change. Committed tours must be portable, so repo sources are relative paths or URLs,
 never absolute local paths. This repo ignores the folder until codetrail writes portable
 tours; then the ignore goes.
