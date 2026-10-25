@@ -16,6 +16,9 @@
   commits, and a file's changed lines numbered as in the new version.
 - Step 2d: eval fixtures built into real git repos (`main` and `feature` branches) for tests;
   the refund tour is checked against them: blob ids match and every cited line exists.
+- Step 2e: repos without changes, read from `.codetrail/repos` (one `path[@revision]` per
+  line, `#` comments allowed) and resolved to an exact commit at the default branch or the
+  pinned revision (`packages/core/src/repos/`). Local paths only; URLs fail until PR support.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 

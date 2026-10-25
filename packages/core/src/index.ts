@@ -20,3 +20,6 @@ export {
   type LineChange,
 } from "./git/diff"
 export { blobAt, readFileAt } from "./git/read"
+export { isRemote, parseRepoEntry, type RepoEntry } from "./repos/entry"
+export { REPOS_LIST, parseReposList, readReposList } from "./repos/list"
+export { resolveUnchangedRepo, type UnchangedRepo } from "./repos/resolve"
