@@ -12,41 +12,62 @@ step out, with a call stack.
 Reads code from git, local or remote, and runs nothing. Works with any agent; steps through
 trails in Neovim, and in VS Code and its forks later.
 
-> **Status:** pre-release, not usable yet. See `docs/HANDOFF.md`.
+> **Status:** pre-release. Today you can list saved tours and step through them in Neovim,
+> running from a checkout. Building tours arrives in Milestone 3; see `docs/HANDOFF.md`.
 
-## Install
+## Try it today
 
-Not yet published. To build from source (requires Bun >= 1.3.14):
+Requires Bun 1.3.14 or later and Neovim 0.10 or later.
 
 ```sh
 bun install
-bun run build
-./dist/trail
+bun packages/tui/src/main.tsx    # in the repo whose tours you want to see
 ```
 
-## Usage
+The home screen lists the tours in the .codetrail/tours folder, with their step counts and
+high-severity flags; invalid tours are listed with the reason.
 
-Run `trail` in a repo. With no tour for the current change, it runs your agent to build
-one; with no change at all, it offers entry points to trail from.
+| Key       | Action                       |
+| --------- | ---------------------------- |
+| `↑` / `↓` | Choose a tour (also `k`/`j`) |
+| `enter`   | Open it in Neovim            |
+| `q`       | Quit                         |
 
-```sh
-trail                 # the latest tour, or build one
-trail <tour-name>     # a saved tour
+### Stepping in Neovim
+
+The tour opens with an overview. Each step opens its file, highlights its lines, and shows
+a summary above them; changed lines carry `+` or `~` in the sign column.
+
+| Key          | Command                     | Action                                     |
+| ------------ | --------------------------- | ------------------------------------------ |
+| `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous step                       |
+| `<leader>ti` | `:TrailInto`                | Step into                                  |
+| `<leader>to` | `:TrailOut`                 | Step out                                   |
+| `<leader>tt` | `:TrailDetails`             | Details: evidence, predicted values, flags |
+| `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current step      |
+| `<leader>tq` | `:TrailQuit`                | End the trail                              |
+
+Keys exist only while a trail is open; the mappings you had on them come back when it ends.
+Change or turn off any key:
+
+```lua
+vim.g.codetrail = { keys = { next = "]w", previous = "[w", ask = false } }
 ```
 
-Or register `trail mcp` as a stdio MCP server in your agent and ask it for a trail:
+`keys = false` turns them all off, for mapping the commands yourself.
 
-```text
-Trail PR <pr-url>, and <pr-url> in the api repo.
-Trail main...HEAD in this repo.
-```
+### Asking
 
-| Key           | Action                      |
-| ------------- | --------------------------- |
-| `n` / `space` | Next step                   |
-| `p`           | Previous step               |
-| `i`           | Step into                   |
-| `o`           | Step out                    |
-| `enter`       | Expand or collapse details  |
-| `e`           | Open the step in the editor |
-| `q`           | Quit                        |
+`<leader>ta` runs your agent headless with the current step as context. Set
+`CODETRAIL_AGENT` to its headless command line; the question is appended as the last
+argument.
+
+## Where it's going
+
+- `trail main...HEAD` or `trail <pr-url>`: your agent builds a tour of the change, across
+  repos, and the home screen shows it while it builds.
+- `trail mcp`: an MCP server, so your agent can build tours from its own chat.
+- Tours of existing code, from an entry point you pick.
+- A route map of the whole trail in the terminal.
+
+Plans after version 1 are in `docs/ROADMAP.md`.
