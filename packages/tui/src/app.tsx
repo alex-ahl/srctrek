@@ -29,14 +29,26 @@ function TourRow({ entry, selected }: { entry: TourEntry; selected: boolean }) {
 
 export function App({ entries, onOpen, onQuit }: Props) {
   const [selected, setSelected] = useState(0)
-  useKeyboard((key) => {
-    if (key.name === "q") onQuit()
-    if (key.name === "down" || key.name === "j")
-      setSelected((i) => Math.min(i + 1, entries.length - 1))
-    if (key.name === "up" || key.name === "k") setSelected((i) => Math.max(i - 1, 0))
+
+  const moveDown = () => setSelected((i) => Math.min(i + 1, entries.length - 1))
+  const moveUp = () => setSelected((i) => Math.max(i - 1, 0))
+  const openSelected = () => {
     const entry = entries[selected]
-    if (key.name === "return" && entry?.valid) onOpen(entry)
-  })
+    if (entry?.valid) {
+      onOpen(entry)
+    }
+  }
+
+  const actions = new Map([
+    ["q", onQuit],
+    ["down", moveDown],
+    ["j", moveDown],
+    ["up", moveUp],
+    ["k", moveUp],
+    ["return", openSelected],
+  ])
+  useKeyboard((key) => actions.get(key.name)?.())
+
   return (
     <box flexDirection="column" style={{ border: true, padding: 1 }} title="codetrail">
       {entries.length === 0 ? (

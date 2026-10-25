@@ -9,6 +9,7 @@ async function loadEntry(root: string, name: string): Promise<TourEntry> {
   try {
     const tour = await loadTour(path)
     const highFlags = tour.steps.filter((s) => s.uncertain?.severity === "high").length
+
     return { name, path, valid: true, title: tour.title, steps: tour.steps.length, highFlags }
   } catch (error) {
     if (!(error instanceof TourValidationError)) {
@@ -22,5 +23,6 @@ async function loadEntry(root: string, name: string): Promise<TourEntry> {
 /** Every saved tour under `root`; invalid ones stay listed with their first problem. */
 export async function loadTourEntries(root: string): Promise<TourEntry[]> {
   const names = await listTours(root)
+
   return Promise.all(names.map((name) => loadEntry(root, name)))
 }

@@ -31,6 +31,7 @@ export function parseRange(text: string): RangeSpec {
       mode: "since-branch-point",
     }
   }
+
   const twoDot = text.split("..")
   if (twoDot.length === 2) {
     return { base: twoDot[0] || undefined, head: twoDot[1] || "HEAD", mode: "direct" }
@@ -39,6 +40,7 @@ export function parseRange(text: string): RangeSpec {
   if (text.includes("..")) {
     throw new Error(`not a range: ${text}`)
   }
+
   return { base: undefined, head: text || "HEAD", mode: "since-branch-point" }
 }
 
@@ -50,5 +52,6 @@ export async function resolveRange(cwd: string, spec: RangeSpec): Promise<Resolv
     spec.mode === "since-branch-point"
       ? await runGit(cwd, ["merge-base", base, headCommit])
       : await runGit(cwd, ["rev-parse", "--verify", `${base}^{commit}`])
+
   return { base, head: spec.head, mode: spec.mode, baseCommit, headCommit }
 }

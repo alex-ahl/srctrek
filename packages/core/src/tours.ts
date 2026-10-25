@@ -42,7 +42,8 @@ function describePath(path: PropertyKey[], data: unknown): string {
   }
 
   const [head, index, ...rest] = path
-  const id = head === "steps" && typeof index === "number" ? stepId(data, index) : undefined
+  const isStepPath = head === "steps" && typeof index === "number"
+  const id = isStepPath ? stepId(data, index) : undefined
   if (id === undefined) {
     return path.map(String).join(".")
   }
@@ -83,8 +84,10 @@ export function tourPath(root: string, name: string): string {
 export async function saveTour(root: string, name: string, tour: Tour): Promise<string> {
   const path = tourPath(root, name)
   parseTour(tour, path)
+
   await mkdir(join(root, TOURS_DIR), { recursive: true })
   await writeFile(path, JSON.stringify(tour, null, 2) + "\n")
+
   return path
 }
 
@@ -103,6 +106,7 @@ export async function loadTour(path: string): Promise<Tour> {
 /** Names of saved tours under `root`, sorted; files whose names aren't tour names are skipped. */
 export async function listTours(root: string): Promise<string[]> {
   const files = await readdir(join(root, TOURS_DIR)).catch(() => [])
+
   return files
     .filter((f) => f.endsWith(".json"))
     .map((f) => f.slice(0, -".json".length))

@@ -11,30 +11,47 @@ export const PACKAGE_README_SECTIONS = [
 
 const ROOT_DOCS = ["AGENTS.md", "CLAUDE.md", "README.md", "DECISIONS.md", "docs/README.md"]
 
+// A link into this repo, not a URL ("https:", "mailto:") or an anchor on the same page.
+function isLocalLink(target: string): boolean {
+  const hasScheme = /^[a-z]+:/i.test(target)
+  return !hasScheme && !target.startsWith("#")
+}
+
 export function linkTargets(markdown: string): string[] {
   const targets = [...markdown.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1] ?? "")
-  return targets.filter((t) => !/^[a-z]+:/i.test(t) && !t.startsWith("#")).map(stripAnchor)
+  return targets.filter(isLocalLink).map(stripAnchor)
 }
 
 // Backticked text is checked only when it is unambiguously a path: no spaces, placeholders,
 // globs or npm scopes, and either a lowercase file extension or a trailing slash. A bare
 // slash isn't enough: protocol methods like `build/progress` have one too.
+function looksLikePath(text: string): boolean {
+  const plainCharacters = /^[\w.\-/]+$/.test(text)
+  const climbsUp = text.includes("..")
+  const isFolder = text.endsWith("/")
+  const hasExtension = /\.[a-z]{1,4}$/.test(text)
+
+  return plainCharacters && !climbsUp && (isFolder || hasExtension)
+}
+
 export function codePaths(markdown: string): string[] {
   const spans = [...markdown.matchAll(/`([^`\n]+)`/g)].map((m) => m[1] ?? "")
-  return spans.filter(
-    (s) =>
-      /^[\w.\-/]+$/.test(s) && !s.includes("..") && (s.endsWith("/") || /\.[a-z]{1,4}$/.test(s)),
-  )
+  return spans.filter(looksLikePath)
 }
 
 export function importPaths(markdown: string): string[] {
   return [...markdown.matchAll(/^@(\S+)$/gm)].map((m) => m[1] ?? "")
 }
 
+// The text under "## Current", up to the next heading.
+function currentSection(docsReadme: string): string {
+  const afterHeading = docsReadme.split(/^## Current\s*$/m)[1] ?? ""
+  return afterHeading.split(/^## /m)[0] ?? ""
+}
+
 // Only links listed under "## Current" in docs/README.md are current; the rest is history.
 export function currentDocLinks(docsReadme: string): string[] {
-  const section = docsReadme.split(/^## Current\s*$/m)[1]?.split(/^## /m)[0] ?? ""
-  return linkTargets(section).map((t) => join("docs", t))
+  return linkTargets(currentSection(docsReadme)).map((t) => join("docs", t))
 }
 
 export function missingSections(readme: string): string[] {
@@ -66,8 +83,8 @@ function visibleFiles(root: string): string[] {
 
 // "a/b/c.ts" -> ["a", "a/b"]
 function parentFolders(file: string): string[] {
-  const parts = file.split("/")
-  return parts.slice(1).map((_, i) => parts.slice(0, i + 1).join("/"))
+  const parent = dirname(file)
+  return parent === "." ? [] : [...parentFolders(parent), parent]
 }
 
 /** Whether a repo-relative path names one of `files`, or a folder containing one. */
@@ -85,12 +102,13 @@ function packageReadmes(root: string): string[] {
 
 function brokenPaths(root: string, doc: string, exists: (path: string) => boolean): string[] {
   const text = readFileSync(join(root, doc), "utf8")
-  const docDir = dirname(doc)
-  const fromDoc = [...linkTargets(text), ...importPaths(text)].filter(
-    (p) => !exists(join(docDir, p)),
-  )
-  const fromCode = codePaths(text).filter((p) => !exists(join(docDir, p)) && !exists(p))
-  return [...fromDoc, ...fromCode]
+  const existsFromDoc = (path: string) => exists(join(dirname(doc), path))
+
+  // Links and imports are relative to the doc; code paths may be written from the repo root.
+  const brokenLinks = [...linkTargets(text), ...importPaths(text)].filter((p) => !existsFromDoc(p))
+  const brokenCode = codePaths(text).filter((p) => !existsFromDoc(p) && !exists(p))
+
+  return [...brokenLinks, ...brokenCode]
 }
 
 export function checkDocs(root: string): string[] {
@@ -98,6 +116,7 @@ export function checkDocs(root: string): string[] {
   const read = (doc: string) => readFileSync(join(root, doc), "utf8")
   const readmes = packageReadmes(root)
   const docs = [...ROOT_DOCS, ...currentDocLinks(read("docs/README.md")), ...readmes]
+
   const missingDocs = docs.filter((doc) => !exists(doc)).map((doc) => `${doc}: file missing`)
   const brokenLinks = docs
     .filter(exists)
@@ -107,12 +126,16 @@ export function checkDocs(root: string): string[] {
     .flatMap((readme) =>
       missingSections(read(readme)).map((s) => `${readme}: missing section "## ${s}"`),
     )
+
   return [...missingDocs, ...brokenLinks, ...missingReadmeSections]
 }
 
 if (import.meta.main) {
   const problems = checkDocs(join(import.meta.dirname, ".."))
-  for (const p of problems) console.error(p)
-  if (problems.length > 0) process.exit(1)
+  if (problems.length > 0) {
+    console.error(problems.join("\n"))
+    process.exit(1)
+  }
+
   console.log("docs ok")
 }

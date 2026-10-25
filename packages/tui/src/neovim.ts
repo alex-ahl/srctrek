@@ -11,6 +11,7 @@ export function neovimArgs(tourPath: string, pluginDir: string | null): string[]
   const loadPlugin = pluginDir
     ? ["-c", `set rtp^=${pluginDir}`, "-c", "runtime! plugin/codetrail.lua"]
     : []
+
   return ["nvim", ...loadPlugin, "-c", `Trail ${tourPath}`]
 }
 
@@ -18,9 +19,11 @@ export function neovimArgs(tourPath: string, pluginDir: string | null): string[]
 export async function openInNeovim(renderer: CliRenderer, tourPath: string): Promise<void> {
   const pluginDir = existsSync(PLUGIN_FROM_SOURCE) ? PLUGIN_FROM_SOURCE : null
   await renderer.suspend()
+
   const nvim = Bun.spawn(neovimArgs(tourPath, pluginDir), {
     stdio: ["inherit", "inherit", "inherit"],
   })
   await nvim.exited
+
   await renderer.resume()
 }

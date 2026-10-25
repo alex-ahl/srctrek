@@ -19,6 +19,7 @@ async function buildRepo(source: string, target: string): Promise<void> {
   await runGit(target, ["init", "--quiet", "--initial-branch=main"])
   await runGit(target, ["add", "--all"])
   await commitStaged(target, "base")
+
   await runGit(target, ["checkout", "--quiet", "-b", "feature"])
   await runGit(target, ["apply", join(source, "change.patch")])
   await runGit(target, ["add", "--all"])
@@ -29,8 +30,10 @@ async function buildRepo(source: string, target: string): Promise<void> {
 export async function buildFixture(name: string): Promise<Fixture> {
   const dir = join(FIXTURES, name)
   const root = await mkdtemp(join(tmpdir(), `codetrail-${name}-`))
+
   const entries = await readdir(dir, { withFileTypes: true })
   const repoNames = entries.filter((e) => e.isDirectory()).map((e) => e.name)
   await Promise.all(repoNames.map((repo) => buildRepo(join(dir, repo), join(root, repo))))
+
   return { repos: Object.fromEntries(repoNames.map((repo) => [repo, join(root, repo)])), dir }
 }
