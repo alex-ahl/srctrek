@@ -14,6 +14,8 @@
   (`packages/core/src/git/`).
 - Step 2c: reading a file and its blob id at a commit, the files that changed between two
   commits, and a file's changed lines numbered as in the new version.
+- Step 2d: eval fixtures built into real git repos (`main` and `feature` branches) for tests;
+  the refund tour is checked against them: blob ids match and every cited line exists.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 
