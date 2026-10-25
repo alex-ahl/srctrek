@@ -49,7 +49,10 @@ type Hunk = { removed: number; start: number; added: number }
 // missing count means 1. Any other line isn't a hunk header.
 function readHunk(line: string): Hunk | undefined {
   const match = /^@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(line)
-  if (!match) return undefined
+  if (!match) {
+    return undefined
+  }
+
   return { removed: Number(match[1] ?? 1), start: Number(match[2]), added: Number(match[3] ?? 1) }
 }
 

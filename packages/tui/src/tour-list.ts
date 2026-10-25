@@ -11,7 +11,10 @@ async function loadEntry(root: string, name: string): Promise<TourEntry> {
     const highFlags = tour.steps.filter((s) => s.uncertain?.severity === "high").length
     return { name, path, valid: true, title: tour.title, steps: tour.steps.length, highFlags }
   } catch (error) {
-    if (!(error instanceof TourValidationError)) throw error
+    if (!(error instanceof TourValidationError)) {
+      throw error
+    }
+
     return { name, path, valid: false, problem: error.issues[0] ?? "invalid tour" }
   }
 }

@@ -10,7 +10,10 @@ async function repoTopLevel(dir: string, source: string): Promise<string> {
   try {
     return await runGit(dir, ["rev-parse", "--show-toplevel"])
   } catch (error) {
-    if (error instanceof GitError) throw new Error(`not a git repo: ${source}`, { cause: error })
+    if (error instanceof GitError) {
+      throw new Error(`not a git repo: ${source}`, { cause: error })
+    }
+
     throw error
   }
 }
@@ -28,6 +31,7 @@ export async function resolveUnchangedRepo(
   if (isRemote(entry.source)) {
     throw new Error(`remote repos aren't supported yet: ${entry.source}`)
   }
+
   const top = await repoTopLevel(resolve(baseDir, entry.source), entry.source)
   const revision = entry.revision ?? (await detectBase(top))
   const commit = await runGit(top, ["rev-parse", "--verify", `${revision}^{commit}`])

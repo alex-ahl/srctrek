@@ -9,7 +9,10 @@ type Props = {
 }
 
 function describe(entry: TourEntry): string {
-  if (!entry.valid) return `invalid: ${entry.problem}`
+  if (!entry.valid) {
+    return `invalid: ${entry.problem}`
+  }
+
   const flags = entry.highFlags > 0 ? `  ⚠ ${entry.highFlags} high` : ""
   return `${entry.steps} steps${flags}`
 }

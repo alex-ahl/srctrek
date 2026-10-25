@@ -20,7 +20,10 @@ function parseLocation(text: string): RepoEntry {
 /** "../gateway", "../payments@v2.3", or named: "payments = ../payments@v2.3". */
 export function parseRepoEntry(text: string): RepoEntry {
   const named = /^([\w.-]+)\s*=\s*(.+)$/.exec(text)
-  if (!named) return parseLocation(text)
+  if (!named) {
+    return parseLocation(text)
+  }
+
   const [, name = "", location = ""] = named
   return { name, ...parseLocation(location) }
 }

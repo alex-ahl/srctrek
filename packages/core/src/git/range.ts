@@ -35,7 +35,10 @@ export function parseRange(text: string): RangeSpec {
   if (twoDot.length === 2) {
     return { base: twoDot[0] || undefined, head: twoDot[1] || "HEAD", mode: "direct" }
   }
-  if (text.includes("..")) throw new Error(`not a range: ${text}`)
+
+  if (text.includes("..")) {
+    throw new Error(`not a range: ${text}`)
+  }
   return { base: undefined, head: text || "HEAD", mode: "since-branch-point" }
 }
 

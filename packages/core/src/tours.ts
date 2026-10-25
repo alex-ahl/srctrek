@@ -17,21 +17,36 @@ export class TourValidationError extends Error {
 
 // The id of steps[index] in raw, unvalidated data, when it has one.
 function stepId(data: unknown, index: number): string | undefined {
-  if (typeof data !== "object" || data === null || !("steps" in data)) return undefined
+  if (typeof data !== "object" || data === null || !("steps" in data)) {
+    return undefined
+  }
+
   const { steps } = data
-  if (!Array.isArray(steps)) return undefined
+  if (!Array.isArray(steps)) {
+    return undefined
+  }
+
   const step: unknown = steps[index]
-  if (typeof step !== "object" || step === null || !("id" in step)) return undefined
+  if (typeof step !== "object" || step === null || !("id" in step)) {
+    return undefined
+  }
+
   return typeof step.id === "string" ? step.id : undefined
 }
 
 // "steps.14 (s15).via": the position Zod reports, plus the step's id, which is what a
 // reader knows the step by.
 function describePath(path: PropertyKey[], data: unknown): string {
-  if (path.length === 0) return "tour"
+  if (path.length === 0) {
+    return "tour"
+  }
+
   const [head, index, ...rest] = path
   const id = head === "steps" && typeof index === "number" ? stepId(data, index) : undefined
-  if (id === undefined) return path.map(String).join(".")
+  if (id === undefined) {
+    return path.map(String).join(".")
+  }
+
   return [`steps.${String(index)} (${id})`, ...rest.map(String)].join(".")
 }
 
@@ -42,7 +57,10 @@ function describeIssues(error: z.ZodError, data: unknown): string[] {
 /** Throws TourValidationError naming `source` when `data` isn't a valid tour. */
 export function parseTour(data: unknown, source: string): Tour {
   const result = TourSchema.safeParse(data)
-  if (!result.success) throw new TourValidationError(source, describeIssues(result.error, data))
+  if (!result.success) {
+    throw new TourValidationError(source, describeIssues(result.error, data))
+  }
+
   return result.data
 }
 

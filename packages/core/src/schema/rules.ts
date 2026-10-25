@@ -80,10 +80,16 @@ function oneSidedCrossRepoLinks(tour: Tour): Issue[] {
   const byId = new Map(tour.steps.map((s) => [s.id, s]))
   return tour.steps.flatMap((s, i) => {
     const source = s.from === undefined ? undefined : byId.get(s.from)
-    if (!s.via || s.via.guessed || !source || source.repo === s.repo) return []
+    if (!s.via || s.via.guessed || !source || source.repo === s.repo) {
+      return []
+    }
+
     const cited = new Set(s.via.cites.map((c) => c.repo))
     const missing = [source.repo, s.repo].filter((repo) => !cited.has(repo))
-    if (missing.length === 0) return []
+    if (missing.length === 0) {
+      return []
+    }
+
     return [
       {
         path: ["steps", i, "via"],

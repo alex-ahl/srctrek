@@ -17,7 +17,10 @@ const tour = parseTour(await Bun.file(tourPath).json(), tourPath)
 
 function repoDir(name: string): string {
   const dir = refund.repos[name]
-  if (dir === undefined) throw new Error(`no repo ${name} in the fixture`)
+  if (dir === undefined) {
+    throw new Error(`no repo ${name} in the fixture`)
+  }
+
   return dir
 }
 

@@ -23,6 +23,9 @@ export async function runGit(
     new Response(proc.stderr).text(),
     proc.exited,
   ])
-  if (code !== 0) throw new GitError(args, stderr)
+  if (code !== 0) {
+    throw new GitError(args, stderr)
+  }
+
   return trim ? stdout.trim() : stdout
 }

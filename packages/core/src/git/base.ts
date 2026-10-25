@@ -5,7 +5,10 @@ async function refExists(cwd: string, ref: string): Promise<boolean> {
     await runGit(cwd, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`])
     return true
   } catch (error) {
-    if (error instanceof GitError) return false
+    if (error instanceof GitError) {
+      return false
+    }
+
     throw error
   }
 }
@@ -16,7 +19,10 @@ async function remoteDefault(cwd: string): Promise<string | undefined> {
     const ref = await runGit(cwd, ["symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"])
     return ref.replace(/^refs\/remotes\//, "")
   } catch (error) {
-    if (error instanceof GitError) return undefined
+    if (error instanceof GitError) {
+      return undefined
+    }
+
     throw error
   }
 }
@@ -27,9 +33,15 @@ async function remoteDefault(cwd: string): Promise<string | undefined> {
  */
 export async function detectBase(cwd: string): Promise<string> {
   const remote = await remoteDefault(cwd)
-  if (remote !== undefined) return remote
-  for (const candidate of ["main", "master"]) {
-    if (await refExists(cwd, candidate)) return candidate
+  if (remote !== undefined) {
+    return remote
   }
+
+  for (const candidate of ["main", "master"]) {
+    if (await refExists(cwd, candidate)) {
+      return candidate
+    }
+  }
+
   throw new Error("no base branch: origin/HEAD is unset and there is no main or master")
 }

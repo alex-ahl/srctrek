@@ -57,7 +57,10 @@ function visibleFiles(root: string): string[] {
       encoding: "utf8",
     },
   )
-  if (result.status !== 0) throw new Error(`git ls-files failed: ${result.stderr}`)
+  if (result.status !== 0) {
+    throw new Error(`git ls-files failed: ${result.stderr}`)
+  }
+
   return result.stdout.split("\0").filter(Boolean)
 }
 

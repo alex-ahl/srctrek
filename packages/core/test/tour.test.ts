@@ -22,7 +22,10 @@ function refundTour(): Tour {
 
 function step(tour: Tour, id: string) {
   const found = tour.steps.find((s) => s.id === id)
-  if (!found) throw new Error(`no step ${id}`)
+  if (!found) {
+    throw new Error(`no step ${id}`)
+  }
+
   return found
 }
 
@@ -31,7 +34,10 @@ function issuesOf(data: unknown): string[] {
     parseTour(data, "test")
     return []
   } catch (error) {
-    if (error instanceof TourValidationError) return error.issues
+    if (error instanceof TourValidationError) {
+      return error.issues
+    }
+
     throw error
   }
 }

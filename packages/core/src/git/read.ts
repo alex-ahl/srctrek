@@ -5,7 +5,10 @@ async function unlessMissing(read: Promise<string>): Promise<string | undefined>
   try {
     return await read
   } catch (error) {
-    if (error instanceof GitError) return undefined
+    if (error instanceof GitError) {
+      return undefined
+    }
+
     throw error
   }
 }
