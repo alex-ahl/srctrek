@@ -12,6 +12,8 @@
 - Step 2b: reading a range (`main...feature`, `main..feature`, or a head alone) and resolving
   it to exact commits, detecting the base branch when none is given
   (`packages/core/src/git/`).
+- Step 2c: reading a file and its blob id at a commit, the files that changed between two
+  commits, and a file's changed lines numbered as in the new version.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 

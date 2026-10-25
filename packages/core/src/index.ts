@@ -12,3 +12,11 @@ export {
 export { detectBase } from "./git/base"
 export { parseRange, resolveRange, type RangeSpec, type ResolvedRange } from "./git/range"
 export { GitError, runGit } from "./git/run"
+export {
+  changedFiles,
+  changedLines,
+  parseChangedLines,
+  type FileChange,
+  type LineChange,
+} from "./git/diff"
+export { blobAt, readFileAt } from "./git/read"

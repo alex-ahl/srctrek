@@ -14,10 +14,15 @@ export async function makeRepo(): Promise<string> {
   return dir
 }
 
+/** Commits whatever is staged; returns the new commit. */
+export async function commitStaged(dir: string, message: string): Promise<string> {
+  await runGit(dir, [...IDENTITY, "commit", "--quiet", "-m", message])
+  return runGit(dir, ["rev-parse", "HEAD"])
+}
+
 /** Writes `file` and commits it; returns the new commit. */
 export async function commit(dir: string, file: string, content: string): Promise<string> {
   await writeFile(join(dir, file), content)
   await runGit(dir, ["add", file])
-  await runGit(dir, [...IDENTITY, "commit", "--quiet", "-m", `change ${file}`])
-  return runGit(dir, ["rev-parse", "HEAD"])
+  return commitStaged(dir, `change ${file}`)
 }
