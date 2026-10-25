@@ -66,7 +66,9 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - While building, the agent proposes repos it finds on the route with `propose_repo`, citing
   the evidence (a client, a config value, a contract file, a dependency), with the source
   when it knows it. With the user's approval the repo is appended to the repos list under its
-  name; a proposal without a source asks the user where the repo lives.
+  name. Without a source, the agent can search the user's code host with its own tools and
+  propose the URL it finds, or ask the user where the repo lives; codetrail doesn't search
+  hosts itself.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.
 - Files are read at a revision through git objects, never from the working tree. The one
   exception is uncommitted changes, when the range includes them.
