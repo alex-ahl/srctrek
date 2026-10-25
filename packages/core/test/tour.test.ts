@@ -11,6 +11,7 @@ import {
   saveTour,
   tourPath,
 } from "../src"
+import { rejection } from "./support/rejection"
 
 const fixturePath = join(import.meta.dir, "fixtures/refund-tour.json")
 const fixture = parseTour(await Bun.file(fixturePath).json(), fixturePath)
@@ -23,15 +24,6 @@ function step(tour: Tour, id: string) {
   const found = tour.steps.find((s) => s.id === id)
   if (!found) throw new Error(`no step ${id}`)
   return found
-}
-
-async function rejection(promise: Promise<unknown>): Promise<unknown> {
-  try {
-    await promise
-  } catch (error) {
-    return error
-  }
-  throw new Error("expected a rejection")
 }
 
 function issuesOf(data: unknown): string[] {

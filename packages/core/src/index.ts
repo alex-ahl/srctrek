@@ -9,3 +9,6 @@ export {
   saveTour,
   tourPath,
 } from "./tours"
+export { detectBase } from "./git/base"
+export { parseRange, resolveRange, type RangeSpec, type ResolvedRange } from "./git/range"
+export { GitError, runGit } from "./git/run"

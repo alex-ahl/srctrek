@@ -9,6 +9,9 @@
 - The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
 - Step 2a: each step names where execution came from (`from`), and a link from another
   repo must cite both repos or be marked guessed. Validation messages name the step id.
+- Step 2b: reading a range (`main...feature`, `main..feature`, or a head alone) and resolving
+  it to exact commits, detecting the base branch when none is given
+  (`packages/core/src/git/`).
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 
