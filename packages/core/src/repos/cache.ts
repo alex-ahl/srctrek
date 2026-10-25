@@ -69,8 +69,12 @@ export async function cachedRepo(cacheDir: string, cloneUrl: string): Promise<st
   return dir
 }
 
-/** Brings a cached clone's branches up to date, plus extra refs such as a pull request's head. */
+/**
+ * Brings a cached clone's branches and tags up to date, plus extra refs such as a pull
+ * request's head.
+ */
 export async function fetchRefs(dir: string, refs: string[] = []): Promise<void> {
-  const refspecs = ["+refs/heads/*:refs/heads/*", ...refs.map((ref) => `+${ref}:${ref}`)]
+  const everyBranchAndTag = ["+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*"]
+  const refspecs = [...everyBranchAndTag, ...refs.map((ref) => `+${ref}:${ref}`)]
   await runGit(dir, ["fetch", "--quiet", "--prune", "origin", ...refspecs], { env: NO_PROMPT })
 }

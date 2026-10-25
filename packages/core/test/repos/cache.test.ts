@@ -1,30 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtemp } from "node:fs/promises"
 import { existsSync } from "node:fs"
-import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { cachePath, cachedRepo, fetchRefs, runGit } from "../../src"
-import { commit, makeRepo } from "../support/repo"
+import { commit } from "../support/repo"
+import { makeCacheDir, makeRemote } from "../support/remote"
 import { rejection } from "../support/rejection"
-
-// A repo standing in for a code host: main, plus a pull request head reachable only through
-// its pull request ref, as on a real host.
-async function makeRemote(): Promise<{ url: string; dir: string; prHead: string }> {
-  const dir = await makeRepo()
-  await runGit(dir, ["config", "uploadpack.allowFilter", "true"])
-
-  await runGit(dir, ["switch", "--quiet", "-c", "contributor"])
-  const prHead = await commit(dir, "app.ts", "change\n")
-  await runGit(dir, ["update-ref", "refs/pull/1/head", prHead])
-  await runGit(dir, ["switch", "--quiet", "main"])
-  await runGit(dir, ["branch", "--quiet", "-D", "contributor"])
-
-  return { url: `file://${dir}`, dir, prHead }
-}
-
-async function makeCacheDir(): Promise<string> {
-  return mkdtemp(join(tmpdir(), "codetrail-cache-"))
-}
 
 describe("cachePath", () => {
   test("gives the HTTPS and SSH URLs of one repo the same folder", () => {

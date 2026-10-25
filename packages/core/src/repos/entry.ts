@@ -28,9 +28,14 @@ export function parseRepoEntry(text: string): RepoEntry {
   return { name, ...parseLocation(location) }
 }
 
-/** The given name, else the folder: "../payments/" and "org/payments.git" are "payments". */
+/** A repo's folder name: "../payments/" and "org/payments.git" are "payments". */
+export function folderName(path: string): string {
+  return basename(path.replace(/\/+$/, "")).replace(/\.git$/, "")
+}
+
+/** The given name, else the folder's. */
 export function repoName(entry: RepoEntry): string {
-  return entry.name ?? basename(entry.source.replace(/\/+$/, "")).replace(/\.git$/, "")
+  return entry.name ?? folderName(entry.source)
 }
 
 /** The entry for the repo a call names, if the list has one. */

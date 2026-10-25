@@ -20,8 +20,20 @@ export {
   type LineChange,
 } from "./git/diff"
 export { blobAt, readFileAt } from "./git/read"
-export { findRepoEntry, isRemote, parseRepoEntry, repoName, type RepoEntry } from "./repos/entry"
+export {
+  findRepoEntry,
+  folderName,
+  isRemote,
+  parseRepoEntry,
+  repoName,
+  type RepoEntry,
+} from "./repos/entry"
 export { REPOS_LIST, parseReposList, readReposList } from "./repos/list"
-export { resolveUnchangedRepo, type UnchangedRepo } from "./repos/resolve"
+export {
+  resolvePullRequest,
+  resolveUnchangedRepo,
+  type PullRequestChange,
+  type UnchangedRepo,
+} from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
 export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache"

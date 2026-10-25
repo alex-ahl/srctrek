@@ -18,7 +18,7 @@
   the refund tour is checked against them: blob ids match and every cited line exists.
 - Step 2e: repos without changes, read from `.codetrail/repos` (one `path[@revision]` per
   line, `#` comments allowed) and resolved to an exact commit at the default branch or the
-  pinned revision (`packages/core/src/repos/`). Local paths only; URLs fail until PR support.
+  pinned revision (`packages/core/src/repos/`).
 - Step 2f: a repos-list line can name its repo (`payments = ../payments-service`), and a
   repo is found by the name the code calls it. Proposing repos while building
   (`propose_repo`) is part of Milestone 3.
@@ -28,6 +28,9 @@
 - Step 2h: remote repos cached as partial bare clones under `$XDG_CACHE_HOME/codetrail`
   (else `~/.cache/codetrail`), one per host and path; fetching updates branches and pull
   request refs. Git never prompts for a password; logins come from the user's git setup.
+- Step 2i: a pull request resolves through the cache to its repo and range (branch point on
+  the host's default branch to the pull request's head); repos-list URLs resolve through the
+  cache too, at the default branch or a pinned revision.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 

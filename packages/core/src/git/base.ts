@@ -27,6 +27,10 @@ async function remoteDefault(cwd: string): Promise<string | undefined> {
   }
 }
 
+async function isBare(cwd: string): Promise<boolean> {
+  return (await runGit(cwd, ["rev-parse", "--is-bare-repository"])) === "true"
+}
+
 /**
  * The branch changes are compared against: the remote's default branch, else a local main or
  * master. Throws when none exists.
@@ -35,6 +39,11 @@ export async function detectBase(cwd: string): Promise<string> {
   const remote = await remoteDefault(cwd)
   if (remote !== undefined) {
     return remote
+  }
+
+  // A cached clone is bare, without origin/HEAD; its own HEAD is the host's default branch.
+  if (await isBare(cwd)) {
+    return runGit(cwd, ["symbolic-ref", "--short", "HEAD"])
   }
 
   for (const candidate of ["main", "master"]) {
