@@ -1,5 +1,6 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs"
-import { dirname, join } from "node:path"
+import { spawnSync } from "node:child_process"
+import { readFileSync, readdirSync } from "node:fs"
+import { dirname, join, normalize } from "node:path"
 
 export const PACKAGE_README_SECTIONS = [
   "What it is",
@@ -45,35 +46,62 @@ function stripAnchor(target: string): string {
   return target.split("#")[0] ?? target
 }
 
+// Tracked files plus new ones not yet added; gitignored files exist only on this machine, so
+// they don't count, matching what a clean checkout (and CI) has.
+function visibleFiles(root: string): string[] {
+  const result = spawnSync(
+    "git",
+    ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+    {
+      cwd: root,
+      encoding: "utf8",
+    },
+  )
+  if (result.status !== 0) throw new Error(`git ls-files failed: ${result.stderr}`)
+  return result.stdout.split("\0").filter(Boolean)
+}
+
+/** Whether a repo-relative path names one of `files`, or a folder containing one. */
+export function existenceIn(files: string[]): (path: string) => boolean {
+  const known = new Set(files)
+  for (const file of files) {
+    const parts = file.split("/")
+    for (let i = 1; i < parts.length; i++) known.add(parts.slice(0, i).join("/"))
+  }
+  return (path) => {
+    const clean = normalize(path).replace(/\/$/, "")
+    return clean === "." || known.has(clean)
+  }
+}
+
 function packageReadmes(root: string): string[] {
   return readdirSync(join(root, "packages")).map((p) => join("packages", p, "README.md"))
 }
 
-function brokenPaths(root: string, doc: string): string[] {
+function brokenPaths(root: string, doc: string, exists: (path: string) => boolean): string[] {
   const text = readFileSync(join(root, doc), "utf8")
   const docDir = dirname(doc)
   const fromDoc = [...linkTargets(text), ...importPaths(text)].filter(
-    (p) => !existsSync(join(root, docDir, p)),
+    (p) => !exists(join(docDir, p)),
   )
-  const fromCode = codePaths(text).filter(
-    (p) => !existsSync(join(root, docDir, p)) && !existsSync(join(root, p)),
-  )
+  const fromCode = codePaths(text).filter((p) => !exists(join(docDir, p)) && !exists(p))
   return [...fromDoc, ...fromCode]
 }
 
 export function checkDocs(root: string): string[] {
+  const exists = existenceIn(visibleFiles(root))
   const readmes = packageReadmes(root)
   const docsReadme = readFileSync(join(root, "docs/README.md"), "utf8")
   const docs = [...ROOT_DOCS, ...currentDocLinks(docsReadme), ...readmes]
   const problems: string[] = []
   for (const doc of docs) {
-    if (!existsSync(join(root, doc))) {
+    if (!exists(doc)) {
       problems.push(`${doc}: file missing`)
       continue
     }
-    for (const p of brokenPaths(root, doc)) problems.push(`${doc}: broken path ${p}`)
+    for (const p of brokenPaths(root, doc, exists)) problems.push(`${doc}: broken path ${p}`)
   }
-  for (const readme of readmes.filter((r) => existsSync(join(root, r)))) {
+  for (const readme of readmes.filter((r) => exists(r))) {
     for (const s of missingSections(readFileSync(join(root, readme), "utf8"))) {
       problems.push(`${readme}: missing section "## ${s}"`)
     }

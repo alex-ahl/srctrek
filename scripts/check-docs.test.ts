@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   PACKAGE_README_SECTIONS,
+  existenceIn,
   codePaths,
   currentDocLinks,
   importPaths,
@@ -55,5 +56,21 @@ describe("missingSections", () => {
   test("passes a complete readme", () => {
     const md = PACKAGE_README_SECTIONS.map((s) => `## ${s}`).join("\n")
     expect(missingSections(md)).toEqual([])
+  })
+})
+
+describe("existenceIn", () => {
+  const exists = existenceIn(["docs/ARCHITECTURE.md", "packages/core/src/index.ts", "README.md"])
+
+  test("finds files and the folders that contain them", () => {
+    expect(exists("docs/ARCHITECTURE.md")).toBe(true)
+    expect(exists("packages/core/")).toBe(true)
+    expect(exists("packages/core/src")).toBe(true)
+    expect(exists("docs/../README.md")).toBe(true)
+  })
+
+  test("doesn't find what isn't in the list, such as gitignored files", () => {
+    expect(exists(".codetrail/")).toBe(false)
+    expect(exists("docs/MISSING.md")).toBe(false)
   })
 })
