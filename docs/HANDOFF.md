@@ -25,6 +25,9 @@
 - Step 2g: a pull request URL read as a clone URL plus the ref its head is fetched from, by
   the URL's shape (GitHub's `/pull/<n>`, GitLab's `/-/merge_requests/<n>`), so
   self-hosted instances work too.
+- Step 2h: remote repos cached as partial bare clones under `$XDG_CACHE_HOME/codetrail`
+  (else `~/.cache/codetrail`), one per host and path; fetching updates branches and pull
+  request refs. Git never prompts for a password; logins come from the user's git setup.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 

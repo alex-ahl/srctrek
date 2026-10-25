@@ -8,16 +8,23 @@ export class GitError extends Error {
   }
 }
 
-/**
- * Runs git in `cwd` and returns its stdout, trimmed unless `trim` is false (file contents keep
- * their exact text); throws GitError on a non-zero exit.
- */
+type RunOptions = {
+  trim?: boolean // false keeps file contents' exact text
+  env?: Record<string, string> // added to the inherited environment
+}
+
+/** Runs git in `cwd` and returns its stdout, trimmed by default; throws GitError on failure. */
 export async function runGit(
   cwd: string,
   args: string[],
-  { trim = true }: { trim?: boolean } = {},
+  { trim = true, env = {} }: RunOptions = {},
 ): Promise<string> {
-  const proc = Bun.spawn(["git", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
+  const proc = Bun.spawn(["git", ...args], {
+    cwd,
+    env: { ...process.env, ...env },
+    stdout: "pipe",
+    stderr: "pipe",
+  })
   const [stdout, stderr, code] = await Promise.all([
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),

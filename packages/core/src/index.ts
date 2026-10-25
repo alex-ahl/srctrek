@@ -24,3 +24,4 @@ export { findRepoEntry, isRemote, parseRepoEntry, repoName, type RepoEntry } fro
 export { REPOS_LIST, parseReposList, readReposList } from "./repos/list"
 export { resolveUnchangedRepo, type UnchangedRepo } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
+export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache"
