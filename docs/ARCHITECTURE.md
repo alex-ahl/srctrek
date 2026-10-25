@@ -25,7 +25,7 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   `vim.g.codetrail`, where any can be changed or turned off. No integrations with other
   plugins: users wire which-key, explorers, and the like to the commands, functions, and
   the step event themselves. Today a prototype that reads tour files and steps through them itself; in
-  Milestone 4 it renders core's stepping session through `docs/PROTOCOL.md` and holds no
+  Milestone 6 it renders core's stepping session through `docs/PROTOCOL.md` and holds no
   stepping logic of its own.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
   stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
@@ -169,7 +169,7 @@ A saved tour has passed every rule. When one doesn't load:
 The tour is stepped in the editor, in files from the cached worktree.
 
 - Neovim (version 1): the plugin steps from inside the editor and renders each step.
-- VS Code and its forks (after version 1): an extension, rendering the same session.
+- VS Code and its forks (version 1, Milestone 6): an extension, rendering the same session.
 - Every other editor: the TUI's fallback stepping view shows the code, and `e` opens the
   step at its line with the editor's open-at-line command. No integration beyond that is
   planned.

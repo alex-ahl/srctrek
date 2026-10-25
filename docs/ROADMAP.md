@@ -35,13 +35,6 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - Companion PRs found automatically from cross-repo links in PR descriptions ("Depends on
   api#12"), through the host's CLI.
 
-## Editors
-
-- VS Code extension, also for its forks: steps revealed and highlighted with decorations,
-  summaries as CodeLens, `uncertain` flags as diagnostics, changed lines from the built-in
-  git gutter, steps and call stack in a tree view, progress in the status bar. Renders core's
-  stepping session; holds no stepping logic of its own.
-
 ## Front-ends
 
 - TUI sidebar mode: narration, call stack, watched values, and boundary cards in a pane, for

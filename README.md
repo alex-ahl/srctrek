@@ -10,7 +10,7 @@ its outcome in execution order, moving your editor to each step: step over, step
 step out, with a call stack.
 
 Reads code from git, local or remote, and runs nothing. Works with any agent; steps through
-trails in Neovim, and in VS Code and its forks later.
+trails in Neovim, and in VS Code and its forks.
 
 > **Status:** pre-release. Today you can list saved tours and step through them in Neovim,
 > running from a checkout. Building tours arrives in Milestone 3; see `docs/HANDOFF.md`.

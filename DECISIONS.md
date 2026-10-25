@@ -2,6 +2,19 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-25 — Foundation first, then a design pass; VS Code and Neovim together in version 1
+
+Order: git (2), tour building (3), core process and protocol (4), a front-end design pass
+(5), the VS Code extension and the Neovim plugin side by side on the protocol (6), the TUI
+to the design (7), and a GUI only if beta testers want it (8). Beta testers get the binary
+and a .vsix package after milestone 6.
+
+The focus moves to front-ends made with care and to outside testers, most of whom use VS
+Code; every front-end renders the same stepping session, so building and the protocol come
+first and design comes before front-end code. Replaces "VS Code after version 1" from
+"Supported editors"; asking from the editor joins milestone 6 instead of being its own
+milestone. The Neovim prototype keeps working meanwhile.
+
 ## 2026-10-24 — The .codetrail folder is committed, not ignored
 
 The .codetrail folder belongs in the repo: the repos list for the whole team, and tours that travel

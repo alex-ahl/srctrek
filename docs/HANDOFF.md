@@ -63,12 +63,18 @@
   fixture that is hard to read statically, one whose trigger is in an unchanged file, and
   one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
-  protocol (`docs/PROTOCOL.md`); the Neovim plugin (stepping,
-  narration, change signs, details, stale steps marked, keys configurable through `setup`, a
-  Lua API beside the commands); the TUI's home screen (with
-  version, stale, and unreachable states), build view, route map, and fallback stepping view.
-- 5: asking from the editor: `trail ask`, answers through MCP, notes on steps, branch trails
-  for what-if questions.
+  protocol (`docs/PROTOCOL.md`), with contract tests.
+- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
+  editors, and a GUI, as mockups reviewed before anything is built.
+- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
+  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
+  narration, change signs, details, stale steps marked, configurable keys, and asking
+  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
+- 7: the TUI to the design: home screen (with version, stale, and unreachable states),
+  build view, route map, and fallback stepping view.
+- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
+
+The beta release follows milestone 6: the `trail` binary and the .vsix package.
 
 **Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
 
