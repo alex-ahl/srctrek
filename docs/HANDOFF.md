@@ -22,6 +22,9 @@
 - Step 2f: a repos-list line can name its repo (`payments = ../payments-service`), and a
   repo is found by the name the code calls it. Proposing repos while building
   (`propose_repo`) is part of Milestone 3.
+- Step 2g: a pull request URL read as a clone URL plus the ref its head is fetched from, by
+  the URL's shape (GitHub's `/pull/<n>`, GitLab's `/-/merge_requests/<n>`), so
+  self-hosted instances work too.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 
