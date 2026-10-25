@@ -70,14 +70,16 @@ export async function saveTour(root: string, name: string, tour: Tour): Promise<
   return path
 }
 
-export async function loadTour(path: string): Promise<Tour> {
-  let data: unknown
+async function readJson(path: string): Promise<unknown> {
   try {
-    data = JSON.parse(await readFile(path, "utf8"))
+    return JSON.parse(await readFile(path, "utf8"))
   } catch (error) {
     throw new TourValidationError(path, [`not readable as JSON: ${String(error)}`])
   }
-  return parseTour(data, path)
+}
+
+export async function loadTour(path: string): Promise<Tour> {
+  return parseTour(await readJson(path), path)
 }
 
 /** Names of saved tours under `root`, sorted; files whose names aren't tour names are skipped. */
