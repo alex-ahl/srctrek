@@ -6,8 +6,8 @@
 --   <leader>ta ask about the current step (enter on a cited repo/file:line jumps there)
 -- Every action is also a command (:TrailNext, :TrailPrev, :TrailInto, :TrailOut,
 -- :TrailDetails, :TrailAsk, :TrailQuit) and a function on this module.
--- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), else the first of
--- claude, codex, opencode on PATH. Each step fires `User CodetrailStep` with
+-- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), the question as its
+-- last argument. Each step fires `User CodetrailStep` with
 -- { path, line, repo } for file explorers or user config to follow.
 local ask = require("codetrail.ask")
 local details = require("codetrail.details")

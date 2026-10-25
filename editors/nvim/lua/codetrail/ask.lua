@@ -4,20 +4,16 @@ local state = require("codetrail.state")
 
 local M = {}
 
--- Returns the argv to run, a display name, and whether the prompt goes in through the
--- environment rather than as the last argument.
+-- The argv for $CODETRAIL_AGENT and a display name, or nil when it isn't set. The prompt is
+-- appended as its last argument.
 local function agent_cmd()
   local configured = vim.env.CODETRAIL_AGENT
-  if configured and configured ~= "" then
-    -- not an interactive shell: that sources the user's rc, which can run tmux commands
-    -- against the live server. The prompt travels in an env var to avoid quoting it.
-    return { "sh", "-c", configured .. ' "$CODETRAIL_PROMPT"' }, configured:match("^%S+"), true
+  if not configured or configured == "" then
+    return nil
   end
-  for _, candidate in ipairs({ { "claude", "-p" }, { "codex", "exec" }, { "opencode", "run" } }) do
-    if vim.fn.executable(candidate[1]) == 1 then
-      return candidate, candidate[1], false
-    end
-  end
+  -- not an interactive shell: that sources the user's rc, which can run tmux commands
+  -- against the live server. The prompt travels in an env var to avoid quoting it.
+  return { "sh", "-c", configured .. ' "$CODETRAIL_PROMPT"' }, configured:match("^%S+")
 end
 
 local function prompt_for(question)
@@ -99,12 +95,11 @@ local function answer_text(res, argv)
   }, "\n")
 end
 
-local function run(question, cmd, name, via_shell)
+local function run(question, argv, name)
   local index = state.index
   local stop_waiting = show_waiting(name, question)
   local prompt = prompt_for(question)
-  local argv = via_shell and cmd or vim.list_extend(vim.deepcopy(cmd), { prompt })
-  local env = via_shell and { CODETRAIL_PROMPT = prompt } or nil
+  local env = { CODETRAIL_PROMPT = prompt }
   local cwd = state.roots[(state.tour.steps[index] or state.tour.steps[1]).repo]
   vim.system(argv, { cwd = cwd, text = true, env = env }, function(res)
     vim.schedule(function()
@@ -121,14 +116,14 @@ function M.ask()
   if not state.tour then
     return
   end
-  local cmd, name, via_shell = agent_cmd()
-  if not cmd then
-    vim.notify("codetrail: no agent CLI found; set CODETRAIL_AGENT", vim.log.levels.ERROR)
+  local argv, name = agent_cmd()
+  if not argv then
+    vim.notify("codetrail: set CODETRAIL_AGENT to your agent's headless command", vim.log.levels.ERROR)
     return
   end
   vim.ui.input({ prompt = "Ask about this step: " }, function(question)
     if question and question ~= "" then
-      run(question, cmd, name, via_shell)
+      run(question, argv, name)
     end
   end)
 end
