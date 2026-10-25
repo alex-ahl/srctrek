@@ -59,8 +59,14 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   given without a range, e.g. `trail main...HEAD ../gateway`) or from the repos list
   (`.codetrail/repos`, one path or URL per line, optionally `@revision`), read
   automatically; their revision is the default branch unless pinned, recorded as an exact
-  commit. While building, the agent can ask to add a repo; with the user's approval it's
-  appended to the repos list.
+  commit.
+- A line in the repos list can name its repo: `payments = ../payments@v2.3`. The name is what
+  the code calls the service, so a call to `payments` resolves to that repo. Without a name,
+  the repo is named after its folder.
+- While building, the agent proposes repos it finds on the route with `propose_repo`, citing
+  the evidence (a client, a config value, a contract file, a dependency), with the source
+  when it knows it. With the user's approval the repo is appended to the repos list under its
+  name; a proposal without a source asks the user where the repo lives.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.
 - Files are read at a revision through git objects, never from the working tree. The one
   exception is uncommitted changes, when the range includes them.
@@ -122,7 +128,9 @@ The user's agent builds the tour through `trail mcp`:
 2. Read tools: `diff`, `read_file`, `search`, and `list_files`, at each repo's revision. They
    work the same for local and remote repos, and never touch the working tree.
 3. Instructions: the schema and the guidance from `packages/core/prompts/`, as MCP prompts.
-4. Submission: `start_tour` (trigger, outcome, overview), `add_steps`, `finish_tour`. Each
+4. `propose_repo`: a repo on the route that the change doesn't include, with its evidence;
+   see Sources.
+5. Submission: `start_tour` (trigger, outcome, overview), `add_steps`, `finish_tour`. Each
    call is validated; the TUI shows the overview as soon as `start_tour` lands and steps as
    they arrive.
 

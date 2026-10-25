@@ -19,6 +19,9 @@
 - Step 2e: repos without changes, read from `.codetrail/repos` (one `path[@revision]` per
   line, `#` comments allowed) and resolved to an exact commit at the default branch or the
   pinned revision (`packages/core/src/repos/`). Local paths only; URLs fail until PR support.
+- Step 2f: a repos-list line can name its repo (`payments = ../payments-service`), and a
+  repo is found by the name the code calls it. Proposing repos while building
+  (`propose_repo`) is part of Milestone 3.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 

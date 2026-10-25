@@ -30,6 +30,12 @@ describe("resolveUnchangedRepo", () => {
     expect(resolved.revision).toBe(first)
   })
 
+  test("names the repo as the entry does", async () => {
+    const repo = await makeRepo()
+    const resolved = await resolveUnchangedRepo(repo, { name: "payments", source: "." })
+    expect(resolved.name).toBe("payments")
+  })
+
   test("says when the path isn't a git repo", async () => {
     const dir = await mkdtemp(join(tmpdir(), "codetrail-plain-"))
     expect(await rejection(resolveUnchangedRepo(dir, { source: "." }))).toHaveProperty(

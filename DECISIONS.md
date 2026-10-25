@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-25 — Repos are named in the repos list; the agent proposes the rest
+
+A line in `.codetrail/repos` can name its repo (`payments = ../payments`), so a call to a
+service resolves to a repo without guessing. Repos the list doesn't have are proposed by the
+agent through `propose_repo`, each citing its evidence, and added on the user's approval.
+
+Code names services, not git remotes, so a name map is the one reliable link between them,
+and committed with the repo it serves every agent and teammate alike. Finding candidates in
+manifests and contract files is left to the agent, which reads them anyway; parsers per
+ecosystem in core would always be incomplete.
+
 ## 2026-10-25 — Foundation first, then a design pass; VS Code and Neovim together in version 1
 
 Order: git (2), tour building (3), core process and protocol (4), a front-end design pass

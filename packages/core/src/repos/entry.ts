@@ -1,15 +1,38 @@
-/** A repo as written in .codetrail/repos or on the command line, maybe pinned to a revision. */
-export type RepoEntry = { source: string; revision?: string }
+import { basename } from "node:path"
 
 /**
- * "../gateway", "../payments@v2.3". The last "@" starts a revision only when no "/" or ":"
- * follows it, so the user part of an SSH URL (git@host:org/repo) isn't read as one.
+ * A repo as written in .codetrail/repos or on the command line: where it is, maybe pinned to a
+ * revision, maybe named after the service the code calls.
  */
-export function parseRepoEntry(text: string): RepoEntry {
+export type RepoEntry = { name?: string; source: string; revision?: string }
+
+/**
+ * "../payments@v2.3". The last "@" starts a revision only when no "/" or ":" follows it, so
+ * the user part of an SSH URL (git@host:org/repo) isn't read as one.
+ */
+function parseLocation(text: string): RepoEntry {
   const at = text.lastIndexOf("@")
   const rest = text.slice(at + 1)
   const isRevision = at > 0 && rest !== "" && !/[/:]/.test(rest)
   return isRevision ? { source: text.slice(0, at), revision: rest } : { source: text }
+}
+
+/** "../gateway", "../payments@v2.3", or named: "payments = ../payments@v2.3". */
+export function parseRepoEntry(text: string): RepoEntry {
+  const named = /^([\w.-]+)\s*=\s*(.+)$/.exec(text)
+  if (!named) return parseLocation(text)
+  const [, name = "", location = ""] = named
+  return { name, ...parseLocation(location) }
+}
+
+/** The given name, else the folder: "../payments/" and "org/payments.git" are "payments". */
+export function repoName(entry: RepoEntry): string {
+  return entry.name ?? basename(entry.source.replace(/\/+$/, "")).replace(/\.git$/, "")
+}
+
+/** The entry for the repo a call names, if the list has one. */
+export function findRepoEntry(entries: RepoEntry[], name: string): RepoEntry | undefined {
+  return entries.find((entry) => repoName(entry) === name)
 }
 
 /** "git@host:org/repo", "https://…", "ssh://…": anything that isn't a local path. */
