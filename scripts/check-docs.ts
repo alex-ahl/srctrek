@@ -61,13 +61,15 @@ function visibleFiles(root: string): string[] {
   return result.stdout.split("\0").filter(Boolean)
 }
 
+// "a/b/c.ts" -> ["a", "a/b"]
+function parentFolders(file: string): string[] {
+  const parts = file.split("/")
+  return parts.slice(1).map((_, i) => parts.slice(0, i + 1).join("/"))
+}
+
 /** Whether a repo-relative path names one of `files`, or a folder containing one. */
 export function existenceIn(files: string[]): (path: string) => boolean {
-  const known = new Set(files)
-  for (const file of files) {
-    const parts = file.split("/")
-    for (let i = 1; i < parts.length; i++) known.add(parts.slice(0, i).join("/"))
-  }
+  const known = new Set(files.flatMap((file) => [file, ...parentFolders(file)]))
   return (path) => {
     const clean = normalize(path).replace(/\/$/, "")
     return clean === "." || known.has(clean)
@@ -90,23 +92,19 @@ function brokenPaths(root: string, doc: string, exists: (path: string) => boolea
 
 export function checkDocs(root: string): string[] {
   const exists = existenceIn(visibleFiles(root))
+  const read = (doc: string) => readFileSync(join(root, doc), "utf8")
   const readmes = packageReadmes(root)
-  const docsReadme = readFileSync(join(root, "docs/README.md"), "utf8")
-  const docs = [...ROOT_DOCS, ...currentDocLinks(docsReadme), ...readmes]
-  const problems: string[] = []
-  for (const doc of docs) {
-    if (!exists(doc)) {
-      problems.push(`${doc}: file missing`)
-      continue
-    }
-    for (const p of brokenPaths(root, doc, exists)) problems.push(`${doc}: broken path ${p}`)
-  }
-  for (const readme of readmes.filter((r) => exists(r))) {
-    for (const s of missingSections(readFileSync(join(root, readme), "utf8"))) {
-      problems.push(`${readme}: missing section "## ${s}"`)
-    }
-  }
-  return problems
+  const docs = [...ROOT_DOCS, ...currentDocLinks(read("docs/README.md")), ...readmes]
+  const missingDocs = docs.filter((doc) => !exists(doc)).map((doc) => `${doc}: file missing`)
+  const brokenLinks = docs
+    .filter(exists)
+    .flatMap((doc) => brokenPaths(root, doc, exists).map((p) => `${doc}: broken path ${p}`))
+  const missingReadmeSections = readmes
+    .filter(exists)
+    .flatMap((readme) =>
+      missingSections(read(readme)).map((s) => `${readme}: missing section "## ${s}"`),
+    )
+  return [...missingDocs, ...brokenLinks, ...missingReadmeSections]
 }
 
 if (import.meta.main) {

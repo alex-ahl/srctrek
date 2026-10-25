@@ -4,45 +4,39 @@ import type { Tour } from "./tour"
 
 type Issue = { path: (string | number)[]; message: string }
 
+// Items whose key already appeared earlier in the list, with their positions.
+function repeated<T>(items: T[], key: (item: T) => string): { item: T; index: number }[] {
+  const keys = items.map(key)
+  return items
+    .map((item, index) => ({ item, index }))
+    .filter(({ item, index }) => keys.indexOf(key(item)) < index)
+}
+
 function duplicateRepoNames(tour: Tour): Issue[] {
-  const seen = new Set<string>()
-  return tour.repos.flatMap((r, i) => {
-    if (!seen.has(r.name)) {
-      seen.add(r.name)
-      return []
-    }
-    return [{ path: ["repos", i, "name"], message: `duplicate repo name ${r.name}` }]
-  })
+  return repeated(tour.repos, (r) => r.name).map(({ item, index }) => ({
+    path: ["repos", index, "name"],
+    message: `duplicate repo name ${item.name}`,
+  }))
 }
 
 function duplicateStepIds(tour: Tour): Issue[] {
-  const seen = new Set<string>()
-  return tour.steps.flatMap((s, i) => {
-    if (!seen.has(s.id)) {
-      seen.add(s.id)
-      return []
-    }
-    return [{ path: ["steps", i, "id"], message: `duplicate step id ${s.id}` }]
-  })
+  return repeated(tour.steps, (s) => s.id).map(({ item, index }) => ({
+    path: ["steps", index, "id"],
+    message: `duplicate step id ${item.id}`,
+  }))
 }
 
 function unknownRepos(tour: Tour): Issue[] {
-  const names = new Set(tour.repos.map((r) => r.name))
-  return tour.steps.flatMap((s, i) => {
-    const issues: Issue[] = []
-    if (!names.has(s.repo)) {
-      issues.push({ path: ["steps", i, "repo"], message: `unknown repo ${s.repo}` })
-    }
-    s.via?.cites.forEach((c, j) => {
-      if (!names.has(c.repo)) {
-        issues.push({
-          path: ["steps", i, "via", "cites", j, "repo"],
-          message: `unknown repo ${c.repo}`,
-        })
-      }
-    })
-    return issues
-  })
+  const known = new Set(tour.repos.map((r) => r.name))
+  const unknown = (repo: string) => !known.has(repo)
+  return tour.steps.flatMap((s, i) => [
+    ...(unknown(s.repo) ? [{ path: ["steps", i, "repo"], message: `unknown repo ${s.repo}` }] : []),
+    ...(s.via?.cites ?? []).flatMap((c, j) =>
+      unknown(c.repo)
+        ? [{ path: ["steps", i, "via", "cites", j, "repo"], message: `unknown repo ${c.repo}` }]
+        : [],
+    ),
+  ])
 }
 
 function danglingCalls(tour: Tour): Issue[] {
@@ -54,22 +48,20 @@ function danglingCalls(tour: Tour): Issue[] {
   )
 }
 
-// Every link cites its evidence: only the first step may arrive without one.
 // Every step after the first is a link: it names where execution came from, and cites its
 // evidence.
 function missingLinks(tour: Tour): Issue[] {
-  return tour.steps.slice(1).flatMap((s, j) => {
-    const i = j + 1
-    const issues: Issue[] = []
-    if (s.from === undefined) {
-      issues.push({
-        path: ["steps", i, "from"],
-        message: "missing: name the step execution came from",
-      })
-    }
-    if (s.via === null) issues.push({ path: ["steps", i, "via"], message: "missing evidence" })
-    return issues
-  })
+  return tour.steps.slice(1).flatMap((s, j) => [
+    ...(s.from === undefined
+      ? [
+          {
+            path: ["steps", j + 1, "from"],
+            message: "missing: name the step execution came from",
+          },
+        ]
+      : []),
+    ...(s.via === null ? [{ path: ["steps", j + 1, "via"], message: "missing evidence" }] : []),
+  ])
 }
 
 function danglingFrom(tour: Tour): Issue[] {
