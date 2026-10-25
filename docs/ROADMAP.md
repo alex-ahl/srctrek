@@ -5,7 +5,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 ## Tours
 
 - **Producer tours:** the agent that wrote a change records its tour as it finishes.
-- **Tours travel with the PR:** committed on the branch or attached to the PR.
+- **Tours travel with the PR:** committed on the branch in .codetrail/tours, once tours use
+  portable sources.
 - **Comparing tours:** a producer's and a reviewer's tour of the same change side by side;
   disagreements are where to look first.
 
@@ -67,9 +68,10 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - Release workflow: per-platform binaries built on native runners, with checksums.
 - Install script; Homebrew tap; an npm package with per-platform binaries.
 - macOS notarization; Windows builds.
-- The Neovim plugin mirrored on release into its own repo for plugin managers; development
-  stays in this repo.
+- The Neovim plugin moves to its own repo once the editor protocol is versioned and stable
+  and the plugin has its own tests in CI; until then, mirrored on release into its own repo
+  for plugin managers.
 - The VS Code extension published to both the VS Code Marketplace and Open VSX, so forks can
   install it.
 - Versioning: release-please from Conventional Commits; semver covers the CLI, key
-  bindings, the tour format, and the workspace file; 0.x until those settle.
+  bindings, the tour format, and `.codetrail/repos`; 0.x until those settle.
