@@ -1,12 +1,9 @@
 # Handoff
 
-## 2026-10-23 — Tour schema and an interim home screen
+## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
 **Done**
 
-- Milestone 2, step 1: the tour schema (`packages/core/src/schema/tour.ts`) and saving,
-  loading, and listing tours (`packages/core/src/tours.ts`).
-- The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
 - Step 2a: each step names where execution came from (`from`), and a link from another
   repo must cite both repos or be marked guessed. Validation messages name the step id.
 - Step 2b: reading a range (`main...feature`, `main..feature`, or a head alone) and resolving
@@ -42,14 +39,62 @@
 - Step 2m: the `cli` package, `trail`'s entry point (`packages/cli/src/main.ts`): reads the
   arguments, resolves the change, says what's wrong with arguments it can't use, then opens
   the home screen. Nothing uses the resolved change until Milestone 3.
-- An interim TUI home screen: run `bun packages/cli/src/main.ts` in a repo to list
-  the .codetrail/tours folder and open a tour in Neovim.
 
 **Known gaps**
 
 - The Neovim plugin has no automated tests or Lua formatter yet.
 - The Neovim plugin reads predicted values per line from a prototype `inline_values` field;
   Milestone 3 moves them into `predicted_values`.
+
+**Milestones**
+
+- 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
+  validation (schema and cited lines); `trail` launching the user's agent when there is no
+  tour; `--uncommitted`, a snapshot of the working tree as a range's head; tours of existing
+  code from a picked trigger; an "add a repo" tool for the agent, approved by the user; the
+  build loop's retry limit; predicted values on their lines (schema, prompt, and validation
+  that each line is inside its step); updating stale tours through the agent; evals driving
+  an agent headless, including a fixture that is hard to read statically, one whose trigger
+  is in an unchanged file, and one that crosses repos.
+- 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
+  protocol (`docs/PROTOCOL.md`), with contract tests.
+- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
+  editors, and a GUI, as mockups reviewed before anything is built; the TUI library chosen
+  against those screens.
+- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
+  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
+  narration, change signs, details, stale steps marked, configurable keys, and asking
+  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
+- 7: the TUI to the design: home screen (with version, stale, and unreachable states),
+  build view, route map, and fallback stepping view.
+- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
+
+The beta release follows milestone 6: the `trail` binary and the .vsix package.
+
+**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
+
+**Open**
+
+- Check the name before going public.
+- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
+  out local-only files (demo tours, changed-lines files) first.
+- OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
+  lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
+  or sooner if an upgrade costs more than a day or a target platform fails to load it.
+- WSL not yet tested.
+- `bun test` would collect `*.test.ts` files inside eval fixtures.
+- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
+  `evals/` is not typechecked or type-aware linted.
+
+## 2026-10-23 — Tour schema and an interim home screen
+
+**Done**
+
+- Milestone 2, step 1: the tour schema (`packages/core/src/schema/tour.ts`) and saving,
+  loading, and listing tours (`packages/core/src/tours.ts`).
+- The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
+- An interim TUI home screen, listing the .codetrail/tours folder and opening a tour in
+  Neovim; started by `trail` since step 2m.
 
 ## 2026-10-22 — Quality spike
 
@@ -80,45 +125,3 @@
 - Milestone 1: workspace layout, docs, typecheck, lint, format, tests, docs check, CI.
 - Product sharpened: trigger to outcome, across repos, from local ranges or pull requests,
   driving the editor, with evidence on every link (`docs/PRODUCT.md`, `DECISIONS.md`).
-
-**Milestones**
-
-- 2: cli package; repos and ranges from local paths or GitHub PR URLs; repos without
-  changes from the command and `.codetrail/repos`; base detection; remote
-  fetch into a cache; reading files at a revision; editor worktrees; tour schema (with
-  severity on `uncertain` and the cross-repo evidence rule); save and load.
-- 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
-  validation (schema and cited lines); `trail` launching the user's agent when there is no
-  tour; `--uncommitted`, a snapshot of the working tree as a range's head; tours of existing code from a picked trigger; an "add a repo" tool for the agent,
-  approved by the user; the build loop's retry limit; predicted values on their lines
-  (schema, prompt, and validation that each line is inside its step);
-  updating stale tours through the agent; evals driving an agent headless, including a
-  fixture that is hard to read statically, one whose trigger is in an unchanged file, and
-  one that crosses repos.
-- 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
-  protocol (`docs/PROTOCOL.md`), with contract tests.
-- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
-  editors, and a GUI, as mockups reviewed before anything is built.
-- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
-  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
-  narration, change signs, details, stale steps marked, configurable keys, and asking
-  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
-- 7: the TUI to the design: home screen (with version, stale, and unreachable states),
-  build view, route map, and fallback stepping view.
-- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
-
-The beta release follows milestone 6: the `trail` binary and the .vsix package.
-
-**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
-
-**Open**
-
-- Check the name before going public.
-- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
-  out local-only files (demo tours, changed-lines files) first.
-- Whether OpenTUI is still worth its native code and pre-1.0 risk for the TUI's narrower
-  role: review after Milestone 2.
-- WSL not yet tested.
-- `bun test` would collect `*.test.ts` files inside eval fixtures.
-- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
-  `evals/` is not typechecked or type-aware linted.
