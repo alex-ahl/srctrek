@@ -21,8 +21,12 @@ Requires Bun 1.3.14 or later and Neovim 0.10 or later.
 
 ```sh
 bun install
-bun packages/tui/src/main.tsx    # in the repo whose tours you want to see
+bun packages/cli/src/main.ts    # in the repo whose tours you want to see
 ```
+
+Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set). Arguments
+are read as in `trail main...HEAD ../gateway`; a problem with them stops `trail` with a
+message.
 
 The home screen lists the tours in the .codetrail/tours folder, with their step counts and
 high-severity flags; invalid tours are listed with the reason.

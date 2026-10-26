@@ -2,8 +2,7 @@
 
 ## What it is
 
-The terminal controller for a tour, built with OpenTUI and React, and for now the `trail`
-binary's entry point.
+The terminal controller for a tour, built with OpenTUI and React.
 
 ## What it does, and does not
 
@@ -16,8 +15,8 @@ Does not: talk to git or the model, or define the tour format. That is all in co
 
 ## Where it fits
 
-Depends on `@codetrail/core`. Entry point: `packages/tui/src/main.tsx`. The render smoke
-check used by CI: `packages/tui/src/smoke.tsx`.
+Depends on `@codetrail/core`. Exports `startHome`, which the cli (`packages/cli/`) calls.
+The render smoke check used by CI: `packages/tui/src/smoke.tsx`.
 
 ## Why a package of its own
 

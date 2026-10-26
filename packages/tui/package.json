@@ -2,6 +2,9 @@
   "name": "@codetrail/tui",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "dependencies": {
     "@codetrail/core": "workspace:*",
     "@opentui/core": "0.6.6",

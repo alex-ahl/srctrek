@@ -1,0 +1,1 @@
+export { startHome } from "./home"

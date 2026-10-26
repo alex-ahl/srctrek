@@ -60,6 +60,27 @@
           }
         ]
       }
+    },
+    {
+      "files": ["packages/cli/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/core/src/**",
+                  "@codetrail/core/*",
+                  "**/tui/src/**",
+                  "@codetrail/tui/*"
+                ],
+                "message": "The cli imports only @codetrail/core and front-ends' entry points."
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

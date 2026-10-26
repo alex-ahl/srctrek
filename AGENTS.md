@@ -36,6 +36,8 @@ migration layers. When something changes, change it everywhere at once.
 ## Layout
 
 - `packages/core/` — git, schema, prompts, validation, saving and loading tours. No UI.
+- `packages/cli/` — the `trail` entry point: arguments, resolving the change, starting a
+  front-end.
 - `packages/tui/` — OpenTUI + React front-end.
 - `editors/nvim/` — the Neovim plugin (Lua).
 - `evals/fixtures/` — sample repos for tour-quality evals.

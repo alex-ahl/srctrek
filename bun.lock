@@ -12,6 +12,13 @@
         "typescript": "7.0.2",
       },
     },
+    "packages/cli": {
+      "name": "@codetrail/cli",
+      "dependencies": {
+        "@codetrail/core": "workspace:*",
+        "@codetrail/tui": "workspace:*",
+      },
+    },
     "packages/core": {
       "name": "@codetrail/core",
       "dependencies": {
@@ -32,6 +39,8 @@
     },
   },
   "packages": {
+    "@codetrail/cli": ["@codetrail/cli@workspace:packages/cli"],
+
     "@codetrail/core": ["@codetrail/core@workspace:packages/core"],
 
     "@codetrail/tui": ["@codetrail/tui@workspace:packages/tui"],

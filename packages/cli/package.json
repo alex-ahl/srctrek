@@ -1,0 +1,9 @@
+{
+  "name": "@codetrail/cli",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@codetrail/core": "workspace:*",
+    "@codetrail/tui": "workspace:*"
+  }
+}

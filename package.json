@@ -16,7 +16,7 @@
     "format:check": "prettier --check .",
     "test": "bun test",
     "check:docs": "bun scripts/check-docs.ts",
-    "build": "bun build --compile packages/tui/src/main.tsx --outfile dist/trail",
+    "build": "bun build --compile packages/cli/src/main.ts --outfile dist/trail",
     "build:smoke": "bun build --compile packages/tui/src/smoke.tsx --outfile dist/trail-smoke"
   },
   "devDependencies": {
