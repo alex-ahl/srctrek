@@ -89,7 +89,7 @@
   severity on `uncertain` and the cross-repo evidence rule); save and load.
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
   validation (schema and cited lines); `trail` launching the user's agent when there is no
-  tour; tours of existing code from a picked trigger; an "add a repo" tool for the agent,
+  tour; `--uncommitted`, a snapshot of the working tree as a range's head; tours of existing code from a picked trigger; an "add a repo" tool for the agent,
   approved by the user; the build loop's retry limit; predicted values on their lines
   (schema, prompt, and validation that each line is inside its step);
   updating stale tours through the agent; evals driving an agent headless, including a
@@ -116,7 +116,6 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - Check the name before going public.
 - Stop ignoring the .codetrail folder once tours are written with portable sources; clear
   out local-only files (demo tours, changed-lines files) first.
-- Whether `trail` with no arguments includes uncommitted changes.
 - Whether OpenTUI is still worth its native code and pre-1.0 risk for the TUI's narrower
   role: review after Milestone 2.
 - WSL not yet tested.

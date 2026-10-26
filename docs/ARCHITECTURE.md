@@ -76,8 +76,11 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - A repo given or listed more than once, or listed and also changed, is kept once; two
   repos can't share a name, since steps name their repo.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.
-- Files are read at a revision through git objects, never from the working tree. The one
-  exception is uncommitted changes, when the range includes them.
+- Files are read at a revision through git objects, never from the working tree.
+- Uncommitted work is left out unless asked for (`--uncommitted`, Milestone 3): then each
+  local range ending at HEAD ends instead at a snapshot of the working tree, a commit on top
+  of HEAD (edits staged or not, new files git doesn't ignore), made without touching the
+  branch, the index, or any file, and kept by a ref under refs/codetrail.
 - For the editor, each repo is checked out at the tour's revision into a cached worktree
   (`git worktree add`), so the editor shows the code the tour describes. The user's own
   checkout serves instead when it's at that revision with no edits to tracked files.

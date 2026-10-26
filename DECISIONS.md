@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-26 — Uncommitted work only when asked for
+
+`trail` follows committed work by default. `--uncommitted` includes edits, staged or not,
+and new files git doesn't ignore, by snapshotting the working tree as a commit on top of HEAD
+and using it as the range's head. It comes with Milestone 3, when tours of work in progress
+are built before it's committed.
+
+Tours cite exact commits and file versions; uncommitted edits have neither, so by default a
+tour can't silently describe code that changes on the next save. A snapshot commit keeps that
+guarantee when the user asks for work in progress: everything downstream reads it like any
+commit, and further edits mark the tour stale.
+
 ## 2026-10-26 — Predicted values sit on their lines
 
 A predicted value names the line it belongs to and its role: `{ name, value, line, role }`,
