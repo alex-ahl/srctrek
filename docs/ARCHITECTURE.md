@@ -74,6 +74,8 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   name. Without a source, the agent can search the user's code host with its own tools and
   propose the URL it finds, or ask the user where the repo lives; codetrail doesn't search
   hosts itself.
+- A repo given or listed more than once, or listed and also changed, is kept once; two
+  repos can't share a name, since steps name their repo.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.
 - Files are read at a revision through git objects, never from the working tree. The one
   exception is uncommitted changes, when the range includes them.

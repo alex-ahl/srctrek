@@ -31,11 +31,13 @@ export {
 export { REPOS_LIST, parseReposList, readReposList } from "./repos/list"
 export {
   resolvePullRequest,
+  resolveRangeChange,
   resolveUnchangedRepo,
-  type PullRequestChange,
+  type ChangedRepo,
   type UnchangedRepo,
 } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
 export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
+export { resolveChange, type ResolvedChange, type ResolvedRepo } from "./change/resolve"

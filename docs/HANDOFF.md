@@ -36,6 +36,9 @@
 - Step 2k: `trail`'s arguments read into changes (ranges, pull requests) and repos on the
   route (`packages/core/src/change/`), with errors for paths that aren't there, ranges
   without a repo, and pull requests git can't fetch.
+- Step 2l: a whole change resolved to every repo at an exact commit: the changes (local or
+  remote ranges, pull requests), then repos given without a range, then the current repo's
+  repos list; each repo kept once, names unique.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 

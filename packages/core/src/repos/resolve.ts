@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { detectBase } from "../git/base"
-import { type ResolvedRange, resolveRange } from "../git/range"
+import { type RangeSpec, type ResolvedRange, resolveRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
 import { cachedRepo, defaultCacheDir, fetchRefs } from "./cache"
 import { type RepoEntry, folderName, isRemote } from "./entry"
@@ -12,8 +12,8 @@ import type { PullRequest } from "./pull-request"
  */
 export type UnchangedRepo = { name: string; source: string; revision: string; dir: string }
 
-/** A pull request's repo and range; `dir` is its cached clone. */
-export type PullRequestChange = { name: string; source: string; dir: string; range: ResolvedRange }
+/** A changed repo and its range; `dir` is where its git data is read from. */
+export type ChangedRepo = { name: string; source: string; dir: string; range: ResolvedRange }
 
 async function repoTopLevel(dir: string, source: string): Promise<string> {
   try {
@@ -35,6 +35,16 @@ async function fetchedRepo(cacheDir: string, url: string, refs: string[] = []): 
   return dir
 }
 
+// Where an entry's git data is: its cached clone for a URL, else the top of the repo at its
+// path, relative to `baseDir`.
+async function repoDir(baseDir: string, entry: RepoEntry, cacheDir: string): Promise<string> {
+  if (isRemote(entry.source)) {
+    return fetchedRepo(cacheDir, entry.source)
+  }
+
+  return repoTopLevel(resolve(baseDir, entry.source), entry.source)
+}
+
 /**
  * Resolves an entry to the commit the tour reads. A local path is relative to `baseDir` (the
  * folder the entry was written for); a URL is read from its cached clone. Without a revision,
@@ -46,14 +56,25 @@ export async function resolveUnchangedRepo(
   entry: RepoEntry,
   cacheDir = defaultCacheDir(),
 ): Promise<UnchangedRepo> {
-  const dir = isRemote(entry.source)
-    ? await fetchedRepo(cacheDir, entry.source)
-    : await repoTopLevel(resolve(baseDir, entry.source), entry.source)
+  const dir = await repoDir(baseDir, entry, cacheDir)
 
   const revision = entry.revision ?? (await detectBase(dir))
   const commit = await runGit(dir, ["rev-parse", "--verify", `${revision}^{commit}`])
 
   return { name: entry.name ?? folderName(dir), source: entry.source, revision: commit, dir }
+}
+
+/** Resolves a range in a repo, found as resolveUnchangedRepo finds one. */
+export async function resolveRangeChange(
+  baseDir: string,
+  entry: RepoEntry,
+  spec: RangeSpec,
+  cacheDir = defaultCacheDir(),
+): Promise<ChangedRepo> {
+  const dir = await repoDir(baseDir, entry, cacheDir)
+  const range = await resolveRange(dir, spec)
+
+  return { name: entry.name ?? folderName(dir), source: entry.source, dir, range }
 }
 
 /**
@@ -63,7 +84,7 @@ export async function resolveUnchangedRepo(
 export async function resolvePullRequest(
   pr: PullRequest,
   cacheDir = defaultCacheDir(),
-): Promise<PullRequestChange> {
+): Promise<ChangedRepo> {
   const dir = await fetchedRepo(cacheDir, pr.cloneUrl, [pr.ref])
 
   const base = await detectBase(dir)
