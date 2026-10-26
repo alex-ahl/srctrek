@@ -79,7 +79,8 @@
 - 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
   validation (schema and cited lines); `trail` launching the user's agent when there is no
   tour; tours of existing code from a picked trigger; an "add a repo" tool for the agent,
-  approved by the user; the build loop's retry limit;
+  approved by the user; the build loop's retry limit; predicted values on their lines
+  (schema, prompt, and validation that each line is inside its step);
   updating stale tours through the agent; evals driving an agent headless, including a
   fixture that is hard to read statically, one whose trigger is in an unchanged file, and
   one that crosses repos.

@@ -2,6 +2,24 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-26 — Predicted values sit on their lines
+
+A predicted value names the line it belongs to and its role: `{ name, value, line, role }`,
+role `argument`, `assignment`, or `return`, plus `uncertain: true` when the agent doubts it.
+Front-ends show it at the end of that line, marked as predicted (and uncertain ones in the
+warning colour), the way a debugger shows inline values; long values are cut at the window
+edge, the details view lists them all in full, and one key hides or shows them.
+
+The agent fills them for the example scenario, following its data across steps, and only on
+lines where the value tells the reader something: a few per step, not one per line.
+Placeholders that restate a parameter's name are noise, and a wrong value sitting in the code
+reads more like fact than one in a popup.
+
+Values beside the code they describe read like a debugger session, which is the product's
+model; a separate list makes the reader match names to lines. The line comes from the agent
+that builds the tour, which already reads those lines, and validation keeps it inside the
+step.
+
 ## 2026-10-25 — Repos are named in the repos list; the agent proposes the rest
 
 A line in `.codetrail/repos` can name its repo (`payments = ../payments`), so a call to a

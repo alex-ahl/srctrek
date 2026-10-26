@@ -117,7 +117,11 @@ can check; never a bare "line 5".
     call site, route, config line, message name, or spec entry — plus `guessed: true` when
     the link is a name match. When `from` is in another repo, the evidence cites both repos
     or the link is guessed; validation rejects anything else.
-  - optional: `predicted_values`, `calls` (id of the step stepped into), `trivial`, and
+  - optional: `predicted_values`: `{ name, value, line, role, uncertain? }[]`, role
+    `argument`, `assignment`, or `return`, each on a line inside the step: values from the
+    example scenario, only where they tell the reader something. Front-ends show each at the
+    end of its line, marked as predicted, and let the user hide them.
+  - optional: `calls` (id of the step stepped into), `trivial`, and
     `uncertain`: `{ severity, note }`, severity `high` (likely wrong behaviour), `medium`
     (risky), or `low` (worth knowing). Front-ends show `high` inline and the rest in details.
   - `notes[]`: questions asked on this step and their answers (see Asking)
