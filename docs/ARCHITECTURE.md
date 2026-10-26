@@ -55,6 +55,11 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 
 - A repo is a local path or a remote URL; a pull request URL resolves to a repo plus a range
   through its fetchable ref (`refs/pull/<n>/head` on GitHub, equivalents elsewhere).
+- `trail`'s arguments are pull request URLs, repos (a folder or URL, optionally
+  `@revision`), and ranges. A range applies to the repo just before it, or to the current
+  repo when none is; a repo with no range after it is on the route without changes. With no
+  arguments, the change is the current branch since it left the base branch:
+  `trail ../api main...feature ../web main...feature ../gateway`.
 - Repos on the route without changes have no range. They come from the command (a repo
   given without a range, e.g. `trail main...HEAD ../gateway`) or from the repos list
   (`.codetrail/repos`, one path or URL per line, optionally `@revision`), read
