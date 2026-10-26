@@ -10,10 +10,12 @@ Front-ends show it at the end of that line, marked as predicted (and uncertain o
 warning colour), the way a debugger shows inline values; long values are cut at the window
 edge, the details view lists them all in full, and one key hides or shows them.
 
-The agent fills them for the example scenario, following its data across steps, and only on
-lines where the value tells the reader something: a few per step, not one per line.
-Placeholders that restate a parameter's name are noise, and a wrong value sitting in the code
-reads more like fact than one in a popup.
+The agent fills them for the example scenario, following its data across steps under the
+same names, so a reader can follow one value from where it's made to where it's used. A value
+belongs on a line when it tells the reader something or lets them follow the scenario (which
+repo, which folder, which record); setup lines that create the scenario's pieces get them
+too. Placeholders that restate a parameter's name are noise, and a wrong value sitting in the
+code reads more like fact than one in a popup.
 
 Values beside the code they describe read like a debugger session, which is the product's
 model; a separate list makes the reader match names to lines. The line comes from the agent
