@@ -8,6 +8,11 @@ export class GitError extends Error {
   }
 }
 
+// Fail instead of asking for a password: a prompt would hang behind the TUI. Logins come from
+// the user's own git setup (credential helper, SSH agent). SSH is left alone: forcing its
+// batch mode would override the user's core.sshCommand.
+export const NO_PROMPT = { GIT_TERMINAL_PROMPT: "0" }
+
 type RunOptions = {
   trim?: boolean // false keeps file contents' exact text
   env?: Record<string, string> // added to the inherited environment

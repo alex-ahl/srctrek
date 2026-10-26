@@ -27,7 +27,7 @@ async function remoteDefault(cwd: string): Promise<string | undefined> {
   }
 }
 
-async function isBare(cwd: string): Promise<boolean> {
+export async function isBare(cwd: string): Promise<boolean> {
   return (await runGit(cwd, ["rev-parse", "--is-bare-repository"])) === "true"
 }
 

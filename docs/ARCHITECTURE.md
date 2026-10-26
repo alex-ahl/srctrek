@@ -73,7 +73,8 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - Files are read at a revision through git objects, never from the working tree. The one
   exception is uncommitted changes, when the range includes them.
 - For the editor, each repo is checked out at the tour's revision into a cached worktree
-  (`git worktree add`), so the editor shows the code the tour describes.
+  (`git worktree add`), so the editor shows the code the tour describes. The user's own
+  checkout serves instead when it's at that revision with no edits to tracked files.
 
 ## Specs
 

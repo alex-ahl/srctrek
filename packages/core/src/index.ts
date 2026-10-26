@@ -37,3 +37,4 @@ export {
 } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
 export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache"
+export { editorCheckout } from "./repos/worktree"

@@ -1,12 +1,8 @@
-import { mkdir, rename, rm, stat } from "node:fs/promises"
+import { mkdir, rename, rm } from "node:fs/promises"
 import { homedir } from "node:os"
 import { dirname, join } from "node:path"
-import { runGit } from "../git/run"
-
-// Fail instead of asking for a password: a prompt would hang behind the TUI. Logins come from
-// the user's own git setup (credential helper, SSH agent). SSH is left alone: forcing its
-// batch mode would override the user's core.sshCommand.
-const NO_PROMPT = { GIT_TERMINAL_PROMPT: "0" }
+import { pathExists } from "../files"
+import { NO_PROMPT, runGit } from "../git/run"
 
 /** Where remote repos are kept: $XDG_CACHE_HOME/codetrail, else ~/.cache/codetrail. */
 export function defaultCacheDir(): string {
@@ -36,13 +32,6 @@ export function cachePath(cacheDir: string, cloneUrl: string): string {
   return join(cacheDir, "repos", bare)
 }
 
-async function exists(path: string): Promise<boolean> {
-  return stat(path).then(
-    () => true,
-    () => false,
-  )
-}
-
 // Cloned beside its final place and renamed when complete, so an interrupted clone is never
 // mistaken for a finished one.
 async function cloneInto(dir: string, cloneUrl: string): Promise<void> {
@@ -62,7 +51,7 @@ async function cloneInto(dir: string, cloneUrl: string): Promise<void> {
  */
 export async function cachedRepo(cacheDir: string, cloneUrl: string): Promise<string> {
   const dir = cachePath(cacheDir, cloneUrl)
-  if (!(await exists(dir))) {
+  if (!(await pathExists(dir))) {
     await cloneInto(dir, cloneUrl)
   }
 

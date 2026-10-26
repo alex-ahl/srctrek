@@ -31,6 +31,8 @@
 - Step 2i: a pull request resolves through the cache to its repo and range (branch point on
   the host's default branch to the pull request's head); repos-list URLs resolve through the
   cache too, at the default branch or a pinned revision.
+- Step 2j: the folder the editor opens for a repo at a commit: the user's own checkout when
+  it's there unedited, else a worktree under the cache, detached at the commit.
 - An interim TUI home screen: run `bun packages/tui/src/main.tsx` in a repo to list
   the .codetrail/tours folder and open a tour in Neovim.
 
