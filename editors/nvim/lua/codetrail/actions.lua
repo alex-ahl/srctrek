@@ -7,5 +7,6 @@ return {
   { name = "out", command = "TrailOut", desc = "step out" },
   { name = "details", command = "TrailDetails", desc = "details" },
   { name = "ask", command = "TrailAsk", desc = "ask about this step" },
+  { name = "values", command = "TrailValues", desc = "show or hide predicted values" },
   { name = "quit", command = "TrailQuit", desc = "quit" },
 }

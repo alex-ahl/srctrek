@@ -4,13 +4,15 @@
 --   ]t / [t next / previous step     <leader>ti step into   <leader>to step out
 --   <leader>tt details (overview before step 1)               <leader>tq quit
 --   <leader>ta ask about the current step (enter on a cited repo/file:line jumps there)
+--   <leader>tv show or hide predicted values
 -- Every action is also a command (:TrailNext, :TrailPrev, :TrailInto, :TrailOut,
--- :TrailDetails, :TrailAsk, :TrailQuit) and a function on this module.
+-- :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a function on this module.
 -- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), the question as its
 -- last argument. Each step fires `User CodetrailStep` with
 -- { path, line, repo } for file explorers or user config to follow.
 local ask = require("codetrail.ask")
 local details = require("codetrail.details")
+local inline_values = require("codetrail.inline_values")
 local navigation = require("codetrail.navigation")
 local state = require("codetrail.state")
 local step_view = require("codetrail.step_view")
@@ -27,6 +29,7 @@ for name, link in pairs({
   CodetrailAdded = "Added",
   CodetrailChanged = "Changed",
   CodetrailCitation = "Underlined",
+  CodetrailPredicted = "DiagnosticHint",
 }) do
   vim.api.nvim_set_hl(0, name, { link = link, default = true })
 end
@@ -44,6 +47,7 @@ local DEFAULT_KEYS = {
   out = "<leader>to",
   details = "<leader>tt",
   ask = "<leader>ta",
+  values = "<leader>tv",
   quit = "<leader>tq",
 }
 
@@ -117,6 +121,7 @@ M.into = when_open(navigation.into)
 M.out = when_open(navigation.out)
 M.details = when_open(details.show)
 M.ask = when_open(ask.ask)
+M.values = when_open(inline_values.toggle)
 
 -- Lines the change touches come from <tour>.changed.json beside the tour, when present:
 -- { [repo] = { [file] = { [line] = "added" | "changed" } } }.

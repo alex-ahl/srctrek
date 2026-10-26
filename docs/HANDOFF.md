@@ -39,6 +39,8 @@
 **Known gaps**
 
 - The Neovim plugin has no automated tests or Lua formatter yet.
+- The Neovim plugin reads predicted values per line from a prototype `inline_values` field;
+  Milestone 3 moves them into `predicted_values`.
 
 ## 2026-10-22 — Quality spike
 

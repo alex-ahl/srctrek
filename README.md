@@ -45,6 +45,7 @@ a summary above them; changed lines carry `+` or `~` in the sign column.
 | `<leader>to` | `:TrailOut`                 | Step out                                   |
 | `<leader>tt` | `:TrailDetails`             | Details: evidence, predicted values, flags |
 | `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current step      |
+| `<leader>tv` | `:TrailValues`              | Show or hide predicted values              |
 | `<leader>tq` | `:TrailQuit`                | End the trail                              |
 
 Keys exist only while a trail is open; the mappings you had on them come back when it ends.

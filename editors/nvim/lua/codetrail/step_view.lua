@@ -1,4 +1,5 @@
 -- Draws one step in the editor: its lines highlighted, change signs, and narration above it.
+local inline_values = require("codetrail.inline_values")
 local state = require("codetrail.state")
 local text = require("codetrail.text")
 
@@ -8,6 +9,7 @@ function M.clear()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_valid(buf) then
       vim.api.nvim_buf_clear_namespace(buf, state.ns, 0, -1)
+      vim.api.nvim_buf_clear_namespace(buf, state.values_ns, 0, -1)
     end
   end
 end
@@ -78,6 +80,7 @@ function M.show(step)
 
   highlight_range(buf, s, e)
   mark_changes(buf, step, last)
+  inline_values.show(buf, step, last)
   local lines = narration(step)
   vim.api.nvim_buf_set_extmark(buf, state.ns, s - 1, 0, { virt_lines = lines, virt_lines_above = true })
 
