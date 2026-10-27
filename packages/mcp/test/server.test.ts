@@ -1,10 +1,20 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { TOOL_DESCRIPTIONS, runGit } from "@codetrail/core"
+import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt, runGit } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { z } from "zod"
 import { McpTestClient } from "./mcp-client"
+
+const PromptListSchema = z.object({
+  prompts: z.array(
+    z.object({ name: z.string(), arguments: z.array(z.object({ name: z.string() })) }),
+  ),
+})
+
+const PromptSchema = z.object({
+  messages: z.array(z.object({ role: z.string(), content: z.object({ text: z.string() }) })),
+})
 
 const ToolListSchema = z.object({
   tools: z.array(z.object({ name: z.string(), description: z.string() })),
@@ -32,7 +42,10 @@ describe("trail mcp", () => {
     client = new McpTestClient(await makeFeatureRepo())
 
     const init = await client.initialize()
-    expect(init.result).toMatchObject({ serverInfo: { name: "codetrail" } })
+    expect(init.result).toMatchObject({
+      serverInfo: { name: "codetrail" },
+      instructions: SERVER_INSTRUCTIONS,
+    })
 
     const { result } = await client.request("tools/list")
     const { tools } = ToolListSchema.parse(result)
@@ -63,5 +76,34 @@ describe("trail mcp", () => {
     )
     expect((await client.call("diff", { repo: name })).text).toBe("modified src/app.ts")
     expect((await client.call("list_files", { repo: name, folder: "src" })).text).toBe("src/app.ts")
+  })
+
+  test("offers the tour-building guide as a prompt, with the change filled in", async () => {
+    client = new McpTestClient(await makeFeatureRepo())
+    await client.initialize()
+
+    const { prompts } = PromptListSchema.parse((await client.request("prompts/list")).result)
+    expect(prompts.map((prompt) => [prompt.name, prompt.arguments.map((arg) => arg.name)])).toEqual(
+      [["build_tour", ["change"]]],
+    )
+
+    const asked = await client.request("prompts/get", {
+      name: "build_tour",
+      arguments: { change: "../api  main...feature" },
+    })
+    const [message] = PromptSchema.parse(asked.result).messages
+    expect(message?.role).toBe("user")
+    expect(message?.content.text).toBe(buildTourPrompt(["../api", "main...feature"]))
+    expect(message?.content.text).toEndWith('these args: ["../api","main...feature"]')
+  })
+
+  test("gives the same guide as a tool, so asking in plain words works too", async () => {
+    client = new McpTestClient(await makeFeatureRepo())
+    await client.initialize()
+
+    expect(await client.call("tour_guide", { change: "main...feature --uncommitted" })).toEqual({
+      text: buildTourPrompt(["main...feature", "--uncommitted"]),
+      isError: false,
+    })
   })
 })

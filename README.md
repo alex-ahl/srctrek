@@ -69,12 +69,17 @@ argument.
 
 ### Building a tour from your agent
 
-`trail mcp` is an MCP server over stdin and stdout. Register it with your agent as a stdio
-server whose command is `bun <codetrail>/packages/cli/src/main.ts mcp`, run in the repo you
-work in. The agent opens a change with `open_change`, using the same arguments as `trail`,
-then reads it at its exact revisions with `list_files`, `read_file`, `search`, and `diff`,
-and builds a tour with `start_tour`, `add_steps`, and `finish_tour`; the tour is saved to the
-.codetrail/tours folder, where the home screen lists it.
+Register `trail mcp` with your agent as a stdio MCP server, with the command
+`bun <codetrail>/packages/cli/src/main.ts mcp`, run in the repo you work in. Then ask in
+plain words:
+
+> Build a codetrail tour of this branch.
+
+Name a different change the way you'd give it to `trail`: `main...feature`,
+`../api main...feature`, a pull request URL, or `--uncommitted` for work not yet committed.
+The agent reads the change at its exact revisions, builds the tour, and saves it to the
+.codetrail/tours folder, where the home screen lists it. Agents that show MCP prompts as
+commands also offer `build_tour`.
 
 ## Where it's going
 

@@ -1,0 +1,1 @@
+How to build a good tour, ending with the args to open the change with. Call this first whenever the user asks for a tour. Pass `change` in the user's words when they named one: a range (main...feature), repos and ranges (../api main...feature), a pull request URL, or --uncommitted for work not yet committed.

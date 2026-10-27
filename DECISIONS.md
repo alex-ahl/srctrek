@@ -2,6 +2,16 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-27 — Asking in plain words builds a tour
+
+A user asks their agent for a tour in their own words; no command or tool name to learn.
+`trail mcp` tells the agent at connection, through MCP server instructions, to read the
+tour guide first, and the guide is a tool as well as a prompt. The `build_tour` prompt stays
+for agents that show prompts as commands.
+
+A guide offered only as a prompt reaches the agent only when the user picks it, and some
+agents don't show prompts at all; without the guide, tours come out unguided.
+
 ## 2026-10-26 — Uncommitted work only when asked for
 
 `trail` follows committed work by default. `--uncommitted` includes edits, staged or not,

@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto"
+import buildTour from "../prompts/build_tour.md" with { type: "text" }
+import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
 import finishTour from "../prompts/tools/finish_tour.md" with { type: "text" }
@@ -7,6 +9,7 @@ import openChange from "../prompts/tools/open_change.md" with { type: "text" }
 import readFile from "../prompts/tools/read_file.md" with { type: "text" }
 import search from "../prompts/tools/search.md" with { type: "text" }
 import startTour from "../prompts/tools/start_tour.md" with { type: "text" }
+import tourGuide from "../prompts/tools/tour_guide.md" with { type: "text" }
 
 /** What each tool tells the agent building a tour, by tool name. */
 export const TOOL_DESCRIPTIONS = {
@@ -18,10 +21,19 @@ export const TOOL_DESCRIPTIONS = {
   start_tour: startTour.trim(),
   add_steps: addSteps.trim(),
   finish_tour: finishTour.trim(),
+  tour_guide: tourGuide.trim(),
+}
+
+/** What an agent is told about the server when it connects. */
+export const SERVER_INSTRUCTIONS = serverInstructions.trim()
+
+/** The guide for building a tour of the change `trail`'s `args` name; none means the branch. */
+export function buildTourPrompt(args: string[]): string {
+  return buildTour.trim().replace("{{args}}", JSON.stringify(args))
 }
 
 /** Which prompts built a tour: a short hash of them all, recorded on every tour. */
 export const PROMPT_HASH = createHash("sha256")
-  .update(JSON.stringify(TOOL_DESCRIPTIONS))
+  .update(JSON.stringify({ buildTour, SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS }))
   .digest("hex")
   .slice(0, 12)

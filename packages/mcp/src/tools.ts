@@ -2,6 +2,7 @@ import {
   SubmittedStepSchema,
   TOOL_DESCRIPTIONS,
   TourHeaderSchema,
+  buildTourPrompt,
   changeFiles,
   changePatch,
   listFiles,
@@ -12,6 +13,7 @@ import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import { formatChange, formatFileChanges, formatLines, formatMatches } from "./format"
 import type { TrailSession } from "./session"
+import { wordsOf } from "./words"
 
 const repo = z.string().describe("a repo's name, as open_change lists it")
 const folder = z.string().optional().describe("only files under this folder")
@@ -90,8 +92,17 @@ export function registerReadTools(server: McpServer, session: TrailSession): voi
   )
 }
 
-/** The tools an agent builds a tour with: start it, add checked steps, finish and save it. */
+/** The tools an agent builds a tour with: the guide, then start, add checked steps, finish. */
 export function registerBuildTools(server: McpServer, session: TrailSession): void {
+  server.registerTool(
+    "tour_guide",
+    {
+      description: TOOL_DESCRIPTIONS.tour_guide,
+      inputSchema: z.object({ change: z.string().optional() }),
+    },
+    ({ change }) => text(buildTourPrompt(wordsOf(change))),
+  )
+
   server.registerTool(
     "start_tour",
     { description: TOOL_DESCRIPTIONS.start_tour, inputSchema: TourHeaderSchema },

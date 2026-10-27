@@ -27,6 +27,12 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3f: `--uncommitted`, for `trail` and `open_change`: each local range ending at HEAD
   ends at a snapshot of the working tree (a commit on top of HEAD under refs/codetrail,
   made with a temporary index), so tours of work in progress cite exact commits too.
+- Step 3g: the `build_tour` MCP prompt (`packages/core/prompts/build_tour.md`): how to choose
+  a scenario, follow it in execution order, link steps with evidence, show its values, and
+  flag only what matters; its `change` argument fills in `open_change`'s args. The same
+  guide is the `tour_guide` tool, and the server's instructions say to read it first, so
+  asking for a tour in plain words works. `trail mcp` started from a terminal says it's
+  waiting for a client.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

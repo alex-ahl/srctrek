@@ -16,6 +16,12 @@ async function trail(args: string[]): Promise<void> {
 // as part of a range (main...mcp).
 async function run(args: string[]): Promise<void> {
   if (args[0] === "mcp") {
+    // Started by hand, the server would sit silent waiting for a client; stderr leaves the
+    // protocol on stdout alone.
+    if (process.stdin.isTTY) {
+      console.error("trail mcp: waiting for an MCP client on stdin; register it with your agent")
+    }
+
     return startMcpServer(process.cwd())
   }
 

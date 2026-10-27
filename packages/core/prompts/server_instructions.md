@@ -1,0 +1,1 @@
+codetrail builds debugger-style tours of code changes: one example scenario followed through the code, from trigger to outcome, with evidence for every step. When the user asks for a tour (of a branch, a range, several repos, a pull request, or work not yet committed), call tour_guide first and follow it.
