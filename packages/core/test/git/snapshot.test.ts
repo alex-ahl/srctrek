@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { writeFile } from "node:fs/promises"
+import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { listFiles, readFileAt, runGit, snapshotWorkingTree } from "../../src"
 import { commit, makeRepo } from "../support/repo"
@@ -36,6 +36,41 @@ describe("snapshotWorkingTree", () => {
     expect(await runGit(dir, ["rev-parse", `${snapshot}^`])).toBe(before[1] ?? "")
     expect(await runGit(dir, ["rev-parse", `refs/codetrail/snapshots/${snapshot}`])).toBe(snapshot)
     expect(await userState(dir)).toEqual(before)
+  })
+
+  test("gives the same commit for the same work, a new one once the work changes", async () => {
+    const dir = await makeRepo()
+    await writeFile(join(dir, "README.md"), "edited\n")
+
+    const first = await snapshotWorkingTree(dir)
+    await Bun.sleep(1100)
+    expect(await snapshotWorkingTree(dir)).toBe(first)
+
+    await writeFile(join(dir, "README.md"), "edited again\n")
+    expect(await snapshotWorkingTree(dir)).not.toBe(first)
+  })
+
+  test("leaves codetrail's own folder as HEAD has it", async () => {
+    const dir = await makeRepo()
+    const head = await runGit(dir, ["rev-parse", "HEAD"])
+    await mkdir(join(dir, ".codetrail/tours"), { recursive: true })
+    await writeFile(join(dir, ".codetrail/tours/a.json"), "{}\n")
+
+    expect(await snapshotWorkingTree(dir)).toBe(head)
+  })
+
+  test("works when .codetrail is ignored or committed", async () => {
+    const ignoring = await makeRepo()
+    await commit(ignoring, ".gitignore", ".codetrail\n")
+    await mkdir(join(ignoring, ".codetrail/tours"), { recursive: true })
+    await writeFile(join(ignoring, ".codetrail/tours/a.json"), "{}\n")
+    expect(await snapshotWorkingTree(ignoring)).toBe(await runGit(ignoring, ["rev-parse", "HEAD"]))
+
+    const committing = await makeRepo()
+    await mkdir(join(committing, ".codetrail"))
+    const head = await commit(committing, ".codetrail/repos", "../api\n")
+    await writeFile(join(committing, ".codetrail/repos"), "../api\n../web\n")
+    expect(await snapshotWorkingTree(committing)).toBe(head)
   })
 
   test("is HEAD itself when nothing is uncommitted", async () => {

@@ -73,3 +73,15 @@ export async function buildState(root: string, name: string): Promise<BuildState
 
   return exitCode === "0" && saved ? "done" : "failed"
 }
+
+/** The last `count` lines of the build's log; none when there is no log. */
+export async function buildLogTail(root: string, name: string, count: number): Promise<string[]> {
+  const files = await buildFiles(root, name)
+  if (!(await pathExists(files.log))) {
+    return []
+  }
+
+  const lines = (await readFile(files.log, "utf8")).trimEnd().split("\n")
+
+  return lines.slice(-count)
+}

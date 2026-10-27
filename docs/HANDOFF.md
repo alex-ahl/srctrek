@@ -39,6 +39,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3i: background builds (`startBuild`, `buildState`): `$CODETRAIL_AGENT` runs detached
   with the headless instruction as its last argument; its log and exit code go to the git
   folder (.git/codetrail/builds). `trail mcp` stops a build at its third rejected round.
+- Step 3j: a change's tour status (`tourStatus`): ready, building, failed (with the end of
+  the build's log), or missing. Snapshots became stable: dated with HEAD's date and leaving
+  .codetrail as HEAD has it, so a tour of uncommitted work is found again.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

@@ -80,7 +80,9 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - Uncommitted work is left out unless asked for (`--uncommitted`): then each
   local range ending at HEAD ends instead at a snapshot of the working tree, a commit on top
   of HEAD (edits staged or not, new files git doesn't ignore), made without touching the
-  branch, the index, or any file, and kept by a ref under refs/codetrail.
+  branch, the index, or any file, and kept by a ref under refs/codetrail. The .codetrail
+  folder stays as HEAD has it, and the snapshot is dated with HEAD's date, so the same work
+  always gives the same commit and its tour is found again.
 - For the editor, each repo is checked out at the tour's revision into a cached worktree
   (`git worktree add`), so the editor shows the code the tour describes. The user's own
   checkout serves instead when it's at that revision with no edits to tracked files.

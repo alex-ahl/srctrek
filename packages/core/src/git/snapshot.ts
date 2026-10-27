@@ -13,6 +13,7 @@ const SNAPSHOT_IDENTITY = {
 
 // The working tree as a tree object: HEAD's files, then every edit, staged or not, and every
 // new file git doesn't ignore. A temporary index does the work, so the user's stays as it is.
+// .codetrail stays as HEAD has it: saving a tour is never part of the change it describes.
 async function workingTree(dir: string): Promise<string> {
   const scratch = await mkdtemp(join(tmpdir(), "codetrail-index-"))
   const env = { GIT_INDEX_FILE: join(scratch, "index") }
@@ -20,6 +21,8 @@ async function workingTree(dir: string): Promise<string> {
   try {
     await runGit(dir, ["read-tree", "HEAD"], { env })
     await runGit(dir, ["add", "--all"], { env })
+    // reset rather than an excluding pathspec, which git rejects when .codetrail is ignored
+    await runGit(dir, ["reset", "--quiet", "HEAD", "--", ".codetrail"], { env })
 
     return await runGit(dir, ["write-tree"], { env })
   } finally {
@@ -30,7 +33,8 @@ async function workingTree(dir: string): Promise<string> {
 /**
  * The working tree committed on top of HEAD, without touching the branch, the index, or any
  * file; HEAD itself when nothing is uncommitted. A ref under refs/codetrail keeps the snapshot
- * from git's garbage collection.
+ * from git's garbage collection. The same work always gives the same commit, so a tour of it
+ * is found again.
  */
 export async function snapshotWorkingTree(dir: string): Promise<string> {
   const tree = await workingTree(dir)
@@ -39,9 +43,14 @@ export async function snapshotWorkingTree(dir: string): Promise<string> {
     return runGit(dir, ["rev-parse", "HEAD"])
   }
 
+  // A commit's id covers its dates; HEAD's date instead of now makes the id depend on the
+  // work alone.
+  const headDate = await runGit(dir, ["show", "--no-patch", "--format=%cI", "HEAD"])
+  const env = { ...SNAPSHOT_IDENTITY, GIT_AUTHOR_DATE: headDate, GIT_COMMITTER_DATE: headDate }
+
   const message = "codetrail: snapshot of uncommitted changes"
   const args = ["commit-tree", tree, "-p", "HEAD", "-m", message]
-  const commit = await runGit(dir, args, { env: SNAPSHOT_IDENTITY })
+  const commit = await runGit(dir, args, { env })
   await runGit(dir, ["update-ref", `refs/codetrail/snapshots/${commit}`, commit])
 
   return commit

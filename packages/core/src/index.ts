@@ -75,4 +75,11 @@ export { addSteps, draftToTour, newDraft, stepIds, type Added, type Draft } from
 export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTourFor } from "./build/existing"
 export { tourNameFor } from "./build/name"
-export { buildState, startBuild, type BuildFiles, type BuildState } from "./build/background"
+export {
+  buildLogTail,
+  buildState,
+  startBuild,
+  type BuildFiles,
+  type BuildState,
+} from "./build/background"
+export { tourStatus, type TourStatus } from "./build/status"

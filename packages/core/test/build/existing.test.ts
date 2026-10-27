@@ -1,66 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import {
-  type ResolvedChange,
-  addSteps,
-  draftToTour,
-  existingTourFor,
-  newDraft,
-  parseRange,
-  resolveChange,
-  runGit,
-  saveTour,
-  snapshotWorkingTree,
-  tourNameFor,
-} from "../../src"
-import { commit, makeRepo } from "../support/repo"
+import { existingTourFor, resolveChange, runGit, snapshotWorkingTree, tourNameFor } from "../../src"
+import { changeOf, makeBranchRepo, saveTourOf } from "../support/branch"
+import { commit } from "../support/repo"
 import { makeCacheDir, makeRemote } from "../support/remote"
-
-// A repo on branch feature/refunds, one commit ahead of main.
-async function makeBranchRepo(): Promise<string> {
-  const dir = await makeRepo()
-  await runGit(dir, ["switch", "--quiet", "-c", "feature/refunds"])
-  await commit(dir, "app.ts", "const total = 250\n")
-
-  return dir
-}
-
-async function changeOf(dir: string, range = "", uncommitted = false): Promise<ResolvedChange> {
-  const args = {
-    changes: [{ kind: "range" as const, repo: { source: "." }, range: parseRange(range) }],
-    unchanged: [],
-    uncommitted,
-  }
-
-  return resolveChange(dir, args, await makeCacheDir())
-}
-
-async function saveTourOf(dir: string, change: ResolvedChange, name: string): Promise<void> {
-  const header = {
-    title: "t",
-    overview: "o",
-    trigger: { kind: "command" as const, input: "i" },
-    outcome: "x",
-    sources: [],
-    author: { model: "m" },
-  }
-  const repo = change.repos[0]?.name ?? ""
-  const step = {
-    id: "s1",
-    repo,
-    file: "app.ts",
-    start_line: 1,
-    end_line: 1,
-    kind: "context" as const,
-    summary: "s",
-    details: "d",
-    via: null,
-  }
-  const { draft, problems } = await addSteps(newDraft(change, header), [step])
-  expect(problems).toEqual([])
-  await saveTour(dir, name, draftToTour(draft))
-}
 
 describe("existingTourFor", () => {
   test("finds the saved tour of exactly this change, and none once the change moves on", async () => {
