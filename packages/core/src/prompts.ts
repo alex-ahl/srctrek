@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto"
+import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
+import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
 import buildTour from "../prompts/build_tour.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
@@ -32,8 +34,24 @@ export function buildTourPrompt(args: string[]): string {
   return buildTour.trim().replace("{{args}}", JSON.stringify(args))
 }
 
+/** The instruction for an agent building a tour with no one to ask, saved as `name`. */
+export function headlessBuildPrompt(args: string[], name: string): string {
+  return buildHeadless.trim().replace("{{name}}", name).replace("{{guide}}", buildTourPrompt(args))
+}
+
+/** What the agent is told when its third rejected round ends the build. */
+export const BUILD_STOPPED = buildStopped.trim()
+
 /** Which prompts built a tour: a short hash of them all, recorded on every tour. */
 export const PROMPT_HASH = createHash("sha256")
-  .update(JSON.stringify({ buildTour, SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS }))
+  .update(
+    JSON.stringify({
+      buildHeadless,
+      buildStopped,
+      buildTour,
+      SERVER_INSTRUCTIONS,
+      TOOL_DESCRIPTIONS,
+    }),
+  )
   .digest("hex")
   .slice(0, 12)

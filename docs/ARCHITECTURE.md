@@ -154,9 +154,11 @@ The user's agent builds the tour through `trail mcp`:
 The agent is started one of two ways:
 
 - From the agent's own chat, with `trail mcp` registered.
-- By `trail` itself, when there is no tour for the change: it runs the user's agent CLI
-  headless with `trail mcp` attached, detected and launched as for Asking, and shows the
-  build view while the tour arrives.
+- By `trail` itself, when there is no tour for the change: it runs the command in
+  `CODETRAIL_AGENT` in the background, as for Asking, with the instruction (the guide, the
+  change's args, and the tour's name) as its last argument. The agent reaches `trail mcp`
+  through the user's own registration. The build goes on if `trail` quits; its log and exit
+  code are kept in the repo's git folder, and the build view shows the tour when it arrives.
 
 Without a change (a repo the user doesn't know), `trail` builds a tour of existing code: the
 agent proposes candidate triggers (CLI commands, HTTP routes, event handlers, scheduled
@@ -171,8 +173,8 @@ marked stale.
 
 While a tour is built, each submission is checked against every rule, and failures go back to
 the agent as messages naming the step. A failed link has two ways out: cite the missing
-evidence, or mark the link `guessed`. After about three rounds with the same failures, the
-build stops and the build view shows them; nothing is saved and nothing is fixed silently.
+evidence, or mark the link `guessed`. At the third rejected round, the build stops and the
+build view shows the failures; nothing is saved and nothing is fixed silently.
 
 Checks that read the code at the tour's revisions (cited lines exist; the two sides of a
 cross-repo link share a distinctive string such as a route or topic) downgrade a link to
@@ -216,7 +218,7 @@ agent to answer it.
 Answers by kind: explain (text with citations), navigate (locations), what-if (a branch
 trail from the current step), verify (a flag raised, lowered, or cleared, with the reason).
 
-The agent CLI is detected from those installed; one setting overrides it.
+The agent is the command in `CODETRAIL_AGENT`; nothing is detected.
 
 ## Modes
 

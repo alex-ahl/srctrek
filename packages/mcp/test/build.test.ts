@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, realpath, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { loadTour, runGit } from "@codetrail/core"
+import { BUILD_STOPPED, loadTour, runGit } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
 
@@ -91,5 +91,25 @@ describe("building a tour over trail mcp", () => {
     expect(await Bun.file(join(dir, ".codetrail/tours/total.changed.json")).json()).toEqual({
       [repo]: { "src/app.ts": { "1": "changed" } },
     })
+  })
+
+  test("stops the build at the third rejected round", async () => {
+    const dir = await makeFeatureRepo()
+    const { s1 } = stepsFor(basename(dir))
+    client = new McpTestClient(dir)
+    await client.initialize()
+    await client.call("open_change", { args: [] })
+    await client.call("start_tour", header)
+
+    const outOfRange = { ...s1, end_line: 9, predicted_values: [] }
+    await client.call("add_steps", { steps: [outOfRange] })
+    await client.call("add_steps", { steps: [outOfRange] })
+    const third = await client.call("add_steps", { steps: [outOfRange] })
+
+    expect(third.isError).toBe(true)
+    expect(third.text).toEndWith(BUILD_STOPPED)
+    expect((await client.call("add_steps", { steps: [s1] })).text).toBe(
+      "no tour is started: call start_tour first",
+    )
   })
 })

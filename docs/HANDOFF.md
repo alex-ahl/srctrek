@@ -36,6 +36,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3h: whether a change already has a tour (a saved tour with every changed repo at the
   same commits), and a name for a new one from its heads: the branch (`feature-refunds`), a
   pull request (`pr-12`), or the branch with `-uncommitted` for a snapshot.
+- Step 3i: background builds (`startBuild`, `buildState`): `$CODETRAIL_AGENT` runs detached
+  with the headless instruction as its last argument; its log and exit code go to the git
+  folder (.git/codetrail/builds). `trail mcp` stops a build at its third rejected round.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

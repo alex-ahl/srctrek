@@ -60,7 +60,14 @@ export { listFiles, readLines, type NumberedLines } from "./read/files"
 export { describeRepo, repoNamed } from "./read/repo"
 export { search, type Match, type SearchResult } from "./read/search"
 export { directoryIn } from "./files"
-export { PROMPT_HASH, SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt } from "./prompts"
+export {
+  BUILD_STOPPED,
+  PROMPT_HASH,
+  SERVER_INSTRUCTIONS,
+  TOOL_DESCRIPTIONS,
+  buildTourPrompt,
+  headlessBuildPrompt,
+} from "./prompts"
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"
 export { saveChangedLines } from "./build/changed-lines"
@@ -68,3 +75,4 @@ export { TourDraft } from "./build/draft"
 export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTourFor } from "./build/existing"
 export { tourNameFor } from "./build/name"
+export { buildState, startBuild, type BuildFiles, type BuildState } from "./build/background"
