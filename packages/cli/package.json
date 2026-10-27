@@ -4,6 +4,7 @@
   "type": "module",
   "dependencies": {
     "@codetrail/core": "workspace:*",
+    "@codetrail/mcp": "workspace:*",
     "@codetrail/tui": "workspace:*"
   }
 }

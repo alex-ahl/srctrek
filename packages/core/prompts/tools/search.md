@@ -1,0 +1,1 @@
+Search a repo at the change's revision with an extended regular expression, optionally under `folder`. Returns path, line, and text for each match; at most 200, so narrow the pattern when it says more were cut.

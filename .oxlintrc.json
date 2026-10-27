@@ -62,6 +62,22 @@
       }
     },
     {
+      "files": ["packages/mcp/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/core/src/**", "@codetrail/core/*", "@codetrail/tui", "**/tui/**"],
+                "message": "The MCP server imports only @codetrail/core, and no front-end."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["packages/cli/**"],
       "rules": {
         "no-restricted-imports": [
@@ -72,10 +88,12 @@
                 "group": [
                   "**/core/src/**",
                   "@codetrail/core/*",
+                  "**/mcp/src/**",
+                  "@codetrail/mcp/*",
                   "**/tui/src/**",
                   "@codetrail/tui/*"
                 ],
-                "message": "The cli imports only @codetrail/core and front-ends' entry points."
+                "message": "The cli imports only the packages' entry points."
               }
             ]
           }

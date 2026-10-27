@@ -8,6 +8,11 @@
   resolved change at its revision, through git objects only: listing files, reading
   numbered lines, searching with a regular expression (capped at 200 matches), and the
   change's files and a file's patch.
+- Step 3b: `trail mcp`, an MCP server over stdio (`packages/mcp/`, on
+  `@modelcontextprotocol/server`): `open_change` with `trail`'s arguments, then
+  `list_files`, `read_file`, `search`, and `diff`. Tool descriptions are prompt files in
+  `packages/core/prompts/tools/`. "mcp" as `trail`'s first word is the command: a
+  folder by that name is given as `./mcp`, a branch as part of a range (`main...mcp`).
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

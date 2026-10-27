@@ -16,12 +16,21 @@
       "name": "@codetrail/cli",
       "dependencies": {
         "@codetrail/core": "workspace:*",
+        "@codetrail/mcp": "workspace:*",
         "@codetrail/tui": "workspace:*",
       },
     },
     "packages/core": {
       "name": "@codetrail/core",
       "dependencies": {
+        "zod": "4.6.7",
+      },
+    },
+    "packages/mcp": {
+      "name": "@codetrail/mcp",
+      "dependencies": {
+        "@codetrail/core": "workspace:*",
+        "@modelcontextprotocol/server": "2.4.0",
         "zod": "4.6.7",
       },
     },
@@ -43,7 +52,13 @@
 
     "@codetrail/core": ["@codetrail/core@workspace:packages/core"],
 
+    "@codetrail/mcp": ["@codetrail/mcp@workspace:packages/mcp"],
+
     "@codetrail/tui": ["@codetrail/tui@workspace:packages/tui"],
+
+    "@modelcontextprotocol/core": ["@modelcontextprotocol/core@2.4.0", "", { "dependencies": { "zod": "^4.2.0" } }, "sha512-z8QBKqdfXLPzkLQuG4xp8hrVEMm1PZ1IgxMN2sMbJiFiAKOWXnAzogXn2W4aqIBlP1ea6U5yiqVquvUNM1Cj6Q=="],
+
+    "@modelcontextprotocol/server": ["@modelcontextprotocol/server@2.4.0", "", { "dependencies": { "@modelcontextprotocol/core": "2.4.0", "zod": "^4.2.0" } }, "sha512-rgR9yxSaAJ+bcsi/XroT/S2AfPiIWloXAnrdfYSCms9ivVju0ishu/wW0J21Ho6+ZOR1r7RyeRbjiRuF87ix5Q=="],
 
     "@opentui/core": ["@opentui/core@0.6.6", "", { "dependencies": { "bun-ffi-structs": "0.3.1", "diff": "9.0.0", "marked": "17.0.1", "string-width": "7.2.0" }, "optionalDependencies": { "@opentui/core-darwin-arm64": "0.6.6", "@opentui/core-darwin-x64": "0.6.6", "@opentui/core-linux-arm64": "0.6.6", "@opentui/core-linux-arm64-musl": "0.6.6", "@opentui/core-linux-x64": "0.6.6", "@opentui/core-linux-x64-musl": "0.6.6", "@opentui/core-win32-arm64": "0.6.6", "@opentui/core-win32-x64": "0.6.6" }, "peerDependencies": { "web-tree-sitter": "0.25.10" } }, "sha512-GhlGB8iG4YDzL6hIaxAYUZpHXDy76sQKuI6mQiCFCKXjfv6xH53pEcPX5gn+qYYYPjfjSaUevAVZBaS5Srtl/g=="],
 

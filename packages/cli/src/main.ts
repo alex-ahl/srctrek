@@ -1,23 +1,29 @@
-import { statSync } from "node:fs"
-import { readChangeArguments, resolveChange } from "@codetrail/core"
+import { directoryIn, readChangeArguments, resolveChange } from "@codetrail/core"
+import { startMcpServer } from "@codetrail/mcp"
 import { startHome } from "@codetrail/tui"
-
-function isDirectory(path: string): boolean {
-  return statSync(path, { throwIfNoEntry: false })?.isDirectory() ?? false
-}
 
 async function trail(args: string[]): Promise<void> {
   const cwd = process.cwd()
 
   // Nothing builds a tour from the change before Milestone 3; resolving it now still fails
   // early, with a message, on arguments that can't be used.
-  await resolveChange(cwd, readChangeArguments(args, isDirectory))
+  await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
 
   await startHome(cwd)
 }
 
+// "mcp" as the first word is the command: a folder by that name is given as ./mcp, a branch
+// as part of a range (main...mcp).
+async function run(args: string[]): Promise<void> {
+  if (args[0] === "mcp") {
+    return startMcpServer(process.cwd())
+  }
+
+  return trail(args)
+}
+
 try {
-  await trail(process.argv.slice(2))
+  await run(process.argv.slice(2))
 } catch (error) {
   console.error(`trail: ${error instanceof Error ? error.message : String(error)}`)
   process.exit(1)

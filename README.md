@@ -67,11 +67,19 @@ vim.g.codetrail = { keys = { next = "]w", previous = "[w", ask = false } }
 `CODETRAIL_AGENT` to its headless command line; the question is appended as the last
 argument.
 
+### Reading a change from your agent
+
+`trail mcp` is an MCP server over stdin and stdout. Register it with your agent as a stdio
+server whose command is `bun <codetrail>/packages/cli/src/main.ts mcp`, run in the repo you
+work in. The agent opens a change with `open_change`, using the same arguments as `trail`,
+then reads it at its exact revisions with `list_files`, `read_file`, `search`, and `diff`.
+Building tours through it arrives later in Milestone 3.
+
 ## Where it's going
 
 - `trail main...HEAD` or `trail <pr-url>`: your agent builds a tour of the change, across
   repos, and the home screen shows it while it builds.
-- `trail mcp`: an MCP server, so your agent can build tours from its own chat.
+- `trail mcp` building tours, so your agent can make one from its own chat.
 - Tours of existing code, from an entry point you pick.
 - A route map of the whole trail in the terminal.
 
