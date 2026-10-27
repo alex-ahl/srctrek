@@ -4,7 +4,9 @@ import { tmpdir } from "node:os"
 import { basename, join, relative } from "node:path"
 import {
   type ChangeArguments,
+  type PullRequest,
   parsePullRequestUrl,
+  readFileAt,
   parseRange,
   resolveChange,
   runGit,
@@ -27,6 +29,16 @@ async function makeFeatureRepo(): Promise<{ dir: string; head: string }> {
   return { dir, head }
 }
 
+// Pull request 1 of a host whose clone URL is `cloneUrl`: the test remote's refs/pull/1/head.
+function pullRequestAt(cloneUrl: string): PullRequest {
+  const pr = parsePullRequestUrl("https://host.test/acme/pay/pull/1")
+  if (pr === undefined) {
+    throw new Error("not a pull request URL")
+  }
+
+  return { ...pr, cloneUrl }
+}
+
 const currentBranch: ChangeArguments["changes"] = [
   { kind: "range", repo: { source: "." }, range: parseRange("") },
 ]
@@ -39,7 +51,11 @@ describe("resolveChange", () => {
     const fromCurrent = (dir: string) => relative(current.dir, dir)
     await writeReposList(current.dir, `${fromCurrent(listed)}\n${fromCurrent(given)}\n.\n`)
 
-    const args = { changes: currentBranch, unchanged: [{ source: fromCurrent(given) }] }
+    const args = {
+      changes: currentBranch,
+      unchanged: [{ source: fromCurrent(given) }],
+      uncommitted: false,
+    }
     const { repos } = await resolveChange(current.dir, args, await makeCacheDir())
 
     expect(repos.map((repo) => repo.name)).toEqual([
@@ -51,13 +67,37 @@ describe("resolveChange", () => {
     expect(repos[1]?.range).toBeUndefined()
   })
 
+  test("with --uncommitted, ends the current repo's range at a snapshot of its work", async () => {
+    const current = await makeFeatureRepo()
+    await writeFile(join(current.dir, "app.ts"), "not committed\n")
+
+    const args = { changes: currentBranch, unchanged: [], uncommitted: true }
+    const { repos } = await resolveChange(current.dir, args, await makeCacheDir())
+    const head = repos[0]?.range?.headCommit ?? ""
+
+    expect(head).not.toBe(current.head)
+    expect(await readFileAt(current.dir, head, "app.ts")).toBe("not committed\n")
+    expect(repos[0]?.revision).toBe(head)
+  })
+
+  test("says when --uncommitted has no range at HEAD in a local repo to apply to", async () => {
+    const remote = await makeRemote()
+    const pr = { kind: "pull-request" as const, pr: pullRequestAt(remote.url) }
+    const args = { changes: [pr], unchanged: [], uncommitted: true }
+
+    expect(await rejection(resolveChange(remote.dir, args, await makeCacheDir()))).toHaveProperty(
+      "message",
+      "--uncommitted needs a range ending at HEAD in a local repo",
+    )
+  })
+
   test("says when two repos share a name", async () => {
     const current = await makeFeatureRepo()
     const [one, two] = [await makeRepo(), await makeRepo()]
     const list = `api = ${relative(current.dir, one)}\napi = ${relative(current.dir, two)}\n`
     await writeReposList(current.dir, list)
 
-    const args = { changes: currentBranch, unchanged: [] }
+    const args = { changes: currentBranch, unchanged: [], uncommitted: false }
     const error = await rejection(resolveChange(current.dir, args, await makeCacheDir()))
 
     expect(error).toHaveProperty("message", expect.stringContaining("two repos named api"))
@@ -65,16 +105,9 @@ describe("resolveChange", () => {
 
   test("resolves a pull request from outside any repo", async () => {
     const remote = await makeRemote()
-    const pr = parsePullRequestUrl("https://host.test/acme/pay/pull/1")
-    if (pr === undefined) {
-      throw new Error("not a pull request URL")
-    }
-
     const outside = await mkdtemp(join(tmpdir(), "codetrail-outside-"))
-    const args = {
-      changes: [{ kind: "pull-request" as const, pr: { ...pr, cloneUrl: remote.url } }],
-      unchanged: [],
-    }
+    const pr = { kind: "pull-request" as const, pr: pullRequestAt(remote.url) }
+    const args = { changes: [pr], unchanged: [], uncommitted: false }
     const { repos } = await resolveChange(outside, args, await makeCacheDir())
 
     expect(repos).toHaveLength(1)

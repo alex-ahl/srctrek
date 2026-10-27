@@ -16,6 +16,7 @@ describe("readChangeArguments", () => {
         },
       ],
       unchanged: [],
+      uncommitted: false,
     })
   })
 
@@ -50,6 +51,13 @@ describe("readChangeArguments", () => {
   test("a bare word is a repo only when that folder exists", () => {
     expect(read("gateway").unchanged).toEqual([{ source: "gateway" }])
     expect(read("feature").changes).toMatchObject([{ repo: current, range: { head: "feature" } }])
+  })
+
+  test("reads --uncommitted wherever it stands, and no other option", () => {
+    expect(read("--uncommitted").uncommitted).toBe(true)
+    expect(read("main...feature", "--uncommitted").changes).toHaveLength(1)
+    expect(read("main...feature").uncommitted).toBe(false)
+    expect(() => read("--staged")).toThrow("unknown option --staged")
   })
 
   test("says what's wrong with arguments it can't use", () => {

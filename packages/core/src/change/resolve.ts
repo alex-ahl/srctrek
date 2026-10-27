@@ -1,6 +1,7 @@
 import type { ResolvedRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
+import { isRemote } from "../repos/entry"
 import { readReposList } from "../repos/list"
 import {
   type ChangedRepo,
@@ -25,16 +26,24 @@ export type ResolvedRepo = {
 /** Every repo the trail may pass through, changed ones first. */
 export type ResolvedChange = { repos: ResolvedRepo[] }
 
+// Uncommitted work lives in a local checkout, at its HEAD; a pull request or a remote repo has
+// none.
+function takesUncommitted(change: ChangeSource): boolean {
+  return change.kind === "range" && !isRemote(change.repo.source) && change.range.head === "HEAD"
+}
+
 function resolveChangeSource(
   cwd: string,
   change: ChangeSource,
   cacheDir: string,
+  uncommitted: boolean,
 ): Promise<ChangedRepo> {
   if (change.kind === "pull-request") {
     return resolvePullRequest(change.pr, cacheDir)
   }
 
-  return resolveRangeChange(cwd, change.repo, change.range, cacheDir)
+  const options = { uncommitted: uncommitted && takesUncommitted(change) }
+  return resolveRangeChange(cwd, change.repo, change.range, cacheDir, options)
 }
 
 function atHead(repo: ChangedRepo): ResolvedRepo {
@@ -101,8 +110,12 @@ export async function resolveChange(
   args: ChangeArguments,
   cacheDir = defaultCacheDir(),
 ): Promise<ResolvedChange> {
+  if (args.uncommitted && !args.changes.some(takesUncommitted)) {
+    throw new Error("--uncommitted needs a range ending at HEAD in a local repo")
+  }
+
   const changed = await Promise.all(
-    args.changes.map((change) => resolveChangeSource(cwd, change, cacheDir)),
+    args.changes.map((change) => resolveChangeSource(cwd, change, cacheDir, args.uncommitted)),
   )
   const given = await Promise.all(
     args.unchanged.map((entry) => resolveUnchangedRepo(cwd, entry, cacheDir)),

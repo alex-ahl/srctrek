@@ -2,6 +2,7 @@ import { resolve } from "node:path"
 import { detectBase } from "../git/base"
 import { type RangeSpec, type ResolvedRange, resolveRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
+import { snapshotWorkingTree } from "../git/snapshot"
 import { cachedRepo, defaultCacheDir, fetchRefs } from "./cache"
 import { type RepoEntry, folderName, isRemote } from "./entry"
 import type { PullRequest } from "./pull-request"
@@ -64,15 +65,20 @@ export async function resolveUnchangedRepo(
   return { name: entry.name ?? folderName(dir), source: entry.source, revision: commit, dir }
 }
 
-/** Resolves a range in a repo, found as resolveUnchangedRepo finds one. */
+/**
+ * Resolves a range in a repo, found as resolveUnchangedRepo finds one. With `uncommitted`, the
+ * range ends at a snapshot of the working tree instead of its head.
+ */
 export async function resolveRangeChange(
   baseDir: string,
   entry: RepoEntry,
   spec: RangeSpec,
   cacheDir = defaultCacheDir(),
+  { uncommitted = false } = {},
 ): Promise<ChangedRepo> {
   const dir = await repoDir(baseDir, entry, cacheDir)
-  const range = await resolveRange(dir, spec)
+  const head = uncommitted ? await snapshotWorkingTree(dir) : spec.head
+  const range = await resolveRange(dir, { ...spec, head })
 
   return { name: entry.name ?? folderName(dir), source: entry.source, dir, range }
 }

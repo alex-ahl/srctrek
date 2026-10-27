@@ -24,6 +24,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   a step sent again by id replaces it), and `finish_tour` (the whole-tour rules, then saved to
   .codetrail/tours with its changed-lines file). The tool prompts carry the step fields and
   the rules for predicted values.
+- Step 3f: `--uncommitted`, for `trail` and `open_change`: each local range ending at HEAD
+  ends at a snapshot of the working tree (a commit on top of HEAD under refs/codetrail,
+  made with a temporary index), so tours of work in progress cite exact commits too.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -71,13 +74,11 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 
 **Milestones**
 
-- 3: tour building across repos through `trail mcp`: read tools, prompts, submission and
-  validation (schema and cited lines); `trail` launching the user's agent when there is no
-  tour; `--uncommitted`, a snapshot of the working tree as a range's head; tours of existing
-  code from a picked trigger; an "add a repo" tool for the agent, approved by the user; the
-  build loop's retry limit; the prompt for predicted values; updating stale tours through
-  the agent; evals driving an agent headless, including a fixture that is hard to read
-  statically, one whose trigger is in an unchanged file, and one that crosses repos.
+- 3: tour building across repos through `trail mcp`: `trail` launching the user's agent when
+  there is no tour; tours of existing code from a picked trigger; an "add a repo" tool for
+  the agent, approved by the user; the build loop's retry limit; updating stale tours
+  through the agent; evals driving an agent headless, including a fixture that is hard to
+  read statically, one whose trigger is in an unchanged file, and one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
   protocol (`docs/PROTOCOL.md`), with contract tests.
 - 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the

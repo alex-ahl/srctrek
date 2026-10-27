@@ -77,7 +77,7 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   repos can't share a name, since steps name their repo.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.
 - Files are read at a revision through git objects, never from the working tree.
-- Uncommitted work is left out unless asked for (`--uncommitted`, Milestone 3): then each
+- Uncommitted work is left out unless asked for (`--uncommitted`): then each
   local range ending at HEAD ends instead at a snapshot of the working tree, a commit on top
   of HEAD (edits staged or not, new files git doesn't ignore), made without touching the
   branch, the index, or any file, and kept by a ref under refs/codetrail.

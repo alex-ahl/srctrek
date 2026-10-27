@@ -6,8 +6,30 @@ import { type PullRequest, parsePullRequestUrl } from "../repos/pull-request"
 export type ChangeSource =
   { kind: "range"; repo: RepoEntry; range: RangeSpec } | { kind: "pull-request"; pr: PullRequest }
 
-/** trail's arguments, read: the changes, and the repos on the route without changes. */
-export type ChangeArguments = { changes: ChangeSource[]; unchanged: RepoEntry[] }
+/**
+ * trail's arguments, read: the changes, the repos on the route without changes, and whether
+ * uncommitted work is included.
+ */
+export type ChangeArguments = {
+  changes: ChangeSource[]
+  unchanged: RepoEntry[]
+  uncommitted: boolean
+}
+
+const OPTIONS = ["--uncommitted"]
+
+// Options start with "-", which no git ref, path, or URL argument does.
+function readOptions(args: string[]): { uncommitted: boolean; words: string[] } {
+  const unknown = args.find((arg) => arg.startsWith("-") && !OPTIONS.includes(arg))
+  if (unknown !== undefined) {
+    throw new Error(`unknown option ${unknown}`)
+  }
+
+  return {
+    uncommitted: args.includes("--uncommitted"),
+    words: args.filter((arg) => !arg.startsWith("-")),
+  }
+}
 
 type Token =
   | { kind: "pull-request"; pr: PullRequest }
@@ -106,18 +128,23 @@ function unchangedOf(group: Group): RepoEntry[] {
 
 /**
  * Reads trail's arguments. A range applies to the repo just before it, or to the current repo
- * when none is; a repo with no range after it is on the route without changes. No arguments
+ * when none is; a repo with no range after it is on the route without changes. No change
  * means the current repo's branch since it left the base branch.
  */
 export function readChangeArguments(
   args: string[],
   isDirectory: (path: string) => boolean,
 ): ChangeArguments {
-  if (args.length === 0) {
-    return { changes: [rangeFor(CURRENT_REPO, "")], unchanged: [] }
+  const { uncommitted, words } = readOptions(args)
+  if (words.length === 0) {
+    return { changes: [rangeFor(CURRENT_REPO, "")], unchanged: [], uncommitted }
   }
 
-  const groups = groupTokens(args.map((arg) => readToken(arg, isDirectory)))
+  const groups = groupTokens(words.map((word) => readToken(word, isDirectory)))
 
-  return { changes: groups.flatMap(changeOf), unchanged: groups.flatMap(unchangedOf) }
+  return {
+    changes: groups.flatMap(changeOf),
+    unchanged: groups.flatMap(unchangedOf),
+    uncommitted,
+  }
 }
