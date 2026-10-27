@@ -94,8 +94,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
   narration, change signs, details, stale steps marked, configurable keys, and asking
   (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
-- 7: the TUI to the design: home screen (with version, stale, and unreachable states),
-  build view, route map, and fallback stepping view.
+- 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
+  tours built with an older guide, whose prompt hash differs from the current one), build
+  view, route map, and fallback stepping view. `trail` and `trail mcp` report the commit
+  they were built from instead of version 0.0.0, and tours record it.
 - 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
 
 The beta release follows milestone 6: the `trail` binary and the .vsix package.
