@@ -41,3 +41,7 @@ export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
 export { resolveChange, type ResolvedChange, type ResolvedRepo } from "./change/resolve"
+export { changeFiles, changePatch } from "./read/diff"
+export { listFiles, readLines, type NumberedLines } from "./read/files"
+export { describeRepo, repoNamed } from "./read/repo"
+export { search, type Match, type SearchResult } from "./read/search"

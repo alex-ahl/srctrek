@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-10-27 — Milestone 3: tour building
+
+**Done**
+
+- Step 3a: the read tools in core (`packages/core/src/read/`), each on a repo of the
+  resolved change at its revision, through git objects only: listing files, reading
+  numbered lines, searching with a regular expression (capped at 200 matches), and the
+  change's files and a file's patch.
+
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
 **Done**

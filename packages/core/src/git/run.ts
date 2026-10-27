@@ -2,6 +2,7 @@ export class GitError extends Error {
   constructor(
     readonly args: string[],
     readonly stderr: string,
+    readonly code: number,
   ) {
     super(`git ${args.join(" ")} failed: ${stderr.trim()}`)
     this.name = "GitError"
@@ -36,7 +37,7 @@ export async function runGit(
     proc.exited,
   ])
   if (code !== 0) {
-    throw new GitError(args, stderr)
+    throw new GitError(args, stderr, code)
   }
 
   return trim ? stdout.trim() : stdout
