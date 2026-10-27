@@ -23,6 +23,13 @@ export type ResolvedRepo = {
   range?: ResolvedRange
 }
 
+/** A repo of the change that the change touches. */
+export type RepoWithRange = ResolvedRepo & { range: ResolvedRange }
+
+export function hasRange(repo: ResolvedRepo): repo is RepoWithRange {
+  return repo.range !== undefined
+}
+
 /** Every repo the trail may pass through, changed ones first. */
 export type ResolvedChange = { repos: ResolvedRepo[] }
 

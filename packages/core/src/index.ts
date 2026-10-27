@@ -48,7 +48,13 @@ export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
 export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
-export { resolveChange, type ResolvedChange, type ResolvedRepo } from "./change/resolve"
+export {
+  hasRange,
+  resolveChange,
+  type RepoWithRange,
+  type ResolvedChange,
+  type ResolvedRepo,
+} from "./change/resolve"
 export { changeFiles, changePatch } from "./read/diff"
 export { listFiles, readLines, type NumberedLines } from "./read/files"
 export { describeRepo, repoNamed } from "./read/repo"
@@ -60,3 +66,5 @@ export { completeStep, type SubmittedStep } from "./build/complete"
 export { saveChangedLines } from "./build/changed-lines"
 export { TourDraft } from "./build/draft"
 export { snapshotWorkingTree } from "./git/snapshot"
+export { existingTourFor } from "./build/existing"
+export { tourNameFor } from "./build/name"

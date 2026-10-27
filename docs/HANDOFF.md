@@ -33,6 +33,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   guide is the `tour_guide` tool, and the server's instructions say to read it first, so
   asking for a tour in plain words works. `trail mcp` started from a terminal says it's
   waiting for a client.
+- Step 3h: whether a change already has a tour (a saved tour with every changed repo at the
+  same commits), and a name for a new one from its heads: the branch (`feature-refunds`), a
+  pull request (`pr-12`), or the branch with `-uncommitted` for a snapshot.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
