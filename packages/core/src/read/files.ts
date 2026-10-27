@@ -14,8 +14,8 @@ export async function listFiles(repo: ResolvedRepo, folder?: string): Promise<st
   return out.split("\0").filter(Boolean)
 }
 
-// A file's lines; the newline that ends the last one doesn't start another.
-function splitLines(text: string): string[] {
+/** A file's lines; the newline that ends the last one doesn't start another. */
+export function splitLines(text: string): string[] {
   return text.replace(/\n$/, "").split("\n")
 }
 

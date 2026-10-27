@@ -17,6 +17,9 @@
 uncertain? }`, each inside its step's lines), the refund fixture's values placed on their
   lines, and the Neovim plugin drawing them from `predicted_values`, doubtful ones in the
   warning colour.
+- Step 3d: a submitted step completed and checked (`packages/core/src/build/`): core adds the
+  file's blob and whether the change touches the step's lines, and lists every line the step
+  relies on (its range, each citation) that doesn't exist at its repo's revision.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
