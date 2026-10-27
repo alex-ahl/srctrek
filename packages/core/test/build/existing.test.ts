@@ -3,8 +3,10 @@ import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import {
   type ResolvedChange,
-  TourDraft,
+  addSteps,
+  draftToTour,
   existingTourFor,
+  newDraft,
   parseRange,
   resolveChange,
   runGit,
@@ -43,7 +45,6 @@ async function saveTourOf(dir: string, change: ResolvedChange, name: string): Pr
     sources: [],
     author: { model: "m" },
   }
-  const draft = new TourDraft(change, header)
   const repo = change.repos[0]?.name ?? ""
   const step = {
     id: "s1",
@@ -56,8 +57,9 @@ async function saveTourOf(dir: string, change: ResolvedChange, name: string): Pr
     details: "d",
     via: null,
   }
-  expect(await draft.add([step])).toEqual([])
-  await saveTour(dir, name, draft.toTour())
+  const { draft, problems } = await addSteps(newDraft(change, header), [step])
+  expect(problems).toEqual([])
+  await saveTour(dir, name, draftToTour(draft))
 }
 
 describe("existingTourFor", () => {

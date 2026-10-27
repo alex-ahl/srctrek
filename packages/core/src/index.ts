@@ -71,7 +71,7 @@ export {
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"
 export { saveChangedLines } from "./build/changed-lines"
-export { TourDraft } from "./build/draft"
+export { addSteps, draftToTour, newDraft, stepIds, type Added, type Draft } from "./build/draft"
 export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTourFor } from "./build/existing"
 export { tourNameFor } from "./build/name"

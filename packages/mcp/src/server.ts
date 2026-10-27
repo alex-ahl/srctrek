@@ -2,7 +2,7 @@ import { SERVER_INSTRUCTIONS } from "@codetrail/core"
 import { McpServer } from "@modelcontextprotocol/server"
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio"
 import { registerPrompts } from "./prompts"
-import { TrailSession } from "./session"
+import { newSession } from "./session"
 import { registerBuildTools, registerReadTools } from "./tools"
 
 /** `trail mcp`: an MCP server over stdin and stdout for the agent that builds a tour. */
@@ -12,9 +12,9 @@ export async function startMcpServer(cwd: string): Promise<void> {
     { name: "codetrail", version: "0.0.0" },
     { instructions: SERVER_INSTRUCTIONS },
   )
-  const session = new TrailSession(cwd)
-  registerReadTools(server, session)
-  registerBuildTools(server, session)
+  const cell = { session: newSession(cwd) }
+  registerReadTools(server, cell)
+  registerBuildTools(server, cell)
   registerPrompts(server)
 
   await server.connect(new StdioServerTransport())

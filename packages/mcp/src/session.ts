@@ -1,111 +1,139 @@
 import {
   BUILD_STOPPED,
+  type Draft,
   type ResolvedChange,
   type ResolvedRepo,
   type SubmittedStep,
   type Tour,
   type TourHeader,
-  TourDraft,
   TourValidationError,
+  addSteps,
   directoryIn,
+  draftToTour,
+  newDraft,
   readChangeArguments,
   repoNamed,
   resolveChange,
   saveChangedLines,
   saveTour,
+  stepIds,
 } from "@codetrail/core"
 
 // Rejected rounds a draft may take before its build stops, so an agent can't loop on it.
 const MAX_REJECTED_ROUNDS = 3
 
 /** The change a tour is being built for, and the tour so far. Each tool needs the one before. */
-export class TrailSession {
-  #change: ResolvedChange | undefined
-  #draft: TourDraft | undefined
-  #rejectedRounds = 0
+export type Session = Readonly<{
+  cwd: string
+  cacheDir?: string | undefined
+  change?: ResolvedChange | undefined
+  draft?: Draft | undefined
+  rejectedRounds: number
+}>
 
-  constructor(
-    private readonly cwd: string,
-    private readonly cacheDir?: string,
-  ) {}
+/** What a tool call leaves behind: the session after it, and its answer. */
+export type Outcome<T> = Readonly<{ session: Session; answer: T }>
 
-  #openChange(): ResolvedChange {
-    if (this.#change === undefined) {
-      throw new Error("no change is open: call open_change first")
+/** How finishing went: the saved tour's path, or why the tour isn't valid yet. */
+export type Finished = Readonly<{ saved: string } | { problems: string[] }>
+
+export function newSession(cwd: string, cacheDir?: string): Session {
+  return { cwd, cacheDir, rejectedRounds: 0 }
+}
+
+function openChange(session: Session): ResolvedChange {
+  if (session.change === undefined) {
+    throw new Error("no change is open: call open_change first")
+  }
+
+  return session.change
+}
+
+function openDraft(session: Session): Draft {
+  if (session.draft === undefined) {
+    throw new Error("no tour is started: call start_tour first")
+  }
+
+  return session.draft
+}
+
+export async function open(session: Session, args: string[]): Promise<Outcome<ResolvedChange>> {
+  const read = readChangeArguments(args, directoryIn(session.cwd))
+  const change = await resolveChange(session.cwd, read, session.cacheDir)
+
+  return { session: { ...session, change, draft: undefined }, answer: change }
+}
+
+export function repoIn(session: Session, name: string): ResolvedRepo {
+  return repoNamed(openChange(session), name)
+}
+
+export function start(session: Session, header: TourHeader): Session {
+  return { ...session, draft: newDraft(openChange(session), header), rejectedRounds: 0 }
+}
+
+// A rejected round counts; the last one allowed drops the draft and says the build stopped.
+function reject(session: Session, problems: readonly string[]): Outcome<string[]> {
+  const rejectedRounds = session.rejectedRounds + 1
+  if (rejectedRounds < MAX_REJECTED_ROUNDS) {
+    return { session: { ...session, rejectedRounds }, answer: [...problems] }
+  }
+
+  const blankLine = ""
+  const stopped = { ...session, draft: undefined, rejectedRounds }
+
+  return { session: stopped, answer: [...problems, blankLine, BUILD_STOPPED] }
+}
+
+/** The problems with the steps; none when they were added. */
+export async function addStepsTo(
+  session: Session,
+  steps: SubmittedStep[],
+): Promise<Outcome<string[]>> {
+  const { draft, problems } = await addSteps(openDraft(session), steps)
+  if (problems.length > 0) {
+    return reject(session, problems)
+  }
+
+  return { session: { ...session, draft }, answer: [] }
+}
+
+export function draftStepIds(session: Session): string[] {
+  return stepIds(openDraft(session))
+}
+
+// The saved tour's path, or the error saying why the tour isn't valid; other failures throw.
+async function saveOrInvalid(
+  cwd: string,
+  name: string,
+  tour: Tour,
+): Promise<{ path: string } | { invalid: TourValidationError }> {
+  try {
+    return { path: await saveTour(cwd, name, tour) }
+  } catch (error) {
+    if (error instanceof TourValidationError) {
+      return { invalid: error }
     }
 
-    return this.#change
+    throw error
+  }
+}
+
+/**
+ * Saves the tour under `.codetrail/tours`, with its changed lines beside it. A tour that fails
+ * the whole-tour rules is a rejected round, like steps that fail theirs.
+ */
+export async function finish(session: Session, name: string): Promise<Outcome<Finished>> {
+  const draft = openDraft(session)
+  const tour = draftToTour(draft)
+
+  const result = await saveOrInvalid(session.cwd, name, tour)
+  if ("invalid" in result) {
+    const rejected = reject(session, [result.invalid.message])
+    return { session: rejected.session, answer: { problems: rejected.answer } }
   }
 
-  #openDraft(): TourDraft {
-    if (this.#draft === undefined) {
-      throw new Error("no tour is started: call start_tour first")
-    }
+  await saveChangedLines(draft.change, tour, result.path)
 
-    return this.#draft
-  }
-
-  async open(args: string[]): Promise<ResolvedChange> {
-    const read = readChangeArguments(args, directoryIn(this.cwd))
-    this.#change = await resolveChange(this.cwd, read, this.cacheDir)
-    this.#draft = undefined
-
-    return this.#change
-  }
-
-  repo(name: string): ResolvedRepo {
-    return repoNamed(this.#openChange(), name)
-  }
-
-  start(header: TourHeader): void {
-    this.#draft = new TourDraft(this.#openChange(), header)
-    this.#rejectedRounds = 0
-  }
-
-  // Counts a rejected round; the last one allowed drops the draft and says the build stopped.
-  #reject(problems: string[]): string[] {
-    this.#rejectedRounds += 1
-    if (this.#rejectedRounds < MAX_REJECTED_ROUNDS) {
-      return problems
-    }
-
-    this.#draft = undefined
-    return [...problems, "", BUILD_STOPPED]
-  }
-
-  /** The problems with the steps; none when they were added. */
-  async addSteps(steps: SubmittedStep[]): Promise<string[]> {
-    const problems = await this.#openDraft().add(steps)
-
-    return problems.length === 0 ? [] : this.#reject(problems)
-  }
-
-  stepIds(): string[] {
-    return this.#openDraft().stepIds
-  }
-
-  // A tour that fails the whole-tour rules is a rejected round, like steps that fail theirs.
-  async #save(name: string, tour: Tour): Promise<string> {
-    try {
-      return await saveTour(this.cwd, name, tour)
-    } catch (error) {
-      if (error instanceof TourValidationError) {
-        throw new Error(this.#reject([error.message]).join("\n"), { cause: error })
-      }
-
-      throw error
-    }
-  }
-
-  /** Saves the tour under `.codetrail/tours`, with its changed lines beside it; its path. */
-  async finish(name: string): Promise<string> {
-    const draft = this.#openDraft()
-    const tour = draft.toTour()
-
-    const path = await this.#save(name, tour)
-    await saveChangedLines(draft.change, tour, path)
-    this.#draft = undefined
-
-    return path
-  }
+  return { session: { ...session, draft: undefined }, answer: { saved: result.path } }
 }

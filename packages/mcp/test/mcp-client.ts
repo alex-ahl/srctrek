@@ -17,41 +17,41 @@ const ToolResultSchema = z.object({
 
 /** A minimal MCP client for tests: `trail mcp` as a child, JSON-RPC one line at a time. */
 export class McpTestClient {
-  #nextId = 1
-  #pending = new Map<number, (response: Response) => void>()
-  readonly #proc
+  private nextId = 1
+  private pending = new Map<number, (response: Response) => void>()
+  private readonly proc
 
   constructor(cwd: string) {
-    this.#proc = Bun.spawn(["bun", TRAIL, "mcp"], {
+    this.proc = Bun.spawn(["bun", TRAIL, "mcp"], {
       cwd,
       stdin: "pipe",
       stdout: "pipe",
       stderr: "inherit",
     })
-    void this.#readResponses()
+    void this.readResponses()
   }
 
-  async #readResponses(): Promise<void> {
+  private async readResponses(): Promise<void> {
     let buffered = ""
-    for await (const chunk of this.#proc.stdout.pipeThrough(new TextDecoderStream())) {
+    for await (const chunk of this.proc.stdout.pipeThrough(new TextDecoderStream())) {
       buffered += chunk
       const lines = buffered.split("\n")
       buffered = lines.pop() ?? ""
       for (const line of lines.filter(Boolean)) {
         const response = ResponseSchema.parse(JSON.parse(line))
-        this.#pending.get(response.id)?.(response)
+        this.pending.get(response.id)?.(response)
       }
     }
   }
 
-  #send(message: object): void {
-    void this.#proc.stdin.write(JSON.stringify({ jsonrpc: "2.0", ...message }) + "\n")
+  private send(message: object): void {
+    void this.proc.stdin.write(JSON.stringify({ jsonrpc: "2.0", ...message }) + "\n")
   }
 
   request(method: string, params: object = {}): Promise<Response> {
-    const id = this.#nextId++
-    const response = new Promise<Response>((resolve) => this.#pending.set(id, resolve))
-    this.#send({ id, method, params })
+    const id = this.nextId++
+    const response = new Promise<Response>((resolve) => this.pending.set(id, resolve))
+    this.send({ id, method, params })
 
     return response
   }
@@ -62,7 +62,7 @@ export class McpTestClient {
       capabilities: {},
       clientInfo: { name: "test", version: "0" },
     })
-    this.#send({ method: "notifications/initialized" })
+    this.send({ method: "notifications/initialized" })
 
     return response
   }
@@ -76,6 +76,6 @@ export class McpTestClient {
   }
 
   close(): void {
-    this.#proc.kill()
+    this.proc.kill()
   }
 }
