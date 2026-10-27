@@ -57,11 +57,18 @@ const StepFields = z.object({
   notes: z.array(Note).optional(),
 })
 
-// Each predicted value sits on a line of its step. A backwards range has no inside, so its
-// values are left for when it's fixed.
-function valuesOutsideStep(step: z.infer<typeof StepFields>, ctx: z.RefinementCtx): void {
+type StepLines = {
+  start_line: number
+  end_line: number
+  predicted_values?: { name: string; line: number }[] | undefined
+}
+
+// A step's range runs forward, and each predicted value sits on one of its lines. A backwards
+// range has no inside, so its values are left for when it's fixed.
+function stepLineChecks(step: StepLines, ctx: z.RefinementCtx): void {
   const { start_line: start, end_line: end } = step
   if (end < start) {
+    ctx.addIssue({ code: "custom", path: ["end_line"], message: "end_line is before start_line" })
     return
   }
 
@@ -76,10 +83,12 @@ function valuesOutsideStep(step: z.infer<typeof StepFields>, ctx: z.RefinementCt
   }
 }
 
-const Step = StepFields.refine((s) => s.end_line >= s.start_line, {
-  message: "end_line is before start_line",
-  path: ["end_line"],
-}).superRefine(valuesOutsideStep)
+const Step = StepFields.superRefine(stepLineChecks)
+
+/** A step as the agent submits it: everything but what core works out from git. */
+export const SubmittedStepSchema = StepFields.omit({ blob: true, changed: true }).superRefine(
+  stepLineChecks,
+)
 
 const Repo = z.object({
   name: nonEmpty,
@@ -111,6 +120,21 @@ const TourShape = z.object({
   repos: z.array(Repo).min(1),
   steps: z.array(Step).min(1),
 })
+
+/** What the agent gives when it starts a tour; core adds the repos, steps, and bookkeeping. */
+export const TourHeaderSchema = TourShape.pick({
+  title: true,
+  overview: true,
+  trigger: true,
+  outcome: true,
+}).extend({
+  sources: TourShape.shape.sources.default([]),
+  author: z
+    .object({ agent: nonEmpty.optional(), model: nonEmpty })
+    .default({ model: "unspecified" }),
+})
+
+export type TourHeader = z.infer<typeof TourHeaderSchema>
 
 export type Tour = z.infer<typeof TourShape>
 export type TourStep = Tour["steps"][number]

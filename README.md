@@ -12,8 +12,8 @@ step out, with a call stack.
 Reads code from git, local or remote, and runs nothing. Works with any agent; steps through
 trails in Neovim, and in VS Code and its forks.
 
-> **Status:** pre-release. Today you can list saved tours and step through them in Neovim,
-> running from a checkout. Building tours arrives in Milestone 3; see `docs/HANDOFF.md`.
+> **Status:** pre-release, running from a checkout. Today your agent can build a tour through
+> `trail mcp`, and you can list tours and step through them in Neovim; see `docs/HANDOFF.md`.
 
 ## Try it today
 
@@ -67,19 +67,19 @@ vim.g.codetrail = { keys = { next = "]w", previous = "[w", ask = false } }
 `CODETRAIL_AGENT` to its headless command line; the question is appended as the last
 argument.
 
-### Reading a change from your agent
+### Building a tour from your agent
 
 `trail mcp` is an MCP server over stdin and stdout. Register it with your agent as a stdio
 server whose command is `bun <codetrail>/packages/cli/src/main.ts mcp`, run in the repo you
 work in. The agent opens a change with `open_change`, using the same arguments as `trail`,
-then reads it at its exact revisions with `list_files`, `read_file`, `search`, and `diff`.
-Building tours through it arrives later in Milestone 3.
+then reads it at its exact revisions with `list_files`, `read_file`, `search`, and `diff`,
+and builds a tour with `start_tour`, `add_steps`, and `finish_tour`; the tour is saved to the
+.codetrail/tours folder, where the home screen lists it.
 
 ## Where it's going
 
 - `trail main...HEAD` or `trail <pr-url>`: your agent builds a tour of the change, across
   repos, and the home screen shows it while it builds.
-- `trail mcp` building tours, so your agent can make one from its own chat.
 - Tours of existing code, from an entry point you pick.
 - A route map of the whole trail in the terminal.
 

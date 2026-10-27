@@ -6,9 +6,10 @@ The MCP server `trail mcp` runs over stdin and stdout, for the agent that builds
 
 ## What it does, and does not
 
-Does: open a change (`open_change`, with `trail`'s own arguments) and let the agent read it
-at its exact revisions: `list_files`, `read_file`, `search`, `diff`. Tool descriptions come
-from `packages/core/prompts/`.
+Does: open a change (`open_change`, with `trail`'s own arguments), let the agent read it at
+its exact revisions (`list_files`, `read_file`, `search`, `diff`), and build a tour of it
+(`start_tour`, `add_steps`, `finish_tour`). Tool descriptions come from
+`packages/core/prompts/`.
 
 Does not: read the working tree, hold tour logic, or draw anything. Core resolves and reads;
 this package only speaks MCP.

@@ -1,5 +1,7 @@
 import {
+  SubmittedStepSchema,
   TOOL_DESCRIPTIONS,
+  TourHeaderSchema,
   changeFiles,
   changePatch,
   listFiles,
@@ -16,6 +18,11 @@ const folder = z.string().optional().describe("only files under this folder")
 
 function text(answer: string) {
   return { content: [{ type: "text" as const, text: answer }] }
+}
+
+// An answer the agent should act on before going further.
+function problem(answer: string) {
+  return { ...text(answer), isError: true }
 }
 
 /** The tools an agent reads a change with. A thrown error reaches the agent as the answer. */
@@ -80,5 +87,44 @@ export function registerReadTools(server: McpServer, session: TrailSession): voi
 
       return text(await changePatch(changed, input.path))
     },
+  )
+}
+
+/** The tools an agent builds a tour with: start it, add checked steps, finish and save it. */
+export function registerBuildTools(server: McpServer, session: TrailSession): void {
+  server.registerTool(
+    "start_tour",
+    { description: TOOL_DESCRIPTIONS.start_tour, inputSchema: TourHeaderSchema },
+    (header) => {
+      session.start(header)
+      return text(`started "${header.title}": add steps with add_steps`)
+    },
+  )
+
+  server.registerTool(
+    "add_steps",
+    {
+      description: TOOL_DESCRIPTIONS.add_steps,
+      inputSchema: z.object({ steps: z.array(SubmittedStepSchema).min(1) }),
+    },
+    async ({ steps }) => {
+      const problems = await session.addSteps(steps)
+      if (problems.length > 0) {
+        return problem(`nothing was added:\n${problems.join("\n")}`)
+      }
+
+      return text(
+        `added ${steps.map((step) => step.id).join(", ")}; the tour has ${session.stepIds().join(", ")}`,
+      )
+    },
+  )
+
+  server.registerTool(
+    "finish_tour",
+    {
+      description: TOOL_DESCRIPTIONS.finish_tour,
+      inputSchema: z.object({ name: z.string() }),
+    },
+    async ({ name }) => text(`saved ${await session.finish(name)}`),
   )
 }

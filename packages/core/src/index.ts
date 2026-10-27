@@ -1,5 +1,13 @@
 // Public API of @codetrail/core. Front-ends import only from here.
-export { FORMAT_VERSION, TourSchema, type Tour, type TourStep } from "./schema/tour"
+export {
+  FORMAT_VERSION,
+  SubmittedStepSchema,
+  TourHeaderSchema,
+  TourSchema,
+  type Tour,
+  type TourHeader,
+  type TourStep,
+} from "./schema/tour"
 export {
   TOURS_DIR,
   TourValidationError,
@@ -46,6 +54,8 @@ export { listFiles, readLines, type NumberedLines } from "./read/files"
 export { describeRepo, repoNamed } from "./read/repo"
 export { search, type Match, type SearchResult } from "./read/search"
 export { directoryIn } from "./files"
-export { TOOL_DESCRIPTIONS } from "./prompts"
+export { PROMPT_HASH, TOOL_DESCRIPTIONS } from "./prompts"
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"
+export { saveChangedLines } from "./build/changed-lines"
+export { TourDraft } from "./build/draft"

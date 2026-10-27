@@ -2,10 +2,10 @@ import type { ResolvedChange, ResolvedRepo } from "../change/resolve"
 import { changedLines } from "../git/diff"
 import { blobAt } from "../git/read"
 import { describeRepo, repoNamed } from "../read/repo"
-import type { TourStep } from "../schema/tour"
+import type { z } from "zod"
+import type { SubmittedStepSchema, TourStep } from "../schema/tour"
 
-/** A step as the agent submits it: everything but what core works out from git. */
-export type SubmittedStep = Omit<TourStep, "blob" | "changed">
+export type SubmittedStep = z.infer<typeof SubmittedStepSchema>
 
 // Whether the change touches any of the step's lines; a repo on the route unchanged never does.
 async function touchesChange(repo: ResolvedRepo, step: SubmittedStep): Promise<boolean> {

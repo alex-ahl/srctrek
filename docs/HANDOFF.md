@@ -20,6 +20,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3d: a submitted step completed and checked (`packages/core/src/build/`): core adds the
   file's blob and whether the change touches the step's lines, and lists every line the step
   relies on (its range, each citation) that doesn't exist at its repo's revision.
+- Step 3e: building a tour over `trail mcp`: `start_tour`, `add_steps` (checked, all or none;
+  a step sent again by id replaces it), and `finish_tour` (the whole-tour rules, then saved to
+  .codetrail/tours with its changed-lines file). The tool prompts carry the step fields and
+  the rules for predicted values.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
