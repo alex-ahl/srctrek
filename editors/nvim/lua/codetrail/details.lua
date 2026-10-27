@@ -31,9 +31,9 @@ local function step_lines(s, notes)
   end
   if present(s.predicted_values) then
     vim.list_extend(lines, { "", "**Predicted values**" })
-    for k, v in pairs(s.predicted_values) do
-      local value = tostring(v):gsub("%s*%(predicted%)$", "")
-      table.insert(lines, "- `" .. k .. "` = `" .. value .. "` _(predicted)_")
+    for _, v in ipairs(s.predicted_values) do
+      local doubt = v.uncertain and "  ⚠ _uncertain_" or ""
+      table.insert(lines, string.format("- line %d: `%s` = `%s` _(predicted)_%s", v.line, v.name, v.value, doubt))
     end
   end
   if present(s.uncertain) then

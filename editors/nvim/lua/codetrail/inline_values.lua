@@ -1,6 +1,5 @@
--- Prototype: predicted values at the end of the lines they belong to, like a debugger's inline
--- values. Reads `inline_values` ({ name, value, line, role }[]) until the tour format's
--- predicted_values takes that shape. Always marked "≈ … predicted": codetrail runs nothing.
+-- Predicted values at the end of the lines they belong to, like a debugger's inline values.
+-- Always marked "≈ … predicted": codetrail runs nothing. Doubtful ones take the warning colour.
 local state = require("codetrail.state")
 
 local M = {}
@@ -16,28 +15,31 @@ local function describe(value)
   return value.name .. " = " .. value.value
 end
 
--- Values grouped by line, in the order the tour lists them.
+-- Values grouped by line, in the order the tour lists them; a line with a doubtful value is
+-- marked doubtful as a whole.
 local function by_line(values)
   local lines = {}
   for _, value in ipairs(values) do
-    lines[value.line] = lines[value.line] or {}
-    table.insert(lines[value.line], describe(value))
+    lines[value.line] = lines[value.line] or { texts = {}, uncertain = false }
+    table.insert(lines[value.line].texts, describe(value))
+    lines[value.line].uncertain = lines[value.line].uncertain or value.uncertain == true
   end
 
   return lines
 end
 
 local function draw(buf, step, last)
-  local values = step.inline_values
+  local values = step.predicted_values
   if values == nil or values == vim.NIL then
     return
   end
 
-  for line, texts in pairs(by_line(values)) do
+  for line, group in pairs(by_line(values)) do
     if line <= last then
+      local colour = group.uncertain and "CodetrailWarn" or "CodetrailPredicted"
       vim.api.nvim_buf_set_extmark(buf, state.values_ns, line - 1, 0, {
         virt_text = {
-          { "  ≈ " .. table.concat(texts, ", "), "CodetrailPredicted" },
+          { "  ≈ " .. table.concat(group.texts, ", "), colour },
           { "  predicted", "CodetrailMuted" },
         },
         virt_text_pos = "eol",

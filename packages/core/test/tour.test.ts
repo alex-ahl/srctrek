@@ -140,6 +140,16 @@ describe("parseTour", () => {
     expect(issuesOf(tour)).toEqual(["steps.0 (s1).end_line: end_line is before start_line"])
   })
 
+  test("rejects a predicted value outside its step's lines", () => {
+    const tour = refundTour()
+    step(tour, "s1").predicted_values = [
+      { name: "orderId", value: '"o_1001"', line: 30, role: "assignment" },
+    ]
+    expect(issuesOf(tour)).toEqual([
+      "steps.0 (s1).predicted_values.0.line: orderId is on line 30, outside the step's lines 4-18",
+    ])
+  })
+
   test("rejects an uncertain flag without a severity", () => {
     const tour = refundTour()
     Object.assign(step(tour, "s3"), { uncertain: "a bare string" })

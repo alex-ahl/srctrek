@@ -53,9 +53,14 @@
       "summary": "On load, the page reads ?order=o_1001, fetches the order and renders it into #app.",
       "details": "Setup for the scenario: the button only exists after renderOrder runs. fetchOrder calls GET /orders/o_1001 (web/src/orders.ts:12).",
       "via": null,
-      "predicted_values": {
-        "orderId": "\"o_1001\""
-      },
+      "predicted_values": [
+        {
+          "name": "orderId",
+          "value": "\"o_1001\"",
+          "line": 5,
+          "role": "assignment"
+        }
+      ],
       "calls": "s2"
     },
     {
@@ -85,10 +90,20 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "body.total": "499 (predicted; 49900 / 100)",
-        "body.status": "\"paid\""
-      },
+      "predicted_values": [
+        {
+          "name": "body.total",
+          "value": "499 (49900 / 100)",
+          "line": 8,
+          "role": "assignment"
+        },
+        {
+          "name": "body.status",
+          "value": "\"paid\"",
+          "line": 10,
+          "role": "assignment"
+        }
+      ],
       "calls": "s3"
     },
     {
@@ -118,9 +133,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "button": "<button data-action=\"refund\" data-order-id=\"o_1001\" data-amount=\"499\">"
-      },
+      "predicted_values": [
+        {
+          "name": "button",
+          "value": "<button data-action=\"refund\" data-order-id=\"o_1001\" data-amount=\"499\">",
+          "line": 24,
+          "role": "assignment"
+        }
+      ],
       "uncertain": {
         "severity": "high",
         "note": "data-amount carries order.total in MAJOR units (499), but POST /refunds expects amount in MINOR units (api/openapi.json:43). Also the button only hides for status 'refunded'; nothing ever sets that status, so it reappears after reload."
@@ -148,9 +168,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "el.dataset.action": "\"refund\""
-      },
+      "predicted_values": [
+        {
+          "name": "el.dataset.action",
+          "value": "\"refund\"",
+          "line": 9,
+          "role": "assignment"
+        }
+      ],
       "calls": "s5"
     },
     {
@@ -175,10 +200,20 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "orderId": "\"o_1001\"",
-        "amount": "499 (predicted; major units)"
-      },
+      "predicted_values": [
+        {
+          "name": "orderId",
+          "value": "\"o_1001\"",
+          "line": 10,
+          "role": "argument"
+        },
+        {
+          "name": "amount",
+          "value": "499 (major units)",
+          "line": 10,
+          "role": "argument"
+        }
+      ],
       "calls": "s6",
       "uncertain": {
         "severity": "low",
@@ -207,9 +242,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "body": "{\"order_id\":\"o_1001\",\"amount\":499}"
-      },
+      "predicted_values": [
+        {
+          "name": "body",
+          "value": "{\"order_id\":\"o_1001\",\"amount\":499}",
+          "line": 6,
+          "role": "argument"
+        }
+      ],
       "calls": "s7",
       "uncertain": {
         "severity": "medium",
@@ -238,9 +278,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "url": "http://localhost:3000/refunds (predicted, unless VITE_API_URL is set)"
-      },
+      "predicted_values": [
+        {
+          "name": "url",
+          "value": "http://localhost:3000/refunds (unless VITE_API_URL is set)",
+          "line": 10,
+          "role": "assignment"
+        }
+      ],
       "calls": "s8",
       "uncertain": {
         "severity": "medium",
@@ -274,10 +319,20 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "req.method": "\"POST\"",
-        "url.pathname": "\"/refunds\""
-      },
+      "predicted_values": [
+        {
+          "name": "req.method",
+          "value": "\"POST\"",
+          "line": 36,
+          "role": "assignment"
+        },
+        {
+          "name": "url.pathname",
+          "value": "\"/refunds\"",
+          "line": 36,
+          "role": "assignment"
+        }
+      ],
       "calls": "s9"
     },
     {
@@ -354,11 +409,26 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "order.total_minor": "49900",
-        "amount": "499",
-        "validation": "passes"
-      },
+      "predicted_values": [
+        {
+          "name": "amount",
+          "value": "499",
+          "line": 9,
+          "role": "assignment"
+        },
+        {
+          "name": "order.total_minor",
+          "value": "49900",
+          "line": 10,
+          "role": "assignment"
+        },
+        {
+          "name": "validation",
+          "value": "passes",
+          "line": 12,
+          "role": "assignment"
+        }
+      ],
       "calls": "s12",
       "uncertain": {
         "severity": "high",
@@ -387,11 +457,26 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "refund.id": "\"r_<uuid>\"",
-        "payload": "{\"refund_id\":\"r_<uuid>\",\"order_id\":\"o_1001\",\"amount\":499}",
-        "response": "202 {\"refund_id\":\"r_<uuid>\",\"status\":\"requested\"}"
-      },
+      "predicted_values": [
+        {
+          "name": "refund.id",
+          "value": "\"r_<uuid>\"",
+          "line": 16,
+          "role": "assignment"
+        },
+        {
+          "name": "payload",
+          "value": "{\"refund_id\":\"r_<uuid>\",\"order_id\":\"o_1001\",\"amount\":499}",
+          "line": 18,
+          "role": "argument"
+        },
+        {
+          "name": "response",
+          "value": "202 {\"refund_id\":\"r_<uuid>\",\"status\":\"requested\"}",
+          "line": 19,
+          "role": "return"
+        }
+      ],
       "calls": "s13",
       "uncertain": {
         "severity": "medium",
@@ -420,9 +505,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "file": "/var/lib/shop/queue/refund.requested.jsonl (predicted, default QUEUE_DIR)"
-      },
+      "predicted_values": [
+        {
+          "name": "file",
+          "value": "/var/lib/shop/queue/refund.requested.jsonl (default QUEUE_DIR)",
+          "line": 10,
+          "role": "assignment"
+        }
+      ],
       "calls": "s14"
     },
     {
@@ -452,9 +542,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        ".status textContent": "\"refund requested\""
-      },
+      "predicted_values": [
+        {
+          "name": ".status textContent",
+          "value": "\"refund requested\"",
+          "line": 11,
+          "role": "assignment"
+        }
+      ],
       "uncertain": {
         "severity": "low",
         "note": "UI says the refund is requested but nothing ever reports completion or failure back; a reload shows 'paid' and an enabled Refund button again."
@@ -515,9 +610,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "payload": "{\"refund_id\":\"r_<uuid>\",\"order_id\":\"o_1001\",\"amount\":499}"
-      },
+      "predicted_values": [
+        {
+          "name": "payload",
+          "value": "{\"refund_id\":\"r_<uuid>\",\"order_id\":\"o_1001\",\"amount\":499}",
+          "line": 28,
+          "role": "return"
+        }
+      ],
       "calls": "s17",
       "uncertain": {
         "severity": "high",
@@ -546,9 +646,14 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "amount_minor": "499 (predicted; intended 49900)"
-      },
+      "predicted_values": [
+        {
+          "name": "amount_minor",
+          "value": "499 (intended 49900)",
+          "line": 9,
+          "role": "argument"
+        }
+      ],
       "calls": "s18",
       "uncertain": {
         "severity": "high",
@@ -577,10 +682,21 @@
         ],
         "guessed": false
       },
-      "predicted_values": {
-        "request body": "{\"order_id\":\"o_1001\",\"amount_minor\":499}",
-        "return": "provider refund id (predicted; unknown value)"
-      },
+      "predicted_values": [
+        {
+          "name": "request body",
+          "value": "{\"order_id\":\"o_1001\",\"amount_minor\":499}",
+          "line": 14,
+          "role": "assignment"
+        },
+        {
+          "name": "return",
+          "value": "provider refund id (unknown value)",
+          "line": 19,
+          "role": "return",
+          "uncertain": true
+        }
+      ],
       "calls": "s19",
       "uncertain": {
         "severity": "medium",

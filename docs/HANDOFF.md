@@ -13,6 +13,10 @@
   `list_files`, `read_file`, `search`, and `diff`. Tool descriptions are prompt files in
   `packages/core/prompts/tools/`. "mcp" as `trail`'s first word is the command: a
   folder by that name is given as `./mcp`, a branch as part of a range (`main...mcp`).
+- Step 3c: predicted values on their lines in the tour format (`{ name, value, line, role,
+uncertain? }`, each inside its step's lines), the refund fixture's values placed on their
+  lines, and the Neovim plugin drawing them from `predicted_values`, doubtful ones in the
+  warning colour.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -57,8 +61,6 @@
 **Known gaps**
 
 - The Neovim plugin has no automated tests or Lua formatter yet.
-- The Neovim plugin reads predicted values per line from a prototype `inline_values` field;
-  Milestone 3 moves them into `predicted_values`.
 
 **Milestones**
 
@@ -66,10 +68,9 @@
   validation (schema and cited lines); `trail` launching the user's agent when there is no
   tour; `--uncommitted`, a snapshot of the working tree as a range's head; tours of existing
   code from a picked trigger; an "add a repo" tool for the agent, approved by the user; the
-  build loop's retry limit; predicted values on their lines (schema, prompt, and validation
-  that each line is inside its step); updating stale tours through the agent; evals driving
-  an agent headless, including a fixture that is hard to read statically, one whose trigger
-  is in an unchanged file, and one that crosses repos.
+  build loop's retry limit; the prompt for predicted values; updating stale tours through
+  the agent; evals driving an agent headless, including a fixture that is hard to read
+  statically, one whose trigger is in an unchanged file, and one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
   protocol (`docs/PROTOCOL.md`), with contract tests.
 - 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
