@@ -110,6 +110,11 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
   lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
   or sooner if an upgrade costs more than a day or a target platform fails to load it.
+- Context steps sit in the execution chain: the format requires `from` on every step after
+  the first, so a step read for context (not executed) has to claim execution came from
+  somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
+- `calls` holds one step, so a function that steps into several (a handler calling five
+  helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
 - WSL not yet tested.
 - `bun test` would collect `*.test.ts` files inside eval fixtures.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under

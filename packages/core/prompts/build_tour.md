@@ -19,7 +19,7 @@ Trace what runs, step by step, from trigger to outcome:
 
 - One step per stop: a handler, a function that decides something, a boundary crossed. Skip pure plumbing, or mark it `trivial`.
 - Include unchanged code the path runs through; the reader needs it to understand the changed parts. The change marks which lines it touches.
-- `kind`: call when execution enters code, return when it comes back, hop when it crosses to another process or repo (an HTTP request, a queued message, a job), context for code read to understand rather than executed.
+- `kind`: call when execution enters a function, including one reached from a return statement (`return render(turns)` is a call to `render`); return when execution comes back to code an earlier step showed, bringing a value; hop when it crosses to another process or repo (an HTTP request, a queued message, a job); context for code read to understand rather than executed.
 - When work happens later (a queue consumer, a scheduled job), follow it as a hop, in the order it runs.
 
 ## 4. Link every step with evidence
@@ -28,7 +28,7 @@ Every step after the first names the step execution came from (`from`) and cites
 
 ## 5. Show the scenario's values
 
-Add predicted values for the scenario on the lines where they help the reader follow it: arguments as a function receives them, assignments that shape the result, return values. Keep a value's name the same from step to step, so the reader can follow it from where it's made to where it's used. Include setup lines that create the scenario's pieces. Leave out values that only restate a name. Mark a value you doubt `uncertain`.
+Add predicted values for the scenario on the lines where they help the reader follow it: arguments as a function receives them, assignments that shape the result, return values. Keep a value's name the same from step to step, so the reader can follow it from where it's made to where it's used. Include setup lines that create the scenario's pieces. Leave out values that only restate the code: a field passed straight through (`timeout = self.timeout`), a default left as it is (`prefix = ""`). Mark a value you doubt `uncertain`.
 
 ## 6. Flag only what matters
 
