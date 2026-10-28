@@ -1,1 +1,1 @@
-List a repo's files at the change's revision, or only those under `folder`.
+List a folder's entries at the change's revision (the repo's top by default): its files, and its folders ending in "/". With `recursive`, every file below the folder instead. Long listings are cut, saying so; list a folder inside to see more.

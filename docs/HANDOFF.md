@@ -66,6 +66,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3q: the found triggers are rows on the home screen: each says whether its tour is
   built, building, or failed; enter builds it, or opens it once built, and `l` shows the
   selected build's log.
+- Step 3r: read tools that stay small on large repos: `list_files` lists one level (folders
+  ending in "/") unless `recursive`, at most 500 entries; `read_file` returns at most 400
+  lines without `to`, saying how many the file has; `diff` lists at most 200 files and cuts a
+  patch at 600 lines. Each says what was cut and how to reach the rest.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -113,10 +117,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 
 **Milestones**
 
-- 3: tour building across repos through `trail mcp`: tours of existing code from a picked
-  trigger; an "add a repo" tool for the agent, approved by the user; updating stale tours
-  through the agent; evals driving an agent headless, including a fixture that is hard to
-  read statically, one whose trigger is in an unchanged file, and one that crosses repos.
+- 3: tour building across repos through `trail mcp`: an "add a repo" tool for the agent,
+  approved by the user; updating stale tours through the agent; evals driving an agent
+  headless, including a fixture that is hard to read statically, one whose trigger is in an
+  unchanged file, and one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
   protocol (`docs/PROTOCOL.md`), with contract tests.
 - 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
@@ -149,8 +153,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
 - `calls` holds one step, so a function that steps into several (a handler calling five
   helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
-- Large repos: the read tools need caps (`list_files` one level by default, `read_file` and
-  `diff` capped), snapshots should start from the user's index so unchanged files aren't
+- Large repos: snapshots should start from the user's index so unchanged files aren't
   rehashed, and the cache should fetch only the refs a tour needs. Editor worktrees should
   check out only the files a tour visits (sparse checkout), with the editors in Milestone 6.
 - WSL not yet tested.

@@ -1,1 +1,1 @@
-Read a file at the change's revision, as numbered lines; `from` and `to` (inclusive) narrow it. Cite these line numbers in the tour.
+Read a file at the change's revision, as numbered lines; `from` and `to` (inclusive) choose which. Without `to`, at most 400 lines come back, and the answer says how many the file has. Cite these line numbers in the tour.

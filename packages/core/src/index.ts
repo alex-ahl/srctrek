@@ -57,8 +57,8 @@ export {
   type ResolvedChange,
   type ResolvedRepo,
 } from "./change/resolve"
-export { changeFiles, changePatch } from "./read/diff"
-export { listFiles, readLines, type NumberedLines } from "./read/files"
+export { changeFiles, changePatch, type ChangedFiles, type Patch } from "./read/diff"
+export { listFiles, readLines, type Listing, type NumberedLines } from "./read/files"
 export { describeRepo, repoNamed } from "./read/repo"
 export { search, type Match, type SearchResult } from "./read/search"
 export { directoryIn } from "./files"

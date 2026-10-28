@@ -1,5 +1,13 @@
 // What each tool answers, as plain text for the agent to read.
-import type { FileChange, NumberedLines, ResolvedChange, SearchResult } from "@codetrail/core"
+import type {
+  ChangedFiles,
+  FileChange,
+  Listing,
+  NumberedLines,
+  Patch,
+  ResolvedChange,
+  SearchResult,
+} from "@codetrail/core"
 
 function describeRange(repo: ResolvedChange["repos"][number]): string {
   if (repo.range === undefined) {
@@ -17,15 +25,29 @@ export function formatChange(change: ResolvedChange): string {
     .join("\n")
 }
 
-/** The path, then "  12 | text" lines, numbers padded so the code lines up. */
-export function formatLines({ path, start, lines }: NumberedLines): string {
+/** One path per line, folders ending in "/", and a note when the listing was cut. */
+export function formatListing({ paths, truncated }: Listing): string {
+  const cut = truncated ? ["(more entries were cut: list a folder inside this one)"] : []
+
+  return [...paths, ...cut].join("\n")
+}
+
+/**
+ * The path, then "  12 | text" lines, numbers padded so the code lines up, and a note saying
+ * which part of the file this is when it isn't all of it.
+ */
+export function formatLines({ path, start, lines, total }: NumberedLines): string {
   const lastLine = start + lines.length - 1
   const width = String(lastLine).length
   const numbered = lines.map(
     (text, offset) => `${String(start + offset).padStart(width)} | ${text}`,
   )
+  const isPart = start > 1 || lastLine < total
+  const part = isPart
+    ? [`(lines ${start}-${lastLine} of ${total}; read others with from and to)`]
+    : []
 
-  return [path, ...numbered].join("\n")
+  return [path, ...numbered, ...part].join("\n")
 }
 
 /** "path:line: text" per match. */
@@ -41,11 +63,19 @@ export function formatMatches({ matches, truncated }: SearchResult): string {
 }
 
 /** "modified src/app.ts", "renamed src/old.ts -> src/new.ts", one file per line. */
-export function formatFileChanges(files: FileChange[]): string {
+export function formatFileChanges({ files, truncated }: ChangedFiles): string {
   const describe = (file: FileChange) =>
     file.oldPath === undefined
       ? `${file.status} ${file.path}`
       : `${file.status} ${file.oldPath} -> ${file.path}`
+  const cut = truncated ? ["(more changed files were cut: search and list_files reach them)"] : []
 
-  return files.map(describe).join("\n")
+  return [...files.map(describe), ...cut].join("\n")
+}
+
+/** A file's patch, and a note when its end was cut. */
+export function formatPatch({ patch, cutLines }: Patch): string {
+  const cut = cutLines > 0 ? [`(${cutLines} more lines of this patch were cut)`] : []
+
+  return [patch, ...cut].join("\n")
 }

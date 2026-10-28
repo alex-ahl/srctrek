@@ -12,7 +12,14 @@ import {
 } from "@codetrail/core"
 import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
-import { formatChange, formatFileChanges, formatLines, formatMatches } from "./format"
+import {
+  formatChange,
+  formatFileChanges,
+  formatLines,
+  formatListing,
+  formatMatches,
+  formatPatch,
+} from "./format"
 import { type SessionCell, apply } from "./cell"
 import type { Report } from "./report"
 import { addStepsTo, draftStepIds, finish, open, recordTriggers, repoIn, start } from "./session"
@@ -48,11 +55,15 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
 
   server.registerTool(
     "list_files",
-    { description: TOOL_DESCRIPTIONS.list_files, inputSchema: z.object({ repo, folder }) },
+    {
+      description: TOOL_DESCRIPTIONS.list_files,
+      inputSchema: z.object({ repo, folder, recursive: z.boolean().optional() }),
+    },
     async (input) => {
-      const files = await listFiles(repoIn(cell.session, input.repo), input.folder)
+      const repoAt = repoIn(cell.session, input.repo)
+      const listing = await listFiles(repoAt, input.folder, input.recursive ?? false)
 
-      return text(files.join("\n"))
+      return text(formatListing(listing))
     },
   )
 
@@ -104,7 +115,7 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
         return text(formatFileChanges(await changeFiles(changed)))
       }
 
-      return text(await changePatch(changed, input.path))
+      return text(formatPatch(await changePatch(changed, input.path)))
     },
   )
 }

@@ -78,6 +78,8 @@ describe("snapshotWorkingTree", () => {
     const head = await commit(dir, "app.ts", "v1\n")
 
     expect(await snapshotWorkingTree(dir)).toBe(head)
-    expect(await listFiles({ name: "r", source: ".", dir, revision: head })).toContain("app.ts")
+    expect((await listFiles({ name: "r", source: ".", dir, revision: head })).paths).toContain(
+      "app.ts",
+    )
   })
 })
