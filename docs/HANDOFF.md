@@ -80,6 +80,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   guessed, both, or without evidence, bug lines inside steps, time taken, and the numbers in
   the agent's last line when it is JSON. First runs on refund: 10–11 of 11 route entries,
   both links, all bug lines; 34–35 turns, 430–540k input tokens, about $0.60.
+- Step 3u: fixture `expire`, whose trigger is in unchanged files: the change touches only cart
+  storage (a new time helper with a planted bug); a nightly schedule names the job, a registry
+  maps the name to it, and an admin route is a second, lesser caller. Every fixture's
+  expected.json is checked against its built repos: each cited line exists and isn't blank.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

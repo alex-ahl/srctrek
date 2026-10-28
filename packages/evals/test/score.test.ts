@@ -29,6 +29,41 @@ describe("scoreTour", () => {
     expect(score.links.map(({ found }) => found)).toEqual(["cited", "not reached"])
   })
 
+  test("takes one step covering two route entries, and a file visited twice, as in order", () => {
+    const [first] = refundTour.steps
+    if (first === undefined) {
+      throw new Error("the refund tour has no steps")
+    }
+
+    const at = (file: string, start: number, end: number) => ({
+      ...first,
+      repo: "shop",
+      file,
+      start_line: start,
+      end_line: end,
+    })
+    const expire = {
+      ...expected,
+      route: [
+        { repo: "shop", file: "store.ts", lines: [8, 11] as [number, number] },
+        { repo: "shop", file: "time.ts", lines: [7, 9] as [number, number] },
+        { repo: "shop", file: "store.ts", lines: [13, 15] as [number, number] },
+        { repo: "shop", file: "stock.ts", lines: [5, 11] as [number, number] },
+      ],
+    }
+    const steps = [
+      at("store.ts", 8, 15),
+      at("time.ts", 7, 9),
+      at("store.ts", 13, 15),
+      at("stock.ts", 5, 11),
+    ]
+
+    expect(scoreTour({ ...refundTour, steps }, expire).route).toMatchObject({
+      found: 4,
+      inOrder: true,
+    })
+  })
+
   test("sees a route walked out of order", () => {
     const steps = refundTour.steps.toReversed()
 

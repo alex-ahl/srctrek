@@ -29,23 +29,31 @@ function covers(step: TourStep, line: ExpectedLine): boolean {
   return inFile(step, line) && step.start_line <= line.line && line.line <= step.end_line
 }
 
-function isAscending(numbers: number[]): boolean {
-  const sorted = numbers.toSorted((a, b) => a - b)
+// Each entry is met at or after the step that met the one before: one step may cover two
+// entries, and a file the route visits twice is found again further on.
+function isWalkedInOrder(steps: TourStep[], entries: RouteEntry[]): boolean {
+  let from = 0
+  for (const entry of entries) {
+    const index = steps.findIndex((step, i) => i >= from && overlaps(step, entry))
+    if (index === -1) {
+      return false
+    }
 
-  return sorted.join() === numbers.join()
+    from = index
+  }
+
+  return true
 }
 
-// Each route entry's first step, in tour order; the route is walked in order when those
-// steps come in the route's order.
 function scoreRoute(steps: TourStep[], route: RouteEntry[]): Score["route"] {
-  const firstSteps = route.map((entry) => steps.findIndex((step) => overlaps(step, entry)))
-  const found = firstSteps.filter((index) => index >= 0)
+  const isReached = (entry: RouteEntry) => steps.some((step) => overlaps(step, entry))
+  const reached = route.filter(isReached)
 
   return {
-    found: found.length,
+    found: reached.length,
     total: route.length,
-    inOrder: isAscending(found),
-    missing: route.filter((_, i) => firstSteps[i] === -1),
+    inOrder: isWalkedInOrder(steps, reached),
+    missing: route.filter((entry) => !isReached(entry)),
   }
 }
 

@@ -42,3 +42,10 @@ export async function buildFixture(name: string): Promise<Fixture> {
 
   return { repos: Object.fromEntries(repoNames.map((repo) => [repo, join(root, repo)])), dir }
 }
+
+/** The fixtures under evals/fixtures, by name. */
+export async function fixtureNames(): Promise<string[]> {
+  const entries = await readdir(FIXTURES, { withFileTypes: true })
+
+  return entries.filter((e) => e.isDirectory()).map((e) => e.name)
+}
