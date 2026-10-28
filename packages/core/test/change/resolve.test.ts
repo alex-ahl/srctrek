@@ -91,6 +91,27 @@ describe("resolveChange", () => {
     )
   })
 
+  test("with --code, reads local repos at what's checked out, and keeps the trigger", async () => {
+    const current = await makeFeatureRepo()
+    const code = { trigger: "a refund request" }
+    const args = { changes: [], unchanged: [{ source: "." }], uncommitted: false, code }
+
+    const resolved = await resolveChange(current.dir, args, await makeCacheDir())
+    expect(resolved.code).toEqual(code)
+    expect(resolved.repos[0]).toMatchObject({ revision: current.head })
+    expect(resolved.repos[0]?.range).toBeUndefined()
+
+    await writeFile(join(current.dir, "app.ts"), "not committed\n")
+    const withWork = await resolveChange(
+      current.dir,
+      { ...args, uncommitted: true },
+      await makeCacheDir(),
+    )
+    expect(await readFileAt(current.dir, withWork.repos[0]?.revision ?? "", "app.ts")).toBe(
+      "not committed\n",
+    )
+  })
+
   test("says when two repos share a name", async () => {
     const current = await makeFeatureRepo()
     const [one, two] = [await makeRepo(), await makeRepo()]

@@ -60,6 +60,31 @@ describe("readChangeArguments", () => {
     expect(() => read("--staged")).toThrow("unknown option --staged")
   })
 
+  test("reads --code as a tour of code as it is, with its trigger when named", () => {
+    expect(read("--code")).toEqual({
+      changes: [],
+      unchanged: [current],
+      uncommitted: false,
+      code: { trigger: undefined },
+    })
+    expect(read("--code=a refund request", "../api", "gateway@v2").code).toEqual({
+      trigger: "a refund request",
+    })
+    expect(read("--code=a refund request", "../api", "gateway@v2").unchanged).toEqual([
+      { source: "../api" },
+      { source: "gateway", revision: "v2" },
+    ])
+  })
+
+  test("says --code takes repos, not ranges or pull requests", () => {
+    expect(() => read("--code", "main...feature")).toThrow(
+      "--code tours code as it is, so it takes repos, not ranges: main...feature",
+    )
+    expect(() => read("--code", "https://github.com/acme/pay/pull/12")).toThrow(
+      "--code tours code as it is, so it takes repos, not pull requests",
+    )
+  })
+
   test("says what's wrong with arguments it can't use", () => {
     expect(() => read("../gatewya")).toThrow("no repo at ../gatewya")
     expect(() => read("main...a", "main...b")).toThrow("a range must follow a repo: main...b")

@@ -48,6 +48,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   commits) and picks out the tour once it's saved.
 - Step 3l: citation checks catch lines off by one: a step's first and last line, each
   citation, and each predicted value's line must not be blank.
+- Step 3m: `--code[="trigger"]` for tours of code as it is: repos only, local ones at HEAD
+  (or a snapshot with `--uncommitted`) unless pinned, the trigger kept on the resolved
+  change. Status, naming, and building for them come next.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

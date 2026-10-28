@@ -1,4 +1,5 @@
 import { type RangeSpec, parseRange } from "../git/range"
+import { type CodeTour, readOptions } from "./options"
 import { type RepoEntry, isRemote, parseRepoEntry } from "../repos/entry"
 import { type PullRequest, parsePullRequestUrl } from "../repos/pull-request"
 
@@ -7,28 +8,14 @@ export type ChangeSource =
   { kind: "range"; repo: RepoEntry; range: RangeSpec } | { kind: "pull-request"; pr: PullRequest }
 
 /**
- * trail's arguments, read: the changes, the repos on the route without changes, and whether
- * uncommitted work is included.
+ * trail's arguments, read: the changes, the repos on the route without changes, whether
+ * uncommitted work is included, and, for a tour of code as it is, its trigger.
  */
 export type ChangeArguments = {
   changes: ChangeSource[]
   unchanged: RepoEntry[]
   uncommitted: boolean
-}
-
-const OPTIONS = ["--uncommitted"]
-
-// Options start with "-", which no git ref, path, or URL argument does.
-function readOptions(args: string[]): { uncommitted: boolean; words: string[] } {
-  const unknown = args.find((arg) => arg.startsWith("-") && !OPTIONS.includes(arg))
-  if (unknown !== undefined) {
-    throw new Error(`unknown option ${unknown}`)
-  }
-
-  return {
-    uncommitted: args.includes("--uncommitted"),
-    words: args.filter((arg) => !arg.startsWith("-")),
-  }
+  code?: CodeTour | undefined
 }
 
 type Token =
@@ -126,8 +113,27 @@ function unchangedOf(group: Group): RepoEntry[] {
   return group.kind === "repo" && group.range === undefined ? [group.repo] : []
 }
 
+// A tour of code as it is takes repos only: a range or a pull request names a change instead.
+function codeRepo(word: string, isDirectory: (path: string) => boolean): RepoEntry {
+  const token = readToken(word, isDirectory)
+  if (token.kind !== "repo") {
+    const what = token.kind === "range" ? "ranges" : "pull requests"
+    throw new Error(`--code tours code as it is, so it takes repos, not ${what}: ${word}`)
+  }
+
+  return token.entry
+}
+
+function codeRepos(words: string[], isDirectory: (path: string) => boolean): RepoEntry[] {
+  if (words.length === 0) {
+    return [CURRENT_REPO]
+  }
+
+  return words.map((word) => codeRepo(word, isDirectory))
+}
+
 /**
- * Reads trail's arguments. A range applies to the repo just before it, or to the current repo
+ * Reads trail's arguments. With --code, every word is a repo to tour as it is. A range applies to the repo just before it, or to the current repo
  * when none is; a repo with no range after it is on the route without changes. No change
  * means the current repo's branch since it left the base branch.
  */
@@ -135,7 +141,11 @@ export function readChangeArguments(
   args: string[],
   isDirectory: (path: string) => boolean,
 ): ChangeArguments {
-  const { uncommitted, words } = readOptions(args)
+  const { uncommitted, code, words } = readOptions(args)
+  if (code !== undefined) {
+    return { changes: [], unchanged: codeRepos(words, isDirectory), uncommitted, code }
+  }
+
   if (words.length === 0) {
     return { changes: [rangeFor(CURRENT_REPO, "")], unchanged: [], uncommitted }
   }

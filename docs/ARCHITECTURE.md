@@ -59,6 +59,9 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   repo when none is; a repo with no range after it is on the route without changes. With no
   arguments, the change is the current branch since it left the base branch:
   `trail ../api main...feature ../web main...feature ../gateway`.
+- `--code` tours code as it is, with no change: every argument is a repo (the current one
+  when none is given), local repos are read at what's checked out unless pinned, and
+  `--code="a refund request"` names the trigger to follow.
 - Repos on the route without changes have no range. They come from the command (a repo
   given without a range, e.g. `trail main...HEAD ../gateway`) or from the repos list
   (`.codetrail/repos`, one path or URL per line, optionally `@revision`), read

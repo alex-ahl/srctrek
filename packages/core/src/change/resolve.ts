@@ -1,7 +1,7 @@
 import type { ResolvedRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
-import { isRemote } from "../repos/entry"
+import { type RepoEntry, isRemote } from "../repos/entry"
 import { readReposList } from "../repos/list"
 import {
   type ChangedRepo,
@@ -9,7 +9,9 @@ import {
   resolveRangeChange,
   resolveUnchangedRepo,
 } from "../repos/resolve"
+import { snapshotWorkingTree } from "../git/snapshot"
 import type { ChangeArguments, ChangeSource } from "./arguments"
+import type { CodeTour } from "./options"
 
 /**
  * A repo of the change at an exact commit: its head when it changed (with its range), else
@@ -30,8 +32,11 @@ export function hasRange(repo: ResolvedRepo): repo is RepoWithRange {
   return repo.range !== undefined
 }
 
-/** Every repo the trail may pass through, changed ones first. */
-export type ResolvedChange = { repos: ResolvedRepo[] }
+/**
+ * Every repo the trail may pass through, changed ones first; for a tour of code as it is,
+ * no repo has a range, and `code` holds its trigger.
+ */
+export type ResolvedChange = { repos: ResolvedRepo[]; code?: CodeTour | undefined }
 
 // Uncommitted work lives in a local checkout, at its HEAD; a pull request or a remote repo has
 // none.
@@ -108,6 +113,26 @@ function assertUniqueNames(repos: ResolvedRepo[]): void {
   }
 }
 
+// A repo toured as it is: a local one at what's checked out (or a snapshot of the working tree,
+// with uncommitted work), unless pinned; a URL at its default branch.
+async function resolveCodeRepo(
+  cwd: string,
+  entry: RepoEntry,
+  cacheDir: string,
+  uncommitted: boolean,
+): Promise<ResolvedRepo> {
+  if (isRemote(entry.source) || entry.revision !== undefined) {
+    return resolveUnchangedRepo(cwd, entry, cacheDir)
+  }
+
+  const repo = await resolveUnchangedRepo(cwd, { ...entry, revision: "HEAD" }, cacheDir)
+  if (!uncommitted) {
+    return repo
+  }
+
+  return { ...repo, revision: await snapshotWorkingTree(repo.dir) }
+}
+
 /**
  * Resolves trail's arguments, read in `cwd`, to every repo at an exact commit: the changes,
  * the repos given without a range, and those in the current repo's .codetrail/repos.
@@ -117,7 +142,7 @@ export async function resolveChange(
   args: ChangeArguments,
   cacheDir = defaultCacheDir(),
 ): Promise<ResolvedChange> {
-  if (args.uncommitted && !args.changes.some(takesUncommitted)) {
+  if (args.uncommitted && args.code === undefined && !args.changes.some(takesUncommitted)) {
     throw new Error("--uncommitted needs a range ending at HEAD in a local repo")
   }
 
@@ -125,12 +150,16 @@ export async function resolveChange(
     args.changes.map((change) => resolveChangeSource(cwd, change, cacheDir, args.uncommitted)),
   )
   const given = await Promise.all(
-    args.unchanged.map((entry) => resolveUnchangedRepo(cwd, entry, cacheDir)),
+    args.unchanged.map((entry) =>
+      args.code === undefined
+        ? resolveUnchangedRepo(cwd, entry, cacheDir)
+        : resolveCodeRepo(cwd, entry, cacheDir, args.uncommitted),
+    ),
   )
   const listed = await resolveListedRepos(cwd, cacheDir)
 
   const repos = withoutRepeats([...changed.map(atHead), ...given, ...listed])
   assertUniqueNames(repos)
 
-  return { repos }
+  return args.code === undefined ? { repos } : { repos, code: args.code }
 }
