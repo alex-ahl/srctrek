@@ -2,6 +2,7 @@ import {
   SubmittedStepSchema,
   TOOL_DESCRIPTIONS,
   TourHeaderSchema,
+  TriggerSchema,
   buildTourPrompt,
   changeFiles,
   changePatch,
@@ -14,7 +15,7 @@ import { z } from "zod"
 import { formatChange, formatFileChanges, formatLines, formatMatches } from "./format"
 import { type SessionCell, apply } from "./cell"
 import type { Report } from "./report"
-import { addStepsTo, draftStepIds, finish, open, repoIn, start } from "./session"
+import { addStepsTo, draftStepIds, finish, open, recordTriggers, repoIn, start } from "./session"
 import { wordsOf } from "./words"
 
 const repo = z.string().describe("a repo's name, as open_change lists it")
@@ -171,6 +172,22 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
       }
 
       return tell(`saved ${finished.saved}`)
+    },
+  )
+
+  server.registerTool(
+    "record_triggers",
+    {
+      description: TOOL_DESCRIPTIONS.record_triggers,
+      inputSchema: z.object({ triggers: z.array(TriggerSchema).min(1) }),
+    },
+    async ({ triggers }) => {
+      const recorded = await recordTriggers(cell.session, triggers)
+      if ("problems" in recorded) {
+        return refuse(`nothing was recorded:\n${recorded.problems.join("\n")}`)
+      }
+
+      return tell(`saved ${triggers.length} triggers to ${recorded.saved}`)
     },
   )
 }

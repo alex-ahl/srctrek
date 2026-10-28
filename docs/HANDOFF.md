@@ -59,6 +59,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   build's log as a `trail:` line; the home screen shows the log's end while building and `l`
   opens it all. Reading a build's state no longer creates its folder. A build that saved its
   tour, whose tour was then removed, reads as missing, so the tour is built again.
+- Step 3p: plain `--code` finds triggers instead of building a tour: the agent records them
+  with `record_triggers` (kind, a name in the user's words, a cited line, checked like any
+  citation), they're saved in .codetrail/triggers tied to the revisions, and the home screen
+  lists them with the command that tours each.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

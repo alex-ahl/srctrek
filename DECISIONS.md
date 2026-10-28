@@ -2,6 +2,16 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-28 — The user chooses what a tour of code is about
+
+A tour of code as it is follows the trigger the user names. With no trigger named, the agent
+finds the code's triggers (routes, commands, handlers, jobs), records each with the line that
+proves it, and builds nothing; the user picks one to tour.
+
+What a newcomer needs to see first depends on why they're looking, which the agent can't
+know; a tour of the wrong path costs minutes of agent time and the reader's attention. The
+list of triggers is useful on its own, as a map of how the code is used.
+
 ## 2026-10-27 — Asking in plain words builds a tour
 
 A user asks their agent for a tour in their own words; no command or tool name to learn.

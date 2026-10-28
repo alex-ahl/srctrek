@@ -5,13 +5,20 @@ import { describeRepo } from "../read/repo"
 import type { TourStep } from "../schema/tour"
 import type { SubmittedStep } from "./complete"
 
-// A line the step relies on, and how the step relies on it: "starts at", "cites", "puts total
-// on", and so on.
-type Place = { repo: string; file: string; line: number; how: string }
+/**
+ * A line something relies on, and how it relies on it: "starts at", "cites", "puts total
+ * on", and so on.
+ */
+export type Place = { repo: string; file: string; line: number; how: string }
 
-// What's wrong with one place, if anything: an unknown repo, a missing file, a line past the
-// file's end, or a blank line, which is what a line number off by one usually lands on.
-async function placeProblem(change: ResolvedChange, place: Place): Promise<string | undefined> {
+/**
+ * What's wrong with one place, if anything: an unknown repo, a missing file, a line past the
+ * file's end, or a blank line, which is what a line number off by one usually lands on.
+ */
+export async function placeProblem(
+  change: ResolvedChange,
+  place: Place,
+): Promise<string | undefined> {
   const repo = change.repos.find((candidate) => candidate.name === place.repo)
   if (repo === undefined) {
     return `${place.how} repo ${place.repo}, which isn't in the change`

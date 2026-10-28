@@ -1,6 +1,7 @@
 // Public API of @codetrail/core. Front-ends import only from here.
 export {
   FORMAT_VERSION,
+  TriggerKindSchema,
   SubmittedStepSchema,
   TourHeaderSchema,
   TourSchema,
@@ -87,3 +88,12 @@ export {
 export { tourStatus, type TourStatus } from "./build/status"
 export { buildTourPrompt } from "./guide"
 export { buildFiles, type BuildFiles } from "./build/files"
+export {
+  TRIGGERS_DIR,
+  TriggerSchema,
+  loadTriggers,
+  saveTriggers,
+  triggerProblems,
+  triggersPath,
+  type Trigger,
+} from "./build/triggers"

@@ -1,28 +1,36 @@
 import changeOpening from "../prompts/build_tour/change.md" with { type: "text" }
 import codeOpening from "../prompts/build_tour/code.md" with { type: "text" }
 import method from "../prompts/build_tour/method.md" with { type: "text" }
-import triggerNamed from "../prompts/build_tour/trigger_named.md" with { type: "text" }
-import triggerOpen from "../prompts/build_tour/trigger_open.md" with { type: "text" }
-import { type CodeTour, readOptions } from "./change/options"
+import findTriggers from "../prompts/find_triggers.md" with { type: "text" }
+import { readOptions } from "./change/options"
 
 /** Every part the guide is made from, for the prompt hash. */
-export const GUIDE_PARTS = { changeOpening, codeOpening, method, triggerNamed, triggerOpen }
+export const GUIDE_PARTS = { changeOpening, codeOpening, method, findTriggers }
 
-// How a tour of code as it is starts: from the trigger the user named, or one the agent picks.
-function codeOpeningFor({ trigger }: CodeTour): string {
-  const choice =
-    trigger === undefined ? triggerOpen.trim() : triggerNamed.trim().replace("{{trigger}}", trigger)
+/** Whether `trail`'s `args` ask for the code's triggers (plain --code) rather than a tour. */
+export function findsTriggers(args: string[]): boolean {
+  const { code } = readOptions(args)
 
-  return codeOpening.trim().replace("{{trigger}}", choice)
+  return code !== undefined && code.trigger === undefined
 }
 
 /**
- * The guide for building a tour of what `trail`'s `args` name: a change (none means the
- * branch), or code as it is with --code.
+ * The guide for what `trail`'s `args` ask for: a tour of a change (none means the branch), a
+ * tour of code as it is from the user's trigger, or, with plain --code, finding the triggers
+ * the user can choose from.
  */
 export function buildTourPrompt(args: string[]): string {
   const { code } = readOptions(args)
-  const opening = code === undefined ? changeOpening.trim() : codeOpeningFor(code)
+  const withArgs = (text: string) => text.replace("{{args}}", JSON.stringify(args))
+  if (code === undefined) {
+    return withArgs(`${changeOpening.trim()}\n\n${method.trim()}`)
+  }
 
-  return `${opening}\n\n${method.trim()}`.replace("{{args}}", JSON.stringify(args))
+  if (code.trigger === undefined) {
+    return withArgs(findTriggers.trim())
+  }
+
+  const opening = codeOpening.trim().replace("{{trigger}}", code.trigger)
+
+  return withArgs(`${opening}\n\n${method.trim()}`)
 }

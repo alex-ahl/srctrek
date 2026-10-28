@@ -21,7 +21,11 @@ describe("buildTourPrompt", () => {
     expect(guide).toEndWith('these args: ["--code=a refund request"]')
   })
 
-  test("leaves the trigger to the agent when none is named", () => {
-    expect(buildTourPrompt(["--code"])).toContain("The user named no trigger.")
+  test("asks for the code's triggers, not a tour, when none is named", () => {
+    const guide = buildTourPrompt(["--code"])
+
+    expect(guide).toStartWith("Find the ways this code is used, so the user can choose")
+    expect(guide).toContain('Call open_change with these args: ["--code"].')
+    expect(guide).not.toContain("start_tour")
   })
 })

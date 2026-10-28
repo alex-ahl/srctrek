@@ -1,0 +1,1 @@
+Record the triggers found in the open code (`--code` with no trigger), so the user can choose which to tour. Each is `{ kind, name, evidence: { repo, file, line } }`; every evidence line is checked against the code, and nothing is recorded while any has a problem. Recording again replaces the list.

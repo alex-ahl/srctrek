@@ -132,4 +132,27 @@ describe("building a tour over trail mcp", () => {
       "",
     ])
   })
+
+  test("records the triggers found in code opened with plain --code, checking their evidence", async () => {
+    const dir = await makeFeatureRepo()
+    const repo = basename(dir)
+    client = new McpTestClient(dir)
+    await client.initialize()
+    await client.call("open_change", { args: ["--code"] })
+
+    const trigger = (line: number) => ({
+      kind: "command",
+      name: "set the total",
+      evidence: { repo, file: "src/app.ts", line },
+    })
+
+    const wrong = await client.call("record_triggers", { triggers: [trigger(9)] })
+    expect(wrong).toEqual({
+      text: `nothing was recorded:\nset the total: cites ${repo}/src/app.ts:9, past its last line (2)`,
+      isError: true,
+    })
+
+    const recorded = await client.call("record_triggers", { triggers: [trigger(1)] })
+    expect(recorded.text).toMatch(/^saved 1 triggers to .*\/\.codetrail\/triggers\/.*-code\.json$/)
+  })
 })

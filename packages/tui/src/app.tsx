@@ -22,6 +22,15 @@ function hasLog(status: TourStatus | undefined): boolean {
   return status?.kind === "building" || status?.kind === "failed"
 }
 
+// The lines the status lists below its heading: a build's log, or the triggers found.
+function listedLines(status: TourStatus): number {
+  if (status.kind === "building" || status.kind === "failed") {
+    return status.logTail.length
+  }
+
+  return status.kind === "triggers" ? status.triggers.length : 0
+}
+
 // A tour takes three lines: its title, its name and steps, and a gap.
 const ROW_LINES = 3
 
@@ -33,9 +42,7 @@ function chromeLines(status: TourStatus | undefined): number {
     return frameAndFooter
   }
 
-  const logLines =
-    status.kind === "building" || status.kind === "failed" ? status.logTail.length : 0
-  const statusLines = 2 + logLines
+  const statusLines = 2 + listedLines(status)
   return frameAndFooter + statusLines + 1
 }
 

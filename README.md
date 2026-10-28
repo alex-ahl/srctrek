@@ -28,7 +28,8 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set). Ar
 are read as in `trail main...HEAD ../gateway`; a problem with them stops `trail` with a
 message. `--uncommitted` includes work not yet committed. `--code` tours code as it is, to
 learn how it works: `trail --code="a refund request"` follows that trigger, and plain
-`trail --code` leaves the choice to your agent.
+`trail --code` has your agent find the code's triggers (routes, commands, handlers, jobs) and
+lists them, each with the command that tours it.
 
 The home screen lists the tours in the .codetrail/tours folder, with their step counts and
 high-severity flags; invalid tours are listed with the reason. Above them, it says where the

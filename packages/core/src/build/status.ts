@@ -2,15 +2,17 @@ import { type ResolvedChange, hasRange } from "../change/resolve"
 import { buildLogTail, buildSavedTour, buildState } from "./background"
 import { existingTourFor } from "./existing"
 import { tourNameFor } from "./name"
+import { type Trigger, loadTriggers } from "./triggers"
 
 /**
  * Where a change's tour stands: saved and ready, being built or failed (each with the end of
  * the build's log), missing, never built, or empty: the change has no commits, so nothing to
- * tour.
+ * tour. For code with no trigger named, the triggers found instead of a tour.
  */
 export type TourStatus = Readonly<
   | { kind: "ready" | "missing" | "empty"; name: string }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
+  | { kind: "triggers"; name: string; triggers: Trigger[] }
 >
 
 // Enough of the log to see why a build ended; the whole log is in the git folder.
@@ -28,18 +30,8 @@ function isEmpty(change: ResolvedChange): boolean {
     .every((repo) => repo.range.baseCommit === repo.range.headCommit)
 }
 
-/** The status of the change's tour, by the name a new tour of it would get. */
-export async function tourStatus(root: string, change: ResolvedChange): Promise<TourStatus> {
-  if (isEmpty(change)) {
-    return { kind: "empty", name: await tourNameFor(change) }
-  }
-
-  const existing = await existingTourFor(root, change)
-  if (existing !== undefined) {
-    return { kind: "ready", name: existing }
-  }
-
-  const name = await tourNameFor(change)
+// Where a build stands when nothing it made is there to show.
+async function buildStatus(root: string, name: string): Promise<TourStatus> {
   const state = await buildState(root, name)
   if (state === undefined) {
     return { kind: "missing", name }
@@ -57,4 +49,33 @@ export async function tourStatus(root: string, change: ResolvedChange): Promise<
   // "done" lands here too: the build saved a tour under this name that doesn't cover the
   // change, so building again would likely end the same way.
   return { kind: "failed", name, logTail: await buildLogTail(root, name, LOG_TAIL_LINES) }
+}
+
+// Plain --code finds the code's triggers: the list once found, else where finding them stands.
+async function triggersStatus(root: string, change: ResolvedChange): Promise<TourStatus> {
+  const name = await tourNameFor(change)
+  const triggers = await loadTriggers(root, name, change)
+  if (triggers !== undefined) {
+    return { kind: "triggers", name, triggers }
+  }
+
+  return buildStatus(root, name)
+}
+
+/** The status of the change's tour, by the name a new tour of it would get. */
+export async function tourStatus(root: string, change: ResolvedChange): Promise<TourStatus> {
+  if (change.code !== undefined && change.code.trigger === undefined) {
+    return triggersStatus(root, change)
+  }
+
+  if (isEmpty(change)) {
+    return { kind: "empty", name: await tourNameFor(change) }
+  }
+
+  const existing = await existingTourFor(root, change)
+  if (existing !== undefined) {
+    return { kind: "ready", name: existing }
+  }
+
+  return buildStatus(root, await tourNameFor(change))
 }

@@ -131,3 +131,22 @@ test("shows as many tours as fit, each on its own two lines, and says which", as
   expect(frame).toContain("1–5 of 24 · ↑/↓ choose")
   expect(frame).not.toContain("Tour 5")
 })
+
+test("lists the triggers found, each with the command that tours it", async () => {
+  const triggers = [
+    {
+      kind: "event" as const,
+      name: "a persona answers an @-mention",
+      evidence: { repo: "bot", file: "bot.py", line: 311 },
+    },
+  ]
+  const status = { kind: "triggers" as const, name: "bot-code", triggers }
+  const frame = await renderFrame(
+    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
+    120,
+    10,
+  )
+  expect(frame).toContain("Found 1 ways into this code. Tour one with:")
+  expect(frame).toContain('trail --code="a persona answers an @-mention"   (event)')
+  expect(frame).not.toContain("b build")
+})

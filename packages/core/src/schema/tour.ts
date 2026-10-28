@@ -21,6 +21,9 @@ const Uncertain = z.object({
   note: nonEmpty,
 })
 
+/** What starts a scenario: a request, an event, a schedule, or a command. */
+export const TriggerKindSchema = z.enum(["request", "event", "schedule", "command"])
+
 const PredictedValue = z.object({
   name: nonEmpty,
   value: nonEmpty,
@@ -113,7 +116,7 @@ const TourShape = z.object({
   }),
   sources: z.array(z.object({ kind: nonEmpty, location: nonEmpty })),
   trigger: z.object({
-    kind: z.enum(["request", "event", "schedule", "command"]),
+    kind: TriggerKindSchema,
     input: nonEmpty,
   }),
   outcome: nonEmpty,

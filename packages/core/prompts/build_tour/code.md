@@ -6,7 +6,7 @@ Call open_change with the args below; every repo is read as it is. Then find you
 
 ## 2. Choose the scenario
 
-{{trigger}}
+The user asked for this trigger, in their own words: "{{trigger}}". Find where it enters the code and follow it from there.
 
 Make it concrete:
 

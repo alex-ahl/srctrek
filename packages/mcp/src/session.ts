@@ -6,6 +6,7 @@ import {
   type SubmittedStep,
   type Tour,
   type TourHeader,
+  type Trigger,
   TourValidationError,
   addSteps,
   directoryIn,
@@ -16,7 +17,10 @@ import {
   resolveChange,
   saveChangedLines,
   saveTour,
+  saveTriggers,
   stepIds,
+  tourNameFor,
+  triggerProblems,
 } from "@codetrail/core"
 
 // Rejected rounds a draft may take before its build stops, so an agent can't loop on it.
@@ -136,4 +140,22 @@ export async function finish(session: Session, name: string): Promise<Outcome<Fi
   await saveChangedLines(draft.change, tour, result.path)
 
   return { session: { ...session, draft: undefined }, answer: { saved: result.path } }
+}
+
+/**
+ * Records the triggers found in code opened with plain --code, for the user to choose from:
+ * where they were saved, or the problems with their evidence.
+ */
+export async function recordTriggers(session: Session, triggers: Trigger[]): Promise<Finished> {
+  const change = openChange(session)
+  if (change.code === undefined || change.code.trigger !== undefined) {
+    throw new Error("record_triggers is for code opened with --code and no trigger")
+  }
+
+  const problems = await triggerProblems(change, triggers)
+  if (problems.length > 0) {
+    return { problems }
+  }
+
+  return { saved: await saveTriggers(session.cwd, await tourNameFor(change), change, triggers) }
 }

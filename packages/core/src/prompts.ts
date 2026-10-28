@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto"
 import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
 import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
+import saveAs from "../prompts/save_as.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
@@ -10,8 +11,9 @@ import openChange from "../prompts/tools/open_change.md" with { type: "text" }
 import readFile from "../prompts/tools/read_file.md" with { type: "text" }
 import search from "../prompts/tools/search.md" with { type: "text" }
 import startTour from "../prompts/tools/start_tour.md" with { type: "text" }
+import recordTriggers from "../prompts/tools/record_triggers.md" with { type: "text" }
 import tourGuide from "../prompts/tools/tour_guide.md" with { type: "text" }
-import { GUIDE_PARTS, buildTourPrompt } from "./guide"
+import { GUIDE_PARTS, buildTourPrompt, findsTriggers } from "./guide"
 
 /** What each tool tells the agent building a tour, by tool name. */
 export const TOOL_DESCRIPTIONS = {
@@ -24,14 +26,20 @@ export const TOOL_DESCRIPTIONS = {
   add_steps: addSteps.trim(),
   finish_tour: finishTour.trim(),
   tour_guide: tourGuide.trim(),
+  record_triggers: recordTriggers.trim(),
 }
 
 /** What an agent is told about the server when it connects. */
 export const SERVER_INSTRUCTIONS = serverInstructions.trim()
 
-/** The instruction for an agent building a tour with no one to ask, saved as `name`. */
+/**
+ * The instruction for an agent working with no one to ask: the guide for `args`, and, when it
+ * builds a tour rather than finding triggers, the name to save it as.
+ */
 export function headlessBuildPrompt(args: string[], name: string): string {
-  return buildHeadless.trim().replace("{{name}}", name).replace("{{guide}}", buildTourPrompt(args))
+  const saving = findsTriggers(args) ? "" : `\n\n${saveAs.trim().replace("{{name}}", name)}`
+
+  return buildHeadless.trim().replace("{{guide}}", `${buildTourPrompt(args)}${saving}`)
 }
 
 /** What the agent is told when its third rejected round ends the build. */
@@ -43,6 +51,7 @@ export const PROMPT_HASH = createHash("sha256")
     JSON.stringify({
       buildHeadless,
       buildStopped,
+      saveAs,
       GUIDE_PARTS,
       SERVER_INSTRUCTIONS,
       TOOL_DESCRIPTIONS,
