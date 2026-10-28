@@ -42,6 +42,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3j: a change's tour status (`tourStatus`): ready, building, failed (with the end of
   the build's log), or missing. Snapshots became stable: dated with HEAD's date and leaving
   .codetrail as HEAD has it, so a tour of uncommitted work is found again.
+- Step 3k: `trail` builds the change's tour when it has none and `CODETRAIL_AGENT` is set;
+  the home screen shows where it stands (building, failed with the end of its log and `b` to
+  build again, how to set `CODETRAIL_AGENT`, or nothing to tour when the change has no
+  commits) and picks out the tour once it's saved.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

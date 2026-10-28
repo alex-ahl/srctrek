@@ -1,15 +1,46 @@
-import { directoryIn, readChangeArguments, resolveChange } from "@codetrail/core"
+import {
+  type TourStatus,
+  directoryIn,
+  readChangeArguments,
+  resolveChange,
+  startBuild,
+  tourStatus,
+} from "@codetrail/core"
 import { startMcpServer } from "@codetrail/mcp"
 import { startHome } from "@codetrail/tui"
 
+// The agent's headless command line; unset or blank means trail can't build tours.
+function agentCommand(): string | undefined {
+  const command = process.env["CODETRAIL_AGENT"]?.trim()
+
+  return command === "" ? undefined : command
+}
+
+// Starts the agent on the change's tour, under the name a new tour of it gets.
+async function buildTour(
+  cwd: string,
+  args: string[],
+  agent: string,
+  status: () => Promise<TourStatus>,
+) {
+  const { name } = await status()
+  await startBuild(cwd, args, name, agent)
+}
+
 async function trail(args: string[]): Promise<void> {
   const cwd = process.cwd()
+  const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
+  const agent = agentCommand()
 
-  // Nothing builds a tour from the change before Milestone 3; resolving it now still fails
-  // early, with a message, on arguments that can't be used.
-  await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
+  const status = () => tourStatus(cwd, change)
+  const build = agent === undefined ? undefined : () => buildTour(cwd, args, agent, status)
 
-  await startHome(cwd)
+  // A change with no tour gets one started right away, when there's an agent to build it.
+  if (build !== undefined && (await status()).kind === "missing") {
+    await build()
+  }
+
+  await startHome(cwd, { status, build })
 }
 
 // "mcp" as the first word is the command: a folder by that name is given as ./mcp, a branch

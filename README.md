@@ -29,7 +29,10 @@ are read as in `trail main...HEAD ../gateway`; a problem with them stops `trail`
 message. `--uncommitted` includes work not yet committed.
 
 The home screen lists the tours in the .codetrail/tours folder, with their step counts and
-high-severity flags; invalid tours are listed with the reason.
+high-severity flags; invalid tours are listed with the reason. Above them, it says where the
+tour of your change stands. When there is none, `trail` has your agent build it in the
+background (see Building a tour from your agent), and the tour appears when it's saved; a
+failed build shows the end of its log, and `b` builds again.
 
 | Key       | Action                       |
 | --------- | ---------------------------- |
@@ -78,7 +81,13 @@ plain words:
 Name a different change the way you'd give it to `trail`: `main...feature`,
 `../api main...feature`, a pull request URL, or `--uncommitted` for work not yet committed.
 The agent reads the change at its exact revisions, builds the tour, and saves it to the
-.codetrail/tours folder, where the home screen lists it. Agents that show MCP prompts as
+.codetrail/tours folder, where the home screen lists it.
+
+To have `trail` start the build itself, set `CODETRAIL_AGENT` to your agent's headless
+command line, the same setting Asking uses, including whatever it needs to use the
+codetrail server's tools without asking. The instruction is appended as the last argument,
+so an option that takes a list of values goes before the one that reads the prompt. A change
+with no commits has nothing to tour, and the home screen says so instead of building. Agents that show MCP prompts as
 commands also offer `build_tour`.
 
 ## Where it's going

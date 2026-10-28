@@ -20,6 +20,15 @@ describe("tourStatus", () => {
     })
   })
 
+  test("is empty when the branch hasn't moved from where it left the base", async () => {
+    const dir = await makeBranchRepo()
+
+    expect(await tourStatus(dir, await changeOf(dir, "HEAD..HEAD"))).toEqual({
+      kind: "empty",
+      name: "feature-refunds",
+    })
+  })
+
   test("is ready once a tour of the change is saved, whatever its name", async () => {
     const dir = await makeBranchRepo()
     const change = await changeOf(dir)
