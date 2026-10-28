@@ -3,8 +3,8 @@ import { join } from "node:path"
 import {
   blobAt,
   changedFiles,
+  citationProblems,
   parseTour,
-  readFileAt,
   resolveRange,
   parseRange,
   runGit,
@@ -22,11 +22,6 @@ function repoDir(name: string): string {
   }
 
   return dir
-}
-
-async function lineCount(repo: string, file: string): Promise<number> {
-  const text = await readFileAt(repoDir(repo), "feature", file)
-  return text === undefined ? 0 : text.split("\n").length - 1
 }
 
 describe("buildFixture", () => {
@@ -63,12 +58,15 @@ describe("the refund tour against its fixture", () => {
     }
   })
 
-  test("every step's lines and every cited line exist at feature", async () => {
-    for (const step of tour.steps) {
-      expect(step.end_line).toBeLessThanOrEqual(await lineCount(step.repo, step.file))
-      for (const cite of step.via?.cites ?? []) {
-        expect(cite.line).toBeLessThanOrEqual(await lineCount(cite.repo, cite.file))
-      }
-    }
+  test("every line a step relies on exists at feature and isn't blank", async () => {
+    const repos = Object.entries(refund.repos).map(([name, dir]) => ({
+      name,
+      source: name,
+      dir,
+      revision: "feature",
+    }))
+    const problems = await Promise.all(tour.steps.map((step) => citationProblems({ repos }, step)))
+
+    expect(problems.flat()).toEqual([])
   })
 })

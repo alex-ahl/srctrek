@@ -18,6 +18,7 @@ async function makeChange(): Promise<ResolvedChange> {
   const api = await makeRepo()
   await mkdir(join(api, "src"))
   await writeFile(join(api, "src/app.ts"), "const total = 100\nexport { total }\n")
+  await writeFile(join(api, "src/spaced.ts"), "const a = 1\n\nconst b = 2\n")
   await runGit(api, ["add", "--all"])
   await commitStaged(api, "base")
   await runGit(api, ["switch", "--quiet", "-c", "feature"])
@@ -106,5 +107,21 @@ describe("citationProblems", () => {
     expect(problems[1]).toBe("s2: cites web/README.md:5, past its last line (1)")
     expect(problems[2]).toMatch(/^s2: cites src\/gone\.ts, which isn't in web at [0-9a-f]{7}$/)
     expect(problems[3]).toBe("s2: cites repo worker, which isn't in the change")
+  })
+
+  test("names every blank line a step relies on: its ends, its evidence, its values", async () => {
+    const change = await makeChange()
+    const step = {
+      ...stepOn("api", "src/spaced.ts", 2, 3),
+      via: { cites: [{ repo: "api", file: "src/spaced.ts", line: 2 }], guessed: false },
+      predicted_values: [{ name: "a", value: "1", line: 2, role: "assignment" as const }],
+    }
+
+    expect(await citationProblems(change, step)).toEqual([
+      "s2: starts at api/src/spaced.ts:2, which is blank",
+      "s2: cites api/src/spaced.ts:2, which is blank",
+      "s2: puts a on api/src/spaced.ts:2, which is blank",
+    ])
+    expect(await citationProblems(change, stepOn("api", "src/spaced.ts", 1, 3))).toEqual([])
   })
 })

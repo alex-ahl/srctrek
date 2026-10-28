@@ -5,11 +5,12 @@ import { describeRepo } from "../read/repo"
 import type { TourStep } from "../schema/tour"
 import type { SubmittedStep } from "./complete"
 
-// A line the step relies on, and how the step relies on it.
-type Place = { repo: string; file: string; line: number; how: "ends at" | "cites" }
+// A line the step relies on, and how the step relies on it: "starts at", "cites", "puts total
+// on", and so on.
+type Place = { repo: string; file: string; line: number; how: string }
 
-// What's wrong with one place, if anything: an unknown repo, a missing file, or a line past
-// the file's end.
+// What's wrong with one place, if anything: an unknown repo, a missing file, a line past the
+// file's end, or a blank line, which is what a line number off by one usually lands on.
 async function placeProblem(change: ResolvedChange, place: Place): Promise<string | undefined> {
   const repo = change.repos.find((candidate) => candidate.name === place.repo)
   if (repo === undefined) {
@@ -21,26 +22,35 @@ async function placeProblem(change: ResolvedChange, place: Place): Promise<strin
     return `${place.how} ${place.file}, which isn't in ${describeRepo(repo)}`
   }
 
-  const lastLine = splitLines(text).length
-  if (place.line > lastLine) {
-    return `${place.how} ${place.repo}/${place.file}:${place.line}, past its last line (${lastLine})`
+  const lines = splitLines(text)
+  const where = `${place.repo}/${place.file}:${place.line}`
+  if (place.line > lines.length) {
+    return `${place.how} ${where}, past its last line (${lines.length})`
+  }
+
+  if (lines[place.line - 1]?.trim() === "") {
+    return `${place.how} ${where}, which is blank`
   }
 
   return undefined
 }
 
-// Every place the step relies on: its own last line (the first is no later), then each piece
-// of evidence.
+// Every place the step relies on: where it starts and ends, each piece of evidence, and the
+// line of each predicted value.
 function placesOf(step: SubmittedStep | TourStep): Place[] {
-  const own: Place = { repo: step.repo, file: step.file, line: step.end_line, how: "ends at" }
+  const at = (line: number, how: string): Place => ({ repo: step.repo, file: step.file, line, how })
+  const range = [at(step.start_line, "starts at"), at(step.end_line, "ends at")]
   const evidence = (step.via?.cites ?? []).map((cite): Place => ({ ...cite, how: "cites" }))
+  const values = (step.predicted_values ?? []).map((value) =>
+    at(value.line, `puts ${value.name} on`),
+  )
 
-  return [own, ...evidence]
+  return [...range, ...evidence, ...values]
 }
 
 /**
- * Lines a step cites that don't exist at their repo's revision, each as a message naming the
- * step, for the agent to fix. None when every citation holds.
+ * Lines a step relies on that don't exist at their repo's revision, or are blank, each as a
+ * message naming the step, for the agent to fix. None when every one holds.
  */
 export async function citationProblems(
   change: ResolvedChange,

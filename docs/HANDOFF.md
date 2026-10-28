@@ -46,6 +46,8 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   the home screen shows where it stands (building, failed with the end of its log and `b` to
   build again, how to set `CODETRAIL_AGENT`, or nothing to tour when the change has no
   commits) and picks out the tour once it's saved.
+- Step 3l: citation checks catch lines off by one: a step's first and last line, each
+  citation, and each predicted value's line must not be blank.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -93,9 +95,8 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 
 **Milestones**
 
-- 3: tour building across repos through `trail mcp`: `trail` launching the user's agent when
-  there is no tour; tours of existing code from a picked trigger; an "add a repo" tool for
-  the agent, approved by the user; the build loop's retry limit; updating stale tours
+- 3: tour building across repos through `trail mcp`: tours of existing code from a picked
+  trigger; an "add a repo" tool for the agent, approved by the user; updating stale tours
   through the agent; evals driving an agent headless, including a fixture that is hard to
   read statically, one whose trigger is in an unchanged file, and one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
