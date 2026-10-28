@@ -119,8 +119,8 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 
 - 3: tour building across repos through `trail mcp`: an "add a repo" tool for the agent,
   approved by the user; updating stale tours through the agent; evals driving an agent
-  headless, including a fixture that is hard to read statically, one whose trigger is in an
-  unchanged file, and one that crosses repos.
+  headless, reporting each tour's quality and token cost, including a fixture that is hard to
+  read statically, one whose trigger is in an unchanged file, and one that crosses repos.
 - 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
   protocol (`docs/PROTOCOL.md`), with contract tests.
 - 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
@@ -156,6 +156,10 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - Large repos: snapshots should start from the user's index so unchanged files aren't
   rehashed, and the cache should fetch only the refs a tour needs. Editor worktrees should
   check out only the files a tour visits (sparse checkout), with the editors in Milestone 6.
+- Token cost of building a tour is unmeasured: reading code dominates, and context grows with
+  every call. Measure a real build (the agent's usage summary in the build log); levers if
+  it's heavy are the guide (search before reading, narrow `from`/`to` ranges) and the read
+  caps.
 - WSL not yet tested.
 - `bun test` would collect `*.test.ts` files inside eval fixtures.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
