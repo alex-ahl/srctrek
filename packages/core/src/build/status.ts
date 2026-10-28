@@ -12,8 +12,11 @@ import { type Trigger, loadTriggers } from "./triggers"
 export type TourStatus = Readonly<
   | { kind: "ready" | "missing" | "empty"; name: string }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
-  | { kind: "triggers"; name: string; triggers: Trigger[] }
+  | { kind: "triggers"; name: string; triggers: TriggerTour[] }
 >
+
+/** A trigger found in the code, and where the tour that follows it stands. */
+export type TriggerTour = Readonly<{ trigger: Trigger; tour: TourStatus }>
 
 // Enough of the log to see why a build ended; the whole log is in the git folder.
 const LOG_TAIL_LINES = 8
@@ -56,7 +59,12 @@ async function triggersStatus(root: string, change: ResolvedChange): Promise<Tou
   const name = await tourNameFor(change)
   const triggers = await loadTriggers(root, name, change)
   if (triggers !== undefined) {
-    return { kind: "triggers", name, triggers }
+    const tourOf = async (trigger: Trigger): Promise<TriggerTour> => {
+      const tour = await tourStatus(root, { ...change, code: { trigger: trigger.name } })
+      return { trigger, tour }
+    }
+
+    return { kind: "triggers", name, triggers: await Promise.all(triggers.map(tourOf)) }
   }
 
   return buildStatus(root, name)

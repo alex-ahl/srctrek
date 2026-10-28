@@ -63,6 +63,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   with `record_triggers` (kind, a name in the user's words, a cited line, checked like any
   citation), they're saved in .codetrail/triggers tied to the revisions, and the home screen
   lists them with the command that tours each.
+- Step 3q: the found triggers are rows on the home screen: each says whether its tour is
+  built, building, or failed; enter builds it, or opens it once built, and `l` shows the
+  selected build's log.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

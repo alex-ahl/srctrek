@@ -29,7 +29,8 @@ are read as in `trail main...HEAD ../gateway`; a problem with them stops `trail`
 message. `--uncommitted` includes work not yet committed. `--code` tours code as it is, to
 learn how it works: `trail --code="a refund request"` follows that trigger, and plain
 `trail --code` has your agent find the code's triggers (routes, commands, handlers, jobs) and
-lists them, each with the command that tours it.
+lists them on the home screen: pick one and press `enter` to build its tour, or open it once
+it's built.
 
 The home screen lists the tours in the .codetrail/tours folder, with their step counts and
 high-severity flags; invalid tours are listed with the reason. Above them, it says where the

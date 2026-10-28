@@ -12,6 +12,17 @@ export type HomeChange = {
   status: () => Promise<TourStatus>
   // starts building the change's tour; absent when no agent is set
   build?: (() => Promise<void>) | undefined
+  // starts building the tour of a trigger found in the code; absent when no agent is set
+  buildTrigger?: ((trigger: string) => Promise<void>) | undefined
+}
+
+// Something is being built: the change's tour, or the tour of one of its triggers.
+function isBuilding(status: TourStatus | undefined): boolean {
+  if (status?.kind === "triggers") {
+    return status.triggers.some(({ tour }) => tour.kind === "building")
+  }
+
+  return status?.kind === "building"
 }
 
 // A build takes minutes, so checking every couple of seconds is plenty.
@@ -32,7 +43,7 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
   const [status, setStatus] = useState(firstStatus)
 
   // While the agent builds, check on it; when it ends, the tour list has changed too.
-  const building = status?.kind === "building"
+  const building = isBuilding(status)
   useEffect(() => {
     if (!building || change === undefined) {
       return undefined
@@ -53,11 +64,13 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
 
   const showLog = async (name: string) => onShowFile((await buildFiles(root, name)).log)
 
-  const build = change?.build
-  const startBuild = async (start: () => Promise<void>) => {
-    await start()
+  // Starts a build, then shows it as building straight away rather than at the next check.
+  const started = async (start: Promise<void>) => {
+    await start
     setStatus(await change?.status())
   }
+  const build = change?.build
+  const buildTrigger = change?.buildTrigger
 
   return (
     <App
@@ -65,8 +78,11 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
       onOpen={onOpen}
       onQuit={onQuit}
       status={status}
-      onBuild={build === undefined ? undefined : () => void startBuild(build)}
-      onShowLog={status === undefined ? undefined : () => void showLog(status.name)}
+      onBuild={build === undefined ? undefined : () => void started(build())}
+      onBuildTrigger={
+        buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
+      }
+      onShowLog={(name) => void showLog(name)}
     />
   )
 }

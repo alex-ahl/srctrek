@@ -49,10 +49,7 @@ export function ChangeStatus({ status, canBuild }: Props) {
 
   if (status.kind === "triggers") {
     return (
-      <LogTail
-        heading={`Found ${status.triggers.length} ways into this code. Tour one with:`}
-        lines={status.triggers.map((t) => `trail --code="${t.name}"   (${t.kind})`)}
-      />
+      <Line text={`Found ${status.triggers.length} ways into this code. Pick one to tour it.`} />
     )
   }
 

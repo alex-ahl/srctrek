@@ -85,7 +85,7 @@ export {
   startBuild,
   type BuildState,
 } from "./build/background"
-export { tourStatus, type TourStatus } from "./build/status"
+export { tourStatus, type TourStatus, type TriggerTour } from "./build/status"
 export { buildTourPrompt } from "./guide"
 export { buildFiles, type BuildFiles } from "./build/files"
 export {

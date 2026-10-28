@@ -132,21 +132,34 @@ test("shows as many tours as fit, each on its own two lines, and says which", as
   expect(frame).not.toContain("Tour 5")
 })
 
-test("lists the triggers found, each with the command that tours it", async () => {
-  const triggers = [
-    {
-      kind: "event" as const,
-      name: "a persona answers an @-mention",
-      evidence: { repo: "bot", file: "bot.py", line: 311 },
-    },
-  ]
-  const status = { kind: "triggers" as const, name: "bot-code", triggers }
+test("lists the triggers found as rows to pick, each saying where its tour stands", async () => {
+  const trigger = (name: string, line: number) => ({
+    kind: "event" as const,
+    name,
+    evidence: { repo: "bot", file: "bot.py", line },
+  })
+  const status = {
+    kind: "triggers" as const,
+    name: "bot-code",
+    triggers: [
+      {
+        trigger: trigger("a persona answers an @-mention", 311),
+        tour: { kind: "missing" as const, name: "a-persona-answers-an-mention" },
+      },
+      {
+        trigger: trigger("a reply times out", 91),
+        tour: { kind: "ready" as const, name: "a-reply-times-out" },
+      },
+    ],
+  }
   const frame = await renderFrame(
-    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
+    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuildTrigger={noop} />,
     120,
-    10,
+    16,
   )
-  expect(frame).toContain("Found 1 ways into this code. Tour one with:")
-  expect(frame).toContain('trail --code="a persona answers an @-mention"   (event)')
-  expect(frame).not.toContain("b build")
+  expect(frame).toContain("Found 2 ways into this code. Pick one to tour it.")
+  expect(frame).toContain("▶ a persona answers an @-mention")
+  expect(frame).toContain("    event · bot.py:311 · not toured yet")
+  expect(frame).toContain("    event · bot.py:91 · toured")
+  expect(frame).toContain("enter build its tour")
 })

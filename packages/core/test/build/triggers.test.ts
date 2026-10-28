@@ -59,9 +59,13 @@ describe("triggers", () => {
 
     expect(await tourStatus(dir, change)).toEqual({ kind: "missing", name })
 
-    const triggers = [triggerAt(change.repos[0]?.name ?? "", 1)]
-    await saveTriggers(dir, name, change, triggers)
-    expect(await tourStatus(dir, change)).toEqual({ kind: "triggers", name, triggers })
+    const trigger = triggerAt(change.repos[0]?.name ?? "", 1)
+    await saveTriggers(dir, name, change, [trigger])
+    expect(await tourStatus(dir, change)).toEqual({
+      kind: "triggers",
+      name,
+      triggers: [{ trigger, tour: { kind: "missing", name: "set-the-total" } }],
+    })
   })
 
   test("are ignored when the saved file isn't a list of triggers", async () => {

@@ -1,4 +1,5 @@
 import {
+  type ResolvedChange,
   type TourStatus,
   directoryIn,
   readChangeArguments,
@@ -27,6 +28,23 @@ async function buildTour(
   await startBuild(cwd, args, name, agent)
 }
 
+// The same repos as trail's args, toured from one trigger: --code="<trigger>" for --code.
+function argsForTrigger(args: string[], trigger: string): string[] {
+  return [...args.filter((arg) => !arg.startsWith("--code")), `--code=${trigger}`]
+}
+
+// Starts the agent on the tour of one trigger found in the code.
+async function buildTriggerTour(
+  cwd: string,
+  args: string[],
+  agent: string,
+  change: ResolvedChange,
+  trigger: string,
+) {
+  const { name } = await tourStatus(cwd, { ...change, code: { trigger } })
+  await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
+}
+
 async function trail(args: string[]): Promise<void> {
   const cwd = process.cwd()
   const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
@@ -34,13 +52,17 @@ async function trail(args: string[]): Promise<void> {
 
   const status = () => tourStatus(cwd, change)
   const build = agent === undefined ? undefined : () => buildTour(cwd, args, agent, status)
+  const buildTrigger =
+    agent === undefined
+      ? undefined
+      : (trigger: string) => buildTriggerTour(cwd, args, agent, change, trigger)
 
   // A change with no tour gets one started right away, when there's an agent to build it.
   if (build !== undefined && (await status()).kind === "missing") {
     await build()
   }
 
-  await startHome(cwd, { status, build })
+  await startHome(cwd, { status, build, buildTrigger })
 }
 
 // "mcp" as the first word is the command: a folder by that name is given as ./mcp, a branch
