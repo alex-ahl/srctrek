@@ -40,6 +40,8 @@ migration layers. When something changes, change it everywhere at once.
   front-end.
 - `packages/mcp/` — the MCP server, `trail mcp`, for the agent that builds a tour.
 - `packages/tui/` — OpenTUI + React front-end.
+- `packages/evals/` — the eval runner: an agent builds a fixture's tour, scored against
+  expected.json.
 - `editors/nvim/` — the Neovim plugin (Lua).
 - `evals/fixtures/` — sample repos for tour-quality evals.
 - `scripts/` — repo tooling.

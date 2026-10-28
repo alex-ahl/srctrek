@@ -26,6 +26,13 @@
         "zod": "4.6.7",
       },
     },
+    "packages/evals": {
+      "name": "@codetrail/evals",
+      "dependencies": {
+        "@codetrail/core": "workspace:*",
+        "zod": "4.6.7",
+      },
+    },
     "packages/mcp": {
       "name": "@codetrail/mcp",
       "dependencies": {
@@ -51,6 +58,8 @@
     "@codetrail/cli": ["@codetrail/cli@workspace:packages/cli"],
 
     "@codetrail/core": ["@codetrail/core@workspace:packages/core"],
+
+    "@codetrail/evals": ["@codetrail/evals@workspace:packages/evals"],
 
     "@codetrail/mcp": ["@codetrail/mcp@workspace:packages/mcp"],
 

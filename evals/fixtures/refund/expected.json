@@ -1,4 +1,8 @@
 {
+  "run": {
+    "in": "web",
+    "args": ["main...feature", "../api", "main...feature", "../worker", "main...feature"]
+  },
   "scenario": "A user clicks 'Refund order' on a paid order whose total is 49900 minor units",
   "route": [
     { "repo": "web", "file": "src/main.ts", "lines": [7, 14], "changed": false, "note": "delegated click handler" },

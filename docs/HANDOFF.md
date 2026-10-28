@@ -74,6 +74,12 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   user's index (keeping its times, so git's check of recently changed files still works),
   so only changed files are re-read; the cache fetches only the default branch, a pull
   request's ref, and revisions or range ends named by the user.
+- Step 3t: the eval runner (`packages/evals/`, `bun packages/evals/src/main.ts <fixture>`):
+  builds a fixture's repos, has `CODETRAIL_AGENT` build the tour of the change in
+  expected.json's `run`, and reports route reached and in order, each expected link cited,
+  guessed, both, or without evidence, bug lines inside steps, time taken, and the numbers in
+  the agent's last line when it is JSON. First runs on refund: 10–11 of 11 route entries,
+  both links, all bug lines; 34–35 turns, 430–540k input tokens, about $0.60.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -159,10 +165,10 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
 - Large repos: editor worktrees should check out only the files a tour visits (sparse
   checkout), with the editors in Milestone 6.
-- Token cost of building a tour is unmeasured: reading code dominates, and context grows with
-  every call. Measure a real build (the agent's usage summary in the build log); levers if
-  it's heavy are the guide (search before reading, narrow `from`/`to` ranges) and the read
-  caps.
+- Token cost of building a tour: about 430–540k input tokens on the small refund fixture,
+  mostly the context re-read every turn as it grows; the agent's own tools and connectors
+  add a few thousand per turn. Levers: fewer turns (bigger batches of reads and steps) and
+  smaller answers. Runs vary, so compare guide versions over several runs.
 - WSL not yet tested.
 - `bun test` would collect `*.test.ts` files inside eval fixtures.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under

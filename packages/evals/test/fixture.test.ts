@@ -8,11 +8,11 @@ import {
   resolveRange,
   parseRange,
   runGit,
-} from "../src"
-import { buildFixture } from "./support/fixture"
+} from "@codetrail/core"
+import { buildFixture } from "../src/fixture"
 
 const refund = await buildFixture("refund")
-const tourPath = join(import.meta.dir, "fixtures/refund-tour.json")
+const tourPath = join(import.meta.dir, "../../core/test/fixtures/refund-tour.json")
 const tour = parseTour(await Bun.file(tourPath).json(), tourPath)
 
 function repoDir(name: string): string {

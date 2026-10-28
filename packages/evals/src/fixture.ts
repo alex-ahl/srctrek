@@ -1,10 +1,12 @@
+import { runGit } from "@codetrail/core"
 import { cp, mkdtemp, readdir } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { runGit } from "../../src"
-import { commitStaged } from "./repo"
 
-const FIXTURES = join(import.meta.dir, "../../../../evals/fixtures")
+const FIXTURES = join(import.meta.dir, "../../../evals/fixtures")
+
+// Commits need an identity; CI machines have none configured.
+const IDENTITY = ["-c", "user.name=eval", "-c", "user.email=eval@example.test"]
 
 export type Fixture = {
   // repo name -> its directory, with `main` (the base) and `feature` (the change) branches
@@ -12,18 +14,21 @@ export type Fixture = {
   dir: string // the fixture's source folder, where expected.json lives
 }
 
+async function commitAll(dir: string, message: string): Promise<void> {
+  await runGit(dir, ["add", "--all"])
+  await runGit(dir, [...IDENTITY, "commit", "--quiet", "-m", message])
+}
+
 // A fixture repo is stored as base/ plus change.patch: a git repo can't be committed inside
 // this one.
 async function buildRepo(source: string, target: string): Promise<void> {
   await cp(join(source, "base"), target, { recursive: true })
   await runGit(target, ["init", "--quiet", "--initial-branch=main"])
-  await runGit(target, ["add", "--all"])
-  await commitStaged(target, "base")
+  await commitAll(target, "base")
 
   await runGit(target, ["checkout", "--quiet", "-b", "feature"])
   await runGit(target, ["apply", join(source, "change.patch")])
-  await runGit(target, ["add", "--all"])
-  await commitStaged(target, "change")
+  await commitAll(target, "change")
 }
 
 /** Builds every repo of evals/fixtures/<name> as a real git repo in a temporary folder. */

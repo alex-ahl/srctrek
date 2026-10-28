@@ -1,0 +1,9 @@
+{
+  "name": "@codetrail/evals",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@codetrail/core": "workspace:*",
+    "zod": "4.6.7"
+  }
+}
