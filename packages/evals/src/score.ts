@@ -8,12 +8,21 @@ type Place = { repo: string; file: string }
 /** How a tour reached one expected link: cited as the fixture does, guessed, or not at all. */
 export type LinkFound = "cited" | "cited, guessed" | "guessed" | "no evidence" | "not reached"
 
+type Severity = "high" | "medium" | "low"
+
+/** The strongest flag on the steps covering a bug's line; a bug is found when one is high. */
+export type LineFlag = Severity | "unflagged" | "not in a step"
+
 /** How a tour measures up to what its fixture expects. */
 export type Score = {
   route: { found: number; total: number; inOrder: boolean; missing: RouteEntry[] }
   links: { link: Link; found: LinkFound }[]
-  bugs: { summary: string; inSteps: number; total: number }[]
+  bugs: { summary: string; lines: LineFlag[] }[]
+  // how many of the tour's steps carry a flag, by severity
+  flags: { steps: number } & Record<Severity, number>
 }
+
+const SEVERITIES: Severity[] = ["high", "medium", "low"]
 
 function inFile(at: Place, place: Place): boolean {
   return at.repo === place.repo && at.file === place.file
@@ -85,6 +94,29 @@ function linkFound(steps: TourStep[], link: Link): LinkFound {
   return guessed ? "guessed" : "no evidence"
 }
 
+function lineFlag(steps: TourStep[], line: ExpectedLine): LineFlag {
+  const covering = steps.filter((step) => covers(step, line))
+  if (covering.length === 0) {
+    return "not in a step"
+  }
+
+  const severities = covering.map((step) => step.uncertain?.severity)
+
+  return SEVERITIES.find((severity) => severities.includes(severity)) ?? "unflagged"
+}
+
+function countFlags(steps: TourStep[]): Score["flags"] {
+  const flagged = (severity: Severity) =>
+    steps.filter((step) => step.uncertain?.severity === severity).length
+
+  return {
+    steps: steps.length,
+    high: flagged("high"),
+    medium: flagged("medium"),
+    low: flagged("low"),
+  }
+}
+
 /** Scores `tour` against what its fixture expects. */
 export function scoreTour(tour: Tour, expected: Expected): Score {
   const { steps } = tour
@@ -94,8 +126,8 @@ export function scoreTour(tour: Tour, expected: Expected): Score {
     links: expected.links.map((link) => ({ link, found: linkFound(steps, link) })),
     bugs: expected.bugs.map((bug) => ({
       summary: bug.summary,
-      inSteps: bug.files.filter((line) => steps.some((step) => covers(step, line))).length,
-      total: bug.files.length,
+      lines: bug.files.map((line) => lineFlag(steps, line)),
     })),
+    flags: countFlags(steps),
   }
 }

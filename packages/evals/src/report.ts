@@ -1,5 +1,5 @@
 import { agentNumbers } from "./agent-numbers"
-import type { LinkFound, Score } from "./score"
+import type { LineFlag, LinkFound, Score } from "./score"
 
 /** What a run took, besides the tour: how long, and what the agent said last. */
 export type RunFacts = {
@@ -45,10 +45,28 @@ function linkLines(links: Score["links"]): string[] {
   return links.map(({ found }, i) => `${mark(linkOk(found))} ${ends[i]?.padEnd(width)}  ${found}`)
 }
 
+// "medium 1, unflagged 2": how the lines not flagged high fell short.
+function shortfall(lines: LineFlag[]): string {
+  const counts = Map.groupBy(lines, (flag) => flag)
+  counts.delete("high")
+
+  return [...counts].map(([flag, group]) => `${flag} ${group.length}`).join(", ")
+}
+
 function bugLines(bugs: Score["bugs"]): string[] {
-  return bugs.map(
-    (bug) => `${mark(bug.inSteps === bug.total)} ${bug.inSteps}/${bug.total} lines  ${bug.summary}`,
-  )
+  return bugs.map((bug) => {
+    const high = bug.lines.filter((flag) => flag === "high").length
+    const rest = shortfall(bug.lines)
+    const counts = rest === "" ? "" : ` (${rest})`
+
+    return `${mark(high > 0)} high on ${high}/${bug.lines.length} lines${counts}  ${bug.summary}`
+  })
+}
+
+function flagLines({ steps, high, medium, low }: Score["flags"]): string[] {
+  const flagged = high + medium + low
+
+  return [`${flagged}/${steps} steps: ${high} high, ${medium} medium, ${low} low`]
 }
 
 /** The eval's report: the score, then what the run took. */
@@ -59,6 +77,7 @@ export function formatReport(name: string, score: Score, facts: RunFacts): strin
     ...section("Route", routeLines(score.route)),
     ...section("Links", linkLines(score.links)),
     ...section("Bugs", bugLines(score.bugs)),
+    ...section("Flags", flagLines(score.flags)),
     "",
     ...section("Agent", agentNumbers(facts.agentSummary)),
     ...section("Tour", [facts.tour]),

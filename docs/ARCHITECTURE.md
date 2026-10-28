@@ -241,7 +241,7 @@ Each fixture under `evals/fixtures/` is a base tree plus a patch per repo, and a
 expected.json: where to run `trail` and with which arguments, the route, the links and their
 evidence, and the planted bugs. The eval runner (`packages/evals/`) builds temporary git repos
 from them, runs the agent in `CODETRAIL_AGENT` as a background build, and scores the saved
-tour: route entries reached and their order, links cited or guessed, bug lines inside steps.
+tour: route entries reached and their order, links cited or guessed, bugs found (a bug line inside a step flagged high), and how many steps carry flags.
 
 ## Distribution
 

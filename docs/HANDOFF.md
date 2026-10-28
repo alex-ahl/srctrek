@@ -92,6 +92,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   the worker stores it through an interface whose implementation is picked from the
   environment, and the change passes the request's context to the worker, which net/http
   cancels once the handler answers.
+- Step 3x: a bug counts as found only when a step flagged high covers one of its lines (a bug
+  line merely inside a step was met by every route-following tour); the report also counts
+  flagged steps by severity. All four fixtures scored perfect under the old check.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

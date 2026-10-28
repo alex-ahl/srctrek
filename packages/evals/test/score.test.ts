@@ -13,12 +13,30 @@ function withoutStepsIn(tour: Tour, file: string): Tour {
 }
 
 describe("scoreTour", () => {
-  test("gives the hand-made refund tour the whole route, both links, every bug line", () => {
+  test("gives the hand-made refund tour the whole route, both links, every bug line flagged high", () => {
     const score = scoreTour(refundTour, expected)
 
     expect(score.route).toMatchObject({ found: 11, total: 11, inOrder: true, missing: [] })
     expect(score.links.map(({ found }) => found)).toEqual(["cited", "cited"])
-    expect(score.bugs.map(({ inSteps, total }) => [inSteps, total])).toEqual([[3, 3]])
+    expect(score.bugs.map(({ lines }) => lines)).toEqual([["high", "high", "high"]])
+    expect(score.flags).toEqual({ steps: 20, high: 4, medium: 5, low: 4 })
+  })
+
+  test("tells a bug walked past from one flagged", () => {
+    const unflagged = refundTour.steps.map((step) => ({ ...step, uncertain: undefined }))
+    const lower = refundTour.steps.map((step) =>
+      step.uncertain === undefined
+        ? step
+        : { ...step, uncertain: { ...step.uncertain, severity: "medium" as const } },
+    )
+    const withoutWorker = refundTour.steps.filter((step) => step.repo !== "worker")
+
+    const linesOf = (steps: TourStep[]) =>
+      scoreTour({ ...refundTour, steps }, expected).bugs[0]?.lines
+
+    expect(linesOf(unflagged)).toEqual(["unflagged", "unflagged", "unflagged"])
+    expect(linesOf(lower)).toEqual(["medium", "medium", "medium"])
+    expect(linesOf(withoutWorker)).toEqual(["high", "high", "not in a step"])
   })
 
   test("names a route entry no step reaches, and a link whose target is never reached", () => {
