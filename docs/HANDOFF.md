@@ -70,6 +70,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   ending in "/") unless `recursive`, at most 500 entries; `read_file` returns at most 400
   lines without `to`, saying how many the file has; `diff` lists at most 200 files and cuts a
   patch at 600 lines. Each says what was cut and how to reach the rest.
+- Step 3s: git work that stays fast on large repos: a snapshot starts from a copy of the
+  user's index (keeping its times, so git's check of recently changed files still works),
+  so only changed files are re-read; the cache fetches only the default branch, a pull
+  request's ref, and revisions or range ends named by the user.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -153,9 +157,8 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
 - `calls` holds one step, so a function that steps into several (a handler calling five
   helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
-- Large repos: snapshots should start from the user's index so unchanged files aren't
-  rehashed, and the cache should fetch only the refs a tour needs. Editor worktrees should
-  check out only the files a tour visits (sparse checkout), with the editors in Milestone 6.
+- Large repos: editor worktrees should check out only the files a tour visits (sparse
+  checkout), with the editors in Milestone 6.
 - Token cost of building a tour is unmeasured: reading code dominates, and context grows with
   every call. Measure a real build (the agent's usage summary in the build log); levers if
   it's heavy are the guide (search before reading, narrow `from`/`to` ranges) and the read

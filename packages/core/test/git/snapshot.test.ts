@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { mkdir, writeFile } from "node:fs/promises"
+import { mkdir, rm, stat, utimes, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { listFiles, readFileAt, runGit, snapshotWorkingTree } from "../../src"
 import { commit, makeRepo } from "../support/repo"
@@ -71,6 +71,32 @@ describe("snapshotWorkingTree", () => {
     const head = await commit(committing, ".codetrail/repos", "../api\n")
     await writeFile(join(committing, ".codetrail/repos"), "../api\n../web\n")
     expect(await snapshotWorkingTree(committing)).toBe(head)
+  })
+
+  // Git trusts a file whose size and times match the index, except when it changed as recently
+  // as the index file itself. This sets that up: an edit of the same size, in the same second
+  // as the commit, with its time kept; the snapshot a second later. Only git's recheck of
+  // recent files can catch the edit, and only if the copied index keeps the original's time.
+  test("catches an edit of the same size and time as the committed file", async () => {
+    const dir = await makeRepo()
+    await commit(dir, "app.ts", "total = 250\n")
+    const file = join(dir, "app.ts")
+    const { atime, mtime } = await stat(file)
+    await utimes(join(dir, ".git", "index"), atime, mtime)
+
+    await writeFile(file, "total = 300\n")
+    await utimes(file, atime, mtime)
+    await Bun.sleep(1100)
+
+    expect(await readFileAt(dir, await snapshotWorkingTree(dir), "app.ts")).toBe("total = 300\n")
+  })
+
+  test("works in a repo with no index yet", async () => {
+    const dir = await makeRepo()
+    await rm(join(dir, ".git", "index"))
+    await writeFile(join(dir, "new.ts"), "new\n")
+
+    expect(await readFileAt(dir, await snapshotWorkingTree(dir), "new.ts")).toBe("new\n")
   })
 
   test("is HEAD itself when nothing is uncommitted", async () => {

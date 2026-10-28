@@ -46,7 +46,7 @@ export {
   type UnchangedRepo,
 } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
-export { cachePath, cachedRepo, defaultCacheDir, fetchRefs } from "./repos/cache"
+export { cachePath, cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
 export type { CodeTour } from "./change/options"

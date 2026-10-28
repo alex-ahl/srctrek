@@ -58,12 +58,24 @@ export async function cachedRepo(cacheDir: string, cloneUrl: string): Promise<st
   return dir
 }
 
+// The branch the host's HEAD named when the clone was made: its default branch.
+async function defaultBranch(dir: string): Promise<string> {
+  return runGit(dir, ["symbolic-ref", "--short", "HEAD"])
+}
+
 /**
- * Brings a cached clone's branches and tags up to date, plus extra refs such as a pull
- * request's head.
+ * Brings a cached clone's default branch up to date, plus extra refs such as a pull request's
+ * head; nothing else, since a host may have thousands of branches a tour never reads.
  */
 export async function fetchRefs(dir: string, refs: string[] = []): Promise<void> {
-  const everyBranchAndTag = ["+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*"]
-  const refspecs = [...everyBranchAndTag, ...refs.map((ref) => `+${ref}:${ref}`)]
-  await runGit(dir, ["fetch", "--quiet", "--prune", "origin", ...refspecs], { env: NO_PROMPT })
+  const wanted = [`refs/heads/${await defaultBranch(dir)}`, ...refs]
+  const refspecs = wanted.map((ref) => `+${ref}:${ref}`)
+  await runGit(dir, ["fetch", "--quiet", "origin", ...refspecs], { env: NO_PROMPT })
+}
+
+/** Fetches one revision by name (a branch, a tag, a commit the host serves); its commit. */
+export async function fetchRevision(dir: string, revision: string): Promise<string> {
+  await runGit(dir, ["fetch", "--quiet", "origin", revision], { env: NO_PROMPT })
+
+  return runGit(dir, ["rev-parse", "--verify", "FETCH_HEAD^{commit}"])
 }

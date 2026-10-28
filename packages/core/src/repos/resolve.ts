@@ -3,7 +3,7 @@ import { detectBase } from "../git/base"
 import { type RangeSpec, type ResolvedRange, resolveRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
 import { snapshotWorkingTree } from "../git/snapshot"
-import { cachedRepo, defaultCacheDir, fetchRefs } from "./cache"
+import { cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./cache"
 import { type RepoEntry, folderName, isRemote } from "./entry"
 import type { PullRequest } from "./pull-request"
 
@@ -46,6 +46,26 @@ async function repoDir(baseDir: string, entry: RepoEntry, cacheDir: string): Pro
   return repoTopLevel(resolve(baseDir, entry.source), entry.source)
 }
 
+// The commit an entry is read at: its pinned revision (fetched by name, for a URL), else the
+// repo's base branch.
+async function commitOf(dir: string, entry: RepoEntry): Promise<string> {
+  if (entry.revision !== undefined && isRemote(entry.source)) {
+    return fetchRevision(dir, entry.revision)
+  }
+
+  const revision = entry.revision ?? (await detectBase(dir))
+  return runGit(dir, ["rev-parse", "--verify", `${revision}^{commit}`])
+}
+
+// A range on a cached clone, its ends fetched by name as commits; with no base named, the
+// default branch the clone keeps up to date.
+async function fetchedEnds(dir: string, spec: RangeSpec): Promise<RangeSpec> {
+  const head = await fetchRevision(dir, spec.head)
+  const base = spec.base === undefined ? undefined : await fetchRevision(dir, spec.base)
+
+  return { ...spec, base, head }
+}
+
 /**
  * Resolves an entry to the commit the tour reads. A local path is relative to `baseDir` (the
  * folder the entry was written for); a URL is read from its cached clone. Without a revision,
@@ -58,9 +78,7 @@ export async function resolveUnchangedRepo(
   cacheDir = defaultCacheDir(),
 ): Promise<UnchangedRepo> {
   const dir = await repoDir(baseDir, entry, cacheDir)
-
-  const revision = entry.revision ?? (await detectBase(dir))
-  const commit = await runGit(dir, ["rev-parse", "--verify", `${revision}^{commit}`])
+  const commit = await commitOf(dir, entry)
 
   return { name: entry.name ?? folderName(dir), source: entry.source, revision: commit, dir }
 }
@@ -77,8 +95,9 @@ export async function resolveRangeChange(
   { uncommitted = false } = {},
 ): Promise<ChangedRepo> {
   const dir = await repoDir(baseDir, entry, cacheDir)
-  const head = uncommitted ? await snapshotWorkingTree(dir) : spec.head
-  const range = await resolveRange(dir, { ...spec, head })
+  const ends = isRemote(entry.source) ? await fetchedEnds(dir, spec) : spec
+  const head = uncommitted ? await snapshotWorkingTree(dir) : ends.head
+  const range = await resolveRange(dir, { ...ends, head })
 
   return { name: entry.name ?? folderName(dir), source: entry.source, dir, range }
 }

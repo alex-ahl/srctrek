@@ -1,6 +1,7 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { copyFile, mkdtemp, rm, stat, utimes } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
+import { pathExists } from "../files"
 import { runGit } from "./run"
 
 // Snapshots aren't the user's commits, and a machine may have no git identity configured.
@@ -11,15 +12,32 @@ const SNAPSHOT_IDENTITY = {
   GIT_COMMITTER_EMAIL: "codetrail@localhost",
 }
 
+// The temporary index starts as a copy of the user's: it carries git's cached file details, so
+// adding the working tree re-reads only files that changed. The copy keeps the original's
+// times: git rechecks files changed as recently as its index, and a newer copy would make it
+// trust an edit of the same size made in that same second. Without an index, start from HEAD.
+async function startIndex(dir: string, index: string): Promise<void> {
+  const own = resolve(dir, await runGit(dir, ["rev-parse", "--git-path", "index"]))
+  if (await pathExists(own)) {
+    const { atime, mtime } = await stat(own)
+    await copyFile(own, index)
+    await utimes(index, atime, mtime)
+    return
+  }
+
+  await runGit(dir, ["read-tree", "HEAD"], { env: { GIT_INDEX_FILE: index } })
+}
+
 // The working tree as a tree object: HEAD's files, then every edit, staged or not, and every
 // new file git doesn't ignore. A temporary index does the work, so the user's stays as it is.
 // .codetrail stays as HEAD has it: saving a tour is never part of the change it describes.
 async function workingTree(dir: string): Promise<string> {
   const scratch = await mkdtemp(join(tmpdir(), "codetrail-index-"))
-  const env = { GIT_INDEX_FILE: join(scratch, "index") }
+  const index = join(scratch, "index")
+  const env = { GIT_INDEX_FILE: index }
 
   try {
-    await runGit(dir, ["read-tree", "HEAD"], { env })
+    await startIndex(dir, index)
     await runGit(dir, ["add", "--all"], { env })
     // reset rather than an excluding pathspec, which git rejects when .codetrail is ignored
     await runGit(dir, ["reset", "--quiet", "HEAD", "--", ".codetrail"], { env })

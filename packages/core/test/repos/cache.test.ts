@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
-import { cachePath, cachedRepo, fetchRefs, runGit } from "../../src"
+import { cachePath, cachedRepo, fetchRefs, fetchRevision, runGit } from "../../src"
 import { commit } from "../support/repo"
 import { makeCacheDir, makeRemote } from "../support/remote"
 import { rejection } from "../support/rejection"
@@ -56,6 +56,27 @@ describe("cachedRepo", () => {
 })
 
 describe("fetchRefs", () => {
+  test("brings the default branch up to date, and leaves other branches alone", async () => {
+    const remote = await makeRemote()
+    const dir = await cachedRepo(await makeCacheDir(), remote.url)
+    const newer = await commit(remote.dir, "later.ts", "later\n")
+    await runGit(remote.dir, ["branch", "other"])
+
+    await fetchRefs(dir)
+
+    expect(await runGit(dir, ["rev-parse", "main"])).toBe(newer)
+    expect(await rejection(runGit(dir, ["rev-parse", "--verify", "other"]))).toBeInstanceOf(Error)
+  })
+
+  test("fetches one revision by name when asked", async () => {
+    const remote = await makeRemote()
+    const dir = await cachedRepo(await makeCacheDir(), remote.url)
+    await runGit(remote.dir, ["switch", "--quiet", "-c", "feature"])
+    const head = await commit(remote.dir, "feature.ts", "feature\n")
+
+    expect(await fetchRevision(dir, "feature")).toBe(head)
+  })
+
   test("fetches a pull request's head through its ref", async () => {
     const remote = await makeRemote()
     const dir = await cachedRepo(await makeCacheDir(), remote.url)
