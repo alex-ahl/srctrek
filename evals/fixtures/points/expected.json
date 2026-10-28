@@ -1,0 +1,34 @@
+{
+  "run": { "in": "app", "args": ["main...feature"] },
+  "scenario": "A customer checks out a 499 SEK order (total_ore 49900) and pays; they should get 499 loyalty points",
+  "route": [
+    { "repo": "app", "file": "app/web/checkout.py", "lines": [8, 15], "changed": false, "note": "the trigger: POST /checkout" },
+    { "repo": "app", "file": "app/models/base.py", "lines": [8, 10], "changed": false, "note": "save emits f\"{kind}.saved\"" },
+    { "repo": "app", "file": "app/events/__init__.py", "lines": [16, 18], "changed": false },
+    { "repo": "app", "file": "app/plugins/loyalty.py", "lines": [8, 13], "changed": true },
+    { "repo": "app", "file": "app/accounts.py", "lines": [4, 7], "changed": false },
+    { "repo": "app", "file": "app/payments.py", "lines": [5, 8], "changed": false }
+  ],
+  "links": [
+    {
+      "from": { "repo": "app", "file": "app/models/base.py" },
+      "to": { "repo": "app", "file": "app/plugins/loyalty.py" },
+      "evidence": [
+        { "repo": "app", "file": "app/models/order.py", "line": 8 },
+        { "repo": "app", "file": "app/plugins/__init__.py", "line": 7 },
+        { "repo": "app", "file": "app/settings.py", "line": 5 }
+      ],
+      "note": "the event name is built from the model's kind, and the handler is registered by a decorator in a plugin imported by name from settings; should be cited or marked guessed"
+    }
+  ],
+  "bugs": [
+    {
+      "summary": "Points are awarded on every save of an order: twice per checkout, and again on each admin note",
+      "files": [
+        { "repo": "app", "file": "app/plugins/loyalty.py", "line": 7 },
+        { "repo": "app", "file": "app/web/checkout.py", "line": 13 }
+      ],
+      "detail": "checkout saves the order while pending and again once paid; both pass the status check, so 499 SEK earns 998 points. app/web/admin.py:10 saves a paid order when a note is added, awarding 499 more each time."
+    }
+  ]
+}

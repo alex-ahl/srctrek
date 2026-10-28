@@ -84,6 +84,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   storage (a new time helper with a planted bug); a nightly schedule names the job, a registry
   maps the name to it, and an admin route is a second, lesser caller. Every fixture's
   expected.json is checked against its built repos: each cited line exists and isn't blank.
+- Step 3v: fixture `points`, hard to read statically, among unrelated files: a Python app whose
+  model save emits an event named from the model's kind, handled by a decorator in a plugin
+  imported by name from settings; the change moves loyalty points to that event, and the bug
+  (points awarded on every save) shows only in the unchanged checkout.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

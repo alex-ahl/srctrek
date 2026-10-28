@@ -1,0 +1,17 @@
+diff --git a/app/plugins/loyalty.py b/app/plugins/loyalty.py
+index abf7677..2704117 100644
+--- a/app/plugins/loyalty.py
++++ b/app/plugins/loyalty.py
+@@ -3,7 +3,11 @@ from app.events import on
+ from app.settings import LOYALTY_POINTS_PER_KRONA
+ 
+ 
+-@on("order.paid")
++# Points are awarded when the order is saved, so the receipt can show them.
++@on("order.saved")
+ def award_points(order):
++    if order.status not in ("pending", "paid"):
++        return
++
+     points = order.total_ore // 100 * LOYALTY_POINTS_PER_KRONA
+     add_points(order.user_id, points)
