@@ -1,15 +1,16 @@
 import { type ResolvedChange, hasRange } from "../change/resolve"
-import { buildLogTail, buildState } from "./background"
+import { buildLogTail, buildSavedTour, buildState } from "./background"
 import { existingTourFor } from "./existing"
 import { tourNameFor } from "./name"
 
 /**
- * Where a change's tour stands: saved and ready, being built, failed (with the end of the
- * build's log), missing, never built, or empty: the change has no commits, so nothing to tour.
+ * Where a change's tour stands: saved and ready, being built or failed (each with the end of
+ * the build's log), missing, never built, or empty: the change has no commits, so nothing to
+ * tour.
  */
 export type TourStatus = Readonly<
-  | { kind: "ready" | "building" | "missing" | "empty"; name: string }
-  | { kind: "failed"; name: string; logTail: string[] }
+  | { kind: "ready" | "missing" | "empty"; name: string }
+  | { kind: "building" | "failed"; name: string; logTail: string[] }
 >
 
 // Enough of the log to see why a build ended; the whole log is in the git folder.
@@ -45,7 +46,12 @@ export async function tourStatus(root: string, change: ResolvedChange): Promise<
   }
 
   if (state === "building") {
-    return { kind: "building", name }
+    return { kind: "building", name, logTail: await buildLogTail(root, name, LOG_TAIL_LINES) }
+  }
+
+  // The build saved its tour, which has since been removed: build it again, as if never built.
+  if (await buildSavedTour(root, name)) {
+    return { kind: "missing", name }
   }
 
   // "done" lands here too: the build saved a tour under this name that doesn't cover the

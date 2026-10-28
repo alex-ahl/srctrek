@@ -13,6 +13,13 @@ type Props = {
   status?: TourStatus | undefined
   // starts building the change's tour; absent when no agent is set
   onBuild?: (() => void) | undefined
+  // shows the full log of the change's build
+  onShowLog?: (() => void) | undefined
+}
+
+// A build's log is worth reading while it runs, and after it failed.
+function hasLog(status: TourStatus | undefined): boolean {
+  return status?.kind === "building" || status?.kind === "failed"
 }
 
 // A tour takes three lines: its title, its name and steps, and a gap.
@@ -26,8 +33,22 @@ function chromeLines(status: TourStatus | undefined): number {
     return frameAndFooter
   }
 
-  const statusLines = status.kind === "failed" ? 2 + status.logTail.length : 2
+  const logLines =
+    status.kind === "building" || status.kind === "failed" ? status.logTail.length : 0
+  const statusLines = 2 + logLines
   return frameAndFooter + statusLines + 1
+}
+
+// Where the change's tour is in the list, once it's ready; -1 until then.
+function readyIndexIn(entries: TourEntry[], status: TourStatus | undefined): number {
+  return status?.kind === "ready" ? entries.findIndex((e) => e.name === status.name) : -1
+}
+
+function footerKeys(canBuild: boolean, canShowLog: boolean): string {
+  const build = canBuild ? " · b build" : ""
+  const log = canShowLog ? " · l log" : ""
+
+  return `↑/↓ choose · enter open in Neovim${build}${log} · q quit`
 }
 
 // A build can start when the change has no tour yet, or its last build failed.
@@ -54,12 +75,11 @@ function TourRow({ entry, selected }: { entry: TourEntry; selected: boolean }) {
   )
 }
 
-export function App({ entries, onOpen, onQuit, status, onBuild }: Props) {
+export function App({ entries, onOpen, onQuit, status, onBuild, onShowLog }: Props) {
   const [chosen, setChosen] = useState<number | undefined>(undefined)
 
   // Until the user moves, the change's tour is the one picked out, once it's listed.
-  const readyIndex =
-    status?.kind === "ready" ? entries.findIndex((e) => e.name === status.name) : -1
+  const readyIndex = readyIndexIn(entries, status)
   const selected = chosen ?? Math.max(readyIndex, 0)
 
   const moveDown = () => setChosen(Math.min(selected + 1, entries.length - 1))
@@ -71,11 +91,13 @@ export function App({ entries, onOpen, onQuit, status, onBuild }: Props) {
     }
   }
 
-  const build = onBuild !== undefined && canStartBuild(status) ? onBuild : undefined
+  const build = canStartBuild(status) ? onBuild : undefined
+  const showLog = hasLog(status) ? onShowLog : undefined
 
   const actions = new Map([
     ["q", onQuit],
     ["b", () => build?.()],
+    ["l", () => showLog?.()],
     ["down", moveDown],
     ["j", moveDown],
     ["up", moveUp],
@@ -88,7 +110,7 @@ export function App({ entries, onOpen, onQuit, status, onBuild }: Props) {
   const fits = Math.max(1, Math.floor((height - chromeLines(status)) / ROW_LINES))
   const { start, end } = visibleWindow(entries.length, selected, fits)
   const shown = end - start < entries.length ? `${start + 1}–${end} of ${entries.length} · ` : ""
-  const keys = `↑/↓ choose · enter open in Neovim${build ? " · b build" : ""} · q quit`
+  const keys = footerKeys(build !== undefined, showLog !== undefined)
 
   return (
     <box flexDirection="column" style={{ border: true, padding: 1 }} title="codetrail">

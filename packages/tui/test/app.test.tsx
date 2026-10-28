@@ -44,13 +44,26 @@ const refund: TourEntry = {
 const other: TourEntry = { ...refund, name: "older", title: "An older tour" }
 
 test("says a tour of the change is being built", async () => {
-  const status = { kind: "building" as const, name: "feature-refunds" }
+  const status = {
+    kind: "building" as const,
+    name: "feature-refunds",
+    logTail: ['trail: started "Refund orders"', "trail: added s1, s2; the tour has s1, s2"],
+  }
   const frame = await renderFrame(
-    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
+    <App
+      entries={[]}
+      onOpen={noop}
+      onQuit={noop}
+      status={status}
+      onBuild={noop}
+      onShowLog={noop}
+    />,
     100,
-    8,
+    12,
   )
   expect(frame).toContain("Building feature-refunds… your agent is on it")
+  expect(frame).toContain("  trail: added s1, s2; the tour has s1, s2")
+  expect(frame).toContain("· l log ·")
   expect(frame).not.toContain("b build")
 })
 

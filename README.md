@@ -33,8 +33,10 @@ learn how it works: `trail --code="a refund request"` follows that trigger, and 
 The home screen lists the tours in the .codetrail/tours folder, with their step counts and
 high-severity flags; invalid tours are listed with the reason. Above them, it says where the
 tour of your change stands. When there is none, `trail` has your agent build it in the
-background (see Building a tour from your agent), and the tour appears when it's saved; a
-failed build shows the end of its log, and `b` builds again.
+background (see Building a tour from your agent), and the tour appears when it's saved.
+While it builds, the end of its log shows what the agent has done so far (codetrail adds a
+`trail:` line for each thing the agent does through it), `l` opens the whole log, and after
+a failed build `b` builds again.
 
 | Key       | Action                       |
 | --------- | ---------------------------- |

@@ -2,6 +2,7 @@ import { SERVER_INSTRUCTIONS } from "@codetrail/core"
 import { McpServer } from "@modelcontextprotocol/server"
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio"
 import { registerPrompts } from "./prompts"
+import { reportFor } from "./report"
 import { newSession } from "./session"
 import { registerBuildTools, registerReadTools } from "./tools"
 
@@ -13,8 +14,9 @@ export async function startMcpServer(cwd: string): Promise<void> {
     { instructions: SERVER_INSTRUCTIONS },
   )
   const cell = { session: newSession(cwd) }
-  registerReadTools(server, cell)
-  registerBuildTools(server, cell)
+  const report = reportFor()
+  registerReadTools(server, cell, report)
+  registerBuildTools(server, cell, report)
   registerPrompts(server)
 
   await server.connect(new StdioServerTransport())

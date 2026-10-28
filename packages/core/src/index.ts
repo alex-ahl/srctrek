@@ -76,11 +76,14 @@ export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTourFor } from "./build/existing"
 export { tourNameFor } from "./build/name"
 export {
+  BUILD_LOG_ENV,
+  BUILD_LOG_PREFIX,
   buildLogTail,
+  buildSavedTour,
   buildState,
   startBuild,
-  type BuildFiles,
   type BuildState,
 } from "./build/background"
 export { tourStatus, type TourStatus } from "./build/status"
 export { buildTourPrompt } from "./guide"
+export { buildFiles, type BuildFiles } from "./build/files"

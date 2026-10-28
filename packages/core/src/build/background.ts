@@ -1,25 +1,22 @@
 import { spawn } from "node:child_process"
-import { closeSync, openSync } from "node:fs"
+import { closeSync, openSync, writeFileSync } from "node:fs"
 import { mkdir, readFile, rm } from "node:fs/promises"
-import { join, resolve } from "node:path"
 import { pathExists } from "../files"
-import { runGit } from "../git/run"
 import { headlessBuildPrompt } from "../prompts"
 import { tourPath } from "../tours"
+import { type BuildFiles, buildFiles } from "./files"
+
+/**
+ * Where the agent's trail mcp appends its own lines to the build's log, each starting
+ * "trail: ", next to what the agent prints.
+ */
+export const BUILD_LOG_ENV = "CODETRAIL_BUILD_LOG"
+
+/** How trail mcp's lines in a build log start, telling them from the agent's own output. */
+export const BUILD_LOG_PREFIX = "trail: "
 
 /** Where a background build stands: running, saved its tour, or ended without one. */
 export type BuildState = "building" | "done" | "failed"
-
-export type BuildFiles = { log: string; exit: string }
-
-// Inside the repo's git folder, so build logs are never committed with the tours.
-async function buildFiles(root: string, name: string): Promise<BuildFiles> {
-  const gitDir = resolve(root, await runGit(root, ["rev-parse", "--git-common-dir"]))
-  const dir = join(gitDir, "codetrail", "builds")
-  await mkdir(dir, { recursive: true })
-
-  return { log: join(dir, `${name}.log`), exit: join(dir, `${name}.exit`) }
-}
 
 /**
  * Starts the user's agent building a tour of the change `args` names, saved as `name`. The
@@ -33,6 +30,7 @@ export async function startBuild(
   agentCommand: string,
 ): Promise<BuildFiles> {
   const files = await buildFiles(root, name)
+  await mkdir(files.dir, { recursive: true })
   await rm(files.exit, { force: true })
 
   // The user's command line with the instruction as its last argument, as for asking, then
@@ -42,9 +40,13 @@ export async function startBuild(
     ...process.env,
     CODETRAIL_PROMPT: headlessBuildPrompt(args, name),
     CODETRAIL_EXIT: files.exit,
+    [BUILD_LOG_ENV]: files.log,
   }
 
-  const log = openSync(files.log, "w")
+  // Emptied, then opened for appending, so the agent's output and trail mcp's lines, written
+  // to the same file, never overwrite each other.
+  writeFileSync(files.log, "")
+  const log = openSync(files.log, "a")
   const agent = spawn("sh", ["-c", script], {
     cwd: root,
     env,
@@ -81,7 +83,25 @@ export async function buildLogTail(root: string, name: string, count: number): P
     return []
   }
 
-  const lines = (await readFile(files.log, "utf8")).trimEnd().split("\n")
+  const text = (await readFile(files.log, "utf8")).trimEnd()
+  if (text === "") {
+    return []
+  }
 
-  return lines.slice(-count)
+  return text.split("\n").slice(-count)
+}
+
+/**
+ * Whether the build's log says its tour was saved: trail mcp answers a saved tour with
+ * "saved <path>". Builds from before trail mcp wrote to the log never say so.
+ */
+export async function buildSavedTour(root: string, name: string): Promise<boolean> {
+  const files = await buildFiles(root, name)
+  if (!(await pathExists(files.log))) {
+    return false
+  }
+
+  const lines = (await readFile(files.log, "utf8")).split("\n")
+
+  return lines.some((line) => line.startsWith(`${BUILD_LOG_PREFIX}saved `))
 }

@@ -13,6 +13,7 @@ import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import { formatChange, formatFileChanges, formatLines, formatMatches } from "./format"
 import { type SessionCell, apply } from "./cell"
+import type { Report } from "./report"
 import { addStepsTo, draftStepIds, finish, open, repoIn, start } from "./session"
 import { wordsOf } from "./words"
 
@@ -29,7 +30,7 @@ function problem(answer: string) {
 }
 
 /** The tools an agent reads a change with. A thrown error reaches the agent as the answer. */
-export function registerReadTools(server: McpServer, cell: SessionCell): void {
+export function registerReadTools(server: McpServer, cell: SessionCell, report: Report): void {
   server.registerTool(
     "open_change",
     {
@@ -38,6 +39,7 @@ export function registerReadTools(server: McpServer, cell: SessionCell): void {
     },
     async ({ args }) => {
       const change = await apply(cell, (session) => open(session, args))
+      await report(`opened ${change.repos.map(({ name }) => name).join(", ")}`)
 
       return text(formatChange(change))
     },
@@ -107,7 +109,17 @@ export function registerReadTools(server: McpServer, cell: SessionCell): void {
 }
 
 /** The tools an agent builds a tour with: the guide, then start, add checked steps, finish. */
-export function registerBuildTools(server: McpServer, cell: SessionCell): void {
+export function registerBuildTools(server: McpServer, cell: SessionCell, report: Report): void {
+  // The agent's answer, also written to the build's log, so the log shows what it was told.
+  const tell = async (answer: string) => {
+    await report(answer)
+    return text(answer)
+  }
+  const refuse = async (answer: string) => {
+    await report(answer)
+    return problem(answer)
+  }
+
   server.registerTool(
     "tour_guide",
     {
@@ -120,9 +132,10 @@ export function registerBuildTools(server: McpServer, cell: SessionCell): void {
   server.registerTool(
     "start_tour",
     { description: TOOL_DESCRIPTIONS.start_tour, inputSchema: TourHeaderSchema },
-    (header) => {
+    async (header) => {
       cell.session = start(cell.session, header)
-      return text(`started "${header.title}": add steps with add_steps`)
+
+      return tell(`started "${header.title}": add steps with add_steps`)
     },
   )
 
@@ -135,13 +148,13 @@ export function registerBuildTools(server: McpServer, cell: SessionCell): void {
     async ({ steps }) => {
       const problems = await apply(cell, (session) => addStepsTo(session, steps))
       if (problems.length > 0) {
-        return problem(`nothing was added:\n${problems.join("\n")}`)
+        return refuse(`nothing was added:\n${problems.join("\n")}`)
       }
 
       const added = steps.map((step) => step.id).join(", ")
       const all = draftStepIds(cell.session).join(", ")
 
-      return text(`added ${added}; the tour has ${all}`)
+      return tell(`added ${added}; the tour has ${all}`)
     },
   )
 
@@ -154,10 +167,10 @@ export function registerBuildTools(server: McpServer, cell: SessionCell): void {
     async ({ name }) => {
       const finished = await apply(cell, (session) => finish(session, name))
       if ("problems" in finished) {
-        return problem(finished.problems.join("\n"))
+        return refuse(finished.problems.join("\n"))
       }
 
-      return text(`saved ${finished.saved}`)
+      return tell(`saved ${finished.saved}`)
     },
   )
 }

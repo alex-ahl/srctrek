@@ -1,9 +1,10 @@
-import type { TourStatus } from "@codetrail/core"
+import { type TourStatus, buildFiles } from "@codetrail/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { useEffect, useState } from "react"
 import { App } from "./app"
 import { openInNeovim } from "./neovim"
+import { openInPager } from "./pager"
 import { type TourEntry, loadTourEntries } from "./tour-list"
 
 /** What the home screen needs for the change trail was started for. */
@@ -23,9 +24,10 @@ type HomeProps = {
   firstStatus: TourStatus | undefined
   onOpen: (entry: TourEntry) => void
   onQuit: () => void
+  onShowFile: (path: string) => void
 }
 
-function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit }: HomeProps) {
+function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowFile }: HomeProps) {
   const [entries, setEntries] = useState(firstEntries)
   const [status, setStatus] = useState(firstStatus)
 
@@ -49,6 +51,8 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit }: HomeP
     return () => clearInterval(timer)
   }, [building, change, root])
 
+  const showLog = async (name: string) => onShowFile((await buildFiles(root, name)).log)
+
   const build = change?.build
   const startBuild = async (start: () => Promise<void>) => {
     await start()
@@ -62,6 +66,7 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit }: HomeP
       onQuit={onQuit}
       status={status}
       onBuild={build === undefined ? undefined : () => void startBuild(build)}
+      onShowLog={status === undefined ? undefined : () => void showLog(status.name)}
     />
   )
 }
@@ -82,6 +87,7 @@ export async function startHome(root: string, change?: HomeChange): Promise<void
       firstEntries={firstEntries}
       firstStatus={firstStatus}
       onOpen={(entry) => void openInNeovim(renderer, entry.path)}
+      onShowFile={(path) => void openInPager(renderer, path)}
       onQuit={() => {
         renderer.destroy()
         process.exit(0)

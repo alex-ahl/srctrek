@@ -21,9 +21,10 @@ export class McpTestClient {
   private pending = new Map<number, (response: Response) => void>()
   private readonly proc
 
-  constructor(cwd: string) {
+  constructor(cwd: string, env: Record<string, string> = {}) {
     this.proc = Bun.spawn(["bun", TRAIL, "mcp"], {
       cwd,
+      env: { ...process.env, ...env },
       stdin: "pipe",
       stdout: "pipe",
       stderr: "inherit",

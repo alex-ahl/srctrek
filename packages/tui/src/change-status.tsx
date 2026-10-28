@@ -8,6 +8,18 @@ function Line({ text, fg }: { text: string; fg?: string }) {
   return <text {...(fg === undefined ? {} : { fg })}>{text}</text>
 }
 
+// A heading, then the end of the build's log, dimmed.
+function LogTail({ heading, lines, fg }: { heading: string; lines: string[]; fg?: string }) {
+  return (
+    <box flexDirection="column">
+      <Line text={heading} {...(fg === undefined ? {} : { fg })} />
+      {lines.map((line, i) => (
+        <Line key={i} text={`  ${line}`} fg={MUTED} />
+      ))}
+    </box>
+  )
+}
+
 /** One line on where the change's tour stands, above the list of tours. */
 export function ChangeStatus({ status, canBuild }: Props) {
   const { name } = status
@@ -18,18 +30,20 @@ export function ChangeStatus({ status, canBuild }: Props) {
 
   if (status.kind === "building") {
     return (
-      <Line text={`Building ${name}… your agent is on it; the tour appears when it's saved.`} />
+      <LogTail
+        heading={`Building ${name}… your agent is on it; the tour appears when it's saved.`}
+        lines={status.logTail}
+      />
     )
   }
 
   if (status.kind === "failed") {
     return (
-      <box flexDirection="column">
-        <Line text={`Building ${name} failed. The end of its log:`} fg="#fca5a5" />
-        {status.logTail.map((line, i) => (
-          <Line key={i} text={`  ${line}`} fg={MUTED} />
-        ))}
-      </box>
+      <LogTail
+        heading={`Building ${name} failed. The end of its log:`}
+        lines={status.logTail}
+        fg="#fca5a5"
+      />
     )
   }
 

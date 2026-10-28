@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, realpath, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { BUILD_STOPPED, loadTour, runGit } from "@codetrail/core"
+import { BUILD_LOG_ENV, BUILD_STOPPED, loadTour, runGit } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
 
@@ -111,5 +111,25 @@ describe("building a tour over trail mcp", () => {
     expect((await client.call("add_steps", { steps: [s1] })).text).toBe(
       "no tour is started: call start_tour first",
     )
+  })
+
+  test("writes what it tells the agent into the build's log, when trail started the agent", async () => {
+    const dir = await makeFeatureRepo()
+    const { s1 } = stepsFor(basename(dir))
+    const log = join(dir, "build.log")
+    await writeFile(log, "")
+    client = new McpTestClient(dir, { [BUILD_LOG_ENV]: log })
+    await client.initialize()
+
+    await client.call("open_change", { args: [] })
+    await client.call("start_tour", header)
+    await client.call("add_steps", { steps: [s1] })
+
+    expect((await Bun.file(log).text()).split("\n")).toEqual([
+      `trail: opened ${basename(dir)}`,
+      'trail: started "Total": add steps with add_steps',
+      "trail: added s1; the tour has s1",
+      "",
+    ])
   })
 })

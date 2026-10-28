@@ -164,6 +164,8 @@ The agent is started one of two ways:
   change's args, and the tour's name) as its last argument. The agent reaches `trail mcp`
   through the user's own registration. The build goes on if `trail` quits; its log and exit
   code are kept in the repo's git folder, and the build view shows the tour when it arrives.
+  `trail mcp` appends a `trail:` line to that log for each answer it gives the agent, so the
+  log shows the build's progress next to the agent's own output.
 
 Without a change (a repo the user doesn't know), `trail` builds a tour of existing code: the
 agent proposes candidate triggers (CLI commands, HTTP routes, event handlers, scheduled

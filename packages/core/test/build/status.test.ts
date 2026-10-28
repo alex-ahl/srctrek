@@ -55,13 +55,31 @@ describe("tourStatus", () => {
     const change = await changeOf(dir)
     await startBuild(dir, [], "feature-refunds", "sleep 0.3; echo 'cannot reach the server'; false")
 
-    expect(await tourStatus(dir, change)).toEqual({ kind: "building", name: "feature-refunds" })
+    expect(await tourStatus(dir, change)).toEqual({
+      kind: "building",
+      name: "feature-refunds",
+      logTail: [],
+    })
     await untilEnded(dir, "feature-refunds")
     expect(await tourStatus(dir, change)).toEqual({
       kind: "failed",
       name: "feature-refunds",
       logTail: ["cannot reach the server"],
     })
+  })
+
+  test("is missing again when a build saved its tour and the tour was then removed", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await startBuild(
+      dir,
+      [],
+      "feature-refunds",
+      "echo 'trail: saved .codetrail/tours/feature-refunds.json'; true",
+    )
+    await untilEnded(dir, "feature-refunds")
+
+    expect(await tourStatus(dir, change)).toEqual({ kind: "missing", name: "feature-refunds" })
   })
 
   test("a code tour is named after its trigger, found again, and rebuilt once the code moves on", async () => {
