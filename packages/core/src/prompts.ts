@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto"
 import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
 import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
-import buildTour from "../prompts/build_tour.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
@@ -12,6 +11,7 @@ import readFile from "../prompts/tools/read_file.md" with { type: "text" }
 import search from "../prompts/tools/search.md" with { type: "text" }
 import startTour from "../prompts/tools/start_tour.md" with { type: "text" }
 import tourGuide from "../prompts/tools/tour_guide.md" with { type: "text" }
+import { GUIDE_PARTS, buildTourPrompt } from "./guide"
 
 /** What each tool tells the agent building a tour, by tool name. */
 export const TOOL_DESCRIPTIONS = {
@@ -29,11 +29,6 @@ export const TOOL_DESCRIPTIONS = {
 /** What an agent is told about the server when it connects. */
 export const SERVER_INSTRUCTIONS = serverInstructions.trim()
 
-/** The guide for building a tour of the change `trail`'s `args` name; none means the branch. */
-export function buildTourPrompt(args: string[]): string {
-  return buildTour.trim().replace("{{args}}", JSON.stringify(args))
-}
-
 /** The instruction for an agent building a tour with no one to ask, saved as `name`. */
 export function headlessBuildPrompt(args: string[], name: string): string {
   return buildHeadless.trim().replace("{{name}}", name).replace("{{guide}}", buildTourPrompt(args))
@@ -48,7 +43,7 @@ export const PROMPT_HASH = createHash("sha256")
     JSON.stringify({
       buildHeadless,
       buildStopped,
-      buildTour,
+      GUIDE_PARTS,
       SERVER_INSTRUCTIONS,
       TOOL_DESCRIPTIONS,
     }),

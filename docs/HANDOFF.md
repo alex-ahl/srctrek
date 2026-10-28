@@ -27,7 +27,7 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3f: `--uncommitted`, for `trail` and `open_change`: each local range ending at HEAD
   ends at a snapshot of the working tree (a commit on top of HEAD under refs/codetrail,
   made with a temporary index), so tours of work in progress cite exact commits too.
-- Step 3g: the `build_tour` MCP prompt (`packages/core/prompts/build_tour.md`): how to choose
+- Step 3g: the `build_tour` MCP prompt (`packages/core/prompts/build_tour/`): how to choose
   a scenario, follow it in execution order, link steps with evidence, show its values, and
   flag only what matters; its `change` argument fills in `open_change`'s args. The same
   guide is the `tour_guide` tool, and the server's instructions say to read it first, so
@@ -51,6 +51,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3m: `--code[="trigger"]` for tours of code as it is: repos only, local ones at HEAD
   (or a snapshot with `--uncommitted`) unless pinned, the trigger kept on the resolved
   change. Status, naming, and building for them come next.
+- Step 3n: `trail --code` builds tours of code as it is: the guide opens for code (with the
+  trigger the user named, or one the agent picks) and shares its method with change tours;
+  code tours are named after the trigger or `<repo>-code` and found again only while their
+  repos are at the same revisions.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
@@ -134,6 +138,10 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
 - `calls` holds one step, so a function that steps into several (a handler calling five
   helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
+- Large repos: the read tools need caps (`list_files` one level by default, `read_file` and
+  `diff` capped), snapshots should start from the user's index so unchanged files aren't
+  rehashed, and the cache should fetch only the refs a tour needs. Editor worktrees should
+  check out only the files a tour visits (sparse checkout), with the editors in Milestone 6.
 - WSL not yet tested.
 - `bun test` would collect `*.test.ts` files inside eval fixtures.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under

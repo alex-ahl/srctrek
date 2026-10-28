@@ -16,7 +16,12 @@ export type TourStatus = Readonly<
 const LOG_TAIL_LINES = 8
 
 // No changed repo moved: a branch still at its branch point, or a range from a commit to itself.
+// Code as it is always has something to tour.
 function isEmpty(change: ResolvedChange): boolean {
+  if (change.code !== undefined) {
+    return false
+  }
+
   return change.repos
     .filter(hasRange)
     .every((repo) => repo.range.baseCommit === repo.range.headCommit)

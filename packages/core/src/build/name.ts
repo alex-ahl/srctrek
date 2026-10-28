@@ -56,8 +56,21 @@ async function headName(repo: RepoWithRange): Promise<string> {
   return head
 }
 
-/** A name for a new tour of the change, from its heads: "feature-refunds", "pr-12". */
+// A tour of code as it is is named after its trigger, or after its first repo when the agent
+// picks the trigger: "a-refund-request", "api-code".
+function codeTourName(change: ResolvedChange): string {
+  const trigger = change.code?.trigger
+  const named = trigger === undefined ? `${change.repos[0]?.name ?? "repo"}-code` : trigger
+
+  return slug(named) || "tour"
+}
+
+/** A name for a new tour, from the change's heads ("feature-refunds", "pr-12") or code tour. */
 export async function tourNameFor(change: ResolvedChange): Promise<string> {
+  if (change.code !== undefined) {
+    return codeTourName(change)
+  }
+
   const names = await Promise.all(change.repos.filter(hasRange).map(headName))
 
   return slug([...new Set(names)].join("-")) || "tour"

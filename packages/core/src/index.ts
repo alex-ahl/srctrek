@@ -66,7 +66,6 @@ export {
   PROMPT_HASH,
   SERVER_INSTRUCTIONS,
   TOOL_DESCRIPTIONS,
-  buildTourPrompt,
   headlessBuildPrompt,
 } from "./prompts"
 export { citationProblems } from "./build/citations"
@@ -84,3 +83,4 @@ export {
   type BuildState,
 } from "./build/background"
 export { tourStatus, type TourStatus } from "./build/status"
+export { buildTourPrompt } from "./guide"

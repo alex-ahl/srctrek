@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { buildState, startBuild, tourStatus } from "../../src"
+import { buildState, resolveChange, startBuild, tourStatus } from "../../src"
 import { changeOf, makeBranchRepo, saveTourOf } from "../support/branch"
+import { commit } from "../support/repo"
+import { makeCacheDir } from "../support/remote"
 
 async function untilEnded(root: string, name: string): Promise<void> {
   for (let tries = 0; tries < 100 && (await buildState(root, name)) === "building"; tries++) {
@@ -60,5 +62,31 @@ describe("tourStatus", () => {
       name: "feature-refunds",
       logTail: ["cannot reach the server"],
     })
+  })
+
+  test("a code tour is named after its trigger, found again, and rebuilt once the code moves on", async () => {
+    const dir = await makeBranchRepo()
+    const codeOf = async () =>
+      resolveChange(
+        dir,
+        {
+          changes: [],
+          unchanged: [{ source: "." }],
+          uncommitted: false,
+          code: { trigger: "a refund request" },
+        },
+        await makeCacheDir(),
+      )
+
+    expect(await tourStatus(dir, await codeOf())).toEqual({
+      kind: "missing",
+      name: "a-refund-request",
+    })
+
+    await saveTourOf(dir, await codeOf(), "a-refund-request")
+    expect((await tourStatus(dir, await codeOf())).kind).toBe("ready")
+
+    await commit(dir, "app.ts", "const total = 300\n")
+    expect((await tourStatus(dir, await codeOf())).kind).toBe("missing")
   })
 })

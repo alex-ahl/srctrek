@@ -26,7 +26,9 @@ bun packages/cli/src/main.ts    # in the repo whose tours you want to see
 
 Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set). Arguments
 are read as in `trail main...HEAD ../gateway`; a problem with them stops `trail` with a
-message. `--uncommitted` includes work not yet committed.
+message. `--uncommitted` includes work not yet committed. `--code` tours code as it is, to
+learn how it works: `trail --code="a refund request"` follows that trigger, and plain
+`trail --code` leaves the choice to your agent.
 
 The home screen lists the tours in the .codetrail/tours folder, with their step counts and
 high-severity flags; invalid tours are listed with the reason. Above them, it says where the
