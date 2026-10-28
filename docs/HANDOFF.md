@@ -88,6 +88,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   model save emits an event named from the model's kind, handled by a decorator in a plugin
   imported by name from settings; the change moves loyalty points to that event, and the bug
   (points awarded on every save) shows only in the unchanged checkout.
+- Step 3w: fixture `uploads`, in Go: the handler hands a job to worker goroutines over a channel,
+  the worker stores it through an interface whose implementation is picked from the
+  environment, and the change passes the request's context to the worker, which net/http
+  cancels once the handler answers.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

@@ -1,0 +1,39 @@
+{
+  "run": { "in": "server", "args": ["main...feature"] },
+  "scenario": "In production (STORE=disk), a client POSTs a file to /uploads?name=report.pdf, gets 202, and the file should be stored",
+  "route": [
+    { "repo": "server", "file": "upload/handler.go", "lines": [18, 30], "changed": true, "note": "the trigger: POST /uploads queues the job and answers 202" },
+    { "repo": "server", "file": "upload/worker.go", "lines": [15, 23], "changed": true, "note": "a worker goroutine takes the job off the channel" },
+    { "repo": "server", "file": "upload/worker.go", "lines": [25, 34], "changed": true },
+    { "repo": "server", "file": "codec/gzip.go", "lines": [12, 22], "changed": false, "note": "the encoder, picked by name from CODEC" },
+    { "repo": "server", "file": "store/disk.go", "lines": [15, 20], "changed": false, "note": "the Store picked by STORE=disk" }
+  ],
+  "links": [
+    {
+      "from": { "repo": "server", "file": "upload/handler.go" },
+      "to": { "repo": "server", "file": "upload/worker.go" },
+      "evidence": [{ "repo": "server", "file": "cmd/server/main.go", "line": 22 }],
+      "note": "no call: the handler sends on the channel main makes and hands to both the handler and the workers"
+    },
+    {
+      "from": { "repo": "server", "file": "upload/worker.go" },
+      "to": { "repo": "server", "file": "store/disk.go" },
+      "evidence": [
+        { "repo": "server", "file": "cmd/server/main.go", "line": 35 },
+        { "repo": "server", "file": "config/config.go", "line": 17 }
+      ],
+      "note": "st.Put on the Store interface; Disk satisfies it implicitly and is chosen from STORE"
+    }
+  ],
+  "bugs": [
+    {
+      "summary": "The job carries the request's context, which is cancelled once the handler answers 202, so disk uploads fail",
+      "files": [
+        { "repo": "server", "file": "upload/handler.go", "line": 25 },
+        { "repo": "server", "file": "upload/worker.go", "line": 31 },
+        { "repo": "server", "file": "store/disk.go", "line": 16 }
+      ],
+      "detail": "net/http cancels r.Context() when ServeHTTP returns, right after the 202; a worker that takes the job later derives its timeout from that cancelled context, and Disk.Put returns context.Canceled before writing. The upload is logged as failed and lost. Memory.Put ignores the context, so local runs and tests with the default STORE=memory never show it."
+    }
+  ]
+}
