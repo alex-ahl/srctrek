@@ -246,4 +246,27 @@ describe("building a tour over trail mcp", () => {
     const tour = await loadTour(saved.text.replace("saved ", ""))
     expect(tour.repos.map(({ name }) => name)).toEqual(["web", "payments"])
   })
+
+  test("from a folder inside the repo, a nearby repo is named by the path that opens it", async () => {
+    const parent = await tempDir("inside-")
+    const web = await featureRepoIn(join(parent, "web"))
+    const payments = join(parent, "payments")
+    await mkdir(payments)
+    await runGit(payments, ["init", "--quiet", "--initial-branch=main"])
+    await commit(payments, "charge.ts", "export const charged = 250\n")
+    client = new McpTestClient(join(web, "src"))
+    await client.initialize()
+
+    const opened = await client.call("open_change", { args: ["main...feature"] })
+    const nearby = opened.text.split("\n").at(-1)
+    expect(nearby).toBe("not opened, next to this repo: ../payments")
+
+    const proposed = await client.call("propose_repo", {
+      name: "payments",
+      source: "../payments",
+      reason: "the total is charged by the payments service",
+      evidence: [{ repo: "web", file: "src/app.ts", line: 1 }],
+    })
+    expect(proposed.text).toStartWith("Proposed payments and opened it")
+  })
 })

@@ -1,6 +1,6 @@
 import { readdir, realpath } from "node:fs/promises"
 import { basename, dirname, join, relative, resolve } from "node:path"
-import type { ResolvedChange } from "../change/resolve"
+import { type ResolvedChange, currentRepoTop } from "../change/resolve"
 import { runGit } from "../git/run"
 import { workBranches } from "./branch"
 import { gitDataOf } from "./git-files"
@@ -41,11 +41,14 @@ async function otherRepo(dir: string, own: string): Promise<string[]> {
   return gitData === undefined || gitData === own ? [] : [dir]
 }
 
-/** A repo next to the current one: its path from `cwd`, and the work's branch, if it has it. */
+/**
+ * A repo next to the current one: its path from the current repo's top, as a proposal's
+ * source is read, and the work's branch, if it has it.
+ */
 export type NearbyRepo = { path: string; branch?: string | undefined }
 
-async function nearbyRepo(cwd: string, dir: string, branches: string[]): Promise<NearbyRepo> {
-  const path = relative(cwd, dir)
+async function nearbyRepo(from: string, dir: string, branches: string[]): Promise<NearbyRepo> {
+  const path = relative(from, dir)
   for (const branch of branches) {
     if (await hasBranch(dir, branch)) {
       return { path, branch }
@@ -90,7 +93,8 @@ export async function nearbyRepos(cwd: string, change: ResolvedChange): Promise<
 
   const candidates = (await Promise.all(folders.map((dir) => otherRepo(dir, own)))).flat()
   const branches = await workBranches(cwd, change)
-  const repos = await inBatches(candidates.toSorted(), (dir) => nearbyRepo(cwd, dir, branches))
+  const from = await realpath((await currentRepoTop(cwd)) ?? cwd)
+  const repos = await inBatches(candidates.toSorted(), (dir) => nearbyRepo(from, dir, branches))
 
   return capped(repos)
 }

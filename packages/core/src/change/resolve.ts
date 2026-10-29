@@ -62,9 +62,11 @@ function atHead(repo: ChangedRepo): ResolvedRepo {
   return { ...repo, revision: repo.range.headCommit }
 }
 
-// The top of the repo trail runs in; none when it runs outside one, as with a pull request
-// given from anywhere.
-async function currentRepoTop(cwd: string): Promise<string | undefined> {
+/**
+ * The top of the repo trail runs in, which repo paths in the repos list and in proposals are
+ * relative to; none when it runs outside one, as with a pull request given from anywhere.
+ */
+export async function currentRepoTop(cwd: string): Promise<string | undefined> {
   try {
     return await runGit(cwd, ["rev-parse", "--show-toplevel"])
   } catch (error) {
