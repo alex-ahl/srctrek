@@ -97,3 +97,13 @@ export {
   triggersPath,
   type Trigger,
 } from "./build/triggers"
+export {
+  PROPOSED_REPOS,
+  ProposedRepoSchema,
+  acceptProposal,
+  dismissProposal,
+  loadProposals,
+  proposalProblems,
+  saveProposal,
+  type ProposedRepo,
+} from "./build/proposals"

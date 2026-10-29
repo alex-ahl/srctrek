@@ -1,5 +1,6 @@
 import {
   SubmittedStepSchema,
+  ProposedRepoSchema,
   TOOL_DESCRIPTIONS,
   TourHeaderSchema,
   TriggerSchema,
@@ -22,7 +23,16 @@ import {
 } from "./format"
 import { type SessionCell, apply } from "./cell"
 import type { Report } from "./report"
-import { addStepsTo, draftStepIds, finish, open, recordTriggers, repoIn, start } from "./session"
+import {
+  addStepsTo,
+  draftStepIds,
+  finish,
+  open,
+  proposeRepo,
+  recordTriggers,
+  repoIn,
+  start,
+} from "./session"
 import { wordsOf } from "./words"
 
 const repo = z.string().describe("a repo's name, as open_change lists it")
@@ -199,6 +209,19 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
       }
 
       return tell(`saved ${triggers.length} triggers to ${recorded.saved}`)
+    },
+  )
+
+  server.registerTool(
+    "propose_repo",
+    { description: TOOL_DESCRIPTIONS.propose_repo, inputSchema: ProposedRepoSchema },
+    async (proposal) => {
+      const recorded = await proposeRepo(cell.session, proposal)
+      if ("problems" in recorded) {
+        return refuse(`nothing was proposed:\n${recorded.problems.join("\n")}`)
+      }
+
+      return tell(`proposed ${proposal.name}: the user adds or dismisses it`)
     },
   )
 }

@@ -97,6 +97,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   flagged steps by severity. All four fixtures scored perfect under the old check. A fixture
   lists every line where its bug can fairly be flagged, and can mark a route entry optional
   (plumbing, or evidence the links check already scores); skipping one isn't a miss.
+- Step 3y: `propose_repo`: the agent proposes a repo the route leads into, with a name, a
+  source, a reason, and cited evidence; it's recorded in proposed-repos.json under .codetrail,
+  and only the user adds it to the repos list (`acceptProposal`) or dismisses it. The guide
+  ends a hop at the boundary and proposes the repo. Not yet on the home screen.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

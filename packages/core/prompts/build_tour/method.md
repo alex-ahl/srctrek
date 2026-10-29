@@ -6,6 +6,7 @@ Trace what runs, step by step, from trigger to outcome:
 - Include all the code the path runs through, changed or not; the reader needs it to understand the parts that matter. When there is a change, it marks which lines it touches.
 - `kind`: call when execution enters a function, including one reached from a return statement (`return render(turns)` is a call to `render`); return when execution comes back to code an earlier step showed, bringing a value; hop when it crosses to another process or repo (an HTTP request, a queued message, a job); context for code read to understand rather than executed.
 - When work happens later (a queue consumer, a scheduled job), follow it as a hop, in the order it runs.
+- When the route leads into a repo that wasn't opened (a service the code calls, a consumer of a message it sends), end the hop at the boundary and propose the repo with propose_repo.
 
 ## 4. Link every step with evidence
 

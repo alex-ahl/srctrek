@@ -1,6 +1,7 @@
 import {
   BUILD_STOPPED,
   type Draft,
+  type ProposedRepo,
   type ResolvedChange,
   type ResolvedRepo,
   type SubmittedStep,
@@ -12,10 +13,12 @@ import {
   directoryIn,
   draftToTour,
   newDraft,
+  proposalProblems,
   readChangeArguments,
   repoNamed,
   resolveChange,
   saveChangedLines,
+  saveProposal,
   saveTour,
   saveTriggers,
   stepIds,
@@ -158,4 +161,14 @@ export async function recordTriggers(session: Session, triggers: Trigger[]): Pro
   }
 
   return { saved: await saveTriggers(session.cwd, await tourNameFor(change), change, triggers) }
+}
+
+/** Records a repo the route leads into, for the user to add or dismiss. */
+export async function proposeRepo(session: Session, proposal: ProposedRepo): Promise<Finished> {
+  const problems = await proposalProblems(openChange(session), proposal)
+  if (problems.length > 0) {
+    return { problems }
+  }
+
+  return { saved: await saveProposal(session.cwd, proposal) }
 }

@@ -8,6 +8,7 @@ import diff from "../prompts/tools/diff.md" with { type: "text" }
 import finishTour from "../prompts/tools/finish_tour.md" with { type: "text" }
 import listFiles from "../prompts/tools/list_files.md" with { type: "text" }
 import openChange from "../prompts/tools/open_change.md" with { type: "text" }
+import proposeRepo from "../prompts/tools/propose_repo.md" with { type: "text" }
 import readFile from "../prompts/tools/read_file.md" with { type: "text" }
 import search from "../prompts/tools/search.md" with { type: "text" }
 import startTour from "../prompts/tools/start_tour.md" with { type: "text" }
@@ -27,6 +28,7 @@ export const TOOL_DESCRIPTIONS = {
   finish_tour: finishTour.trim(),
   tour_guide: tourGuide.trim(),
   record_triggers: recordTriggers.trim(),
+  propose_repo: proposeRepo.trim(),
 }
 
 /** What an agent is told about the server when it connects. */

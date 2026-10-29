@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, realpath, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { BUILD_LOG_ENV, BUILD_STOPPED, loadTour, runGit } from "@codetrail/core"
+import { BUILD_LOG_ENV, BUILD_STOPPED, loadProposals, loadTour, runGit } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
 
@@ -154,5 +154,30 @@ describe("building a tour over trail mcp", () => {
 
     const recorded = await client.call("record_triggers", { triggers: [trigger(1)] })
     expect(recorded.text).toMatch(/^saved 1 triggers to .*\/\.codetrail\/triggers\/.*-code\.json$/)
+  })
+
+  test("records a repo the route leads into, for the user to add, checking its evidence", async () => {
+    const dir = await makeFeatureRepo()
+    const repo = basename(dir)
+    client = new McpTestClient(dir)
+    await client.initialize()
+    await client.call("open_change", { args: ["main...feature"] })
+
+    const proposal = (line: number) => ({
+      name: "payments",
+      source: "git@example.test:shop/payments.git",
+      reason: "the total is sent to the payments service",
+      evidence: [{ repo, file: "src/app.ts", line }],
+    })
+
+    const wrong = await client.call("propose_repo", proposal(9))
+    expect(wrong).toEqual({
+      text: `nothing was proposed:\ncites ${repo}/src/app.ts:9, past its last line (2)`,
+      isError: true,
+    })
+
+    const proposed = await client.call("propose_repo", proposal(1))
+    expect(proposed.text).toBe("proposed payments: the user adds or dismisses it")
+    expect(await loadProposals(dir)).toEqual([proposal(1)])
   })
 })
