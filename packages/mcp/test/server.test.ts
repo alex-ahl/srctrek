@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
 import { basename, join } from "node:path"
 import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt, runGit } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
@@ -76,6 +77,21 @@ describe("trail mcp", () => {
     )
     expect((await client.call("diff", { repo: name })).text).toBe("modified src/app.ts")
     expect((await client.call("list_files", { repo: name, folder: "src" })).text).toBe("src/app.ts")
+  })
+
+  test("names the repos next to the current one that aren't opened", async () => {
+    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-around-")))
+    for (const name of ["web", "api"]) {
+      await mkdir(join(parent, name))
+      await runGit(join(parent, name), ["init", "--quiet", "--initial-branch=main"])
+      await commit(join(parent, name), "README.md", `${name}\n`)
+    }
+    client = new McpTestClient(join(parent, "web"))
+    await client.initialize()
+
+    const opened = await client.call("open_change", { args: ["--code"] })
+
+    expect(opened.text.split("\n").at(-1)).toBe("not opened, next to this repo: ../api")
   })
 
   test("offers the tour-building guide as a prompt, with the change filled in", async () => {

@@ -9,7 +9,8 @@ The terminal controller for a tour, built with OpenTUI and React.
 Does: show a home screen of tours and PRs awaiting review, a live view while a tour is
 built, and a route map of the whole trail; and step through a tour with a code panel for
 editors without a plugin. Today: lists the tours in the .codetrail/tours folder and opens the chosen
-one in Neovim.
+one in Neovim, and lists repos the agent proposed, for the user to add to the repos list or
+dismiss.
 
 Does not: talk to git or the model, or define the tour format. That is all in core.
 

@@ -8,6 +8,7 @@ import {
   changeFiles,
   changePatch,
   listFiles,
+  nearbyRepos,
   readLines,
   search,
 } from "@codetrail/core"
@@ -58,8 +59,10 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
     async ({ args }) => {
       const change = await apply(cell, (session) => open(session, args))
       await report(`opened ${change.repos.map(({ name }) => name).join(", ")}`)
+      // Started outside a git repo, as for a pull request alone, there's no folder to look around.
+      const nearby = await nearbyRepos(cell.session.cwd, change).catch(() => [])
 
-      return text(formatChange(change))
+      return text(formatChange(change, nearby))
     },
   )
 

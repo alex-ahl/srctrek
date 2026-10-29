@@ -1,4 +1,11 @@
-import { type TourStatus, buildFiles } from "@codetrail/core"
+import {
+  type ProposedRepo,
+  type TourStatus,
+  acceptProposal,
+  buildFiles,
+  dismissProposal,
+  loadProposals,
+} from "@codetrail/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { useEffect, useState } from "react"
@@ -33,14 +40,17 @@ type HomeProps = {
   change: HomeChange | undefined
   firstEntries: TourEntry[]
   firstStatus: TourStatus | undefined
+  firstProposals: ProposedRepo[]
   onOpen: (entry: TourEntry) => void
   onQuit: () => void
   onShowFile: (path: string) => void
 }
 
-function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowFile }: HomeProps) {
-  const [entries, setEntries] = useState(firstEntries)
-  const [status, setStatus] = useState(firstStatus)
+function Home(props: HomeProps) {
+  const { root, change, onOpen, onQuit, onShowFile } = props
+  const [entries, setEntries] = useState(props.firstEntries)
+  const [status, setStatus] = useState(props.firstStatus)
+  const [proposals, setProposals] = useState(props.firstProposals)
 
   // While the agent builds, check on it; when it ends, the tour list has changed too.
   const building = isBuilding(status)
@@ -53,6 +63,7 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
       const next = await change.status()
       if (next.kind !== "building") {
         setEntries(await loadTourEntries(root))
+        setProposals(await loadProposals(root))
       }
 
       setStatus(next)
@@ -63,6 +74,12 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
   }, [building, change, root])
 
   const showLog = async (name: string) => onShowFile((await buildFiles(root, name)).log)
+
+  // Adding or dismissing a proposed repo settles it, so it leaves the list.
+  const settle = async (settling: Promise<void>) => {
+    await settling
+    setProposals(await loadProposals(root))
+  }
 
   // Starts a build, then shows it as building straight away rather than at the next check.
   const started = async (start: Promise<void>) => {
@@ -83,6 +100,9 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
         buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
       }
       onShowLog={(name) => void showLog(name)}
+      proposals={proposals}
+      onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
+      onDismissRepo={(name) => void settle(dismissProposal(root, name))}
     />
   )
 }
@@ -94,6 +114,7 @@ function Home({ root, change, firstEntries, firstStatus, onOpen, onQuit, onShowF
 export async function startHome(root: string, change?: HomeChange): Promise<void> {
   const firstEntries = await loadTourEntries(root)
   const firstStatus = await change?.status()
+  const firstProposals = await loadProposals(root)
   const renderer = await createCliRenderer({ exitOnCtrlC: true })
 
   createRoot(renderer).render(
@@ -102,6 +123,7 @@ export async function startHome(root: string, change?: HomeChange): Promise<void
       change={change}
       firstEntries={firstEntries}
       firstStatus={firstStatus}
+      firstProposals={firstProposals}
       onOpen={(entry) => void openInNeovim(renderer, entry.path)}
       onShowFile={(path) => void openInPager(renderer, path)}
       onQuit={() => {

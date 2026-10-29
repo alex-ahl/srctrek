@@ -19,10 +19,13 @@ function describeRange(repo: ResolvedChange["repos"][number]): string {
 }
 
 /** "api  9c1e2f3  1a2b3c4..9c1e2f3 (since-branch-point)", one repo per line. */
-export function formatChange(change: ResolvedChange): string {
-  return change.repos
-    .map((repo) => `${repo.name}  ${repo.revision.slice(0, 7)}  ${describeRange(repo)}`)
-    .join("\n")
+export function formatChange(change: ResolvedChange, nearby: string[]): string {
+  const repos = change.repos.map(
+    (repo) => `${repo.name}  ${repo.revision.slice(0, 7)}  ${describeRange(repo)}`,
+  )
+  const others = nearby.length > 0 ? [`not opened, next to this repo: ${nearby.join(", ")}`] : []
+
+  return [...repos, ...others].join("\n")
 }
 
 /** One path per line, folders ending in "/", and a note when the listing was cut. */

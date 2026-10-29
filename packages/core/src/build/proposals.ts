@@ -7,12 +7,13 @@ import { placeProblem } from "./citations"
 
 /**
  * A repo the route leads into that the change doesn't include, proposed by the agent: the
- * name the code calls it by, where git can get it, and the lines that show the route goes
- * there. Only the user adds it to the repos list.
+ * name the code calls it by, where git can get it when the agent found out, and the lines that
+ * show the route goes there. Only the user adds it to the repos list, giving its location when
+ * the agent couldn't.
  */
 export const ProposedRepoSchema = z.object({
   name: z.string().regex(/^[\w.-]+$/, "a name of letters, digits, '.', '_' and '-'"),
-  source: z.string().min(1),
+  source: z.string().min(1).optional(),
   reason: z.string().min(1),
   evidence: z
     .array(
@@ -82,15 +83,23 @@ async function lineStart(path: string): Promise<string> {
   return text === "" || text.endsWith("\n") ? "" : "\n"
 }
 
-/** Adds the proposal named `name` to the repos list, under its name, and drops it. */
-export async function acceptProposal(root: string, name: string): Promise<void> {
+/**
+ * Adds the proposal named `name` to the repos list, under its name, at `source` when the
+ * user gives one, else where the agent found it; then drops the proposal.
+ */
+export async function acceptProposal(root: string, name: string, source?: string): Promise<void> {
   const proposal = (await loadProposals(root)).find((candidate) => candidate.name === name)
   if (proposal === undefined) {
     throw new Error(`no proposed repo named ${name}`)
   }
 
+  const location = source?.trim() || proposal.source
+  if (location === undefined) {
+    throw new Error(`say where ${name} lives: a path or a URL`)
+  }
+
   const list = join(root, REPOS_LIST)
   await mkdir(join(root, ".codetrail"), { recursive: true })
-  await appendFile(list, `${await lineStart(list)}${proposal.name} = ${proposal.source}\n`)
+  await appendFile(list, `${await lineStart(list)}${proposal.name} = ${location}\n`)
   await dismissProposal(root, name)
 }

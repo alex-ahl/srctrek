@@ -81,4 +81,20 @@ describe("proposed repos", () => {
     })
     expect(await loadProposals(dir)).toEqual([])
   })
+
+  test("without a source, are added only where the user says the repo lives", async () => {
+    const dir = await makeBranchRepo()
+    const { source: _, ...unknown } = payments("app", 1)
+    await saveProposal(dir, unknown)
+
+    const refused = await acceptProposal(dir, "payments").then(
+      () => "",
+      (error: unknown) => String(error),
+    )
+    expect(refused).toContain("say where payments lives")
+
+    await acceptProposal(dir, "payments", " ../payments ")
+
+    expect(await readReposList(dir)).toEqual([{ name: "payments", source: "../payments" }])
+  })
 })

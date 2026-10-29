@@ -74,10 +74,10 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   the repo is named after its folder.
 - While building, the agent proposes repos it finds on the route with `propose_repo`, citing
   the evidence (a client, a config value, a contract file, a dependency), with the source
-  when it knows it. With the user's approval the repo is appended to the repos list under its
-  name. Without a source, the agent can search the user's code host with its own tools and
-  propose the URL it finds, or ask the user where the repo lives; codetrail doesn't search
-  hosts itself.
+  when it finds it: `open_change` names git repos next to the current one as candidates, and
+  the agent can search the user's code host with its own tools; codetrail doesn't search hosts
+  itself. With the user's approval the repo is appended to the repos list under its name; for
+  a proposal without a source, the user gives the location when adding it.
 - A repo given or listed more than once, or listed and also changed, is kept once; two
   repos can't share a name, since steps name their repo.
 - Remote repos are cloned into a cache as partial bare clones with the user's git credentials.

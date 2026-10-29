@@ -100,7 +100,14 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3y: `propose_repo`: the agent proposes a repo the route leads into, with a name, a
   source, a reason, and cited evidence; it's recorded in proposed-repos.json under .codetrail,
   and only the user adds it to the repos list (`acceptProposal`) or dismisses it. The guide
-  ends a hop at the boundary and proposes the repo. Not yet on the home screen.
+  ends a hop at the boundary and proposes the repo.
+- Step 3z: proposed repos are the first rows on the home screen, with source and reason;
+  enter adds one to the repos list, d dismisses it. A tour already built doesn't take the new
+  repo until it's rebuilt.
+- Step 3aa: finding where a proposed repo lives: `open_change` names git repos next to the
+  current one that aren't opened (other worktrees of the same repo left out); the agent looks
+  there first, then on the code host with its own tools. When it finds nothing it proposes
+  without a source, and enter on that row asks the user for a path or URL.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
