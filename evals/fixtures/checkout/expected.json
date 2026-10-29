@@ -1,0 +1,37 @@
+{
+  "run": { "in": "shop", "args": ["main...feature"] },
+  "scenario": "Customer cus_42, with a saved card, presses \"Pay with saved card\" on a 499 SEK cart (totalOre 49900)",
+  "route": [
+    { "repo": "shop", "file": "src/main.ts", "lines": [16, 18], "changed": true, "note": "the trigger: the new button" },
+    { "repo": "shop", "file": "src/checkout.ts", "lines": [12, 15], "changed": true },
+    { "repo": "shop", "file": "src/clients/payments.ts", "lines": [15, 22], "changed": true, "note": "POST /charges/saved to PAYMENTS_URL" },
+    { "repo": "pay-backend", "file": "src/server.ts", "lines": [4, 19], "changed": false, "optional": true, "note": "dispatch by method and path" },
+    { "repo": "pay-backend", "file": "src/routes.ts", "lines": [6, 9], "changed": true },
+    { "repo": "pay-backend", "file": "src/handlers/saved-card.ts", "lines": [5, 13], "changed": true },
+    { "repo": "pay-backend", "file": "src/vault.ts", "lines": [4, 6], "changed": false }
+  ],
+  "links": [
+    {
+      "from": { "repo": "shop", "file": "src/clients/payments.ts" },
+      "to": { "repo": "pay-backend", "file": "src/handlers/saved-card.ts" },
+      "evidence": [
+        { "repo": "shop", "file": "src/config.ts", "line": 3 },
+        { "repo": "pay-backend", "file": "deploy/service.yaml", "line": 2 },
+        { "repo": "pay-backend", "file": "src/routes.ts", "line": 8 }
+      ],
+      "note": "the service the shop calls payments lives in a folder named pay-backend; its deploy file names it payments at payments.internal, and its routes have POST /charges/saved. The sibling named api is the admin API at api.internal, with no such route."
+    }
+  ],
+  "bugs": [
+    {
+      "summary": "The shop sends customer_id, the handler reads customerId, so every saved-card payment answers 404",
+      "files": [
+        { "repo": "shop", "file": "src/clients/payments.ts", "line": 19 },
+        { "repo": "pay-backend", "file": "src/handlers/saved-card.ts", "line": 6 },
+        { "repo": "pay-backend", "file": "src/handlers/saved-card.ts", "line": 8 }
+      ],
+      "detail": "body.customerId is undefined, String(undefined) is \"undefined\", the vault has no card for it, and the handler returns 404 { error: \"no saved card\" }; the shop's chargeSavedCard reads that as a Charge with no status, so the customer sees \"Your card was declined\"."
+    }
+  ],
+  "decoys": ["api"]
+}

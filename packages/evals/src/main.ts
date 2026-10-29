@@ -91,7 +91,7 @@ export async function runEval(
     tour: tourPath(root, TOUR_NAME),
   }
 
-  return formatReport(name, scoreTour(tour, expected), facts)
+  return formatReport(name, scoreTour(tour, expected, repo), facts)
 }
 
 // "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trail in that repo;

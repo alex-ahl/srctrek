@@ -1,0 +1,33 @@
+diff --git a/src/handlers/saved-card.ts b/src/handlers/saved-card.ts
+new file mode 100644
+index 0000000..211609e
+--- /dev/null
++++ b/src/handlers/saved-card.ts
+@@ -0,0 +1,13 @@
++import { charge } from "../provider"
++import { savedCardOf } from "../vault"
++
++// Charges the card a customer saved earlier.
++export async function chargeSavedCard(body: Record<string, unknown>) {
++  const cardToken = savedCardOf(String(body.customerId))
++  if (cardToken === undefined) {
++    return { status: 404, json: { error: "no saved card" } }
++  }
++
++  const result = await charge(cardToken, Number(body.amount_ore))
++  return { status: 201, json: result }
++}
+diff --git a/src/routes.ts b/src/routes.ts
+index 66cf06b..007594d 100644
+--- a/src/routes.ts
++++ b/src/routes.ts
+@@ -1,7 +1,9 @@
+ import { chargeNewCard } from "./handlers/new-card"
++import { chargeSavedCard } from "./handlers/saved-card"
+ 
+ export type Handler = (body: Record<string, unknown>) => Promise<{ status: number; json: unknown }>
+ 
+ export const routes: Record<string, Handler> = {
+   "POST /charges": chargeNewCard,
++  "POST /charges/saved": chargeSavedCard,
+ }

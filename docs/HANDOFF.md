@@ -127,6 +127,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   the last fetch, and the agent is told to say so in the tour.
 - Step 3af: `--reviewer` for the eval runner: a fixture's repos built as clones of stand-in
   hosts, the work only on `origin/feature`.
+- Step 3ag: fixture `checkout`: the service the shop calls `payments` lives in a folder named
+  `pay-backend`, beside a decoy `api` with similar routes and its own `feature` branch; the
+  planted bug is a field name that differs between the two sides. Runs start in `shop` alone.
+  Repos are scored by the folder they were read from, and decoys stepped into are reported.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

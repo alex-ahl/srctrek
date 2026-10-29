@@ -1,0 +1,38 @@
+diff --git a/src/charges.ts b/src/charges.ts
+index e0e04f4..c478404 100644
+--- a/src/charges.ts
++++ b/src/charges.ts
+@@ -5,3 +5,9 @@ const rows: ChargeRow[] = [{ charge_id: "ch_1", customer_id: "cus_42", amount_or
+ export async function listCharges(): Promise<ChargeRow[]> {
+   return rows
+ }
++
++// The same rows as a spreadsheet, for the monthly report.
++export async function chargesCsv(): Promise<string> {
++  const lines = rows.map((row) => `${row.charge_id},${row.customer_id},${row.amount_ore}`)
++  return ["charge_id,customer_id,amount_ore", ...lines].join("\n")
++}
+diff --git a/src/server.ts b/src/server.ts
+index 09b308e..fc269ad 100644
+--- a/src/server.ts
++++ b/src/server.ts
+@@ -1,5 +1,5 @@
+ import { createServer } from "node:http"
+-import { listCharges } from "./charges"
++import { chargesCsv, listCharges } from "./charges"
+ 
+ // The internal admin API: read-only views for the support team.
+ createServer(async (req, res) => {
+@@ -8,6 +8,12 @@ createServer(async (req, res) => {
+     return
+   }
+ 
++  if (req.method === "GET" && req.url === "/charges/export") {
++    res.setHeader("content-type", "text/csv")
++    res.end(await chargesCsv())
++    return
++  }
++
+   res.statusCode = 404
+   res.end()
+ }).listen(8080)

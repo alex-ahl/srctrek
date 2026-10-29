@@ -20,9 +20,14 @@ const ExpectedSchema = z.object({
     z.object({ from: Place, to: Place, evidence: z.array(Line).min(1), note: z.string() }),
   ),
   bugs: z.array(z.object({ summary: z.string(), files: z.array(Line).min(1) })),
+  // repos beside the route that a tour shouldn't step into, by folder
+  decoys: z.array(z.string()).default([]),
 })
 
-/** What a good tour of a fixture does: the route it walks, the links it cites, the bugs it finds. */
+/**
+ * What a good tour of a fixture does: the route it walks, the links it cites, the bugs it
+ * finds, the decoys it stays out of. Repos are named by their fixture folder.
+ */
 export type Expected = z.infer<typeof ExpectedSchema>
 export type ExpectedLine = z.infer<typeof Line>
 

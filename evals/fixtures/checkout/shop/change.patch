@@ -1,0 +1,64 @@
+diff --git a/src/checkout.ts b/src/checkout.ts
+index 471e126..1126607 100644
+--- a/src/checkout.ts
++++ b/src/checkout.ts
+@@ -1,4 +1,4 @@
+-import { chargeCard } from "./clients/payments"
++import { chargeCard, chargeSavedCard } from "./clients/payments"
+ 
+ export type Cart = { customerId: string; totalOre: number }
+ 
+@@ -7,3 +7,9 @@ export async function payWithNewCard(cart: Cart, cardToken: string): Promise<str
+   const charge = await chargeCard(cardToken, cart.totalOre)
+   return charge.status === "succeeded" ? "Thanks for your order" : "Your card was declined"
+ }
++
++// The "Pay with saved card" button: no card to type.
++export async function payWithSavedCard(cart: Cart): Promise<string> {
++  const charge = await chargeSavedCard(cart.customerId, cart.totalOre)
++  return charge.status === "succeeded" ? "Thanks for your order" : "Your card was declined"
++}
+diff --git a/src/clients/payments.ts b/src/clients/payments.ts
+index 7294bdc..d2866bb 100644
+--- a/src/clients/payments.ts
++++ b/src/clients/payments.ts
+@@ -10,3 +10,13 @@ export async function chargeCard(cardToken: string, amountOre: number): Promise<
+   })
+   return (await response.json()) as Charge
+ }
++
++// Charges the card the customer saved with us, so they needn't type it again.
++export async function chargeSavedCard(customerId: string, amountOre: number): Promise<Charge> {
++  const response = await fetch(`${config.paymentsUrl}/charges/saved`, {
++    method: "POST",
++    headers: { "content-type": "application/json" },
++    body: JSON.stringify({ customer_id: customerId, amount_ore: amountOre }),
++  })
++  return (await response.json()) as Charge
++}
+diff --git a/src/main.ts b/src/main.ts
+index b3f328f..3f5c9a1 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,7 +1,18 @@
+-import { payWithNewCard } from "./checkout"
++import { payWithNewCard, payWithSavedCard } from "./checkout"
++
++function cart() {
++  return JSON.parse(document.body.dataset.cart ?? "{}")
++}
++
++function show(message: string) {
++  document.querySelector("#status")!.textContent = message
++}
+ 
+ document.querySelector("#pay")?.addEventListener("click", async () => {
+-  const cart = JSON.parse(document.body.dataset.cart ?? "{}")
+   const token = (document.querySelector("#card-token") as HTMLInputElement).value
+-  document.querySelector("#status")!.textContent = await payWithNewCard(cart, token)
++  show(await payWithNewCard(cart(), token))
++})
++
++document.querySelector("#pay-saved")?.addEventListener("click", async () => {
++  show(await payWithSavedCard(cart()))
+ })

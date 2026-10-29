@@ -1,4 +1,4 @@
-import type { Tour, TourStep } from "@codetrail/core"
+import { type Tour, type TourStep, folderName, parseRepoEntry } from "@codetrail/core"
 import type { Expected, ExpectedLine } from "./expected"
 
 type RouteEntry = Expected["route"][number]
@@ -27,6 +27,8 @@ export type Score = {
   bugs: { summary: string; lines: LineFlag[] }[]
   // how many of the tour's steps carry a flag, by severity
   flags: { steps: number } & Record<Severity, number>
+  // the fixture's decoy repos the tour stepped into, and how many steps each
+  decoys: { repo: string; steps: number }[]
 }
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"]
@@ -126,9 +128,37 @@ function countFlags(steps: TourStep[]): Score["flags"] {
   }
 }
 
-/** Scores `tour` against what its fixture expects. */
-export function scoreTour(tour: Tour, expected: Expected): Score {
-  const { steps } = tour
+// The fixture folder a tour's repo was read from: the one trail ran in for ".", else the last
+// part of its source, so a repo the agent named "payments" is scored as "pay-backend".
+function folderOf(source: string, ranIn: string): string {
+  return source === "." ? ranIn : folderName(parseRepoEntry(source).source)
+}
+
+// The tour's steps with every repo, theirs and their cites', named by its fixture folder.
+function stepsByFolder(tour: Tour, ranIn: string): TourStep[] {
+  const folders = new Map(tour.repos.map((repo) => [repo.name, folderOf(repo.source, ranIn)]))
+  const folder = (name: string) => folders.get(name) ?? name
+
+  return tour.steps.map((step) => ({
+    ...step,
+    repo: folder(step.repo),
+    via: step.via && {
+      ...step.via,
+      cites: step.via.cites.map((cite) => ({ ...cite, repo: folder(cite.repo) })),
+    },
+  }))
+}
+
+function decoysVisited(steps: TourStep[], decoys: string[]): Score["decoys"] {
+  return decoys.flatMap((repo) => {
+    const visits = steps.filter((step) => step.repo === repo).length
+    return visits > 0 ? [{ repo, steps: visits }] : []
+  })
+}
+
+/** Scores `tour`, built from `ranIn`, against what its fixture expects. */
+export function scoreTour(tour: Tour, expected: Expected, ranIn = expected.run.in): Score {
+  const steps = stepsByFolder(tour, ranIn)
 
   return {
     route: scoreRoute(steps, expected.route),
@@ -138,5 +168,6 @@ export function scoreTour(tour: Tour, expected: Expected): Score {
       lines: bug.files.map((line) => lineFlag(steps, line)),
     })),
     flags: countFlags(steps),
+    decoys: decoysVisited(steps, expected.decoys),
   }
 }

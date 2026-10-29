@@ -65,6 +65,14 @@ function bugLines(bugs: Score["bugs"]): string[] {
   })
 }
 
+function decoyLines(decoys: Score["decoys"]): string[] {
+  if (decoys.length === 0) {
+    return []
+  }
+
+  return decoys.map(({ repo, steps }) => `✗ stepped into ${repo} (${steps} steps)`)
+}
+
 function flagLines({ steps, high, medium, low }: Score["flags"]): string[] {
   const flagged = high + medium + low
 
@@ -79,6 +87,7 @@ export function formatReport(name: string, score: Score, facts: RunFacts): strin
     ...section("Route", routeLines(score.route)),
     ...section("Links", linkLines(score.links)),
     ...section("Bugs", bugLines(score.bugs)),
+    ...section("Decoys", decoyLines(score.decoys)),
     ...section("Flags", flagLines(score.flags)),
     "",
     ...section("Agent", agentNumbers(facts.agentSummary)),

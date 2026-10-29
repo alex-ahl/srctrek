@@ -119,4 +119,21 @@ describe("scoreTour", () => {
     expect(scoreTour(guessed, expected).links[0]?.found).toBe("guessed")
     expect(scoreTour(withVia(null), expected).links[0]?.found).toBe("no evidence")
   })
+
+  test("scores a repo by the folder it was read from, whatever the tour named it", () => {
+    const renamed = (name: string) => (name === "api" ? "payments" : name)
+    const tour: Tour = {
+      ...refundTour,
+      repos: refundTour.repos.map((repo) => ({ ...repo, name: renamed(repo.name) })),
+      steps: refundTour.steps.map((step) => ({ ...step, repo: renamed(step.repo) })),
+    }
+
+    expect(scoreTour(tour, expected).route).toMatchObject({ found: 10, total: 10, missing: [] })
+  })
+
+  test("names the decoys a tour stepped into, and how often", () => {
+    const withDecoy = { ...expected, decoys: ["worker", "docs"] }
+
+    expect(scoreTour(refundTour, withDecoy).decoys).toEqual([{ repo: "worker", steps: 6 }])
+  })
 })

@@ -1,0 +1,3 @@
+# Deployed as the payments service: other services reach it at http://payments.internal:8080
+name: payments
+port: 8080
