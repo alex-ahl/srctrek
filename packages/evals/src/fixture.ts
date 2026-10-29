@@ -61,6 +61,27 @@ export async function buildFixture(name: string, { asReviewer = false } = {}): P
   return { repos: Object.fromEntries(repoNames.map((repo) => [repo, join(root, repo)])), dir }
 }
 
+/**
+ * Commits each repo's follow-up, where the fixture has one (`<repo>/followup.patch`): a later
+ * commit on the work's branch, which leaves a tour of it stale. The repos it touched, by name.
+ */
+export async function applyFollowups(fixture: Fixture): Promise<string[]> {
+  const touched = await Promise.all(
+    Object.entries(fixture.repos).map(async ([repo, dir]) => {
+      const patch = join(fixture.dir, repo, "followup.patch")
+      if (!(await Bun.file(patch).exists())) {
+        return []
+      }
+
+      await runGit(dir, ["apply", patch])
+      await commitAll(dir, "follow-up")
+      return [repo]
+    }),
+  )
+
+  return touched.flat()
+}
+
 /** The fixtures under evals/fixtures, by name. */
 export async function fixtureNames(): Promise<string[]> {
   const entries = await readdir(FIXTURES, { withFileTypes: true })

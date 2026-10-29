@@ -1,0 +1,13 @@
+diff --git a/src/handlers/refunds.ts b/src/handlers/refunds.ts
+index b69967f..86ff7a2 100644
+--- a/src/handlers/refunds.ts
++++ b/src/handlers/refunds.ts
+@@ -10,7 +10,7 @@ export const createRefund: Handler = async ({ body }) => {
+   const order = typeof order_id === "string" ? db.orders.get(order_id) : undefined
+   if (!order) return { status: 404 }
+   if (typeof amount !== "number" || !Number.isInteger(amount) || amount <= 0 || amount > order.total_minor) {
+-    return { status: 400, body: { error: "amount must be a positive integer no larger than the order total" } }
++    return { status: 400, body: { error: "amount must be in minor units: a positive integer no larger than the order total" } }
+   }
+ 
+   const refund = { id: `r_${randomUUID()}`, order_id: order.id, amount_minor: amount, status: "requested" as const }

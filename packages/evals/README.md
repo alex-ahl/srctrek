@@ -12,7 +12,7 @@ agent in `CODETRAIL_AGENT` there as a background build does, wait for it, and re
 reached and its order, how each expected link was cited, how strongly steps flag each bug line, how many steps carry flags, any decoy repos the tour stepped into, the time
 taken, and the agent's last line of output: its numbers, when it is JSON.
 
-Run it with `bun packages/evals/src/main.ts <fixture>`, or `… <fixture> <repo> <trail args>` to start in one repo, such as `refund web main...feature`, leaving the others for the agent to find. `--reviewer` builds the repos as clones of stand-in hosts, the work only on `origin/feature`, as a reviewer has it: `refund --reviewer web origin/main...origin/feature`. Each run spends the agent's tokens; it
+Run it with `bun packages/evals/src/main.ts <fixture>`, or `… <fixture> <repo> <trail args>` to start in one repo, such as `refund web main...feature`, leaving the others for the agent to find. `--reviewer` builds the repos as clones of stand-in hosts, the work only on `origin/feature`, as a reviewer has it: `refund --reviewer web origin/main...origin/feature`. `--update` then commits the fixture's follow-ups (`<repo>/followup.patch`) and has the agent update the tour, reporting both runs: `refund --update`. Each run spends the agent's tokens; it
 is not part of `bun run check`.
 
 Does not: judge narration, or count tokens itself.

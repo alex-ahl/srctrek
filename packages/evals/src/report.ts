@@ -3,13 +3,20 @@ import type { LineFlag, LinkFound, Score } from "./score"
 
 type RouteEntry = Score["route"]["missing"][number]
 
-/** What a run took, besides the tour: how long, and what the agent said last. */
+/** What an update took: how long, how many steps it carried over or redid, the agent's last line. */
+export type UpdateFacts = { seconds: number; kept: number; redo: number; agentSummary: string }
+
+/**
+ * What a run took, besides the tour: how long, and what the agent said last; and, when the
+ * tour was then updated, what the update took.
+ */
 export type RunFacts = {
   seconds: number
   steps: number
   agentSummary: string
   log: string
   tour: string
+  update?: UpdateFacts | undefined
 }
 
 const LABEL_WIDTH = 8
@@ -79,6 +86,18 @@ function flagLines({ steps, high, medium, low }: Score["flags"]): string[] {
   return [`${flagged}/${steps} steps: ${high} high, ${medium} medium, ${low} low`]
 }
 
+// The update: what carried over, how long it took, and the agent's numbers for it.
+function updateLines(update: UpdateFacts | undefined): string[] {
+  if (update === undefined) {
+    return []
+  }
+
+  const { kept, redo, seconds, agentSummary } = update
+  const summary = `${kept} steps carried over, ${redo} redone · ${seconds} s`
+
+  return section("Update", [summary, ...agentNumbers(agentSummary)])
+}
+
 /** The eval's report: the score, then what the run took. */
 export function formatReport(name: string, score: Score, facts: RunFacts): string {
   return [
@@ -90,7 +109,8 @@ export function formatReport(name: string, score: Score, facts: RunFacts): strin
     ...section("Decoys", decoyLines(score.decoys)),
     ...section("Flags", flagLines(score.flags)),
     "",
-    ...section("Agent", agentNumbers(facts.agentSummary)),
+    ...section(facts.update === undefined ? "Agent" : "Build", agentNumbers(facts.agentSummary)),
+    ...updateLines(facts.update),
     ...section("Tour", [facts.tour]),
     ...section("Log", [facts.log]),
   ].join("\n")

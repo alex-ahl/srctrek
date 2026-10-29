@@ -139,6 +139,8 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   rest with why; redone steps go back to their places, and `finish_tour` takes a revised title,
   overview, or outcome. A step whose own files are unchanged can still be wrong when code it
   calls changed; the agent is told to look over steps next to the ones it redid.
+- Step 3aj: `--update` for the eval runner: build, commit the fixture's follow-ups, update, and
+  report both runs; `refund` has one (an error message changed in place in api's handler).
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

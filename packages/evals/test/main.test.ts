@@ -53,4 +53,23 @@ describe("runEval", () => {
       /^[0-9a-f]{40}$/,
     )
   })
+
+  test("with --update, commits the follow-ups, updates the tour, and reports both runs", async () => {
+    const report = await runEval("refund", await fakeAgent(), { update: true })
+
+    expect(report).toContain("Build   used 1234 tokens")
+    expect(report).toMatch(
+      /Update  \d+ steps carried over, \d+ redone · \d+ s\n        used 1234 tokens/,
+    )
+    // two builds, each polled every two seconds
+  }, 20_000)
+
+  test("refuses --update on a fixture with no follow-up", async () => {
+    const failure = await runEval("expire", await fakeAgent(), { update: true }).then(
+      () => "",
+      (error: unknown) => String(error),
+    )
+
+    expect(failure).toContain("no followup.patch")
+  })
 })
