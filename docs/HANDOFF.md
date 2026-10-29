@@ -94,7 +94,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   cancels once the handler answers.
 - Step 3x: a bug counts as found only when a step flagged high covers one of its lines (a bug
   line merely inside a step was met by every route-following tour); the report also counts
-  flagged steps by severity. All four fixtures scored perfect under the old check.
+  flagged steps by severity. All four fixtures scored perfect under the old check. A fixture
+  lists every line where its bug can fairly be flagged, and can mark a route entry optional
+  (plumbing, or evidence the links check already scores); skipping one isn't a miss.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

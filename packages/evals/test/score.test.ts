@@ -13,12 +13,21 @@ function withoutStepsIn(tour: Tour, file: string): Tour {
 }
 
 describe("scoreTour", () => {
-  test("gives the hand-made refund tour the whole route, both links, every bug line flagged high", () => {
+  test("gives the hand-made refund tour the whole route, both links, the bug flagged high", () => {
     const score = scoreTour(refundTour, expected)
 
-    expect(score.route).toMatchObject({ found: 11, total: 11, inOrder: true, missing: [] })
+    expect(score.route).toMatchObject({
+      found: 10,
+      total: 10,
+      inOrder: true,
+      missing: [],
+      skipped: [],
+    })
     expect(score.links.map(({ found }) => found)).toEqual(["cited", "cited"])
-    expect(score.bugs.map(({ lines }) => lines)).toEqual([["high", "high", "high"]])
+    // orders.ts, actions.ts, web refunds.ts, api refunds.ts, worker refunds.py
+    expect(score.bugs.map(({ lines }) => lines)).toEqual([
+      ["high", "low", "medium", "high", "high"],
+    ])
     expect(score.flags).toEqual({ steps: 20, high: 4, medium: 5, low: 4 })
   })
 
@@ -34,15 +43,15 @@ describe("scoreTour", () => {
     const linesOf = (steps: TourStep[]) =>
       scoreTour({ ...refundTour, steps }, expected).bugs[0]?.lines
 
-    expect(linesOf(unflagged)).toEqual(["unflagged", "unflagged", "unflagged"])
-    expect(linesOf(lower)).toEqual(["medium", "medium", "medium"])
-    expect(linesOf(withoutWorker)).toEqual(["high", "high", "not in a step"])
+    expect(linesOf(unflagged)).toEqual(Array(5).fill("unflagged"))
+    expect(linesOf(lower)).toEqual(["medium", "medium", "medium", "medium", "medium"])
+    expect(linesOf(withoutWorker)).toEqual(["high", "low", "medium", "high", "not in a step"])
   })
 
   test("names a route entry no step reaches, and a link whose target is never reached", () => {
     const score = scoreTour(withoutStepsIn(refundTour, "worker/handlers/refunds.py"), expected)
 
-    expect(score.route.found).toBe(10)
+    expect(score.route.found).toBe(9)
     expect(score.route.missing.map(({ file }) => file)).toEqual(["worker/handlers/refunds.py"])
     expect(score.links.map(({ found }) => found)).toEqual(["cited", "not reached"])
   })
@@ -80,6 +89,13 @@ describe("scoreTour", () => {
       found: 4,
       inOrder: true,
     })
+  })
+
+  test("tells an optional entry skipped from a required one missed", () => {
+    const route = scoreTour(withoutStepsIn(refundTour, "openapi.json"), expected).route
+
+    expect(route).toMatchObject({ found: 10, total: 10, missing: [] })
+    expect(route.skipped.map(({ file }) => file)).toEqual(["openapi.json"])
   })
 
   test("sees a route walked out of order", () => {

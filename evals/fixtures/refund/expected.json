@@ -10,7 +10,7 @@
     { "repo": "web", "file": "src/refunds.ts", "lines": [5, 7], "changed": true },
     { "repo": "web", "file": "src/api.ts", "lines": [9, 17], "changed": false },
     { "repo": "api", "file": "src/server.ts", "lines": [33, 44], "changed": false, "kind": "hop" },
-    { "repo": "api", "file": "openapi.json", "lines": [31, 55], "changed": true, "note": "operationId routing" },
+    { "repo": "api", "file": "openapi.json", "lines": [31, 55], "changed": true, "optional": true, "note": "operationId routing" },
     { "repo": "api", "file": "src/handlers/refunds.ts", "lines": [8, 20], "changed": true },
     { "repo": "api", "file": "src/bus.ts", "lines": [7, 11], "changed": false },
     { "repo": "worker", "file": "worker/main.py", "lines": [16, 22], "changed": false, "kind": "hop" },
@@ -39,6 +39,8 @@
       "summary": "Refund amount sent in major units where minor units are expected",
       "files": [
         { "repo": "web", "file": "src/orders.ts", "line": 24 },
+        { "repo": "web", "file": "src/actions.ts", "line": 10 },
+        { "repo": "web", "file": "src/refunds.ts", "line": 6 },
         { "repo": "api", "file": "src/handlers/refunds.ts", "line": 12 },
         { "repo": "worker", "file": "worker/handlers/refunds.py", "line": 9 }
       ],

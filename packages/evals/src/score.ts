@@ -15,7 +15,14 @@ export type LineFlag = Severity | "unflagged" | "not in a step"
 
 /** How a tour measures up to what its fixture expects. */
 export type Score = {
-  route: { found: number; total: number; inOrder: boolean; missing: RouteEntry[] }
+  // found and total count the entries a tour must reach; skipped are optional ones it left out
+  route: {
+    found: number
+    total: number
+    inOrder: boolean
+    missing: RouteEntry[]
+    skipped: RouteEntry[]
+  }
   links: { link: Link; found: LinkFound }[]
   bugs: { summary: string; lines: LineFlag[] }[]
   // how many of the tour's steps carry a flag, by severity
@@ -56,13 +63,15 @@ function isWalkedInOrder(steps: TourStep[], entries: RouteEntry[]): boolean {
 
 function scoreRoute(steps: TourStep[], route: RouteEntry[]): Score["route"] {
   const isReached = (entry: RouteEntry) => steps.some((step) => overlaps(step, entry))
-  const reached = route.filter(isReached)
+  const required = route.filter((entry) => entry.optional !== true)
+  const notReached = route.filter((entry) => !isReached(entry))
 
   return {
-    found: reached.length,
-    total: route.length,
-    inOrder: isWalkedInOrder(steps, reached),
-    missing: route.filter((entry) => !isReached(entry)),
+    found: required.filter(isReached).length,
+    total: required.length,
+    inOrder: isWalkedInOrder(steps, route.filter(isReached)),
+    missing: notReached.filter((entry) => entry.optional !== true),
+    skipped: notReached.filter((entry) => entry.optional === true),
   }
 }
 

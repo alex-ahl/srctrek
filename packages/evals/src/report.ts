@@ -1,6 +1,8 @@
 import { agentNumbers } from "./agent-numbers"
 import type { LineFlag, LinkFound, Score } from "./score"
 
+type RouteEntry = Score["route"]["missing"][number]
+
 /** What a run took, besides the tour: how long, and what the agent said last. */
 export type RunFacts = {
   seconds: number
@@ -29,11 +31,11 @@ function linkOk(found: LinkFound): boolean {
 
 function routeLines(route: Score["route"]): string[] {
   const order = route.inOrder ? "in order" : "out of order"
-  const missing = route.missing.map(
-    (entry) => `✗ ${entry.repo} ${entry.file} ${entry.lines.join("–")}`,
-  )
+  const place = (entry: RouteEntry) => `${entry.repo} ${entry.file} ${entry.lines.join("–")}`
+  const missing = route.missing.map((entry) => `✗ ${place(entry)}`)
+  const skipped = route.skipped.map((entry) => `· ${place(entry)} (optional, skipped)`)
 
-  return [`${route.found}/${route.total} reached, ${order}`, ...missing]
+  return [`${route.found}/${route.total} reached, ${order}`, ...missing, ...skipped]
 }
 
 function linkLines(links: Score["links"]): string[] {

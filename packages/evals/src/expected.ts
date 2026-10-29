@@ -12,6 +12,8 @@ const ExpectedSchema = z.object({
     Place.extend({
       lines: z.tuple([z.number().int().positive(), z.number().int().positive()]),
       note: z.string().optional(),
+      // plumbing or evidence a good tour may leave out; skipping it isn't a miss
+      optional: z.boolean().optional(),
     }),
   ),
   links: z.array(

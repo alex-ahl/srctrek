@@ -5,7 +5,7 @@
     { "repo": "server", "file": "upload/handler.go", "lines": [18, 30], "changed": true, "note": "the trigger: POST /uploads queues the job and answers 202" },
     { "repo": "server", "file": "upload/worker.go", "lines": [15, 23], "changed": true, "note": "a worker goroutine takes the job off the channel" },
     { "repo": "server", "file": "upload/worker.go", "lines": [25, 34], "changed": true },
-    { "repo": "server", "file": "codec/gzip.go", "lines": [12, 22], "changed": false, "note": "the encoder, picked by name from CODEC" },
+    { "repo": "server", "file": "codec/gzip.go", "lines": [12, 22], "changed": false, "optional": true, "note": "the encoder, picked by name from CODEC" },
     { "repo": "server", "file": "store/disk.go", "lines": [15, 20], "changed": false, "note": "the Store picked by STORE=disk" }
   ],
   "links": [

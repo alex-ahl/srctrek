@@ -21,7 +21,7 @@ describe("runEval", () => {
   test("runs the agent in the fixture, then scores the tour it saved", async () => {
     const report = await runEval("refund", await fakeAgent())
 
-    expect(report).toContain("Route   11/11 reached, in order")
+    expect(report).toContain("Route   10/10 reached, in order")
     expect(report).toContain("Agent   used 1234 tokens")
   })
 
