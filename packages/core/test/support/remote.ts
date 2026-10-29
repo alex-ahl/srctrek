@@ -1,8 +1,6 @@
-import { mkdtemp } from "node:fs/promises"
-import { tmpdir } from "node:os"
-import { join } from "node:path"
 import { runGit } from "../../src"
 import { commit, makeRepo } from "./repo"
+import { tempDir } from "./temp"
 
 export type Remote = { url: string; dir: string; main: string; prHead: string }
 
@@ -25,5 +23,5 @@ export async function makeRemote(): Promise<Remote> {
 }
 
 export async function makeCacheDir(): Promise<string> {
-  return mkdtemp(join(tmpdir(), "codetrail-cache-"))
+  return tempDir("cache-")
 }

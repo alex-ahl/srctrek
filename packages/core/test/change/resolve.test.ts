@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join, relative } from "node:path"
 import {
   type ChangeArguments,
@@ -15,6 +14,7 @@ import {
 import { commit, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
 import { makeCacheDir, makeRemote } from "../support/remote"
+import { tempDir } from "../support/temp"
 
 async function writeReposList(repo: string, text: string): Promise<void> {
   await mkdir(join(repo, ".codetrail"))
@@ -127,7 +127,7 @@ describe("resolveChange", () => {
 
   test("resolves a pull request from outside any repo", async () => {
     const remote = await makeRemote()
-    const outside = await mkdtemp(join(tmpdir(), "codetrail-outside-"))
+    const outside = await tempDir("outside-")
     const pr = { kind: "pull-request" as const, pr: pullRequestAt(remote.url) }
     const args = { changes: [pr], unchanged: [], uncommitted: false }
     const { repos } = await resolveChange(outside, args, await makeCacheDir())
@@ -180,7 +180,7 @@ describe("a project folder that keeps a bare repo beside its worktrees", () => {
     const { dir } = await makeFeatureRepo()
     const source = await makeRepo()
     const head = await commit(source, "charge.ts", "charged\n")
-    const parent = await mkdtemp(join(tmpdir(), "codetrail-project-"))
+    const parent = await tempDir("project-")
     const project = join(parent, "payments")
     await mkdir(project)
     await runGit(project, ["clone", "--quiet", "--bare", source, ".bare"])

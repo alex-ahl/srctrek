@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { mkdir, realpath, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
 import {
   BUILD_LOG_ENV,
@@ -13,6 +12,7 @@ import {
 } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
+import { tempDir } from "../../core/test/support/temp"
 
 // A repo on a feature branch that changes line 1 of src/app.ts.
 async function makeFeatureRepo(): Promise<string> {
@@ -205,7 +205,7 @@ describe("building a tour over trail mcp", () => {
   })
 
   test("opens a proposed repo it can find, so the tour goes on into it and records it", async () => {
-    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-route-")))
+    const parent = await tempDir("route-")
     const web = await featureRepoIn(join(parent, "web"))
     const payments = join(parent, "payments")
     await mkdir(payments)

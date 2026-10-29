@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtemp, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import {
   type Tour,
@@ -12,6 +11,7 @@ import {
   tourPath,
 } from "../src"
 import { rejection } from "./support/rejection"
+import { tempDir } from "./support/temp"
 
 const fixturePath = join(import.meta.dir, "fixtures/refund-tour.json")
 const fixture = parseTour(await Bun.file(fixturePath).json(), fixturePath)
@@ -161,26 +161,26 @@ describe("parseTour", () => {
 
 describe("saving and loading", () => {
   test("round-trips a tour and lists it", async () => {
-    const root = await mkdtemp(join(tmpdir(), "codetrail-"))
+    const root = await tempDir("tours-")
     const path = await saveTour(root, "refund", refundTour())
     expect(await loadTour(path)).toEqual(refundTour())
     expect(await listTours(root)).toEqual(["refund"])
   })
 
   test("skips files that aren't named like tours", async () => {
-    const root = await mkdtemp(join(tmpdir(), "codetrail-"))
+    const root = await tempDir("tours-")
     await saveTour(root, "refund", refundTour())
     await writeFile(join(root, ".codetrail/tours/refund.changed.json"), "{}")
     expect(await listTours(root)).toEqual(["refund"])
   })
 
   test("lists nothing when no tours were saved", async () => {
-    const root = await mkdtemp(join(tmpdir(), "codetrail-"))
+    const root = await tempDir("tours-")
     expect(await listTours(root)).toEqual([])
   })
 
   test("refuses to save an invalid tour", async () => {
-    const root = await mkdtemp(join(tmpdir(), "codetrail-"))
+    const root = await tempDir("tours-")
     const tour = refundTour()
     step(tour, "s2").via = null
     expect(await rejection(saveTour(root, "broken", tour))).toBeInstanceOf(TourValidationError)
@@ -188,7 +188,7 @@ describe("saving and loading", () => {
   })
 
   test("reports a file that isn't JSON", async () => {
-    const root = await mkdtemp(join(tmpdir(), "codetrail-"))
+    const root = await tempDir("tours-")
     const path = join(root, "bad.json")
     await writeFile(path, "{ not json")
     expect(await rejection(loadTour(path))).toBeInstanceOf(TourValidationError)

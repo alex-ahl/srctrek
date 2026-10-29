@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test"
-import { mkdtemp, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { runEval } from "../src/main"
+import { tempDir } from "../../core/test/support/temp"
 
 const refundTour = join(import.meta.dir, "../../core/test/fixtures/refund-tour.json")
 
 // An agent that saves the hand-made tour and prints a usage line, ignoring its instruction.
 async function fakeAgent(): Promise<string> {
-  const script = join(await mkdtemp(join(tmpdir(), "codetrail-agent-")), "agent.sh")
+  const script = join(await tempDir("agent-"), "agent.sh")
   await writeFile(
     script,
     `mkdir -p .codetrail/tours\ncp '${refundTour}' .codetrail/tours/eval.json\necho 'used 1234 tokens'\n`,

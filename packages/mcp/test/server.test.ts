@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
 import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt, runGit } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { z } from "zod"
 import { McpTestClient } from "./mcp-client"
+import { tempDir } from "../../core/test/support/temp"
 
 const PromptListSchema = z.object({
   prompts: z.array(
@@ -80,7 +80,7 @@ describe("trail mcp", () => {
   })
 
   test("names the repos next to the current one that aren't opened", async () => {
-    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-around-")))
+    const parent = await tempDir("around-")
     for (const name of ["web", "api"]) {
       await mkdir(join(parent, name))
       await runGit(join(parent, name), ["init", "--quiet", "--initial-branch=main"])

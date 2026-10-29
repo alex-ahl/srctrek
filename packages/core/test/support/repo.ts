@@ -1,14 +1,19 @@
-import { mkdtemp, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { mkdir, writeFile } from "node:fs/promises"
+import { basename, join } from "node:path"
 import { runGit } from "../../src"
+import { tempDir } from "./temp"
 
 // Commits need an identity; CI machines have none configured.
 const IDENTITY = ["-c", "user.name=test", "-c", "user.email=test@example.test"]
 
-/** A new repo on branch `main` with one commit. */
+/**
+ * A new repo on branch `main` with one commit, alone in its own folder, so nothing beside it
+ * looks like a neighbouring repo. Its folder name is unique, as repos are named after it.
+ */
 export async function makeRepo(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "codetrail-git-"))
+  const parent = await tempDir("git-")
+  const dir = join(parent, basename(parent))
+  await mkdir(dir)
   await runGit(dir, ["init", "--quiet", "--initial-branch=main"])
   await commit(dir, "README.md", "base\n")
   return dir

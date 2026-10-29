@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { type ChangeArguments, nearbyRepos, parseRange, resolveChange, runGit } from "../../src"
 import { commit } from "../support/repo"
 import { makeCacheDir } from "../support/remote"
+import { tempDir } from "../support/temp"
 
 async function repoIn(parent: string, name: string): Promise<string> {
   const dir = join(parent, name)
@@ -26,7 +26,7 @@ async function changeOf(dir: string, args: Partial<ChangeArguments>) {
 
 describe("nearbyRepos", () => {
   test("names the other repos beside the current one, leaving out opened ones, worktrees of the same repo, and plain folders", async () => {
-    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-nearby-")))
+    const parent = await tempDir("nearby-")
     const web = await repoIn(parent, "web")
     await repoIn(parent, "api")
     await repoIn(parent, "worker")
@@ -46,7 +46,7 @@ describe("nearbyRepos", () => {
   })
 
   test("says which have a branch the work is on: the range's head, or HEAD's branch, never the base", async () => {
-    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-nearby-")))
+    const parent = await tempDir("nearby-")
     const web = await repoIn(parent, "web")
     await onBranch(web, "feature")
     await onBranch(await repoIn(parent, "api"), "feature")
@@ -74,7 +74,7 @@ describe("nearbyRepos", () => {
   })
 
   test("lists repos on the work's branch first", async () => {
-    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-nearby-")))
+    const parent = await tempDir("nearby-")
     const web = await repoIn(parent, "web")
     await onBranch(web, "feature")
     await repoIn(parent, "api")
@@ -89,7 +89,7 @@ describe("nearbyRepos", () => {
   })
 
   test("looks around a project folder that keeps a bare repo beside its worktrees", async () => {
-    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-nearby-")))
+    const parent = await tempDir("nearby-")
     const source = await repoIn(parent, "source")
     const project = join(parent, "web")
     await mkdir(project)

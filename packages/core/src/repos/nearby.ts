@@ -3,10 +3,25 @@ import { basename, dirname, join, relative, resolve } from "node:path"
 import type { ResolvedChange } from "../change/resolve"
 import { runGit } from "../git/run"
 import { workBranches } from "./branch"
-import { gitDataOf, hasBranchIn } from "./git-files"
+import { gitDataOf } from "./git-files"
+import { hasBranch } from "../git/refs"
 
 // A folder of checkouts can hold hundreds; the agent needs candidates, not all of them.
 const NEARBY_LIMIT = 50
+
+// Git processes run at once while checking a folder of repos for the work's branch.
+const GIT_AT_ONCE = 16
+
+// `each` over `items`, a batch of GIT_AT_ONCE at a time, results in order.
+async function inBatches<T, R>(items: T[], each: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = []
+  for (let start = 0; start < items.length; start += GIT_AT_ONCE) {
+    const batch = items.slice(start, start + GIT_AT_ONCE)
+    results.push(...(await Promise.all(batch.map(each))))
+  }
+
+  return results
+}
 
 // The folder holding a repo: a clone's own folder (its .git inside it), the project folder
 // of a bare repo kept beside its worktrees (project/.bare with project/main), or a bare repo
@@ -19,27 +34,20 @@ async function commonDir(dir: string): Promise<string> {
   return realpath(resolve(dir, await runGit(dir, ["rev-parse", "--git-common-dir"])))
 }
 
-// A folder in the same folder of repos, and where its repo keeps its git data.
-type Candidate = { dir: string; gitData: string }
-
 // A folder holding a repo other than `own`: a worktree of the same repo is the same code.
-async function otherRepo(dir: string, own: string): Promise<Candidate[]> {
+async function otherRepo(dir: string, own: string): Promise<string[]> {
   const gitData = await gitDataOf(dir)
 
-  return gitData === undefined || gitData === own ? [] : [{ dir, gitData }]
+  return gitData === undefined || gitData === own ? [] : [dir]
 }
 
 /** A repo next to the current one: its path from `cwd`, and the work's branch, if it has it. */
 export type NearbyRepo = { path: string; branch?: string | undefined }
 
-async function nearbyRepo(
-  cwd: string,
-  { dir, gitData }: Candidate,
-  branches: string[],
-): Promise<NearbyRepo> {
+async function nearbyRepo(cwd: string, dir: string, branches: string[]): Promise<NearbyRepo> {
   const path = relative(cwd, dir)
   for (const branch of branches) {
-    if (await hasBranchIn(gitData, branch)) {
+    if (await hasBranch(dir, branch)) {
       return { path, branch }
     }
   }
@@ -82,11 +90,7 @@ export async function nearbyRepos(cwd: string, change: ResolvedChange): Promise<
 
   const candidates = (await Promise.all(folders.map((dir) => otherRepo(dir, own)))).flat()
   const branches = await workBranches(cwd, change)
-  const repos = await Promise.all(
-    candidates
-      .toSorted((a, b) => a.dir.localeCompare(b.dir))
-      .map((candidate) => nearbyRepo(cwd, candidate, branches)),
-  )
+  const repos = await inBatches(candidates.toSorted(), (dir) => nearbyRepo(cwd, dir, branches))
 
   return capped(repos)
 }

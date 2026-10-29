@@ -1,9 +1,8 @@
 import { readFile, realpath, stat } from "node:fs/promises"
 import { join, resolve } from "node:path"
-import { pathExists } from "../files"
 
-// Looking over a folder of hundreds of repos, a git process for each is too slow; these read
-// the few files git keeps for the answers instead.
+// Which folders hold a repo is read from their .git entries, whose format git has kept for
+// years: no git process per folder while looking over a folder of repos.
 
 // The folder a .git file points to: "gitdir: <path>", relative to the folder holding it.
 async function pointedTo(dir: string, file: string): Promise<string | undefined> {
@@ -35,14 +34,4 @@ export async function gitDataOf(dir: string): Promise<string | undefined> {
     .catch(() => gitDir)
 
   return realpath(common).catch(() => undefined)
-}
-
-/** Whether the repo whose shared git data is `gitData` has a local branch named `branch`. */
-export async function hasBranchIn(gitData: string, branch: string): Promise<boolean> {
-  if (await pathExists(join(gitData, "refs", "heads", branch))) {
-    return true
-  }
-
-  const packed = await readFile(join(gitData, "packed-refs"), "utf8").catch(() => "")
-  return packed.split("\n").some((line) => line.endsWith(` refs/heads/${branch}`))
 }

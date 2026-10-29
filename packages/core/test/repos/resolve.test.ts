@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { mkdir, realpath, writeFile } from "node:fs/promises"
 import { basename, dirname, join } from "node:path"
 import {
   cachePath,
@@ -13,6 +12,7 @@ import {
 import { commit, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
 import { makeCacheDir, makeRemote } from "../support/remote"
+import { tempDir } from "../support/temp"
 
 describe("resolveUnchangedRepo", () => {
   test("reads the base branch's commit when no revision is pinned", async () => {
@@ -46,7 +46,7 @@ describe("resolveUnchangedRepo", () => {
   })
 
   test("says when the path isn't a git repo", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "codetrail-plain-"))
+    const dir = await tempDir("plain-")
     expect(await rejection(resolveUnchangedRepo(dir, { source: "." }))).toHaveProperty(
       "message",
       "not a git repo: .",
@@ -98,7 +98,7 @@ describe("resolvePullRequest", () => {
 
 describe("readReposList", () => {
   test("reads .codetrail/repos, or nothing when there is none", async () => {
-    const root = await mkdtemp(join(tmpdir(), "codetrail-list-"))
+    const root = await tempDir("list-")
     expect(await readReposList(root)).toEqual([])
 
     await mkdir(join(root, ".codetrail"))
