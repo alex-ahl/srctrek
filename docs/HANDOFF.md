@@ -151,6 +151,80 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   steps. On refund: about 256k input and 3k output tokens in 37 s, against the build's 610k and
   14k in 135 s; updates before took 370–385k input tokens.
 
+**Closed 2026-10-29.** Tours are built through `trail mcp` by the user's agent, in chat or
+headless; the agent proposes repos the route leads into and the tour goes on into them; stale
+tours are marked and updated; evals score quality and measure token use.
+
+**Eval baseline** (one or two runs each; input tokens are mostly the context re-read per turn)
+
+| Run                                          | Score               | Turns | Input / output tokens |
+| -------------------------------------------- | ------------------- | ----- | --------------------- |
+| refund, all repos named                      | full                | 34–36 | 430–560k / 10–12k     |
+| refund from web alone, repos proposed        | full                | 36    | 650k / 10k            |
+| refund as a reviewer (`--reviewer`)          | full                | 42    | 830k / 12k            |
+| expire (trigger in unchanged code)           | full                | 19–21 | 320–350k / 7k         |
+| points (hard to read statically)             | full                | 28–30 | 390–505k / 7–8k       |
+| uploads (Go, channel hand-off)               | full                | 19–20 | 320–350k / 5–7k       |
+| checkout (misnamed service, decoy)           | full, decoy avoided | 26    | 440–480k / 12k        |
+| refund `--update` after a one-line follow-up | full                | 15    | 256k / 3k             |
+
+**Known gaps**
+
+- The Neovim plugin has no automated tests or Lua formatter yet.
+
+**Milestones**
+
+- 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
+  protocol (`docs/PROTOCOL.md`), with contract tests.
+- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
+  editors, and a GUI, as mockups reviewed before anything is built; the TUI library chosen
+  against those screens.
+- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
+  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
+  narration, change signs, details, stale steps marked, configurable keys, and asking
+  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
+- 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
+  tours built with an older guide, whose prompt hash differs from the current one), build
+  view, route map, and fallback stepping view. `trail` and `trail mcp` report the commit
+  they were built from instead of version 0.0.0, and tours record it.
+- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
+
+The beta release follows milestone 6: the `trail` binary and the .vsix package.
+
+**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
+
+**Open**
+
+- Check the name before going public.
+- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
+  out local-only files (demo tours, changed-lines files) first.
+- OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
+  lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
+  or sooner if an upgrade costs more than a day or a target platform fails to load it.
+- Context steps sit in the execution chain: the format requires `from` on every step after
+  the first, so a step read for context (not executed) has to claim execution came from
+  somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
+- `calls` holds one step, so a function that steps into several (a handler calling five
+  helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
+- Large repos: editor worktrees should check out only the files a tour visits (sparse
+  checkout), with the editors in Milestone 6.
+- Token use: most of it is the context re-read every turn as it grows, so turns matter more
+  than answer sizes; the build log's per-read lines show where they go. Runs vary, so compare
+  guide versions over several runs.
+- Proposed repos: a sibling is read on the work's branch only when it has one of the same name
+  (locally or remote-tracking); otherwise at its default branch, with the hop flagged.
+- Headless builds search the code host or read pull request descriptions only when the
+  agent command in `CODETRAIL_AGENT` allows read-only host tools.
+- Nearby repos: only the folder around the current repo is scanned, not nested layouts such
+  as `~/git/org/repo` across organisations.
+- An updated tour keeps a step whose own files are unchanged, which can still be wrong when
+  code it calls changed.
+- Accepting a proposal whose source pins a branch (`<url>@feature`) pins the repos list to it.
+- WSL not yet tested.
+- `bun test` would collect `*.test.ts` files inside eval fixtures.
+- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
+  `evals/` is not typechecked or type-aware linted.
+
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
 **Done**
@@ -190,59 +264,6 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 2m: the `cli` package, `trail`'s entry point (`packages/cli/src/main.ts`): reads the
   arguments, resolves the change, says what's wrong with arguments it can't use, then opens
   the home screen. Nothing uses the resolved change until Milestone 3.
-
-**Known gaps**
-
-- The Neovim plugin has no automated tests or Lua formatter yet.
-
-**Milestones**
-
-- 3: tour building across repos through `trail mcp`: an "add a repo" tool for the agent,
-  approved by the user; updating stale tours through the agent; evals driving an agent
-  headless, reporting each tour's quality and token cost, including a fixture that is hard to
-  read statically, one whose trigger is in an unchanged file, and one that crosses repos.
-- 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
-  protocol (`docs/PROTOCOL.md`), with contract tests.
-- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
-  editors, and a GUI, as mockups reviewed before anything is built; the TUI library chosen
-  against those screens.
-- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
-  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
-  narration, change signs, details, stale steps marked, configurable keys, and asking
-  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
-- 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
-  tours built with an older guide, whose prompt hash differs from the current one), build
-  view, route map, and fallback stepping view. `trail` and `trail mcp` report the commit
-  they were built from instead of version 0.0.0, and tours record it.
-- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
-
-The beta release follows milestone 6: the `trail` binary and the .vsix package.
-
-**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
-
-**Open**
-
-- Check the name before going public.
-- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
-  out local-only files (demo tours, changed-lines files) first.
-- OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
-  lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
-  or sooner if an upgrade costs more than a day or a target platform fails to load it.
-- Context steps sit in the execution chain: the format requires `from` on every step after
-  the first, so a step read for context (not executed) has to claim execution came from
-  somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
-- `calls` holds one step, so a function that steps into several (a handler calling five
-  helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
-- Large repos: editor worktrees should check out only the files a tour visits (sparse
-  checkout), with the editors in Milestone 6.
-- Token cost of building a tour: about 430–540k input tokens on the small refund fixture,
-  mostly the context re-read every turn as it grows; the agent's own tools and connectors
-  add a few thousand per turn. Levers: fewer turns (bigger batches of reads and steps) and
-  smaller answers. Runs vary, so compare guide versions over several runs.
-- WSL not yet tested.
-- `bun test` would collect `*.test.ts` files inside eval fixtures.
-- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
-  `evals/` is not typechecked or type-aware linted.
 
 ## 2026-10-23 — Tour schema and an interim home screen
 
