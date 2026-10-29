@@ -157,7 +157,7 @@ describe("withRouteRepo", () => {
 
     const added = await withRouteRepo(dir, change, { name: "pay", source }, ["wip"])
 
-    expect(added.readAt).toEqual({ kind: "work-branch", branch: "wip" })
+    expect(added.readAt).toEqual({ kind: "work-branch", branch: "wip", shown: "wip" })
     expect(added.change.repos[1]).toMatchObject({
       name: "pay",
       revision: wip,
@@ -205,8 +205,28 @@ describe("withRouteRepo", () => {
     expect(added.readAt).toEqual({
       kind: "work-branch",
       branch: "feature",
+      shown: "feature",
       behind: { commits: 2, upstream: "origin/feature" },
     })
+  })
+
+  test("reads a repo with the work only as a remote-tracking branch from that, as a reviewer has it", async () => {
+    const { dir, change } = await withNeighbour()
+    const remote = await makeRepo()
+    await runGit(remote, ["switch", "--quiet", "-c", "feature"])
+    const head = await commit(remote, "pay.ts", "refund\n")
+    await runGit(remote, ["switch", "--quiet", "main"])
+    const clone = join(await tempDir("clone-"), "pay")
+    await runGit(dir, ["clone", "--quiet", remote, clone])
+
+    const added = await withRouteRepo(dir, change, { source: relative(dir, clone) }, ["feature"])
+
+    expect(added.readAt).toEqual({
+      kind: "work-branch",
+      branch: "feature",
+      shown: "origin/feature",
+    })
+    expect(added.change.repos[1]?.range?.headCommit).toBe(head)
   })
 
   test("refuses a repo already on the route, a name already taken, and a path with no repo", async () => {

@@ -121,6 +121,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   the agent to flag the hop medium when the repo is read at its default branch, or its branch
   is behind its upstream as of the last fetch (nothing is fetched). The eval runner can start
   in one repo: `bun packages/evals/src/main.ts refund web main...feature`.
+- Step 3ae: the reviewer's case: the work's branch is also found for a pull request (the host
+  branch at its head, through `git ls-remote`) and for a range on remote-tracking branches
+  (`origin/main...origin/feature`); a sibling with only `origin/feature` is read from it, as of
+  the last fetch, and the agent is told to say so in the tour.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

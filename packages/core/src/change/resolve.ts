@@ -1,4 +1,6 @@
+import { resolve } from "node:path"
 import type { ResolvedRange } from "../git/range"
+import { branchToRead } from "../git/refs"
 import { GitError, runGit } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
 import { type RepoEntry, isRemote } from "../repos/entry"
@@ -170,11 +172,12 @@ type Behind = { commits: number; upstream: string }
 
 /**
  * Which revision a repo added to the route is read at, and how sure that is: on the branch
- * the work is on, as part of the change (perhaps behind its upstream as of the last fetch);
+ * the work is on, as part of the change, shown as the ref read ("feature", or "origin/feature"
+ * when only that is there) and perhaps behind its upstream as of the last fetch;
  * at a revision the source pins; or at its default branch, and why, when neither applies.
  */
 export type ReadAt =
-  | { kind: "work-branch"; branch: string; behind?: Behind | undefined }
+  | { kind: "work-branch"; branch: string; shown: string; behind?: Behind | undefined }
   | { kind: "pinned"; revision: string }
   | { kind: "default"; why: string }
 
@@ -195,19 +198,26 @@ async function behindUpstream(dir: string, branch: string): Promise<Behind | und
   }
 }
 
-// The repo as a change ending at `branch`, from where it left its base; none when the repo
-// has no such branch. A local repo's branch is named in full, so a tag of the same name
-// isn't taken for it.
+// The repo as a change ending at the work's branch, from where it left its base, and the ref
+// read; none when the repo has no such branch. A local repo is read from its own branch, else
+// from a remote-tracking one (a reviewer's usual case), named in full so a tag isn't taken
+// for it; a URL's branch is fetched by name.
 async function onWorkBranch(
   top: string,
   entry: RepoEntry,
   branch: string,
   cacheDir: string,
-): Promise<ResolvedRepo | undefined> {
-  const head = isRemote(entry.source) ? branch : `refs/heads/${branch}`
-  const spec = { base: undefined, head, mode: "since-branch-point" as const }
+): Promise<{ repo: ResolvedRepo; ref: string; shown: string } | undefined> {
+  const toRead = isRemote(entry.source)
+    ? { ref: branch, shown: branch }
+    : await branchToRead(resolve(top, entry.source), branch).catch(() => undefined)
+  if (toRead === undefined) {
+    return undefined
+  }
+
+  const spec = { base: undefined, head: toRead.ref, mode: "since-branch-point" as const }
   try {
-    return atHead(await resolveRangeChange(top, entry, spec, cacheDir))
+    return { ...toRead, repo: atHead(await resolveRangeChange(top, entry, spec, cacheDir)) }
   } catch (error) {
     if (error instanceof GitError) {
       return undefined
@@ -239,10 +249,14 @@ async function routeRepo(
   }
 
   for (const branch of branches) {
-    const repo = await onWorkBranch(top, entry, branch, cacheDir)
-    if (repo !== undefined) {
-      const behind = await behindUpstream(repo.dir, branch)
-      return { repo, readAt: { kind: "work-branch", branch, behind } }
+    const found = await onWorkBranch(top, entry, branch, cacheDir)
+    if (found !== undefined) {
+      const { repo, ref, shown } = found
+      // only a local branch has an upstream to trail; a remote-tracking one is the upstream
+      const behind = ref.startsWith("refs/heads/")
+        ? await behindUpstream(repo.dir, branch)
+        : undefined
+      return { repo, readAt: { kind: "work-branch", branch, shown, behind } }
     }
   }
 

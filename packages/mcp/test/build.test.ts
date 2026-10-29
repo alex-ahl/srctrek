@@ -286,7 +286,7 @@ describe("building a tour over trail mcp", () => {
       evidence: [{ repo: "web", file: "src/app.ts", line: 1 }],
     })
     const head = await runGit(payments, ["rev-parse", "feature"])
-    const readAt = { kind: "work-branch" as const, branch: "feature" }
+    const readAt = { kind: "work-branch" as const, branch: "feature", shown: "feature" }
 
     expect(proposed.text).toBe(proposalOpenedAnswer("payments", head.slice(0, 7), readAt))
     expect((await client.call("diff", { repo: "payments" })).text).toBe("modified src/app.ts")

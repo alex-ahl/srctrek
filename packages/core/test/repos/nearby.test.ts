@@ -73,6 +73,23 @@ describe("nearbyRepos", () => {
     expect(await nearbyRepos(web, edited)).toEqual(expected)
   })
 
+  test("says when a repo has the work's branch only as a remote-tracking one", async () => {
+    const parent = await tempDir("nearby-")
+    const web = await repoIn(parent, "web")
+    await onBranch(web, "feature")
+    const host = await repoIn(await tempDir("host-"), "api")
+    await onBranch(host, "feature")
+    await runGit(host, ["switch", "--quiet", "main"])
+    await runGit(parent, ["clone", "--quiet", host, "api"])
+    const change = await changeOf(web, {
+      changes: [{ kind: "range", repo: { source: "." }, range: parseRange("main...feature") }],
+    })
+
+    const { repos } = await nearbyRepos(web, change)
+
+    expect(repos).toEqual([{ path: "../api", branch: "origin/feature" }])
+  })
+
   test("lists repos on the work's branch first", async () => {
     const parent = await tempDir("nearby-")
     const web = await repoIn(parent, "web")

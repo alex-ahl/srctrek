@@ -4,7 +4,7 @@ import { type ResolvedChange, currentRepoTop } from "../change/resolve"
 import { runGit } from "../git/run"
 import { workBranches } from "./branch"
 import { gitDataOf } from "./git-files"
-import { hasBranch } from "../git/refs"
+import { branchToRead } from "../git/refs"
 
 // A folder of checkouts can hold hundreds; the agent needs candidates, not all of them.
 const NEARBY_LIMIT = 50
@@ -43,15 +43,17 @@ async function otherRepo(dir: string, own: string): Promise<string[]> {
 
 /**
  * A repo next to the current one: its path from the current repo's top, as a proposal's
- * source is read, and the work's branch, if it has it.
+ * source is read, and the work's branch, if it has it: "feature", or "origin/feature" when it
+ * has only that.
  */
 export type NearbyRepo = { path: string; branch?: string | undefined }
 
 async function nearbyRepo(from: string, dir: string, branches: string[]): Promise<NearbyRepo> {
   const path = relative(from, dir)
   for (const branch of branches) {
-    if (await hasBranch(dir, branch)) {
-      return { path, branch }
+    const toRead = await branchToRead(dir, branch).catch(() => undefined)
+    if (toRead !== undefined) {
+      return { path, branch: toRead.shown }
     }
   }
 

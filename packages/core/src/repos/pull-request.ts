@@ -56,3 +56,15 @@ export function parsePullRequestUrl(text: string): PullRequest | undefined {
     ref,
   }
 }
+
+/** Which pull request a ref is the head of: "refs/pull/12/head" is pull 12; other refs, none. */
+export function pullRequestOfRef(
+  ref: string,
+): { kind: "pull" | "merge-requests"; number: number } | undefined {
+  const [, kind, number] = /^refs\/(pull|merge-requests)\/(\d+)\//.exec(ref) ?? []
+  if (kind === undefined || number === undefined) {
+    return undefined
+  }
+
+  return { kind: kind === "pull" ? "pull" : "merge-requests", number: Number(number) }
+}

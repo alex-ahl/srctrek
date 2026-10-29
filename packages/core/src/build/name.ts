@@ -1,5 +1,6 @@
 import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
 import { checkedOutBranch, isSnapshot } from "../git/refs"
+import { pullRequestOfRef } from "../repos/pull-request"
 
 // Tour names are lowercase letters, digits, and dashes; long branch names are cut.
 function slug(text: string): string {
@@ -14,9 +15,9 @@ function slug(text: string): string {
 // when the head is a snapshot of uncommitted work), or the branch or ref the range names.
 async function headName(repo: RepoWithRange): Promise<string> {
   const { head, headCommit } = repo.range
-  const request = /^refs\/(pull|merge-requests)\/(\d+)\//.exec(head)
-  if (request !== null) {
-    return `${request[1] === "pull" ? "pr" : "mr"}-${request[2]}`
+  const request = pullRequestOfRef(head)
+  if (request !== undefined) {
+    return `${request.kind === "pull" ? "pr" : "mr"}-${request.number}`
   }
 
   const checkedOut = (await checkedOutBranch(repo.dir)) ?? headCommit.slice(0, 7)

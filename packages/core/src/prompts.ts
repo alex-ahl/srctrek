@@ -5,6 +5,7 @@ import flagBehind from "../prompts/answers/flag_behind.md" with { type: "text" }
 import flagDefault from "../prompts/answers/flag_default.md" with { type: "text" }
 import readAtDefault from "../prompts/answers/read_at_default.md" with { type: "text" }
 import readAtPinned from "../prompts/answers/read_at_pinned.md" with { type: "text" }
+import readAtTracking from "../prompts/answers/read_at_tracking.md" with { type: "text" }
 import readAtWorkBranch from "../prompts/answers/read_at_work_branch.md" with { type: "text" }
 import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
 import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
@@ -65,7 +66,8 @@ function fill(template: string, values: Record<string, string>): string {
 
 function readAtText(revision: string, readAt: ReadAt): string {
   if (readAt.kind === "work-branch") {
-    return fill(readAtWorkBranch, { branch: readAt.branch })
+    const { branch, shown } = readAt
+    return fill(shown === branch ? readAtWorkBranch : readAtTracking, { branch, shown })
   }
 
   if (readAt.kind === "pinned") {
@@ -113,6 +115,7 @@ export const PROMPT_HASH = createHash("sha256")
       proposalOpened,
       proposalUnopened,
       readAtWorkBranch,
+      readAtTracking,
       readAtPinned,
       readAtDefault,
       flagDefault,

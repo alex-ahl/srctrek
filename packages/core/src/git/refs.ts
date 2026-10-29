@@ -32,7 +32,37 @@ export function isSnapshot(dir: string, commit: string): Promise<boolean> {
   return succeeds(dir, ["rev-parse", "--verify", "--quiet", `refs/codetrail/snapshots/${commit}`])
 }
 
+/** Whether the repo has `ref`, written in full: "refs/remotes/origin/feature". */
+export function hasRef(dir: string, ref: string): Promise<boolean> {
+  return succeeds(dir, ["show-ref", "--verify", "--quiet", ref])
+}
+
 /** Whether the repo has a local branch named `name`. */
 export function hasBranch(dir: string, name: string): Promise<boolean> {
-  return succeeds(dir, ["show-ref", "--verify", "--quiet", `refs/heads/${name}`])
+  return hasRef(dir, `refs/heads/${name}`)
+}
+
+/**
+ * The ref to read a branch named `name` from: the local branch when there is one, else a
+ * remote-tracking branch of that name, origin's first, as of the last fetch; none when the
+ * repo has neither. `shown` is what to call it: "feature", or "origin/feature".
+ */
+export async function branchToRead(
+  dir: string,
+  name: string,
+): Promise<{ ref: string; shown: string } | undefined> {
+  if (await hasBranch(dir, name)) {
+    return { ref: `refs/heads/${name}`, shown: name }
+  }
+
+  const listed = await runGit(dir, [
+    "for-each-ref",
+    "--format=%(refname)",
+    `refs/remotes/*/${name}`,
+  ])
+  const tracking = listed.split("\n").filter((ref) => ref !== "")
+  const ref =
+    tracking.find((candidate) => candidate.startsWith("refs/remotes/origin/")) ?? tracking[0]
+
+  return ref === undefined ? undefined : { ref, shown: ref.replace(/^refs\/remotes\//, "") }
 }

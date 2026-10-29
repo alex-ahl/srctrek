@@ -1,0 +1,1 @@
+on {{shown}}, as of the user's last fetch, since there's no local {{branch}}: the branch this work is on, as part of the change, so its changed lines are marked and diff shows them. Say in the hop's details that it's read from {{shown}}
