@@ -9,6 +9,7 @@ import {
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
   runGit,
+  updateStartedAnswer,
 } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
@@ -290,5 +291,52 @@ describe("building a tour over trail mcp", () => {
 
     expect(proposed.text).toBe(proposalOpenedAnswer("payments", head.slice(0, 7), readAt))
     expect((await client.call("diff", { repo: "payments" })).text).toBe("modified src/app.ts")
+  })
+
+  test("updates a saved tour after the change moves on: keeps what holds, redoes the rest", async () => {
+    const dir = await makeFeatureRepo()
+    const repo = basename(dir)
+    await commit(dir, "src/pay.ts", "pay(total)\n")
+    const { s1 } = stepsFor(repo)
+    const s2 = {
+      ...s1,
+      id: "s2",
+      file: "src/pay.ts",
+      kind: "call",
+      from: "s1",
+      via: { cites: [{ repo, file: "src/pay.ts", line: 1 }], guessed: false },
+      predicted_values: [],
+    }
+    client = new McpTestClient(dir)
+    await client.initialize()
+    await client.call("open_change", { args: [] })
+    await client.call("start_tour", header)
+    await client.call("add_steps", { steps: [s1, s2] })
+    await client.call("finish_tour", { name: "total" })
+
+    await commit(dir, "src/app.ts", "const total = 300\nexport { total }\n")
+    await client.call("open_change", { args: [] })
+    const updating = await client.call("update_tour", { name: "total" })
+    expect(updating.text).toBe(
+      updateStartedAnswer("total", ["s2"], [{ id: "s1", why: "src/app.ts changed" }]),
+    )
+
+    const redone = {
+      ...s1,
+      predicted_values: [{ name: "total", value: "300", line: 1, role: "assignment" }],
+    }
+    expect((await client.call("add_steps", { steps: [redone] })).text).toBe(
+      "added s1; the tour has s1, s2",
+    )
+    const overview = "The total changes from 100 to 300."
+    const finished = await client.call("finish_tour", { name: "total", overview })
+    expect(finished.text).toStartWith("saved ")
+
+    const tour = await loadTour(join(dir, ".codetrail/tours/total.json"))
+    const head = await runGit(dir, ["rev-parse", "HEAD"])
+    expect(tour.overview).toBe(overview)
+    expect(tour.title).toBe(header.title)
+    expect(tour.repos[0]?.range).toEndWith(`..${head}`)
+    expect(tour.steps.map((step) => step.id)).toEqual(["s1", "s2"])
   })
 })

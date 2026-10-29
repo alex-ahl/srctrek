@@ -33,6 +33,17 @@ describe("background builds", () => {
     )
   })
 
+  test("tell the agent to update the saved tour when asked to", async () => {
+    const root = await makeRepo()
+    const files = await startBuild(root, [], "refunds", "printf %s", "update")
+    await stateWhenEnded(root, "refunds")
+
+    const prompt = await readFile(files.log, "utf8")
+    expect(prompt).toBe(headlessBuildPrompt([], "refunds", "update"))
+    expect(prompt).toContain("call update_tour with `refunds` instead of start_tour")
+    expect(prompt).not.toContain("Save the finished tour")
+  })
+
   test("are done when the agent exits cleanly having saved the tour", async () => {
     const root = await makeRepo()
     const agent = "mkdir -p .codetrail/tours && echo '{}' > .codetrail/tours/refunds.json && true"

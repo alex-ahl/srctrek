@@ -83,11 +83,11 @@ function logName(row: Row | undefined, status: TourStatus | undefined): string |
   return hasLog(status) ? status.name : undefined
 }
 
-// What b does, when it does anything: "build" a tour, or "rebuild" an out-of-date one.
+// What b does, when it does anything: "build" a tour, or "update" an out-of-date one.
 type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
 
 function buildVerb(status: TourStatus | undefined): string {
-  return status?.kind === "stale" ? "rebuild" : "build"
+  return status?.kind === "stale" ? "update" : "build"
 }
 
 function footerKeys(enter: string, offered: Offered): string {

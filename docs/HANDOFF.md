@@ -133,7 +133,12 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   Repos are scored by the folder they were read from, and decoys stepped into are reported.
 - Step 3ah: stale tours: a tour saved under the change's name at commits the change has moved
   on from is `stale`, counting the steps whose files changed since; the home screen says so,
-  and `trail` no longer rebuilds it on its own. `b` rebuilds it for now; updating comes next.
+  and `trail` no longer rebuilds it on its own.
+- Step 3ai: updating a stale tour: `b` starts a build told to update it. `update_tour` carries
+  over the steps whose files and cited files are unchanged, at the new commits, and lists the
+  rest with why; redone steps go back to their places, and `finish_tour` takes a revised title,
+  overview, or outcome. A step whose own files are unchanged can still be wrong when code it
+  calls changed; the agent is told to look over steps next to the ones it redid.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

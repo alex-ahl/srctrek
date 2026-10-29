@@ -9,6 +9,8 @@ export type Draft = Readonly<{
   change: ResolvedChange
   header: TourHeader
   steps: readonly TourStep[]
+  // an updated tour's step order, so a redone step goes back where it was; others follow
+  order?: readonly string[] | undefined
 }>
 
 /** A draft after steps were offered: unchanged with the problems, or with the steps added. */
@@ -46,8 +48,23 @@ export async function addSteps(draft: Draft, steps: SubmittedStep[]): Promise<Ad
   return { draft: { ...draft, steps: completed.reduce(withStep, draft.steps) }, problems: [] }
 }
 
+// Where a step goes: its place in an updated tour's order; steps not in it after, as added.
+function rank(order: readonly string[], id: string): number {
+  const place = order.indexOf(id)
+  return place === -1 ? order.length : place
+}
+
+// The steps in tour order: as added, unless the draft keeps an updated tour's order.
+function orderedSteps({ steps, order }: Draft): TourStep[] {
+  if (order === undefined) {
+    return [...steps]
+  }
+
+  return steps.toSorted((a, b) => rank(order, a.id) - rank(order, b.id))
+}
+
 export function stepIds(draft: Draft): string[] {
-  return draft.steps.map((step) => step.id)
+  return orderedSteps(draft).map((step) => step.id)
 }
 
 // The tour's record of a repo. The range names exact commits, since branches move on.
@@ -68,6 +85,6 @@ export function draftToTour(draft: Draft, now = new Date()): Tour {
     ...draft.header,
     author: { role: "producer", ...draft.header.author },
     repos: draft.change.repos.map(tourRepo),
-    steps: [...draft.steps],
+    steps: orderedSteps(draft),
   }
 }

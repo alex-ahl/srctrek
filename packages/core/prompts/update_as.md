@@ -1,0 +1,1 @@
+This is an update: the tour `{{name}}` was built before the change moved on. After opening the change, call update_tour with `{{name}}` instead of start_tour, redo the steps it lists as the guide says, and finish with finish_tour as `{{name}}`.

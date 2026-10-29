@@ -2,7 +2,7 @@ import { spawn } from "node:child_process"
 import { closeSync, openSync, writeFileSync } from "node:fs"
 import { mkdir, readFile, rm } from "node:fs/promises"
 import { pathExists } from "../files"
-import { headlessBuildPrompt } from "../prompts"
+import { type BuildMode, headlessBuildPrompt } from "../prompts"
 import { tourPath } from "../tours"
 import { type BuildFiles, buildFiles } from "./files"
 
@@ -19,15 +19,16 @@ export const BUILD_LOG_PREFIX = "trail: "
 export type BuildState = "building" | "done" | "failed"
 
 /**
- * Starts the user's agent building a tour of the change `args` names, saved as `name`. The
- * agent runs on its own, so the build goes on if trail quits; its output goes to a log, and
- * its exit code to a file when it ends.
+ * Starts the user's agent building a tour of the change `args` names, saved as `name`, or
+ * updating the one saved as `name`. The agent runs on its own, so the build goes on if trail
+ * quits; its output goes to a log, and its exit code to a file when it ends.
  */
 export async function startBuild(
   root: string,
   args: string[],
   name: string,
   agentCommand: string,
+  mode: BuildMode = "build",
 ): Promise<BuildFiles> {
   const files = await buildFiles(root, name)
   await mkdir(files.dir, { recursive: true })
@@ -38,7 +39,7 @@ export async function startBuild(
   const script = `${agentCommand} "$CODETRAIL_PROMPT"; echo $? > "$CODETRAIL_EXIT"`
   const env = {
     ...process.env,
-    CODETRAIL_PROMPT: headlessBuildPrompt(args, name),
+    CODETRAIL_PROMPT: headlessBuildPrompt(args, name, mode),
     CODETRAIL_EXIT: files.exit,
     [BUILD_LOG_ENV]: files.log,
   }

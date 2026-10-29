@@ -70,8 +70,10 @@ export {
   SERVER_INSTRUCTIONS,
   TOOL_DESCRIPTIONS,
   headlessBuildPrompt,
+  type BuildMode,
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
+  updateStartedAnswer,
 } from "./prompts"
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"
@@ -121,3 +123,4 @@ export {
 } from "./build/proposals"
 export { nearbyRepos, type Nearby, type NearbyRepo } from "./repos/nearby"
 export { workBranches } from "./repos/branch"
+export { carryOver, type CarriedOver, type Redo } from "./build/carry"

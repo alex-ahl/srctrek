@@ -28,7 +28,7 @@ function staleText({ name, staleSteps, steps }: Stale, canBuild: boolean): strin
     staleSteps === 0
       ? "it was built at older commits, though none of its steps' files changed"
       : `${staleSteps} of ${steps} steps cite files changed since it was built`
-  const action = canBuild ? "  b: rebuild it" : ""
+  const action = canBuild ? "  b: update it" : ""
 
   return `This change's tour ${name} is out of date: ${changed}.${action}`
 }

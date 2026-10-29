@@ -10,6 +10,7 @@ import readAtWorkBranch from "../prompts/answers/read_at_work_branch.md" with { 
 import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
 import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
 import saveAs from "../prompts/save_as.md" with { type: "text" }
+import updateAs from "../prompts/update_as.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
@@ -22,6 +23,8 @@ import search from "../prompts/tools/search.md" with { type: "text" }
 import startTour from "../prompts/tools/start_tour.md" with { type: "text" }
 import recordTriggers from "../prompts/tools/record_triggers.md" with { type: "text" }
 import tourGuide from "../prompts/tools/tour_guide.md" with { type: "text" }
+import updateTour from "../prompts/tools/update_tour.md" with { type: "text" }
+import updateStarted from "../prompts/answers/update_started.md" with { type: "text" }
 import type { ReadAt } from "./change/resolve"
 import { GUIDE_PARTS, buildTourPrompt, findsTriggers } from "./guide"
 
@@ -37,20 +40,51 @@ export const TOOL_DESCRIPTIONS = {
   finish_tour: finishTour.trim(),
   tour_guide: tourGuide.trim(),
   record_triggers: recordTriggers.trim(),
+  update_tour: updateTour.trim(),
   propose_repo: proposeRepo.trim(),
 }
 
 /** What an agent is told about the server when it connects. */
 export const SERVER_INSTRUCTIONS = serverInstructions.trim()
 
+/** Whether a build makes a new tour, or updates the saved one the change has moved on from. */
+export type BuildMode = "build" | "update"
+
+// What the agent does with the tour at the end: save it as `name`, or update the one saved
+// as `name`; finding triggers saves no tour.
+function closing(args: string[], name: string, mode: BuildMode): string {
+  if (findsTriggers(args)) {
+    return ""
+  }
+
+  return `\n\n${fill(mode === "update" ? updateAs : saveAs, { name })}`
+}
+
 /**
  * The instruction for an agent working with no one to ask: the guide for `args`, and, when it
- * builds a tour rather than finding triggers, the name to save it as.
+ * builds or updates a tour rather than finding triggers, the name to save it as.
  */
-export function headlessBuildPrompt(args: string[], name: string): string {
-  const saving = findsTriggers(args) ? "" : `\n\n${saveAs.trim().replace("{{name}}", name)}`
+export function headlessBuildPrompt(
+  args: string[],
+  name: string,
+  mode: BuildMode = "build",
+): string {
+  return fill(buildHeadless, { guide: `${buildTourPrompt(args)}${closing(args, name, mode)}` })
+}
 
-  return buildHeadless.trim().replace("{{guide}}", `${buildTourPrompt(args)}${saving}`)
+/**
+ * What the agent is told when it starts updating a tour: the steps carried over, and those to
+ * redo, each as "- s3: total.ts changed".
+ */
+export function updateStartedAnswer(
+  name: string,
+  kept: string[],
+  redo: { id: string; why: string }[],
+): string {
+  const keptText = kept.length === 0 ? "none" : kept.join(", ")
+  const redoText = redo.map(({ id, why }) => `- ${id}: ${why}`).join("\n")
+
+  return fill(updateStarted, { name, kept: keptText, redo: redoText })
 }
 
 /** What the agent is told when its third rejected round ends the build. */
@@ -113,6 +147,7 @@ export const PROMPT_HASH = createHash("sha256")
       buildHeadless,
       buildStopped,
       proposalOpened,
+      updateStarted,
       proposalUnopened,
       readAtWorkBranch,
       readAtTracking,
@@ -121,6 +156,7 @@ export const PROMPT_HASH = createHash("sha256")
       flagDefault,
       flagBehind,
       saveAs,
+      updateAs,
       GUIDE_PARTS,
       SERVER_INSTRUCTIONS,
       TOOL_DESCRIPTIONS,

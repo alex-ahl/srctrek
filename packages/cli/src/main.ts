@@ -17,15 +17,16 @@ function agentCommand(): string | undefined {
   return command === "" ? undefined : command
 }
 
-// Starts the agent on the change's tour, under the name a new tour of it gets.
+// Starts the agent on the change's tour, under the name a new tour of it gets: updating the
+// tour already there when it's out of date, else building one.
 async function buildTour(
   cwd: string,
   args: string[],
   agent: string,
   status: () => Promise<TourStatus>,
 ) {
-  const { name } = await status()
-  await startBuild(cwd, args, name, agent)
+  const { kind, name } = await status()
+  await startBuild(cwd, args, name, agent, kind === "stale" ? "update" : "build")
 }
 
 // The same repos as trail's args, toured from one trigger: --code="<trigger>" for --code.

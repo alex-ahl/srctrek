@@ -10,6 +10,7 @@ import {
   listFiles,
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
+  updateStartedAnswer,
   nearbyRepos,
   readLines,
   search,
@@ -35,6 +36,7 @@ import {
   recordTriggers,
   repoIn,
   start,
+  update,
 } from "./session"
 import { wordsOf } from "./words"
 
@@ -192,15 +194,29 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
     "finish_tour",
     {
       description: TOOL_DESCRIPTIONS.finish_tour,
-      inputSchema: z.object({ name: z.string() }),
+      inputSchema: z.object({
+        name: z.string(),
+        title: z.string().min(1).optional(),
+        overview: z.string().min(1).optional(),
+        outcome: z.string().min(1).optional(),
+      }),
     },
-    async ({ name }) => {
-      const finished = await apply(cell, (session) => finish(session, name))
+    async ({ name, ...revised }) => {
+      const finished = await apply(cell, (session) => finish(session, name, revised))
       if ("problems" in finished) {
         return refuse(finished.problems.join("\n"))
       }
 
       return tell(`saved ${finished.saved}`)
+    },
+  )
+
+  server.registerTool(
+    "update_tour",
+    { description: TOOL_DESCRIPTIONS.update_tour, inputSchema: z.object({ name: z.string() }) },
+    async ({ name }) => {
+      const updating = await apply(cell, (session) => update(session, name))
+      return tell(updateStartedAnswer(name, updating.kept, updating.redo))
     },
   )
 

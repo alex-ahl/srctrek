@@ -11,8 +11,10 @@ import {
   type Trigger,
   TourValidationError,
   addSteps,
+  carryOver,
   directoryIn,
   draftToTour,
+  loadTour,
   newDraft,
   parseRepoEntry,
   proposalProblems,
@@ -25,6 +27,7 @@ import {
   saveTriggers,
   stepIds,
   tourNameFor,
+  tourPath,
   withChange,
   withRouteRepo,
   workBranches,
@@ -131,12 +134,31 @@ async function saveOrInvalid(
   }
 }
 
+/** What the agent may revise when it finishes a tour it updated. */
+export type Revised = {
+  title?: string | undefined
+  overview?: string | undefined
+  outcome?: string | undefined
+}
+
+// The draft with each revised part of its header in place of the one it had.
+function revisedDraft(draft: Draft, revised: Revised): Draft {
+  const given = Object.entries(revised).filter(([, value]) => value !== undefined)
+
+  return { ...draft, header: { ...draft.header, ...Object.fromEntries(given) } }
+}
+
 /**
- * Saves the tour under `.codetrail/tours`, with its changed lines beside it. A tour that fails
- * the whole-tour rules is a rejected round, like steps that fail theirs.
+ * Saves the tour under `.codetrail/tours`, with its changed lines beside it, and any revised
+ * title, overview, or outcome. A tour that fails the whole-tour rules is a rejected round, like
+ * steps that fail theirs.
  */
-export async function finish(session: Session, name: string): Promise<Outcome<Finished>> {
-  const draft = openDraft(session)
+export async function finish(
+  session: Session,
+  name: string,
+  revised: Revised = {},
+): Promise<Outcome<Finished>> {
+  const draft = revisedDraft(openDraft(session), revised)
   const tour = draftToTour(draft)
 
   const result = await saveOrInvalid(session.cwd, name, tour)
@@ -148,6 +170,26 @@ export async function finish(session: Session, name: string): Promise<Outcome<Fi
   await saveChangedLines(draft.change, tour, result.path)
 
   return { session: { ...session, draft: undefined }, answer: { saved: result.path } }
+}
+
+/** How starting an update went: the steps carried over, and those to redo with why. */
+export type Updating = Readonly<{ kept: string[]; redo: { id: string; why: string }[] }>
+
+/**
+ * Starts a draft from the saved tour `name`, carried over to the open change: its steps that
+ * still hold, at the new commits, and those to redo.
+ */
+export async function update(session: Session, name: string): Promise<Outcome<Updating>> {
+  const change = openChange(session)
+  const tour = await loadTour(tourPath(session.cwd, name)).catch(() => undefined)
+  if (tour === undefined) {
+    throw new Error(`no valid saved tour named ${name}`)
+  }
+
+  const { draft, redo } = await carryOver(tour, change)
+  const answer = { kept: stepIds(draft), redo: redo.map(({ step, why }) => ({ id: step.id, why })) }
+
+  return { session: { ...session, draft, rejectedRounds: 0 }, answer }
 }
 
 /**
