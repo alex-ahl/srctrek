@@ -163,3 +163,26 @@ export async function resolveChange(
 
   return args.code === undefined ? { repos } : { repos, code: args.code }
 }
+
+/**
+ * The change with one more repo on the route, read as a listed repo is: its source relative to
+ * the current repo, at its default branch unless pinned. A repo already on the route, or a
+ * name already taken, is refused.
+ */
+export async function withRouteRepo(
+  cwd: string,
+  change: ResolvedChange,
+  entry: RepoEntry,
+  cacheDir = defaultCacheDir(),
+): Promise<ResolvedChange> {
+  const top = (await currentRepoTop(cwd)) ?? cwd
+  const added = await resolveUnchangedRepo(top, entry, cacheDir)
+  if (change.repos.some((repo) => repo.dir === added.dir)) {
+    throw new Error(`${entry.source} is already on the route`)
+  }
+
+  const repos = [...change.repos, added]
+  assertUniqueNames(repos)
+
+  return { ...change, repos }
+}

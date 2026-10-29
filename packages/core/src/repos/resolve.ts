@@ -1,4 +1,5 @@
 import { resolve } from "node:path"
+import { pathExists } from "../files"
 import { detectBase } from "../git/base"
 import { type RangeSpec, type ResolvedRange, resolveRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
@@ -17,6 +18,11 @@ export type UnchangedRepo = { name: string; source: string; revision: string; di
 export type ChangedRepo = { name: string; source: string; dir: string; range: ResolvedRange }
 
 async function repoTopLevel(dir: string, source: string): Promise<string> {
+  // git can't even start in a folder that isn't there, and says so only as a spawn error.
+  if (!(await pathExists(dir))) {
+    throw new Error(`no repo at ${source}`)
+  }
+
   try {
     return await runGit(dir, ["rev-parse", "--show-toplevel"])
   } catch (error) {

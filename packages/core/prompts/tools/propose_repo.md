@@ -2,4 +2,4 @@ Propose a repo the route leads into that the change doesn't include, such as a s
 
 `source` is where git can get the repo: a path relative to the current repo, or a URL. Find it before proposing: first among the repos open_change lists as next to this one, then on the code host with your own tools, if you have them, starting with the organisation in the current repo's remote. When you can't find it, leave `source` out and propose anyway: the user gives the location when they add it.
 
-The user decides whether to add it; carry on with the tour meanwhile, ending that hop at the boundary and saying where the route goes next.
+With a source, the repo is opened at once, at its default branch: read it with the read tools and carry the tour on into it. The user decides afterwards whether to keep it on the repos list. Without a source, or when it can't be opened, end that hop at the boundary and say where the route goes next.

@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto"
+import proposalOpened from "../prompts/answers/proposal_opened.md" with { type: "text" }
+import proposalUnopened from "../prompts/answers/proposal_unopened.md" with { type: "text" }
 import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
 import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
 import saveAs from "../prompts/save_as.md" with { type: "text" }
@@ -47,12 +49,24 @@ export function headlessBuildPrompt(args: string[], name: string): string {
 /** What the agent is told when its third rejected round ends the build. */
 export const BUILD_STOPPED = buildStopped.trim()
 
+/** What the agent is told when the repo it proposed is opened, so the tour can go on into it. */
+export function proposalOpenedAnswer(name: string, revision: string): string {
+  return proposalOpened.trim().replaceAll("{{name}}", name).replace("{{revision}}", revision)
+}
+
+/** What the agent is told when the repo it proposed can't be opened: no source, or a failure. */
+export function proposalUnopenedAnswer(name: string, reason: string): string {
+  return proposalUnopened.trim().replace("{{name}}", name).replace("{{reason}}", reason)
+}
+
 /** Which prompts built a tour: a short hash of them all, recorded on every tour. */
 export const PROMPT_HASH = createHash("sha256")
   .update(
     JSON.stringify({
       buildHeadless,
       buildStopped,
+      proposalOpened,
+      proposalUnopened,
       saveAs,
       GUIDE_PARTS,
       SERVER_INSTRUCTIONS,

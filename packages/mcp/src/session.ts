@@ -23,6 +23,8 @@ import {
   saveTriggers,
   stepIds,
   tourNameFor,
+  withChange,
+  withRouteRepo,
   triggerProblems,
 } from "@codetrail/core"
 
@@ -163,12 +165,55 @@ export async function recordTriggers(session: Session, triggers: Trigger[]): Pro
   return { saved: await saveTriggers(session.cwd, await tourNameFor(change), change, triggers) }
 }
 
-/** Records a repo the route leads into, for the user to add or dismiss. */
-export async function proposeRepo(session: Session, proposal: ProposedRepo): Promise<Finished> {
+/**
+ * How a proposal went: refused for its problems, or recorded, and opened when it could be, so
+ * the tour goes on into it.
+ */
+export type Proposed = Readonly<
+  { problems: string[] } | { opened: ResolvedRepo } | { notOpened: string }
+>
+
+// The session with `change` open, and the draft, if any, over it.
+function widened(session: Session, change: ResolvedChange): Session {
+  const draft = session.draft === undefined ? undefined : withChange(session.draft, change)
+
+  return { ...session, change, draft }
+}
+
+// Opens the proposed repo in the change. A source that isn't a repo, or can't be fetched,
+// leaves the proposal for the user and the hop at the boundary, so it isn't thrown.
+async function openProposed(
+  session: Session,
+  name: string,
+  source: string,
+): Promise<Outcome<Proposed>> {
+  const change = openChange(session)
+  try {
+    const wider = await withRouteRepo(session.cwd, change, { name, source }, session.cacheDir)
+    return { session: widened(session, wider), answer: { opened: repoNamed(wider, name) } }
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+    return { session, answer: { notOpened: reason } }
+  }
+}
+
+/**
+ * Records a repo the route leads into, for the user to add or dismiss, and opens it when the
+ * agent found where it lives.
+ */
+export async function proposeRepo(
+  session: Session,
+  proposal: ProposedRepo,
+): Promise<Outcome<Proposed>> {
   const problems = await proposalProblems(openChange(session), proposal)
   if (problems.length > 0) {
-    return { problems }
+    return { session, answer: { problems } }
   }
 
-  return { saved: await saveProposal(session.cwd, proposal) }
+  await saveProposal(session.cwd, proposal)
+  if (proposal.source === undefined) {
+    return { session, answer: { notOpened: "no source was given" } }
+  }
+
+  return openProposed(session, proposal.name, proposal.source)
 }

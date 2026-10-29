@@ -1,13 +1,34 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, realpath, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, realpath, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
 import { basename, join } from "node:path"
-import { BUILD_LOG_ENV, BUILD_STOPPED, loadProposals, loadTour, runGit } from "@codetrail/core"
+import {
+  BUILD_LOG_ENV,
+  BUILD_STOPPED,
+  loadProposals,
+  loadTour,
+  proposalOpenedAnswer,
+  proposalUnopenedAnswer,
+  runGit,
+} from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
 
 // A repo on a feature branch that changes line 1 of src/app.ts.
 async function makeFeatureRepo(): Promise<string> {
-  const dir = await makeRepo()
+  return addFeature(await makeRepo())
+}
+
+// The same, at `dir`, for a test that needs repos side by side.
+async function featureRepoIn(dir: string): Promise<string> {
+  await mkdir(dir)
+  await runGit(dir, ["init", "--quiet", "--initial-branch=main"])
+  await commit(dir, "README.md", "base\n")
+  return addFeature(dir)
+}
+
+// Commits src/app.ts, then a feature branch that changes its line 1.
+async function addFeature(dir: string): Promise<string> {
   await mkdir(join(dir, "src"))
   await writeFile(join(dir, "src/app.ts"), "const total = 100\nexport { total }\n")
   await runGit(dir, ["add", "--all"])
@@ -156,7 +177,7 @@ describe("building a tour over trail mcp", () => {
     expect(recorded.text).toMatch(/^saved 1 triggers to .*\/\.codetrail\/triggers\/.*-code\.json$/)
   })
 
-  test("records a repo the route leads into, for the user to add, checking its evidence", async () => {
+  test("records a repo the route leads into, checking its evidence, and says when it can't open it", async () => {
     const dir = await makeFeatureRepo()
     const repo = basename(dir)
     client = new McpTestClient(dir)
@@ -165,7 +186,6 @@ describe("building a tour over trail mcp", () => {
 
     const proposal = (line: number) => ({
       name: "payments",
-      source: "git@example.test:shop/payments.git",
       reason: "the total is sent to the payments service",
       evidence: [{ repo, file: "src/app.ts", line }],
     })
@@ -177,7 +197,53 @@ describe("building a tour over trail mcp", () => {
     })
 
     const proposed = await client.call("propose_repo", proposal(1))
-    expect(proposed.text).toBe("proposed payments: the user adds or dismisses it")
+    expect(proposed.text).toBe(proposalUnopenedAnswer("payments", "no source was given"))
     expect(await loadProposals(dir)).toEqual([proposal(1)])
+
+    const missing = await client.call("propose_repo", { ...proposal(1), source: "../nowhere" })
+    expect(missing.text).toContain("it isn't opened (no repo at ../nowhere")
+  })
+
+  test("opens a proposed repo it can find, so the tour goes on into it and records it", async () => {
+    const parent = await realpath(await mkdtemp(join(tmpdir(), "codetrail-route-")))
+    const web = await featureRepoIn(join(parent, "web"))
+    const payments = join(parent, "payments")
+    await mkdir(payments)
+    await runGit(payments, ["init", "--quiet", "--initial-branch=main"])
+    await commit(payments, "charge.ts", "export const charged = 250\n")
+    client = new McpTestClient(web)
+    await client.initialize()
+    await client.call("open_change", { args: ["main...feature"] })
+    await client.call("start_tour", header)
+
+    const proposed = await client.call("propose_repo", {
+      name: "payments",
+      source: "../payments",
+      reason: "the total is charged by the payments service",
+      evidence: [{ repo: "web", file: "src/app.ts", line: 1 }],
+    })
+    const head = await runGit(payments, ["rev-parse", "HEAD"])
+    expect(proposed.text).toBe(proposalOpenedAnswer("payments", head.slice(0, 7)))
+
+    const read = await client.call("read_file", { repo: "payments", path: "charge.ts" })
+    expect(read.text).toBe("charge.ts\n1 | export const charged = 250")
+
+    const { s1 } = stepsFor("web")
+    const charge = {
+      ...s1,
+      id: "s2",
+      repo: "payments",
+      file: "charge.ts",
+      kind: "hop",
+      from: "s1",
+      via: { cites: [{ repo: "web", file: "src/app.ts", line: 1 }], guessed: true },
+      predicted_values: [{ name: "charged", value: "250", line: 1, role: "assignment" }],
+    }
+    const added = await client.call("add_steps", { steps: [s1, charge] })
+    expect(added.text).toBe("added s1, s2; the tour has s1, s2")
+
+    const saved = await client.call("finish_tour", { name: "charge" })
+    const tour = await loadTour(saved.text.replace("saved ", ""))
+    expect(tour.repos.map(({ name }) => name)).toEqual(["web", "payments"])
   })
 })

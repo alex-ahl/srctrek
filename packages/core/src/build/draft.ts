@@ -18,6 +18,11 @@ export function newDraft(change: ResolvedChange, header: TourHeader): Draft {
   return { change, header, steps: [] }
 }
 
+/** The draft over a change with more repos on its route, its steps kept. */
+export function withChange(draft: Draft, change: ResolvedChange): Draft {
+  return { ...draft, change }
+}
+
 // A step whose id is already in the draft takes its place, which is how a step is fixed.
 function withStep(steps: readonly TourStep[], step: TourStep): readonly TourStep[] {
   const replaces = steps.some((existing) => existing.id === step.id)

@@ -10,6 +10,7 @@ import {
   parseRange,
   resolveChange,
   runGit,
+  withRouteRepo,
 } from "../../src"
 import { commit, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
@@ -133,5 +134,43 @@ describe("resolveChange", () => {
 
     expect(repos).toHaveLength(1)
     expect(repos[0]).toMatchObject({ name: "pay", revision: remote.prHead })
+  })
+})
+
+describe("withRouteRepo", () => {
+  test("adds a repo to the route at its default branch, its path relative to the current repo", async () => {
+    const { dir } = await makeFeatureRepo()
+    const other = await makeRepo()
+    await runGit(other, ["switch", "--quiet", "-c", "wip"])
+    await commit(other, "draft.ts", "not merged\n")
+    const main = await runGit(other, ["rev-parse", "main"])
+    const args: ChangeArguments = { changes: [], unchanged: [{ source: "." }], uncommitted: false }
+    const change = await resolveChange(dir, args, await makeCacheDir())
+
+    const wider = await withRouteRepo(dir, change, { name: "pay", source: relative(dir, other) })
+
+    expect(wider.repos.map(({ name }) => name)).toEqual([basename(dir), "pay"])
+    expect(wider.repos[1]?.revision).toBe(main)
+  })
+
+  test("refuses a repo already on the route, a name already taken, and a path with no repo", async () => {
+    const { dir } = await makeFeatureRepo()
+    const other = await makeRepo()
+    const args: ChangeArguments = { changes: [], unchanged: [{ source: "." }], uncommitted: false }
+    const change = await resolveChange(dir, args, await makeCacheDir())
+    const taken = basename(dir)
+
+    expect(await rejection(withRouteRepo(dir, change, { source: "." }))).toHaveProperty(
+      "message",
+      ". is already on the route",
+    )
+    const clash = await rejection(
+      withRouteRepo(dir, change, { name: taken, source: relative(dir, other) }),
+    )
+    expect(String(clash)).toContain(`two repos named ${taken}`)
+    expect(await rejection(withRouteRepo(dir, change, { source: "../nowhere" }))).toHaveProperty(
+      "message",
+      "no repo at ../nowhere",
+    )
   })
 })

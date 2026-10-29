@@ -8,6 +8,8 @@ import {
   changeFiles,
   changePatch,
   listFiles,
+  proposalOpenedAnswer,
+  proposalUnopenedAnswer,
   nearbyRepos,
   readLines,
   search,
@@ -219,12 +221,16 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
     "propose_repo",
     { description: TOOL_DESCRIPTIONS.propose_repo, inputSchema: ProposedRepoSchema },
     async (proposal) => {
-      const recorded = await proposeRepo(cell.session, proposal)
-      if ("problems" in recorded) {
-        return refuse(`nothing was proposed:\n${recorded.problems.join("\n")}`)
+      const proposed = await apply(cell, (session) => proposeRepo(session, proposal))
+      if ("problems" in proposed) {
+        return refuse(`nothing was proposed:\n${proposed.problems.join("\n")}`)
       }
 
-      return tell(`proposed ${proposal.name}: the user adds or dismisses it`)
+      if ("opened" in proposed) {
+        return tell(proposalOpenedAnswer(proposal.name, proposed.opened.revision.slice(0, 7)))
+      }
+
+      return tell(proposalUnopenedAnswer(proposal.name, proposed.notOpened))
     },
   )
 }

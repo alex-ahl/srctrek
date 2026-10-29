@@ -108,6 +108,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   current one that aren't opened (other worktrees of the same repo left out); the agent looks
   there first, then on the code host with its own tools. When it finds nothing it proposes
   without a source, and enter on that row asks the user for a path or URL.
+- Step 3ab: a proposed repo with a source is opened in the same build (at its default branch,
+  its path relative to the current repo), so the tour goes on into it and records it; only
+  keeping it on the repos list waits for the user. The answer reminds the agent that a hop
+  into it cites both sides or is guessed.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

@@ -53,6 +53,7 @@ export type { CodeTour } from "./change/options"
 export {
   hasRange,
   resolveChange,
+  withRouteRepo,
   type RepoWithRange,
   type ResolvedChange,
   type ResolvedRepo,
@@ -68,11 +69,21 @@ export {
   SERVER_INSTRUCTIONS,
   TOOL_DESCRIPTIONS,
   headlessBuildPrompt,
+  proposalOpenedAnswer,
+  proposalUnopenedAnswer,
 } from "./prompts"
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"
 export { saveChangedLines } from "./build/changed-lines"
-export { addSteps, draftToTour, newDraft, stepIds, type Added, type Draft } from "./build/draft"
+export {
+  addSteps,
+  draftToTour,
+  newDraft,
+  stepIds,
+  withChange,
+  type Added,
+  type Draft,
+} from "./build/draft"
 export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTourFor } from "./build/existing"
 export { tourNameFor } from "./build/name"
