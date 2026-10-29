@@ -54,6 +54,7 @@ export {
   hasRange,
   resolveChange,
   withRouteRepo,
+  type ReadAt,
   type RepoWithRange,
   type ResolvedChange,
   type ResolvedRepo,
@@ -119,3 +120,4 @@ export {
   type ProposedRepo,
 } from "./build/proposals"
 export { nearbyRepos, type Nearby, type NearbyRepo } from "./repos/nearby"
+export { workBranches } from "./repos/branch"

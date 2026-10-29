@@ -116,6 +116,11 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   (a clone, or a project folder keeping a bare repo beside its worktrees, which is read as a
   repo too); each says whether it has a branch the work is on (never the base branch), and
   those come first when more than 50 are found.
+- Step 3ad: a proposed repo is read on the work's branch, as part of the change, when it has
+  it; else at a pinned revision, or at its default branch with the reason. The answer tells
+  the agent to flag the hop medium when the repo is read at its default branch, or its branch
+  is behind its upstream as of the last fetch (nothing is fetched). The eval runner can start
+  in one repo: `bun packages/evals/src/main.ts refund web main...feature`.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

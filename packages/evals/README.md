@@ -12,7 +12,7 @@ agent in `CODETRAIL_AGENT` there as a background build does, wait for it, and re
 reached and its order, how each expected link was cited, how strongly steps flag each bug line, how many steps carry flags, the time
 taken, and the agent's last line of output: its numbers, when it is JSON.
 
-Run it with `bun packages/evals/src/main.ts <fixture>`. Each run spends the agent's tokens; it
+Run it with `bun packages/evals/src/main.ts <fixture>`, or `… <fixture> <repo> <trail args>` to start in one repo, such as `refund web main...feature`, leaving the others for the agent to find. Each run spends the agent's tokens; it
 is not part of `bun run check`.
 
 Does not: judge narration, or count tokens itself.

@@ -230,7 +230,8 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
       }
 
       if ("opened" in proposed) {
-        return tell(proposalOpenedAnswer(proposal.name, proposed.opened.revision.slice(0, 7)))
+        const revision = proposed.opened.revision.slice(0, 7)
+        return tell(proposalOpenedAnswer(proposal.name, revision, proposed.readAt))
       }
 
       return tell(proposalUnopenedAnswer(proposal.name, proposed.notOpened))

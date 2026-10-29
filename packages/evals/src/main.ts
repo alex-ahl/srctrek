@@ -37,11 +37,13 @@ async function agentSummary(root: string): Promise<string> {
   return tail.filter((line) => !line.startsWith(BUILD_LOG_PREFIX)).at(-1) ?? "(nothing)"
 }
 
-// The repo expected.json says trail runs in.
-function runsIn(fixture: Fixture, expected: Expected): string {
-  const root = fixture.repos[expected.run.in]
+type Run = Expected["run"]
+
+// The fixture repo trail runs in.
+function runsIn(fixture: Fixture, run: Run): string {
+  const root = fixture.repos[run.in]
   if (root === undefined) {
-    throw new Error(`expected.json runs in ${expected.run.in}, which isn't one of the repos`)
+    throw new Error(`no repo ${run.in} in the fixture`)
   }
 
   return root
@@ -61,13 +63,18 @@ async function buildTour(root: string, args: string[], agent: string) {
   return { seconds: Math.round((Date.now() - started) / 1000), log }
 }
 
-/** Builds fixture `name`'s repos, has the agent tour them, and reports the tour's score. */
-export async function runEval(name: string, agent: string): Promise<string> {
+/**
+ * Builds fixture `name`'s repos, has the agent tour them, and reports the tour's score. `run`
+ * starts trail elsewhere than expected.json says, such as in one repo with the others left
+ * for the agent to find.
+ */
+export async function runEval(name: string, agent: string, run?: Run): Promise<string> {
   const fixture = await buildFixture(name)
   const expected = await readExpected(fixture.dir)
-  const root = runsIn(fixture, expected)
+  const { in: repo, args } = run ?? expected.run
+  const root = runsIn(fixture, { in: repo, args })
 
-  const { seconds, log } = await buildTour(root, expected.run.args, agent)
+  const { seconds, log } = await buildTour(root, args, agent)
   const tour = await loadTour(tourPath(root, TOUR_NAME))
   const facts = {
     seconds,
@@ -80,12 +87,18 @@ export async function runEval(name: string, agent: string): Promise<string> {
   return formatReport(name, scoreTour(tour, expected), facts)
 }
 
+// "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trail in that repo.
+function runFromArgs(words: string[]): Run | undefined {
+  const [repo, ...args] = words
+  return repo === undefined ? undefined : { in: repo, args }
+}
+
 if (import.meta.main) {
-  const name = process.argv[2]
+  const [name, ...rest] = process.argv.slice(2)
   if (name === undefined) {
-    console.error("usage: bun packages/evals/src/main.ts <fixture>")
+    console.error("usage: bun packages/evals/src/main.ts <fixture> [<repo> <trail args>…]")
     process.exit(2)
   }
 
-  console.log(await runEval(name, agentCommand()))
+  console.log(await runEval(name, agentCommand(), runFromArgs(rest)))
 }

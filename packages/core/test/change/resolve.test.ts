@@ -138,40 +138,90 @@ describe("resolveChange", () => {
 })
 
 describe("withRouteRepo", () => {
-  test("adds a repo to the route at its default branch, its path relative to the current repo", async () => {
+  // The current repo, its change, and a repo beside it with a commit on main and one on wip.
+  async function withNeighbour() {
     const { dir } = await makeFeatureRepo()
     const other = await makeRepo()
-    await runGit(other, ["switch", "--quiet", "-c", "wip"])
-    await commit(other, "draft.ts", "not merged\n")
     const main = await runGit(other, ["rev-parse", "main"])
+    await runGit(other, ["switch", "--quiet", "-c", "wip"])
+    const wip = await commit(other, "draft.ts", "not merged\n")
+    await runGit(other, ["switch", "--quiet", "main"])
     const args: ChangeArguments = { changes: [], unchanged: [{ source: "." }], uncommitted: false }
     const change = await resolveChange(dir, args, await makeCacheDir())
 
-    const wider = await withRouteRepo(dir, change, { name: "pay", source: relative(dir, other) })
+    return { dir, change, source: relative(dir, other), main, wip, other }
+  }
 
-    expect(wider.repos.map(({ name }) => name)).toEqual([basename(dir), "pay"])
-    expect(wider.repos[1]?.revision).toBe(main)
+  test("reads a repo on the work's branch as part of the change", async () => {
+    const { dir, change, source, main, wip } = await withNeighbour()
+
+    const added = await withRouteRepo(dir, change, { name: "pay", source }, ["wip"])
+
+    expect(added.readAt).toEqual({ kind: "work-branch", branch: "wip" })
+    expect(added.change.repos[1]).toMatchObject({
+      name: "pay",
+      revision: wip,
+      range: { baseCommit: main, headCommit: wip },
+    })
+  })
+
+  test("reads a repo without the work's branch at its default branch, saying why", async () => {
+    const { dir, change, source, main } = await withNeighbour()
+
+    const added = await withRouteRepo(dir, change, { name: "pay", source }, ["feature"])
+    const unnamed = await withRouteRepo(dir, change, { name: "pay", source }, [])
+
+    expect(added.readAt).toEqual({ kind: "default", why: `${source} has no branch feature` })
+    expect(added.change.repos[1]?.revision).toBe(main)
+    expect(added.change.repos[1]?.range).toBeUndefined()
+    expect(unnamed.readAt).toEqual({
+      kind: "default",
+      why: "the change isn't on a branch to match",
+    })
+  })
+
+  test("reads a pinned repo at its pin", async () => {
+    const { dir, change, source, wip } = await withNeighbour()
+
+    const added = await withRouteRepo(dir, change, { name: "pay", source, revision: "wip" }, [])
+
+    expect(added.readAt).toEqual({ kind: "pinned", revision: "wip" })
+    expect(added.change.repos[1]?.revision).toBe(wip)
+  })
+
+  test("says when the work's branch is behind the branch it tracks, as of the last fetch", async () => {
+    const { dir, change } = await withNeighbour()
+    const remote = await makeRepo()
+    await runGit(remote, ["switch", "--quiet", "-c", "feature"])
+    await commit(remote, "pay.ts", "v1\n")
+    const clone = join(await tempDir("clone-"), "pay")
+    await runGit(dir, ["clone", "--quiet", remote, clone])
+    await commit(remote, "pay.ts", "v2\n")
+    await commit(remote, "pay.ts", "v3\n")
+    await runGit(clone, ["fetch", "--quiet"])
+
+    const added = await withRouteRepo(dir, change, { source: relative(dir, clone) }, ["feature"])
+
+    expect(added.readAt).toEqual({
+      kind: "work-branch",
+      branch: "feature",
+      behind: { commits: 2, upstream: "origin/feature" },
+    })
   })
 
   test("refuses a repo already on the route, a name already taken, and a path with no repo", async () => {
-    const { dir } = await makeFeatureRepo()
-    const other = await makeRepo()
-    const args: ChangeArguments = { changes: [], unchanged: [{ source: "." }], uncommitted: false }
-    const change = await resolveChange(dir, args, await makeCacheDir())
+    const { dir, change, source } = await withNeighbour()
     const taken = basename(dir)
 
-    expect(await rejection(withRouteRepo(dir, change, { source: "." }))).toHaveProperty(
+    expect(await rejection(withRouteRepo(dir, change, { source: "." }, []))).toHaveProperty(
       "message",
       ". is already on the route",
     )
-    const clash = await rejection(
-      withRouteRepo(dir, change, { name: taken, source: relative(dir, other) }),
-    )
+    const clash = await rejection(withRouteRepo(dir, change, { name: taken, source }, []))
     expect(String(clash)).toContain(`two repos named ${taken}`)
-    expect(await rejection(withRouteRepo(dir, change, { source: "../nowhere" }))).toHaveProperty(
-      "message",
-      "no repo at ../nowhere",
-    )
+    expect(
+      await rejection(withRouteRepo(dir, change, { source: "../nowhere" }, [])),
+    ).toHaveProperty("message", "no repo at ../nowhere")
   })
 })
 

@@ -2,6 +2,7 @@ import {
   BUILD_STOPPED,
   type Draft,
   type ProposedRepo,
+  type ReadAt,
   type ResolvedChange,
   type ResolvedRepo,
   type SubmittedStep,
@@ -13,6 +14,7 @@ import {
   directoryIn,
   draftToTour,
   newDraft,
+  parseRepoEntry,
   proposalProblems,
   readChangeArguments,
   repoNamed,
@@ -25,6 +27,7 @@ import {
   tourNameFor,
   withChange,
   withRouteRepo,
+  workBranches,
   triggerProblems,
 } from "@codetrail/core"
 
@@ -170,7 +173,7 @@ export async function recordTriggers(session: Session, triggers: Trigger[]): Pro
  * the tour goes on into it.
  */
 export type Proposed = Readonly<
-  { problems: string[] } | { opened: ResolvedRepo } | { notOpened: string }
+  { problems: string[] } | { opened: ResolvedRepo; readAt: ReadAt } | { notOpened: string }
 >
 
 // The session with `change` open, and the draft, if any, over it.
@@ -188,9 +191,13 @@ async function openProposed(
   source: string,
 ): Promise<Outcome<Proposed>> {
   const change = openChange(session)
+  const entry = { ...parseRepoEntry(source), name }
   try {
-    const wider = await withRouteRepo(session.cwd, change, { name, source }, session.cacheDir)
-    return { session: widened(session, wider), answer: { opened: repoNamed(wider, name) } }
+    const branches = await workBranches(session.cwd, change)
+    const added = await withRouteRepo(session.cwd, change, entry, branches, session.cacheDir)
+    const opened = repoNamed(added.change, name)
+
+    return { session: widened(session, added.change), answer: { opened, readAt: added.readAt } }
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
     return { session, answer: { notOpened: reason } }

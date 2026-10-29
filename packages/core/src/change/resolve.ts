@@ -166,25 +166,111 @@ export async function resolveChange(
   return args.code === undefined ? { repos } : { repos, code: args.code }
 }
 
+type Behind = { commits: number; upstream: string }
+
 /**
- * The change with one more repo on the route, read as a listed repo is: its source relative to
- * the current repo, at its default branch unless pinned. A repo already on the route, or a
- * name already taken, is refused.
+ * Which revision a repo added to the route is read at, and how sure that is: on the branch
+ * the work is on, as part of the change (perhaps behind its upstream as of the last fetch);
+ * at a revision the source pins; or at its default branch, and why, when neither applies.
+ */
+export type ReadAt =
+  | { kind: "work-branch"; branch: string; behind?: Behind | undefined }
+  | { kind: "pinned"; revision: string }
+  | { kind: "default"; why: string }
+
+// How far a local branch trails the branch it tracks, as of the last fetch; none when it
+// tracks nothing or is level with it. Nothing is fetched: the user's repo is left as it is.
+async function behindUpstream(dir: string, branch: string): Promise<Behind | undefined> {
+  try {
+    const upstream = await runGit(dir, ["rev-parse", "--abbrev-ref", `${branch}@{upstream}`])
+    const commits = Number(await runGit(dir, ["rev-list", "--count", `${branch}..${upstream}`]))
+
+    return commits > 0 ? { commits, upstream } : undefined
+  } catch (error) {
+    if (error instanceof GitError) {
+      return undefined
+    }
+
+    throw error
+  }
+}
+
+// The repo as a change ending at `branch`, from where it left its base; none when the repo
+// has no such branch. A local repo's branch is named in full, so a tag of the same name
+// isn't taken for it.
+async function onWorkBranch(
+  top: string,
+  entry: RepoEntry,
+  branch: string,
+  cacheDir: string,
+): Promise<ResolvedRepo | undefined> {
+  const head = isRemote(entry.source) ? branch : `refs/heads/${branch}`
+  const spec = { base: undefined, head, mode: "since-branch-point" as const }
+  try {
+    return atHead(await resolveRangeChange(top, entry, spec, cacheDir))
+  } catch (error) {
+    if (error instanceof GitError) {
+      return undefined
+    }
+
+    throw error
+  }
+}
+
+function defaultWhy(entry: RepoEntry, branches: string[]): string {
+  if (branches.length === 0) {
+    return "the change isn't on a branch to match"
+  }
+
+  return `${entry.source} has no branch ${branches.join(" or ")}`
+}
+
+// The repo to add, and what it's read at: pinned, else the first of the work's branches it
+// has, else its default branch.
+async function routeRepo(
+  top: string,
+  entry: RepoEntry,
+  branches: string[],
+  cacheDir: string,
+): Promise<{ repo: ResolvedRepo; readAt: ReadAt }> {
+  if (entry.revision !== undefined) {
+    const repo = await resolveUnchangedRepo(top, entry, cacheDir)
+    return { repo, readAt: { kind: "pinned", revision: entry.revision } }
+  }
+
+  for (const branch of branches) {
+    const repo = await onWorkBranch(top, entry, branch, cacheDir)
+    if (repo !== undefined) {
+      const behind = await behindUpstream(repo.dir, branch)
+      return { repo, readAt: { kind: "work-branch", branch, behind } }
+    }
+  }
+
+  const repo = await resolveUnchangedRepo(top, entry, cacheDir)
+  return { repo, readAt: { kind: "default", why: defaultWhy(entry, branches) } }
+}
+
+/**
+ * The change with one more repo on the route, its source relative to the current repo: on
+ * one of `branches`, the ones the work is on, as part of the change when it has it, else at
+ * its default branch; and what it was read at. A repo already on the route, or a name already
+ * taken, is refused.
  */
 export async function withRouteRepo(
   cwd: string,
   change: ResolvedChange,
   entry: RepoEntry,
+  branches: string[],
   cacheDir = defaultCacheDir(),
-): Promise<ResolvedChange> {
+): Promise<{ change: ResolvedChange; readAt: ReadAt }> {
   const top = (await currentRepoTop(cwd)) ?? cwd
-  const added = await resolveUnchangedRepo(top, entry, cacheDir)
-  if (change.repos.some((repo) => repo.dir === added.dir)) {
+  const { repo, readAt } = await routeRepo(top, entry, branches, cacheDir)
+  if (change.repos.some((existing) => existing.dir === repo.dir)) {
     throw new Error(`${entry.source} is already on the route`)
   }
 
-  const repos = [...change.repos, added]
+  const repos = [...change.repos, repo]
   assertUniqueNames(repos)
 
-  return { ...change, repos }
+  return { change: { ...change, repos }, readAt }
 }

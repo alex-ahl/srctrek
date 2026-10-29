@@ -1,1 +1,1 @@
-Proposed {{name}} and opened it at {{revision}}: read it with the read tools as repo {{name}}, and carry the tour into it. A hop into it cites both sides, such as the client's URL and the handler's route, or is marked guessed.
+Proposed {{name}} and opened it {{read_at}}. Read it with the read tools as repo {{name}} and carry the tour into it. A hop into it cites both sides, such as the client's URL and the handler's route, or is marked guessed.

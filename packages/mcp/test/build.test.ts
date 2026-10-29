@@ -223,7 +223,8 @@ describe("building a tour over trail mcp", () => {
       evidence: [{ repo: "web", file: "src/app.ts", line: 1 }],
     })
     const head = await runGit(payments, ["rev-parse", "HEAD"])
-    expect(proposed.text).toBe(proposalOpenedAnswer("payments", head.slice(0, 7)))
+    const readAt = { kind: "default" as const, why: "../payments has no branch feature" }
+    expect(proposed.text).toBe(proposalOpenedAnswer("payments", head.slice(0, 7), readAt))
 
     const read = await client.call("read_file", { repo: "payments", path: "charge.ts" })
     expect(read.text).toBe("charge.ts\n1 | export const charged = 250")
@@ -268,5 +269,26 @@ describe("building a tour over trail mcp", () => {
       evidence: [{ repo: "web", file: "src/app.ts", line: 1 }],
     })
     expect(proposed.text).toStartWith("Proposed payments and opened it")
+  })
+
+  test("opens a proposed repo on the work's branch as part of the change", async () => {
+    const parent = await tempDir("work-")
+    const web = await featureRepoIn(join(parent, "web"))
+    const payments = await featureRepoIn(join(parent, "payments"))
+    client = new McpTestClient(web)
+    await client.initialize()
+    await client.call("open_change", { args: ["main...feature"] })
+
+    const proposed = await client.call("propose_repo", {
+      name: "payments",
+      source: "../payments",
+      reason: "the total is charged by the payments service",
+      evidence: [{ repo: "web", file: "src/app.ts", line: 1 }],
+    })
+    const head = await runGit(payments, ["rev-parse", "feature"])
+    const readAt = { kind: "work-branch" as const, branch: "feature" }
+
+    expect(proposed.text).toBe(proposalOpenedAnswer("payments", head.slice(0, 7), readAt))
+    expect((await client.call("diff", { repo: "payments" })).text).toBe("modified src/app.ts")
   })
 })

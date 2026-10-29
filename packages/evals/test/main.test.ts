@@ -34,4 +34,10 @@ describe("runEval", () => {
 
     expect(failure).toContain("the agent saved no tour; its last line: login expired")
   })
+
+  test("runs trail in another repo when told to", async () => {
+    const report = await runEval("refund", await fakeAgent(), { in: "api", args: [] })
+
+    expect(report).toMatch(/Tour    .*\/api\/\.codetrail\/tours\/eval\.json/)
+  })
 })
