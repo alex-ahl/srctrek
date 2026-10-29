@@ -9,7 +9,6 @@ import {
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
   runGit,
-  updateStartedAnswer,
 } from "@codetrail/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
@@ -324,9 +323,10 @@ describe("building a tour over trail mcp", () => {
     await commit(dir, "src/app.ts", "const total = 300\nexport { total }\n")
     await client.call("open_change", { args: [] })
     const updating = await client.call("update_tour", { name: "total" })
-    expect(updating.text).toBe(
-      updateStartedAnswer("total", ["s2"], [{ id: "s1", why: "src/app.ts changed" }]),
-    )
+    expect(updating.text).toContain(`redo s1  ${repo} src/app.ts 1–1  The total is set.`)
+    expect(updating.text).toContain("       why: src/app.ts changed")
+    expect(updating.text).toContain("       was: The change raises it.")
+    expect(updating.text).toContain(`keep s2  ${repo} src/pay.ts 1–1  The total is set.`)
 
     const redone = {
       ...s1,

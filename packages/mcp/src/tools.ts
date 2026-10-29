@@ -231,7 +231,7 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
     { description: TOOL_DESCRIPTIONS.update_tour, inputSchema: z.object({ name: z.string() }) },
     async ({ name }) => {
       const updating = await apply(cell, (session) => update(session, name))
-      return tell(updateStartedAnswer(name, updating.kept, updating.redo))
+      return tell(updateStartedAnswer(name, updating))
     },
   )
 

@@ -8,6 +8,7 @@ import {
   type SubmittedStep,
   type Tour,
   type TourHeader,
+  type UpdateStep,
   type Trigger,
   TourValidationError,
   addSteps,
@@ -172,8 +173,8 @@ export async function finish(
   return { session: { ...session, draft: undefined }, answer: { saved: result.path } }
 }
 
-/** How starting an update went: the steps carried over, and those to redo with why. */
-export type Updating = Readonly<{ kept: string[]; redo: { id: string; why: string }[] }>
+/** How starting an update went: the old tour's steps in order, each to redo with why or kept. */
+export type Updating = readonly UpdateStep[]
 
 /**
  * Starts a draft from the saved tour `name`, carried over to the open change: its steps that
@@ -187,7 +188,8 @@ export async function update(session: Session, name: string): Promise<Outcome<Up
   }
 
   const { draft, redo } = await carryOver(tour, change)
-  const answer = { kept: stepIds(draft), redo: redo.map(({ step, why }) => ({ id: step.id, why })) }
+  const whyRedo = new Map(redo.map(({ step, why }) => [step.id, why]))
+  const answer = tour.steps.map((step) => ({ step, why: whyRedo.get(step.id) }))
 
   return { session: { ...session, draft, rejectedRounds: 0 }, answer }
 }

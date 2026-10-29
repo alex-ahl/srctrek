@@ -79,7 +79,7 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   expected.json's `run`, and reports route reached and in order, each expected link cited,
   guessed, both, or without evidence, bug lines inside steps, time taken, and the numbers in
   the agent's last line when it is JSON. First runs on refund: 10–11 of 11 route entries,
-  both links, all bug lines; 34–35 turns, 430–540k input tokens, about $0.60.
+  both links, all bug lines; 34–35 turns, 430–540k input and 10–12k output tokens.
 - Step 3u: fixture `expire`, whose trigger is in unchanged files: the change touches only cart
   storage (a new time helper with a planted bug); a nightly schedule names the job, a registry
   maps the name to it, and an admin route is a second, lesser caller. Every fixture's
@@ -141,10 +141,15 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   calls changed; the agent is told to look over steps next to the ones it redid.
 - Step 3aj: `--update` for the eval runner: build, commit the fixture's follow-ups, update, and
   report both runs; `refund` has one (an error message changed in place in api's handler).
-  First run: the update cost $0.38 and 45 s against the build's $0.58 and 98 s, 14 steps carried
-  over and 3 redone, the tour still fully correct.
+  First run: the update took about 385k input tokens and 45 s against the build's 433k and 98 s,
+  14 steps carried over and 3 redone, the tour still fully correct.
 - Step 3ak: the build log gets a line for every read and for the guide, with the answer's size:
   `trail: read_file api src/pay.ts 1–40 → 1210 chars`.
+- Step 3al: `update_tour` answers with the whole tour, one line per step marked keep or redo
+  (with why and what it said before), and asks the agent to read only what the redone steps
+  need. The logs had shown an update re-reading every file of all three repos to redo three
+  steps. On refund: about 256k input and 3k output tokens in 37 s, against the build's 610k and
+  14k in 135 s; updates before took 370–385k input tokens.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

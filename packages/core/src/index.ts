@@ -74,6 +74,7 @@ export {
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
   updateStartedAnswer,
+  type UpdateStep,
 } from "./prompts"
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"

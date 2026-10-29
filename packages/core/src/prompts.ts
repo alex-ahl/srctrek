@@ -26,6 +26,7 @@ import tourGuide from "../prompts/tools/tour_guide.md" with { type: "text" }
 import updateTour from "../prompts/tools/update_tour.md" with { type: "text" }
 import updateStarted from "../prompts/answers/update_started.md" with { type: "text" }
 import type { ReadAt } from "./change/resolve"
+import type { TourStep } from "./schema/tour"
 import { GUIDE_PARTS, buildTourPrompt, findsTriggers } from "./guide"
 
 /** What each tool tells the agent building a tour, by tool name. */
@@ -72,19 +73,26 @@ export function headlessBuildPrompt(
   return fill(buildHeadless, { guide: `${buildTourPrompt(args)}${closing(args, name, mode)}` })
 }
 
-/**
- * What the agent is told when it starts updating a tour: the steps carried over, and those to
- * redo, each as "- s3: total.ts changed".
- */
-export function updateStartedAnswer(
-  name: string,
-  kept: string[],
-  redo: { id: string; why: string }[],
-): string {
-  const keptText = kept.length === 0 ? "none" : kept.join(", ")
-  const redoText = redo.map(({ id, why }) => `- ${id}: ${why}`).join("\n")
+/** A step of a tour being updated, as the agent is shown it: with why, when it's to redo. */
+export type UpdateStep = Readonly<{ step: TourStep; why?: string | undefined }>
 
-  return fill(updateStarted, { name, kept: keptText, redo: redoText })
+// "keep s3  web src/actions.ts 8–12  The action calls requestRefund.", and for a step to redo,
+// why and what it said before, indented below.
+function updateStepText({ step, why }: UpdateStep): string {
+  const where = `${step.repo} ${step.file} ${step.start_line}–${step.end_line}`
+  const line = `${why === undefined ? "keep" : "redo"} ${step.id}  ${where}  ${step.summary}`
+
+  return why === undefined
+    ? line
+    : [line, `       why: ${why}`, `       was: ${step.details}`].join("\n")
+}
+
+/**
+ * What the agent is told when it starts updating a tour: the whole tour, compactly, each step
+ * marked kept or to redo, so it knows the route without reading the repos again.
+ */
+export function updateStartedAnswer(name: string, steps: readonly UpdateStep[]): string {
+  return fill(updateStarted, { name, steps: steps.map(updateStepText).join("\n") })
 }
 
 /** What the agent is told when its third rejected round ends the build. */
