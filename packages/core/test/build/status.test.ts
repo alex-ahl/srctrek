@@ -82,7 +82,7 @@ describe("tourStatus", () => {
     expect(await tourStatus(dir, change)).toEqual({ kind: "missing", name: "feature-refunds" })
   })
 
-  test("a code tour is named after its trigger, found again, and rebuilt once the code moves on", async () => {
+  test("a code tour is named after its trigger, found again, and stale once the code moves on", async () => {
     const dir = await makeBranchRepo()
     const codeOf = async () =>
       resolveChange(
@@ -105,6 +105,40 @@ describe("tourStatus", () => {
     expect((await tourStatus(dir, await codeOf())).kind).toBe("ready")
 
     await commit(dir, "app.ts", "const total = 300\n")
-    expect((await tourStatus(dir, await codeOf())).kind).toBe("missing")
+    expect(await tourStatus(dir, await codeOf())).toEqual({
+      kind: "stale",
+      name: "a-refund-request",
+      staleSteps: 1,
+      steps: 1,
+    })
+  })
+
+  test("is stale once the branch moves on, counting the steps whose files changed", async () => {
+    const dir = await makeBranchRepo()
+    await saveTourOf(dir, await changeOf(dir), "feature-refunds")
+
+    await commit(dir, "README.md", "more docs\n")
+    expect(await tourStatus(dir, await changeOf(dir))).toEqual({
+      kind: "stale",
+      name: "feature-refunds",
+      staleSteps: 0,
+      steps: 1,
+    })
+
+    await commit(dir, "app.ts", "const total = 300\n")
+    expect(await tourStatus(dir, await changeOf(dir))).toMatchObject({
+      kind: "stale",
+      staleSteps: 1,
+    })
+  })
+
+  test("is building while a stale tour is updated", async () => {
+    const dir = await makeBranchRepo()
+    await saveTourOf(dir, await changeOf(dir), "feature-refunds")
+    await commit(dir, "app.ts", "const total = 300\n")
+
+    await startBuild(dir, [], "feature-refunds", "sleep 1; true")
+    expect((await tourStatus(dir, await changeOf(dir))).kind).toBe("building")
+    await untilEnded(dir, "feature-refunds")
   })
 })

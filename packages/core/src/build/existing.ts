@@ -21,7 +21,8 @@ function covers(tour: Tour, change: ResolvedChange): boolean {
     )
 }
 
-async function loadValid(path: string): Promise<Tour | undefined> {
+/** The tour saved at `path`, or none when it isn't valid. */
+export async function loadValid(path: string): Promise<Tour | undefined> {
   try {
     return await loadTour(path)
   } catch (error) {

@@ -131,6 +131,9 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   `pay-backend`, beside a decoy `api` with similar routes and its own `feature` branch; the
   planted bug is a field name that differs between the two sides. Runs start in `shop` alone.
   Repos are scored by the folder they were read from, and decoys stepped into are reported.
+- Step 3ah: stale tours: a tour saved under the change's name at commits the change has moved
+  on from is `stale`, counting the steps whose files changed since; the home screen says so,
+  and `trail` no longer rebuilds it on its own. `b` rebuilds it for now; updating comes next.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

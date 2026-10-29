@@ -163,3 +163,17 @@ test("lists the triggers found as rows to pick, each saying where its tour stand
   expect(frame).toContain("    event · bot.py:91 · toured")
   expect(frame).toContain("enter build its tour")
 })
+
+test("says a stale tour is out of date, how much changed, and offers to rebuild it", async () => {
+  const status = { kind: "stale" as const, name: "feature-refunds", staleSteps: 3, steps: 12 }
+  const frame = await renderFrame(
+    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
+    130,
+    10,
+  )
+
+  expect(frame).toContain(
+    "This change's tour feature-refunds is out of date: 3 of 12 steps cite files changed since it was built.  b: rebuild it",
+  )
+  expect(frame).toContain("b rebuild")
+})

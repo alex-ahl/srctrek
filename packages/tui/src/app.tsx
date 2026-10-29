@@ -36,9 +36,10 @@ function hasLog(status: TourStatus | undefined): status is WithLog {
   return status?.kind === "building" || status?.kind === "failed"
 }
 
-// A build can start when the change has no tour yet, or its last build failed.
+// A build can start when the change has no tour yet, its last build failed, or its tour is out
+// of date and can be updated.
 function canStartBuild(status: TourStatus | undefined): boolean {
-  return status?.kind === "missing" || status?.kind === "failed"
+  return status?.kind === "missing" || status?.kind === "failed" || status?.kind === "stale"
 }
 
 // Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
@@ -82,10 +83,15 @@ function logName(row: Row | undefined, status: TourStatus | undefined): string |
   return hasLog(status) ? status.name : undefined
 }
 
-type Offered = { build: boolean; log: boolean; dismiss: boolean }
+// What b does, when it does anything: "build" a tour, or "rebuild" an out-of-date one.
+type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
+
+function buildVerb(status: TourStatus | undefined): string {
+  return status?.kind === "stale" ? "rebuild" : "build"
+}
 
 function footerKeys(enter: string, offered: Offered): string {
-  const build = offered.build ? " · b build" : ""
+  const build = offered.build === undefined ? "" : ` · b ${offered.build}`
   const log = offered.log ? " · l log" : ""
   const dismiss = offered.dismiss ? " · d dismiss" : ""
 
@@ -167,7 +173,7 @@ export function App(props: Props) {
   const { start, end } = visibleWindow(rows.length, selected, rowsThatFit(height, status))
   const shown = end - start < rows.length ? `${start + 1}–${end} of ${rows.length} · ` : ""
   const keys = footerKeys(enterLabel(row), {
-    build: build !== undefined,
+    build: build === undefined ? undefined : buildVerb(status),
     log: showLog !== undefined,
     dismiss: dismiss !== undefined,
   })

@@ -1,16 +1,21 @@
 import { type ResolvedChange, hasRange } from "../change/resolve"
 import { buildLogTail, buildSavedTour, buildState } from "./background"
-import { existingTourFor } from "./existing"
+import { existingTourFor, loadValid } from "./existing"
+import { staleStepIds } from "./stale"
+import { pathExists } from "../files"
+import { tourPath } from "../tours"
 import { tourNameFor } from "./name"
 import { type Trigger, loadTriggers } from "./triggers"
 
 /**
- * Where a change's tour stands: saved and ready, being built or failed (each with the end of
- * the build's log), missing, never built, or empty: the change has no commits, so nothing to
- * tour. For code with no trigger named, the triggers found instead of a tour.
+ * Where a change's tour stands: saved and ready; stale, saved at commits the change has moved
+ * on from, with how many of its steps cite files changed since; being built or failed (each
+ * with the end of the build's log); missing, never built; or empty: the change has no commits,
+ * so nothing to tour. For code with no trigger named, the triggers found instead of a tour.
  */
 export type TourStatus = Readonly<
   | { kind: "ready" | "missing" | "empty"; name: string }
+  | { kind: "stale"; name: string; staleSteps: number; steps: number }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
   | { kind: "triggers"; name: string; triggers: TriggerTour[] }
 >
@@ -70,6 +75,37 @@ async function triggersStatus(root: string, change: ResolvedChange): Promise<Tou
   return buildStatus(root, name)
 }
 
+// A tour saved under the change's name that no longer covers it: built at older commits.
+async function staleStatus(
+  root: string,
+  name: string,
+  change: ResolvedChange,
+): Promise<TourStatus | undefined> {
+  const path = tourPath(root, name)
+  const tour = (await pathExists(path)) ? await loadValid(path) : undefined
+  if (tour === undefined) {
+    return undefined
+  }
+
+  const staleSteps = (await staleStepIds(tour, change)).length
+  return { kind: "stale", name, staleSteps, steps: tour.steps.length }
+}
+
+// With no tour of the change as it is: a build under way or failed comes first, as it's what
+// the user last asked for; else the older tour, stale; else whatever building left.
+async function changedStatus(
+  root: string,
+  change: ResolvedChange,
+  name: string,
+): Promise<TourStatus> {
+  const state = await buildState(root, name)
+  if (state === "building" || state === "failed") {
+    return buildStatus(root, name)
+  }
+
+  return (await staleStatus(root, name, change)) ?? buildStatus(root, name)
+}
+
 /** The status of the change's tour, by the name a new tour of it would get. */
 export async function tourStatus(root: string, change: ResolvedChange): Promise<TourStatus> {
   if (change.code !== undefined && change.code.trigger === undefined) {
@@ -85,5 +121,5 @@ export async function tourStatus(root: string, change: ResolvedChange): Promise<
     return { kind: "ready", name: existing }
   }
 
-  return buildStatus(root, await tourNameFor(change))
+  return changedStatus(root, change, await tourNameFor(change))
 }

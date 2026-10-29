@@ -20,6 +20,19 @@ function LogTail({ heading, lines, fg }: { heading: string; lines: string[]; fg?
   )
 }
 
+type Stale = Extract<TourStatus, { kind: "stale" }>
+
+// What changed since the tour was built, and how to bring it up to date.
+function staleText({ name, staleSteps, steps }: Stale, canBuild: boolean): string {
+  const changed =
+    staleSteps === 0
+      ? "it was built at older commits, though none of its steps' files changed"
+      : `${staleSteps} of ${steps} steps cite files changed since it was built`
+  const action = canBuild ? "  b: rebuild it" : ""
+
+  return `This change's tour ${name} is out of date: ${changed}.${action}`
+}
+
 /** One line on where the change's tour stands, above the list of tours. */
 export function ChangeStatus({ status, canBuild }: Props) {
   const { name } = status
@@ -45,6 +58,10 @@ export function ChangeStatus({ status, canBuild }: Props) {
         fg="#fca5a5"
       />
     )
+  }
+
+  if (status.kind === "stale") {
+    return <Line text={staleText(status, canBuild)} fg="#fcd34d" />
   }
 
   if (status.kind === "triggers") {
