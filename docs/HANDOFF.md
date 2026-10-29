@@ -141,6 +141,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   calls changed; the agent is told to look over steps next to the ones it redid.
 - Step 3aj: `--update` for the eval runner: build, commit the fixture's follow-ups, update, and
   report both runs; `refund` has one (an error message changed in place in api's handler).
+  First run: the update cost $0.38 and 45 s against the build's $0.58 and 98 s, 14 steps carried
+  over and 3 redone, the tour still fully correct.
+- Step 3ak: the build log gets a line for every read and for the guide, with the answer's size:
+  `trail: read_file api src/pay.ts 1–40 → 1210 chars`.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

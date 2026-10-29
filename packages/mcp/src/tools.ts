@@ -52,6 +52,15 @@ function problem(answer: string) {
   return { ...text(answer), isError: true }
 }
 
+// "read_file api src/pay.ts 1–40 → 1210 chars": what was asked, and how much came back, which
+// the agent carries from then on. The build log shows a build's reading as it happens.
+function answered(report: Report, asked: string) {
+  return async (answer: string) => {
+    await report(`${asked} → ${answer.length} chars`)
+    return text(answer)
+  }
+}
+
 /** The tools an agent reads a change with. A thrown error reaches the agent as the answer. */
 export function registerReadTools(server: McpServer, cell: SessionCell, report: Report): void {
   server.registerTool(
@@ -82,8 +91,10 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
     async (input) => {
       const repoAt = repoIn(cell.session, input.repo)
       const listing = await listFiles(repoAt, input.folder, input.recursive ?? false)
+      const recursive = input.recursive === true ? " (recursive)" : ""
+      const asked = `list_files ${input.repo} ${input.folder ?? "."}${recursive}`
 
-      return text(formatListing(listing))
+      return answered(report, asked)(formatListing(listing))
     },
   )
 
@@ -105,8 +116,9 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
         input.from,
         input.to,
       )
+      const range = `${input.from ?? 1}–${input.to ?? "end"}`
 
-      return text(formatLines(lines))
+      return answered(report, `read_file ${input.repo} ${input.path} ${range}`)(formatLines(lines))
     },
   )
 
@@ -118,8 +130,10 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
     },
     async (input) => {
       const result = await search(repoIn(cell.session, input.repo), input.pattern, input.folder)
+      const within = input.folder === undefined ? "" : ` in ${input.folder}`
+      const asked = `search ${input.repo} ${JSON.stringify(input.pattern)}${within}`
 
-      return text(formatMatches(result))
+      return answered(report, asked)(formatMatches(result))
     },
   )
 
@@ -131,11 +145,12 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
     },
     async (input) => {
       const changed = repoIn(cell.session, input.repo)
+      const answer = answered(report, `diff ${input.repo} ${input.path ?? "(files)"}`)
       if (input.path === undefined) {
-        return text(formatFileChanges(await changeFiles(changed)))
+        return answer(formatFileChanges(await changeFiles(changed)))
       }
 
-      return text(formatPatch(await changePatch(changed, input.path)))
+      return answer(formatPatch(await changePatch(changed, input.path)))
     },
   )
 }
@@ -158,7 +173,7 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
       description: TOOL_DESCRIPTIONS.tour_guide,
       inputSchema: z.object({ change: z.string().optional() }),
     },
-    ({ change }) => text(buildTourPrompt(wordsOf(change))),
+    ({ change }) => answered(report, "tour_guide")(buildTourPrompt(wordsOf(change))),
   )
 
   server.registerTool(

@@ -143,12 +143,19 @@ describe("building a tour over trail mcp", () => {
     client = new McpTestClient(dir, { [BUILD_LOG_ENV]: log })
     await client.initialize()
 
+    const repo = basename(dir)
     await client.call("open_change", { args: [] })
+    const guide = await client.call("tour_guide", {})
+    const read = await client.call("read_file", { repo, path: "src/app.ts", to: 1 })
+    const found = await client.call("search", { repo, pattern: "total", folder: "src" })
     await client.call("start_tour", header)
     await client.call("add_steps", { steps: [s1] })
 
     expect((await Bun.file(log).text()).split("\n")).toEqual([
-      `trail: opened ${basename(dir)}`,
+      `trail: opened ${repo}`,
+      `trail: tour_guide → ${guide.text.length} chars`,
+      `trail: read_file ${repo} src/app.ts 1–1 → ${read.text.length} chars`,
+      `trail: search ${repo} "total" in src → ${found.text.length} chars`,
       'trail: started "Total": add steps with add_steps',
       "trail: added s1; the tour has s1",
       "",
