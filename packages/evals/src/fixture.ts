@@ -9,7 +9,8 @@ const FIXTURES = join(import.meta.dir, "../../../evals/fixtures")
 const IDENTITY = ["-c", "user.name=eval", "-c", "user.email=eval@example.test"]
 
 export type Fixture = {
-  // repo name -> its directory, with `main` (the base) and `feature` (the change) branches
+  // repo name -> its directory, with `main` (the base) and `feature` (the change) branches;
+  // for a reviewer, `feature` only as origin/feature
   repos: Record<string, string>
   dir: string // the fixture's source folder, where expected.json lives
 }
@@ -31,14 +32,31 @@ async function buildRepo(source: string, target: string): Promise<void> {
   await commitAll(target, "change")
 }
 
-/** Builds every repo of evals/fixtures/<name> as a real git repo in a temporary folder. */
-export async function buildFixture(name: string): Promise<Fixture> {
+// The repo as a reviewer has it: a clone of its host, so the work is there as origin/feature
+// only, and main is the one local branch. The host stays in a folder that isn't a repo itself,
+// beside the clones.
+async function buildReviewerRepo(source: string, root: string, repo: string): Promise<void> {
+  const host = join(root, "hosts", repo)
+  await buildRepo(source, host)
+  await runGit(host, ["checkout", "--quiet", "main"])
+  await runGit(root, ["clone", "--quiet", host, repo])
+}
+
+/**
+ * Builds every repo of evals/fixtures/<name> as a real git repo in a temporary folder; with
+ * `asReviewer`, as clones of stand-in hosts, the work only on their remote-tracking branches.
+ */
+export async function buildFixture(name: string, { asReviewer = false } = {}): Promise<Fixture> {
   const dir = join(FIXTURES, name)
   const root = await mkdtemp(join(tmpdir(), `codetrail-${name}-`))
 
   const entries = await readdir(dir, { withFileTypes: true })
   const repoNames = entries.filter((e) => e.isDirectory()).map((e) => e.name)
-  await Promise.all(repoNames.map((repo) => buildRepo(join(dir, repo), join(root, repo))))
+  const build = (repo: string) =>
+    asReviewer
+      ? buildReviewerRepo(join(dir, repo), root, repo)
+      : buildRepo(join(dir, repo), join(root, repo))
+  await Promise.all(repoNames.map(build))
 
   return { repos: Object.fromEntries(repoNames.map((repo) => [repo, join(root, repo)])), dir }
 }

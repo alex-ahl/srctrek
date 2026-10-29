@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
+import { runGit } from "@codetrail/core"
+import { buildFixture } from "../src/fixture"
 import { runEval } from "../src/main"
 import { tempDir } from "../../core/test/support/temp"
 
@@ -36,8 +38,19 @@ describe("runEval", () => {
   })
 
   test("runs trail in another repo when told to", async () => {
-    const report = await runEval("refund", await fakeAgent(), { in: "api", args: [] })
+    const report = await runEval("refund", await fakeAgent(), { run: { in: "api", args: [] } })
 
     expect(report).toMatch(/Tour    .*\/api\/\.codetrail\/tours\/eval\.json/)
+  })
+
+  test("builds the repos as a reviewer has them: the work only on origin's branches", async () => {
+    const fixture = await buildFixture("refund", { asReviewer: true })
+    const web = fixture.repos["web"] ?? ""
+
+    expect(await runGit(web, ["branch", "--format=%(refname:short)"])).toBe("main")
+    expect(await runGit(web, ["rev-parse", "--abbrev-ref", "origin/HEAD"])).toBe("origin/main")
+    expect(await runGit(web, ["rev-parse", "--verify", "--quiet", "origin/feature"])).toMatch(
+      /^[0-9a-f]{40}$/,
+    )
   })
 })

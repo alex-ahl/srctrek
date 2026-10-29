@@ -64,12 +64,19 @@ async function buildTour(root: string, args: string[], agent: string) {
 }
 
 /**
- * Builds fixture `name`'s repos, has the agent tour them, and reports the tour's score. `run`
- * starts trail elsewhere than expected.json says, such as in one repo with the others left
- * for the agent to find.
+ * How to run an eval other than as expected.json says: `run` starts trail elsewhere, such as
+ * in one repo with the others left for the agent to find; `asReviewer` builds the repos as a
+ * reviewer has them, the work only on origin's branches.
  */
-export async function runEval(name: string, agent: string, run?: Run): Promise<string> {
-  const fixture = await buildFixture(name)
+export type EvalOptions = { run?: Run | undefined; asReviewer?: boolean }
+
+/** Builds fixture `name`'s repos, has the agent tour them, and reports the tour's score. */
+export async function runEval(
+  name: string,
+  agent: string,
+  { run, asReviewer = false }: EvalOptions = {},
+): Promise<string> {
+  const fixture = await buildFixture(name, { asReviewer })
   const expected = await readExpected(fixture.dir)
   const { in: repo, args } = run ?? expected.run
   const root = runsIn(fixture, { in: repo, args })
@@ -87,18 +94,23 @@ export async function runEval(name: string, agent: string, run?: Run): Promise<s
   return formatReport(name, scoreTour(tour, expected), facts)
 }
 
-// "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trail in that repo.
-function runFromArgs(words: string[]): Run | undefined {
-  const [repo, ...args] = words
-  return repo === undefined ? undefined : { in: repo, args }
+// "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trail in that repo;
+// --reviewer, anywhere, builds the repos as a reviewer has them.
+function optionsFromArgs(words: string[]): EvalOptions {
+  const [repo, ...args] = words.filter((word) => word !== "--reviewer")
+  const run = repo === undefined ? undefined : { in: repo, args }
+
+  return { run, asReviewer: words.includes("--reviewer") }
 }
 
 if (import.meta.main) {
   const [name, ...rest] = process.argv.slice(2)
   if (name === undefined) {
-    console.error("usage: bun packages/evals/src/main.ts <fixture> [<repo> <trail args>…]")
+    console.error(
+      "usage: bun packages/evals/src/main.ts <fixture> [--reviewer] [<repo> <trail args>…]",
+    )
     process.exit(2)
   }
 
-  console.log(await runEval(name, agentCommand(), runFromArgs(rest)))
+  console.log(await runEval(name, agentCommand(), optionsFromArgs(rest)))
 }

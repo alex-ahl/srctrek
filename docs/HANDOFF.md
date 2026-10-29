@@ -125,6 +125,8 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   branch at its head, through `git ls-remote`) and for a range on remote-tracking branches
   (`origin/main...origin/feature`); a sibling with only `origin/feature` is read from it, as of
   the last fetch, and the agent is told to say so in the tour.
+- Step 3af: `--reviewer` for the eval runner: a fixture's repos built as clones of stand-in
+  hosts, the work only on `origin/feature`.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
