@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import { pathExists } from "../files"
-import { detectBase } from "../git/base"
+import { detectBase, isBare } from "../git/base"
 import { type RangeSpec, type ResolvedRange, resolveRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
 import { snapshotWorkingTree } from "../git/snapshot"
@@ -26,11 +26,17 @@ async function repoTopLevel(dir: string, source: string): Promise<string> {
   try {
     return await runGit(dir, ["rev-parse", "--show-toplevel"])
   } catch (error) {
-    if (error instanceof GitError) {
-      throw new Error(`not a git repo: ${source}`, { cause: error })
+    if (!(error instanceof GitError)) {
+      throw error
     }
 
-    throw error
+    // A bare repo has no working tree to find the top of: its folder is the repo, as for a
+    // project folder that keeps one beside its worktrees (project/.bare).
+    if (await isBare(dir).catch(() => false)) {
+      return resolve(dir)
+    }
+
+    throw new Error(`not a git repo: ${source}`, { cause: error })
   }
 }
 

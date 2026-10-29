@@ -112,6 +112,10 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   its path relative to the current repo), so the tour goes on into it and records it; only
   keeping it on the repos list waits for the user. The answer reminds the agent that a hop
   into it cites both sides or is guessed.
+- Step 3ac: nearby repos for real layouts: found around the folder that holds the git data
+  (a clone, or a project folder keeping a bare repo beside its worktrees, which is read as a
+  repo too); each says whether it has a branch the work is on (never the base branch), and
+  those come first when more than 50 are found.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 

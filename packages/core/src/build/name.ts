@@ -1,5 +1,5 @@
 import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
-import { GitError, runGit } from "../git/run"
+import { checkedOutBranch, isSnapshot } from "../git/refs"
 
 // Tour names are lowercase letters, digits, and dashes; long branch names are cut.
 function slug(text: string): string {
@@ -8,31 +8,6 @@ function slug(text: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60)
-}
-
-async function currentBranch(dir: string): Promise<string | undefined> {
-  try {
-    return await runGit(dir, ["symbolic-ref", "--short", "--quiet", "HEAD"])
-  } catch (error) {
-    if (error instanceof GitError) {
-      return undefined
-    }
-
-    throw error
-  }
-}
-
-async function isSnapshot(dir: string, commit: string): Promise<boolean> {
-  try {
-    await runGit(dir, ["rev-parse", "--verify", "--quiet", `refs/codetrail/snapshots/${commit}`])
-    return true
-  } catch (error) {
-    if (error instanceof GitError) {
-      return false
-    }
-
-    throw error
-  }
 }
 
 // What the range's head is called: a pull request's number, the branch checked out (marked
@@ -44,7 +19,7 @@ async function headName(repo: RepoWithRange): Promise<string> {
     return `${request[1] === "pull" ? "pr" : "mr"}-${request[2]}`
   }
 
-  const checkedOut = (await currentBranch(repo.dir)) ?? headCommit.slice(0, 7)
+  const checkedOut = (await checkedOutBranch(repo.dir)) ?? headCommit.slice(0, 7)
   if (head === "HEAD") {
     return checkedOut
   }

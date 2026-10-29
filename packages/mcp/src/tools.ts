@@ -62,7 +62,10 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
       const change = await apply(cell, (session) => open(session, args))
       await report(`opened ${change.repos.map(({ name }) => name).join(", ")}`)
       // Started outside a git repo, as for a pull request alone, there's no folder to look around.
-      const nearby = await nearbyRepos(cell.session.cwd, change).catch(() => [])
+      const nearby = await nearbyRepos(cell.session.cwd, change).catch(() => ({
+        repos: [],
+        leftOut: 0,
+      }))
 
       return text(formatChange(change, nearby))
     },

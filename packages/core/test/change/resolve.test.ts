@@ -174,3 +174,28 @@ describe("withRouteRepo", () => {
     )
   })
 })
+
+describe("a project folder that keeps a bare repo beside its worktrees", () => {
+  test("is read as a repo, named after the folder, at its default branch", async () => {
+    const { dir } = await makeFeatureRepo()
+    const source = await makeRepo()
+    const head = await commit(source, "charge.ts", "charged\n")
+    const parent = await mkdtemp(join(tmpdir(), "codetrail-project-"))
+    const project = join(parent, "payments")
+    await mkdir(project)
+    await runGit(project, ["clone", "--quiet", "--bare", source, ".bare"])
+    await writeFile(join(project, ".git"), "gitdir: ./.bare\n")
+    await runGit(project, ["worktree", "add", "--quiet", "--detach", "development"])
+
+    const args: ChangeArguments = {
+      changes: [],
+      unchanged: [{ source: relative(dir, project) }],
+      uncommitted: false,
+    }
+    const change = await resolveChange(dir, args, await makeCacheDir())
+    const payments = change.repos.find((repo) => repo.name === "payments")
+
+    expect(payments?.revision).toBe(head)
+    expect(await readFileAt(payments?.dir ?? "", head, "charge.ts")).toBe("charged\n")
+  })
+})

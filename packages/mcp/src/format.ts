@@ -3,6 +3,8 @@ import type {
   ChangedFiles,
   FileChange,
   Listing,
+  Nearby,
+  NearbyRepo,
   NumberedLines,
   Patch,
   ResolvedChange,
@@ -19,13 +21,25 @@ function describeRange(repo: ResolvedChange["repos"][number]): string {
 }
 
 /** "api  9c1e2f3  1a2b3c4..9c1e2f3 (since-branch-point)", one repo per line. */
-export function formatChange(change: ResolvedChange, nearby: string[]): string {
+function describeNearby({ path, branch }: NearbyRepo): string {
+  return branch === undefined ? path : `${path} (has branch ${branch})`
+}
+
+// "not opened, next to this repo: ../api (has branch feature), ../docs, and 12 more"
+function nearbyLine({ repos, leftOut }: Nearby): string[] {
+  if (repos.length === 0) {
+    return []
+  }
+
+  const more = leftOut > 0 ? `, and ${leftOut} more` : ""
+  return [`not opened, next to this repo: ${repos.map(describeNearby).join(", ")}${more}`]
+}
+
+export function formatChange(change: ResolvedChange, nearby: Nearby): string {
   const repos = change.repos.map(
     (repo) => `${repo.name}  ${repo.revision.slice(0, 7)}  ${describeRange(repo)}`,
   )
-  const others = nearby.length > 0 ? [`not opened, next to this repo: ${nearby.join(", ")}`] : []
-
-  return [...repos, ...others].join("\n")
+  return [...repos, ...nearbyLine(nearby)].join("\n")
 }
 
 /** One path per line, folders ending in "/", and a note when the listing was cut. */

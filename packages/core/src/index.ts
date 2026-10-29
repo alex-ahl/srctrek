@@ -118,4 +118,4 @@ export {
   saveProposal,
   type ProposedRepo,
 } from "./build/proposals"
-export { nearbyRepos } from "./repos/nearby"
+export { nearbyRepos, type Nearby, type NearbyRepo } from "./repos/nearby"
