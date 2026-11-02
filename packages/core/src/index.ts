@@ -22,6 +22,16 @@ export {
 } from "./session/moves"
 export type { RunningFunctions } from "./session/functions"
 export {
+  sessionView,
+  type EndView,
+  type Frame,
+  type OverviewView,
+  type SessionView,
+  type StepRef,
+  type StepView,
+  type ViewContext,
+} from "./session/view"
+export {
   TOURS_DIR,
   TourValidationError,
   listTours,

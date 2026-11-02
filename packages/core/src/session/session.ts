@@ -1,4 +1,4 @@
-import { callStacks } from "../schema/stacks"
+import { type CallStacks, callStacks } from "../schema/stacks"
 import type { Tour, TourStep } from "../schema/tour"
 import { type RunningFunctions, runningFunctions } from "./functions"
 
@@ -16,6 +16,7 @@ export type SteppingSession = {
   readonly visited: ReadonlySet<string>
   // ids of the executed steps; context steps are visited in tour order but never entered
   readonly executed: ReadonlySet<string>
+  readonly stacks: CallStacks
   readonly functions: RunningFunctions
 }
 
@@ -28,6 +29,7 @@ export function openSession(tour: Tour): SteppingSession {
     at: { kind: "overview" },
     visited: new Set(),
     executed: new Set(stacks.stacks.keys()),
+    stacks,
     functions: runningFunctions(stacks),
   }
 }

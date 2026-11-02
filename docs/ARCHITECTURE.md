@@ -229,6 +229,11 @@ The tour is stepped in the editor, in files from the cached worktree. Core's ste
 - A hop counts as inside its caller only when a return comes back across it, as a response does
   to its request; an event, a message, or a scheduled job runs on its own.
 
+After each move the session gives a view ready to render (`sessionView`): the overview, the end,
+or the step with its path in the repo's checkout, its narration, flag, predicted values, the
+lines the change touches in its file, whether it's stale, the steps it can step into, the context
+steps that explain it, and its call stack back across every hop to the trigger, hops marked.
+
 - Neovim (version 1): the plugin steps from inside the editor and renders each step.
 - VS Code and its forks (version 1, Milestone 6): an extension, rendering the same session.
 - Every other editor: the TUI's fallback stepping view shows the code, and `e` opens the

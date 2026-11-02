@@ -18,6 +18,10 @@
 - Step 4d: the stepping session in core (`openSession`, `stepNext`, `stepBack`, `stepTo`,
   `stepInto`, `stepOver`, `stepOut`): pure moves on an immutable session, over and out by the
   functions running at each step, a hop inside its caller only when it's answered.
+- Step 4e: the session's view (`sessionView`), ready to render: overview, end, or the step with
+  its path in its checkout, narration, flag, values, changed lines, stale, calls, context steps,
+  and its call stack across every hop. Checkouts, changed lines, and stale steps come in a
+  `ViewContext` the caller prepares.
 
 ## 2026-10-27 — Milestone 3: tour building
 
