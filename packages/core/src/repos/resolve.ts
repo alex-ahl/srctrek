@@ -48,9 +48,15 @@ async function fetchedRepo(cacheDir: string, url: string, refs: string[] = []): 
   return dir
 }
 
-// Where an entry's git data is: its cached clone for a URL, else the top of the repo at its
-// path, relative to `baseDir`.
-async function repoDir(baseDir: string, entry: RepoEntry, cacheDir: string): Promise<string> {
+/**
+ * Where an entry's git data is: its cached clone for a URL, fetched, else the top of the repo
+ * at its path, relative to `baseDir`.
+ */
+export async function repoDir(
+  baseDir: string,
+  entry: Pick<RepoEntry, "source">,
+  cacheDir: string,
+): Promise<string> {
   if (isRemote(entry.source)) {
     return fetchedRepo(cacheDir, entry.source)
   }

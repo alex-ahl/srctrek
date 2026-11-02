@@ -31,6 +31,7 @@ export {
   type StepView,
   type ViewContext,
 } from "./session/view"
+export { UnreachableRepoError, viewContext } from "./session/context"
 export {
   TOURS_DIR,
   TourValidationError,

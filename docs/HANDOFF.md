@@ -22,6 +22,10 @@
   its path in its checkout, narration, flag, values, changed lines, stale, calls, context steps,
   and its call stack across every hop. Checkouts, changed lines, and stale steps come in a
   `ViewContext` the caller prepares.
+- Step 4f: the view's context from git (`viewContext`): each repo checked out at the tour's
+  revision, the lines its range touches, and stale steps given the change as it is now (the
+  tour records commits, not branches, so the caller supplies the change). A missing repo or
+  commit is an `UnreachableRepoError` naming it.
 
 ## 2026-10-27 — Milestone 3: tour building
 

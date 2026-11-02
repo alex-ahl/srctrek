@@ -233,6 +233,10 @@ After each move the session gives a view ready to render (`sessionView`): the ov
 or the step with its path in the repo's checkout, its narration, flag, predicted values, the
 lines the change touches in its file, whether it's stale, the steps it can step into, the context
 steps that explain it, and its call stack back across every hop to the trigger, hops marked.
+What the view needs from git comes from `viewContext`: each repo found from its source and checked
+out at the tour's revision, the lines its recorded range touches, and, given the change as it is
+now, the steps whose file has moved on. A repo that isn't where the tour says, or lacks its
+commit, is reported by name.
 
 - Neovim (version 1): the plugin steps from inside the editor and renders each step.
 - VS Code and its forks (version 1, Milestone 6): an extension, rendering the same session.
