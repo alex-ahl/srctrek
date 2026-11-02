@@ -51,7 +51,7 @@ export async function saveTourOf(dir: string, change: ResolvedChange, name: stri
     file: "app.ts",
     start_line: 1,
     end_line: 1,
-    kind: "context" as const,
+    kind: "call" as const,
     summary: "s",
     details: "d",
     via: null,

@@ -50,11 +50,14 @@ const StepFields = z.object({
   changed: z.boolean(),
   summary: nonEmpty,
   details: nonEmpty,
-  // the step execution came from; absent only on the first step
+  // the step execution came from; absent on the first step and on context steps
   from: nonEmpty.optional(),
+  // the step a context step explains; context steps sit outside the execution chain
+  for: nonEmpty.optional(),
   via: Via.nullable(),
   predicted_values: z.array(PredictedValue).optional(),
-  calls: nonEmpty.optional(),
+  // the steps this one steps into, in call order
+  calls: z.array(nonEmpty).min(1).optional(),
   trivial: z.boolean().optional(),
   uncertain: Uncertain.optional(),
   notes: z.array(Note).optional(),

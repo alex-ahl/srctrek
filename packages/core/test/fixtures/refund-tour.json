@@ -48,7 +48,7 @@
       "start_line": 4,
       "end_line": 18,
       "blob": "336bde3ec8b438aecd61ebb16b055405a33dd939",
-      "kind": "context",
+      "kind": "call",
       "changed": false,
       "summary": "On load, the page reads ?order=o_1001, fetches the order and renders it into #app.",
       "details": "Setup for the scenario: the button only exists after renderOrder runs. fetchOrder calls GET /orders/o_1001 (web/src/orders.ts:12).",
@@ -61,7 +61,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s2"
+      "calls": ["s2"]
     },
     {
       "id": "s2",
@@ -104,7 +104,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s3"
+      "calls": ["s3"]
     },
     {
       "id": "s3",
@@ -153,7 +153,7 @@
       "start_line": 7,
       "end_line": 14,
       "blob": "336bde3ec8b438aecd61ebb16b055405a33dd939",
-      "kind": "context",
+      "kind": "call",
       "changed": false,
       "summary": "The delegated click listener finds the closest [data-action] element and looks up actions['refund'].",
       "details": "Existing dispatch mechanism; the feature plugs in by adding a 'refund' key. Rejections are caught and rendered as a <p class=\"error\">.",
@@ -176,7 +176,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s5"
+      "calls": ["s5"]
     },
     {
       "id": "s5",
@@ -214,7 +214,7 @@
           "role": "argument"
         }
       ],
-      "calls": "s6",
+      "calls": ["s6"],
       "uncertain": {
         "severity": "low",
         "note": "On failure the button stays disabled forever and the status line is not updated; only an error paragraph is appended."
@@ -250,7 +250,7 @@
           "role": "argument"
         }
       ],
-      "calls": "s7",
+      "calls": ["s7"],
       "uncertain": {
         "severity": "medium",
         "note": "This is where the unit conversion (x100, rounded) is missing; the API treats 499 as 499 öre."
@@ -286,7 +286,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s8",
+      "calls": ["s8"],
       "uncertain": {
         "severity": "medium",
         "note": "A cross-origin POST with content-type application/json triggers a CORS preflight; the API has no OPTIONS route or Access-Control-* headers (api/src/server.ts:33-44), so this only works if web and API share an origin or a proxy sits in front. Not verifiable from these repos."
@@ -333,7 +333,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s9"
+      "calls": ["s11"]
     },
     {
       "id": "s9",
@@ -346,7 +346,6 @@
       "changed": true,
       "summary": "The new /refunds POST operation (operationId createRefund) defines amount as an integer in minor units.",
       "details": "loadRoutes reads this spec at startup and builds a route per operation; the operationId names the handler.",
-      "from": "s8",
       "via": {
         "cites": [
           {
@@ -357,11 +356,11 @@
         ],
         "guessed": false
       },
-      "calls": "s10",
       "uncertain": {
         "severity": "low",
         "note": "The spec is only used for routing; requestBody schema is not validated by the server, so the contract with web (which sends major units) is not enforced anywhere except by the handler's own checks."
-      }
+      },
+      "for": "s8"
     },
     {
       "id": "s10",
@@ -374,7 +373,6 @@
       "changed": true,
       "summary": "createRefund is registered under its operationId so loadRoutes can find it.",
       "details": "createRefund is registered under its operationId so loadRoutes can find it.",
-      "from": "s9",
       "via": {
         "cites": [
           {
@@ -385,7 +383,7 @@
         ],
         "guessed": false
       },
-      "calls": "s11"
+      "for": "s8"
     },
     {
       "id": "s11",
@@ -398,7 +396,7 @@
       "changed": true,
       "summary": "createRefund looks up the order and validates amount as a positive integer no larger than total_minor.",
       "details": "o_1001 exists. amount 499 is an integer, > 0 and <= 49900, so it passes.",
-      "from": "s10",
+      "from": "s8",
       "via": {
         "cites": [
           {
@@ -429,7 +427,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s12",
+      "calls": ["s12"],
       "uncertain": {
         "severity": "high",
         "note": "Validation accepts the web's major-unit 499 as 499 öre: a full refund silently becomes 4.99 SEK. An order with cents (e.g. total 499.5) would send 499.5 and get a 400. No check against previously requested refunds or order status, so repeated clicks (after reload) can over-refund."
@@ -477,7 +475,7 @@
           "role": "return"
         }
       ],
-      "calls": "s13",
+      "calls": ["s13"],
       "uncertain": {
         "severity": "medium",
         "note": "Order status is never moved to 'refunded' and the RefundRow never leaves 'requested'; db is in-memory, so refunds are lost on API restart while the queue message persists."
@@ -513,7 +511,7 @@
           "role": "assignment"
         }
       ],
-      "calls": "s14"
+      "calls": ["s14"]
     },
     {
       "id": "s14",
@@ -582,7 +580,7 @@
         ],
         "guessed": false
       },
-      "calls": "s16",
+      "calls": ["s16"],
       "uncertain": {
         "severity": "medium",
         "note": "A handler exception is logged and swallowed, and the offset still advances past the message (queue.py:29), so a failed refund (e.g. provider timeout) is never retried and nobody is told."
@@ -618,7 +616,7 @@
           "role": "return"
         }
       ],
-      "calls": "s17",
+      "calls": ["s17"],
       "uncertain": {
         "severity": "high",
         "note": "The offset is written only after all lines are consumed: if the worker dies after payments.refund succeeds but before line 29, the message is replayed and the customer is refunded twice (no idempotency key is sent to the provider)."
@@ -654,7 +652,7 @@
           "role": "argument"
         }
       ],
-      "calls": "s18",
+      "calls": ["s18"],
       "uncertain": {
         "severity": "high",
         "note": "Key mismatch is handled (API sends 'amount', worker reads 'amount'), but the value is already wrong by 100x from the web; int() would also silently truncate any fractional value."
@@ -697,7 +695,7 @@
           "uncertain": true
         }
       ],
-      "calls": "s19",
+      "calls": ["s19"],
       "uncertain": {
         "severity": "medium",
         "note": "Refunds 4.99 SEK on a 499.00 SEK order. Our refund_id is not sent, so the provider cannot dedupe retries or replays."
@@ -725,7 +723,7 @@
         ],
         "guessed": false
       },
-      "calls": "s20"
+      "calls": ["s20"]
     },
     {
       "id": "s20",

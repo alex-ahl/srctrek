@@ -97,6 +97,14 @@ describe("parseTour", () => {
     ])
   })
 
+  test("rejects a context step explaining a step in another repo that cites only its own side", () => {
+    const tour = refundTour()
+    step(tour, "s9").for = "s7"
+    expect(issuesOf(tour)).toEqual([
+      `steps.8 (s9).via: crosses from web to api without citing web: ${BOTH_SIDES}`,
+    ])
+  })
+
   test("accepts a one-sided cross-repo link marked guessed", () => {
     const tour = refundTour()
     step(tour, "s15").via = {
@@ -119,12 +127,48 @@ describe("parseTour", () => {
   test("rejects references to unknown repos and steps", () => {
     const tour = refundTour()
     step(tour, "s1").repo = "mobile"
-    step(tour, "s1").calls = "s99"
+    step(tour, "s1").calls = ["s2", "s99"]
     step(tour, "s5").from = "s98"
+    step(tour, "s9").for = "s97"
     const issues = issuesOf(tour)
     expect(issues).toContain("steps.0 (s1).repo: unknown repo mobile")
-    expect(issues).toContain("steps.0 (s1).calls: calls unknown step s99")
+    expect(issues).toContain("steps.0 (s1).calls.1: calls unknown step s99")
     expect(issues).toContain("steps.4 (s5).from: comes from unknown step s98")
+    expect(issues).toContain("steps.8 (s9).for: explains unknown step s97")
+  })
+
+  test("accepts a step that steps into several", () => {
+    const tour = refundTour()
+    step(tour, "s12").calls = ["s13", "s14"]
+    expect(issuesOf(tour)).toEqual([])
+  })
+
+  test("rejects a context step linked as executed", () => {
+    const tour = refundTour()
+    delete step(tour, "s9").for
+    step(tour, "s9").from = "s8"
+    expect(issuesOf(tour)).toEqual([
+      "steps.8 (s9).for: missing: name the step this context explains",
+      "steps.8 (s9).from: a context step isn't executed: name the step it explains with for, not from",
+    ])
+  })
+
+  test("rejects an executed step that names a step it explains", () => {
+    const tour = refundTour()
+    step(tour, "s11").for = "s8"
+    expect(issuesOf(tour)).toEqual([
+      "steps.10 (s11).for: only a context step explains another; this one is executed",
+    ])
+  })
+
+  test("rejects execution coming from or stepping into a context step", () => {
+    const tour = refundTour()
+    step(tour, "s11").from = "s10"
+    step(tour, "s8").calls = ["s9"]
+    expect(issuesOf(tour)).toEqual([
+      "steps.7 (s8).calls.0: steps into context step s9",
+      "steps.10 (s11).from: comes from context step s10, which isn't executed: name the step execution came from",
+    ])
   })
 
   test("rejects duplicate step ids", () => {

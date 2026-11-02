@@ -1,5 +1,13 @@
 # Handoff
 
+## 2026-10-30 — Milestone 4: `trail serve`
+
+**Done**
+
+- Step 4a: context steps name the step they explain (`for`) in place of `from`, citing both
+  repos when the two differ, and execution never comes from or steps into one; `calls` lists
+  the steps a step steps into, in call order. The Neovim prototype steps into the first.
+
 ## 2026-10-27 — Milestone 3: tour building
 
 **Done**
@@ -201,11 +209,10 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
   lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
   or sooner if an upgrade costs more than a day or a target platform fails to load it.
-- Context steps sit in the execution chain: the format requires `from` on every step after
-  the first, so a step read for context (not executed) has to claim execution came from
-  somewhere. Decide with the protocol in Milestone 4: a separate link for context steps.
-- `calls` holds one step, so a function that steps into several (a handler calling five
-  helpers) can offer only one for step into. Decide with the protocol in Milestone 4.
+- Context steps: next visits them in tour order, so one placed early sits before the step it
+  explains, and `for` names one step. Decide in Milestone 5, with the design, whether context
+  stays in the steps list or becomes a tour-level list whose entries name every step they
+  explain.
 - Large repos: editor worktrees should check out only the files a tour visits (sparse
   checkout), with the editors in Milestone 6.
 - Token use: most of it is the context re-read every turn as it grows, so turns matter more

@@ -4,13 +4,15 @@ Trace what runs, step by step, from trigger to outcome:
 
 - One step per stop: a handler, a function that decides something, a boundary crossed. Skip pure plumbing, or mark it `trivial`.
 - Include all the code the path runs through, changed or not; the reader needs it to understand the parts that matter. When there is a change, it marks which lines it touches.
-- `kind`: call when execution enters a function, including one reached from a return statement (`return render(turns)` is a call to `render`); return when execution comes back to code an earlier step showed, bringing a value; hop when it crosses to another process or repo (an HTTP request, a queued message, a job); context for code read to understand rather than executed.
+- `kind`: call when execution enters a function, including one reached from a return statement (`return render(turns)` is a call to `render`); return when execution comes back to code an earlier step showed, bringing a value; hop when it crosses to another process or repo (an HTTP request, a queued message, a job); context for code read to understand rather than executed (a type, a route table, a spec entry).
 - When work happens later (a queue consumer, a scheduled job), follow it as a hop, in the order it runs.
 - When the route leads into a repo that wasn't opened (a service the code calls, a consumer of a message it sends), propose the repo with propose_repo; once it's opened, follow the route on into it.
 
 ## 4. Link every step with evidence
 
 Every step after the first names the step execution came from (`from`) and cites what proves the link (`via`): the call site, the route table, the config line, the message name on both sides, the spec entry. A link matched only by a name (a topic string, a URL path) is `guessed`. A hop between repos cites both sides, or is guessed.
+
+A context step isn't executed, so it sits outside that chain: it names the step it explains (`for`) instead of `from`, and cites the line there that uses it; across repos, both sides. The next executed step names the last executed step before it as `from`. A step that calls several steps worth entering lists them all in `calls`, in call order.
 
 ## 5. Show the scenario's values
 

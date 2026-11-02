@@ -54,65 +54,110 @@ function unknownRepos(tour: Tour): Issue[] {
     .map(({ repo, path }) => ({ path, message: `unknown repo ${repo}` }))
 }
 
-function danglingCalls(tour: Tour): Issue[] {
-  const ids = new Set(tour.steps.map((s) => s.id))
+type NamedStep = { id: string; path: Path; message: string }
 
-  return tour.steps.flatMap(({ calls }, i) =>
-    issueIf(
-      calls !== undefined && !ids.has(calls),
-      ["steps", i, "calls"],
-      `calls unknown step ${calls}`,
-    ),
-  )
+// Every step a step names by id: each it steps into, where execution came from, and the step
+// it explains.
+function stepsNamedBy(step: TourStep, i: number): NamedStep[] {
+  const named = (id: string | undefined, path: Path, message: string): NamedStep[] =>
+    id === undefined ? [] : [{ id, path: ["steps", i, ...path], message }]
+
+  return [
+    ...(step.calls ?? []).flatMap((id, j) => named(id, ["calls", j], `calls unknown step ${id}`)),
+    ...named(step.from, ["from"], `comes from unknown step ${step.from}`),
+    ...named(step.for, ["for"], `explains unknown step ${step.for}`),
+  ]
 }
 
-function danglingFrom(tour: Tour): Issue[] {
+function danglingStepIds(tour: Tour): Issue[] {
   const ids = new Set(tour.steps.map((s) => s.id))
 
-  return tour.steps.flatMap(({ from }, i) =>
-    issueIf(
-      from !== undefined && !ids.has(from),
-      ["steps", i, "from"],
-      `comes from unknown step ${from}`,
-    ),
-  )
+  return tour.steps
+    .flatMap(stepsNamedBy)
+    .filter(({ id }) => !ids.has(id))
+    .map(({ path, message }) => ({ path, message }))
 }
 
-// Every step after the first is a link: it names where execution came from, and cites its
-// evidence.
-function missingLinks(tour: Tour): Issue[] {
-  const links = tour.steps.map((step, i) => ({ step, i })).slice(1)
-
-  return links.flatMap(({ step, i }) => [
+// A context step explains another step and isn't executed: it names the step it explains,
+// never where execution came from, and cites why it belongs there.
+function contextLinks(step: TourStep, i: number): Issue[] {
+  return [
     ...issueIf(
-      step.from === undefined,
+      step.for === undefined,
+      ["steps", i, "for"],
+      "missing: name the step this context explains",
+    ),
+    ...issueIf(
+      step.from !== undefined,
+      ["steps", i, "from"],
+      "a context step isn't executed: name the step it explains with for, not from",
+    ),
+    ...issueIf(step.via === null, ["steps", i, "via"], "missing evidence"),
+  ]
+}
+
+// Every executed step after the first is a link: it names where execution came from, and
+// cites its evidence.
+function executionLinks(step: TourStep, i: number): Issue[] {
+  return [
+    ...issueIf(
+      step.for !== undefined,
+      ["steps", i, "for"],
+      "only a context step explains another; this one is executed",
+    ),
+    ...issueIf(
+      i > 0 && step.from === undefined,
       ["steps", i, "from"],
       "missing: name the step execution came from",
     ),
-    ...issueIf(step.via === null, ["steps", i, "via"], "missing evidence"),
+    ...issueIf(i > 0 && step.via === null, ["steps", i, "via"], "missing evidence"),
+  ]
+}
+
+function linksByKind(tour: Tour): Issue[] {
+  return tour.steps.flatMap((step, i) =>
+    step.kind === "context" ? contextLinks(step, i) : executionLinks(step, i),
+  )
+}
+
+// Execution never comes from or steps into a context step, which isn't executed.
+function linksIntoContext(tour: Tour): Issue[] {
+  const context = new Set(tour.steps.filter((s) => s.kind === "context").map((s) => s.id))
+
+  return tour.steps.flatMap((step, i) => [
+    ...issueIf(
+      step.from !== undefined && context.has(step.from),
+      ["steps", i, "from"],
+      `comes from context step ${step.from}, which isn't executed: name the step execution came from`,
+    ),
+    ...(step.calls ?? []).flatMap((id, j) =>
+      issueIf(context.has(id), ["steps", i, "calls", j], `steps into context step ${id}`),
+    ),
   ])
 }
 
-// A link from a step in another repo crosses repos; its evidence must cite both repos, or
-// the link must admit it is a guess. Tour order can't stand in for `from`: async work
-// (a queue consumer) runs after unrelated steps.
+// A link to a step in another repo crosses repos, whether execution came from it or a
+// context step explains it; its evidence must cite both repos, or the link must admit it is
+// a guess. Tour order can't stand in for the link: async work (a queue consumer) runs after
+// unrelated steps.
 function oneSidedCrossRepoLinks(tour: Tour): Issue[] {
   const byId = new Map(tour.steps.map((s) => [s.id, s]))
 
   return tour.steps.flatMap((step, i) => {
-    const source = step.from === undefined ? undefined : byId.get(step.from)
-    const crossesRepos = source !== undefined && source.repo !== step.repo
+    const linkedId = step.from ?? step.for
+    const linked = linkedId === undefined ? undefined : byId.get(linkedId)
+    const crossesRepos = linked !== undefined && linked.repo !== step.repo
     if (!crossesRepos || !step.via || step.via.guessed) {
       return []
     }
 
     const cited = new Set(step.via.cites.map((c) => c.repo))
-    const missing = [source.repo, step.repo].filter((repo) => !cited.has(repo))
+    const missing = [linked.repo, step.repo].filter((repo) => !cited.has(repo))
 
     return issueIf(
       missing.length > 0,
       ["steps", i, "via"],
-      `crosses from ${source.repo} to ${step.repo} without citing ${missing.join(" and ")}: cite both sides or mark guessed`,
+      `crosses from ${linked.repo} to ${step.repo} without citing ${missing.join(" and ")}: cite both sides or mark guessed`,
     )
   })
 }
@@ -121,8 +166,8 @@ export const tourRules = [
   duplicateRepoNames,
   duplicateStepIds,
   unknownRepos,
-  danglingCalls,
-  danglingFrom,
-  missingLinks,
+  danglingStepIds,
+  linksByKind,
+  linksIntoContext,
   oneSidedCrossRepoLinks,
 ]

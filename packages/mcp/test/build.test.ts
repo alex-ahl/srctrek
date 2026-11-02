@@ -53,7 +53,7 @@ function stepsFor(repo: string) {
     file: "src/app.ts",
     start_line: 1,
     end_line: 1,
-    kind: "context",
+    kind: "call",
     summary: "The total is set.",
     details: "The change raises it.",
     via: null,

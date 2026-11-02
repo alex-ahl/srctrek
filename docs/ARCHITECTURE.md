@@ -131,18 +131,22 @@ can check; never a bare "line 5".
   - `blob`: the file's git blob id at the tour's revision; a mismatch marks the step stale
   - `kind`: `call`, `return`, `hop` (async or cross-process: the call stack resets), or `context`
   - `changed`: whether the range touches these lines
-  - `from`: the id of the step execution came from, on every step but the first; for async
-    work it names the cause (the publish), not the step before it in the tour
+  - `from`: the id of the step execution came from, on every executed step but the first;
+    for async work it names the cause (the publish), not the step before it in the tour. A
+    context step is never executed, so `from` never names one.
+  - `for`: on a context step, in place of `from`: the step it explains. Context steps sit
+    outside the execution chain and the call stack.
   - `via`: the evidence for arriving here — one or more `{ repo, file, line }` citing the
     call site, route, config line, message name, or spec entry — plus `guessed: true` when
-    the link is a name match. When `from` is in another repo, the evidence cites both repos
+    the link is a name match; on a context step, the line of the step it explains that uses
+    it. When `from` or `for` is in another repo, the evidence cites both repos
     or the link is guessed; validation rejects anything else.
   - optional: `predicted_values`: `{ name, value, line, role, uncertain? }[]`, role
     `argument`, `assignment`, or `return`, each on a line inside the step: values from the
     example scenario under the same names across steps, where they tell the reader something
     or let them follow the scenario. Front-ends show each at the end of its line, marked as
     predicted, and let the user hide them.
-  - optional: `calls` (id of the step stepped into), `trivial`, and
+  - optional: `calls` (ids of the steps stepped into, in call order), `trivial`, and
     `uncertain`: `{ severity, note }`, severity `high` (likely wrong behaviour), `medium`
     (risky), or `low` (worth knowing). Front-ends show `high` inline and the rest in details.
   - `notes[]`: questions asked on this step and their answers (see Asking)

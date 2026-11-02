@@ -2,6 +2,16 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-10-30 — Context steps explain a step; a step can step into several
+
+A context step names the step it explains (`for`) instead of where execution came from,
+citing both repos when the two differ, and stays off the call stack; execution never comes
+from or steps into one. `calls` lists every step a step steps into, in call order.
+
+A context step has no caller, so requiring `from` made it claim one, and the step after it
+then claimed to come from code that never ran. With one id in `calls`, a handler calling five
+helpers could offer only one of them for step into.
+
 ## 2026-10-28 — The user chooses what a tour of code is about
 
 A tour of code as it is follows the trigger the user names. With no trigger named, the agent

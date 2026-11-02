@@ -30,7 +30,7 @@ async function tourOf(change: ResolvedChange): Promise<Tour> {
     file: "total.ts",
     start_line: 1,
     end_line: 1,
-    kind: "context",
+    kind: "call",
     summary: "s",
     details: "d",
     via: null,
