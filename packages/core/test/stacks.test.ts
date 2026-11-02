@@ -4,7 +4,7 @@ import { callStacks, parseTour } from "../src"
 
 const fixturePath = join(import.meta.dir, "fixtures/refund-tour.json")
 const tour = parseTour(await Bun.file(fixturePath).json(), fixturePath)
-const { stacks, misplacedReturns } = callStacks(tour.steps)
+const { stacks, beneath, continues, answeredHops, misplacedReturns } = callStacks(tour.steps)
 
 describe("callStacks", () => {
   test("puts a call on top of the step it came from", () => {
@@ -30,7 +30,15 @@ describe("callStacks", () => {
   test("finds the frame a return comes back to across the hop it answers", () => {
     // back in web's refund action (s5) once the api's createRefund (s11) answers the request
     expect(stacks.get("s14")).toEqual(["s4", "s14"])
+    expect(continues.get("s14")).toBe("s5")
     expect(misplacedReturns).toEqual([])
+  })
+
+  test("tells hops answered back across from work nobody waits for", () => {
+    // the refund request (s8) is answered; the page's click (s4) and the worker's message
+    // (s15) aren't
+    expect([...answeredHops]).toEqual(["s8"])
+    expect(beneath.get("s15")).toBe("s13")
   })
 
   test("follows a return that takes the place of a hop back to the hop's caller", () => {

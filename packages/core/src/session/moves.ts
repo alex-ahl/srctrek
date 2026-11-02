@@ -1,0 +1,109 @@
+import type { TourStep } from "../schema/tour"
+import { type SteppingSession, currentStep } from "./session"
+
+// The session's place in tour order: -1 at the overview, the step count at the end.
+function indexOf(session: SteppingSession): number {
+  const { at, tour } = session
+  if (at.kind === "overview") {
+    return -1
+  }
+
+  return at.kind === "step" ? at.index : tour.steps.length
+}
+
+// The session on the step at `index`, or at the end past the last.
+function moveTo(session: SteppingSession, index: number): SteppingSession {
+  const step = session.tour.steps[index]
+  if (step === undefined) {
+    return { ...session, at: { kind: "end" } }
+  }
+
+  const visited = new Set([...session.visited, step.id])
+
+  return { ...session, at: { kind: "step", index }, visited }
+}
+
+// The first executed step after the current one that `stops` accepts, else the end.
+function nextWhere(session: SteppingSession, stops: (step: TourStep) => boolean): SteppingSession {
+  const from = indexOf(session)
+  const isStop = (step: TourStep, index: number) =>
+    index > from && session.executed.has(step.id) && stops(step)
+  const index = session.tour.steps.findIndex(isStop)
+
+  return moveTo(session, index < 0 ? session.tour.steps.length : index)
+}
+
+// The executed step the session is on; over, out, and into start only from one.
+function executedStep(session: SteppingSession): TourStep | undefined {
+  const step = currentStep(session)
+  return step !== undefined && session.executed.has(step.id) ? step : undefined
+}
+
+/** The next step in tour order, context steps included; past the last, the end. */
+export function stepNext(session: SteppingSession): SteppingSession {
+  return session.at.kind === "end" ? session : moveTo(session, indexOf(session) + 1)
+}
+
+/** The step before in tour order; before the first, the overview. */
+export function stepBack(session: SteppingSession): SteppingSession {
+  const index = indexOf(session) - 1
+
+  return index < 0 ? { ...session, at: { kind: "overview" } } : moveTo(session, index)
+}
+
+/** The step with `id`; the session as it was when the tour has none. */
+export function stepTo(session: SteppingSession, id: string): SteppingSession {
+  const index = session.tour.steps.findIndex((step) => step.id === id)
+
+  return index < 0 ? session : moveTo(session, index)
+}
+
+/** The steps execution enters from `step`: its calls and the hops it starts, in tour order. */
+export function enteredFrom(session: SteppingSession, step: TourStep): TourStep[] {
+  const isEntered = (later: TourStep) =>
+    later.from === step.id && (later.kind === "call" || later.kind === "hop")
+
+  return session.tour.steps.filter((later) => session.executed.has(later.id) && isEntered(later))
+}
+
+/**
+ * Into `target`, one of the steps entered from the current step; without one, into the first
+ * not yet visited, else the first. The session as it was when there's nothing to enter.
+ */
+export function stepInto(session: SteppingSession, target?: string): SteppingSession {
+  const step = executedStep(session)
+  const entered = step === undefined ? [] : enteredFrom(session, step)
+  const unvisited = entered.find((later) => !session.visited.has(later.id))
+  const chosen =
+    target === undefined ? (unvisited ?? entered[0]) : entered.find((later) => later.id === target)
+
+  return chosen === undefined ? session : stepTo(session, chosen.id)
+}
+
+/** The next step that isn't inside what the current step calls; from a context step, next. */
+export function stepOver(session: SteppingSession): SteppingSession {
+  const step = executedStep(session)
+  if (step === undefined) {
+    return stepNext(session)
+  }
+
+  const { enteredBy, runningAt } = session.functions
+  const fn = enteredBy(step.id)
+  const isInsideCalls = (later: TourStep) =>
+    runningAt(later.id).includes(fn) && enteredBy(later.id) !== fn
+
+  return nextWhere(session, (later) => !isInsideCalls(later))
+}
+
+/** The next step outside the current step's function; from a context step, next. */
+export function stepOut(session: SteppingSession): SteppingSession {
+  const step = executedStep(session)
+  if (step === undefined) {
+    return stepNext(session)
+  }
+
+  const { enteredBy, runningAt } = session.functions
+  const fn = enteredBy(step.id)
+
+  return nextWhere(session, (later) => !runningAt(later.id).includes(fn))
+}

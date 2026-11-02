@@ -13,7 +13,7 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - **`packages/core/`** — everything that is not presentation: resolving repos and ranges,
   fetching remote refs, reading and searching files at a revision, preparing editor
   checkouts, prompts, the tour schema, validation, saving and loading tours, and the
-  stepping session (current step, next, into, out, call stack) that every front-end and
+  stepping session (current step, next, into, over, out, call stack) that every front-end and
   editor adapter renders. Exposes its API only
   through `packages/core/src/index.ts`. Runs as a long-lived `trail` process that editor
   plugins talk to over JSON on stdio, the way language servers do.
@@ -218,7 +218,16 @@ A saved tour has passed every rule. When one doesn't load:
 
 ## Following in the editor
 
-The tour is stepped in the editor, in files from the cached worktree.
+The tour is stepped in the editor, in files from the cached worktree. Core's stepping session
+(`packages/core/src/session/`) moves through it:
+
+- next and back: tour order, context steps included, from the overview to the end.
+- into: a step the current one calls or starts a hop to, the first not yet visited unless one
+  is named.
+- over: the next step not inside what the current step calls.
+- out: the next step outside the current step's function.
+- A hop counts as inside its caller only when a return comes back across it, as a response does
+  to its request; an event, a message, or a scheduled job runs on its own.
 
 - Neovim (version 1): the plugin steps from inside the editor and renders each step.
 - VS Code and its forks (version 1, Milestone 6): an extension, rendering the same session.

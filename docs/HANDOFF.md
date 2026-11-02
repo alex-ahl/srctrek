@@ -15,6 +15,9 @@
   every step showing one must sit under (`stacks` in expected.json). The guide says a response
   coming back to the caller awaiting it is a return, an event handled at once is a call, and a
   call through a lookup cites where its target is registered.
+- Step 4d: the stepping session in core (`openSession`, `stepNext`, `stepBack`, `stepTo`,
+  `stepInto`, `stepOver`, `stepOut`): pure moves on an immutable session, over and out by the
+  functions running at each step, a hop inside its caller only when it's answered.
 
 ## 2026-10-27 — Milestone 3: tour building
 

@@ -2,9 +2,16 @@ import type { TourStep } from "./tour"
 
 type Link = Pick<TourStep, "id" | "repo" | "file" | "kind" | "from">
 
-/** Each executed step's call stack as step ids, outermost first, and the returns that fit none. */
+/**
+ * Each executed step's call stack as step ids, outermost first; the step a stack's hop came
+ * from, for the stacks under it; the step each return carries on from; the hops a return
+ * comes back across, as a response does to its request; and the returns that fit no frame.
+ */
 export type CallStacks = {
   stacks: ReadonlyMap<string, readonly string[]>
+  beneath: ReadonlyMap<string, string | undefined>
+  continues: ReadonlyMap<string, string>
+  answeredHops: ReadonlySet<string>
   misplacedReturns: readonly string[]
 }
 
@@ -22,6 +29,8 @@ export function callStacks(steps: readonly Link[]): CallStacks {
   // The step a stack's hop came from: what execution can return into past the stack's bottom.
   // A return that takes the place of a hop keeps it, as an HTTP response goes back to its caller.
   const beneath = new Map<string, string | undefined>()
+  const continues = new Map<string, string>()
+  const answeredHops = new Set<string>()
   const misplacedReturns: string[] = []
 
   const reachable = (id: string): readonly string[] => {
@@ -39,6 +48,18 @@ export function callStacks(steps: readonly Link[]): CallStacks {
     beneath.set(id, below)
   }
 
+  // Each hop a return from `from` comes back across to reach `landsIn`, a frame beneath it.
+  const markAnswered = (from: string, landsIn: string) => {
+    let at: string | undefined = from
+    while (at !== undefined && !(stacks.get(at) ?? []).includes(landsIn)) {
+      const hop = stacks.get(at)?.[0]
+      if (hop !== undefined) {
+        answeredHops.add(hop)
+      }
+      at = beneath.get(at)
+    }
+  }
+
   // The return takes the place of the frame it lands in, under that frame's own stack. One
   // that lands nowhere is stacked as the call it likely is, so the steps after it aren't
   // reported for its mistake.
@@ -51,6 +72,8 @@ export function callStacks(steps: readonly Link[]): CallStacks {
     }
 
     place(step.id, [...(stacks.get(landsIn) ?? []).slice(0, -1), step.id], beneath.get(landsIn))
+    continues.set(step.id, landsIn)
+    markAnswered(from, landsIn)
   }
 
   for (const step of steps) {
@@ -70,5 +93,5 @@ export function callStacks(steps: readonly Link[]): CallStacks {
     }
   }
 
-  return { stacks, misplacedReturns }
+  return { stacks, beneath, continues, answeredHops, misplacedReturns }
 }

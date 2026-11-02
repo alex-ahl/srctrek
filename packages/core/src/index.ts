@@ -10,6 +10,17 @@ export {
   type TourStep,
 } from "./schema/tour"
 export { callStacks, type CallStacks } from "./schema/stacks"
+export { currentStep, openSession, type Position, type SteppingSession } from "./session/session"
+export {
+  enteredFrom,
+  stepBack,
+  stepInto,
+  stepNext,
+  stepOut,
+  stepOver,
+  stepTo,
+} from "./session/moves"
+export type { RunningFunctions } from "./session/functions"
 export {
   TOURS_DIR,
   TourValidationError,
