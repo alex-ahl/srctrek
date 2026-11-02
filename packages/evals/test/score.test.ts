@@ -29,6 +29,34 @@ describe("scoreTour", () => {
       ["high", "low", "medium", "high", "high"],
     ])
     expect(score.flags).toEqual({ steps: 19, high: 4, medium: 4, low: 4 })
+    expect(score.stacks.map(({ found }) => found.kind)).toEqual([
+      "as expected",
+      "as expected",
+      "as expected",
+      "as expected",
+    ])
+  })
+
+  test("tells a response labelled a hop from one that comes back to its caller", () => {
+    // s14, back in web's refund action once the api answers, starts a stack of its own as a hop
+    const steps = refundTour.steps.map((step) =>
+      step.id === "s14" ? { ...step, kind: "hop" as const } : step,
+    )
+
+    const back = scoreTour({ ...refundTour, steps }, expected).stacks[3]
+
+    expect(back?.found).toEqual({ kind: "wrong", step: "s14", frames: [] })
+  })
+
+  test("tells a handler shown under the step that drew its button", () => {
+    // the click handler (s4) labelled a call from the render (s3) that drew the button
+    const steps = refundTour.steps.map((step) =>
+      step.id === "s4" ? { ...step, kind: "call" as const } : step,
+    )
+
+    const post = scoreTour({ ...refundTour, steps }, expected).stacks[0]
+
+    expect(post?.found).toMatchObject({ kind: "wrong", step: "s7" })
   })
 
   test("tells a bug walked past from one flagged", () => {

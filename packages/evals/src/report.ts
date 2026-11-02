@@ -72,6 +72,40 @@ function bugLines(bugs: Score["bugs"]): string[] {
   })
 }
 
+// A place as the report names it: "web src/main.ts".
+function placeName({ repo, file }: { repo: string; file: string }): string {
+  return `${repo} ${file}`
+}
+
+// "web src/main.ts › web src/actions.ts", or "nothing" for an empty stack.
+function framesName(frames: { repo: string; file: string }[]): string {
+  return frames.map(placeName).join(" › ") || "nothing"
+}
+
+function stackMiss({ checkpoint, found }: Score["stacks"][number]): string[] {
+  const at = `${placeName(checkpoint.at)}:${checkpoint.at.line}`
+  if (found.kind === "not in a step") {
+    return [`✗ ${at}: not in a step`]
+  }
+
+  if (found.kind === "wrong") {
+    const expected = framesName(checkpoint.frames)
+    return [`✗ ${at}: ${found.step} under ${framesName(found.frames)}; expected ${expected}`]
+  }
+
+  return []
+}
+
+function stackLines(stacks: Score["stacks"]): string[] {
+  if (stacks.length === 0) {
+    return []
+  }
+
+  const asExpected = stacks.filter(({ found }) => found.kind === "as expected").length
+
+  return [`${asExpected}/${stacks.length} as expected`, ...stacks.flatMap(stackMiss)]
+}
+
 function decoyLines(decoys: Score["decoys"]): string[] {
   if (decoys.length === 0) {
     return []
@@ -106,6 +140,7 @@ export function formatReport(name: string, score: Score, facts: RunFacts): strin
     ...section("Route", routeLines(score.route)),
     ...section("Links", linkLines(score.links)),
     ...section("Bugs", bugLines(score.bugs)),
+    ...section("Stacks", stackLines(score.stacks)),
     ...section("Decoys", decoyLines(score.decoys)),
     ...section("Flags", flagLines(score.flags)),
     "",

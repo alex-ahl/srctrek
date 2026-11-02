@@ -24,7 +24,7 @@ describe("callStacks", () => {
 
   test("puts a return in place of the frame it comes back to", () => {
     // back in the worker's handler (s17) once payments.refund (s18) answers
-    expect(stacks.get("s19")).toEqual(["s15", "s16", "s19"])
+    expect(stacks.get("s19")).toEqual(["s15", "s19"])
   })
 
   test("finds the frame a return comes back to across the hop it answers", () => {
@@ -59,7 +59,7 @@ describe("callStacks", () => {
     const result = callStacks(steps)
 
     expect(result.misplacedReturns).toEqual(["s18"])
-    expect(result.stacks.get("s18")).toEqual(["s15", "s16", "s17", "s18"])
-    expect(result.stacks.get("s19")).toEqual(["s15", "s16", "s19"])
+    expect(result.stacks.get("s18")).toEqual(["s15", "s17", "s18"])
+    expect(result.stacks.get("s19")).toEqual(["s15", "s19"])
   })
 })

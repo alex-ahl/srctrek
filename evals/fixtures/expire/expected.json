@@ -30,5 +30,54 @@
       ],
       "detail": "DAY_MS = 24 * MINUTE_MS is 24 minutes, not 24 hours; daysAgo(30) is 12 hours ago, so the nightly job releases the stock of and deletes c_17 and any cart untouched for half a day. The admin page's stale list (7 days) shrinks to 2.8 hours the same way."
     }
+  ],
+  "stacks": [
+    {
+      "at": {
+        "repo": "shop",
+        "file": "src/time.ts",
+        "line": 8
+      },
+      "frames": [
+        {
+          "repo": "shop",
+          "file": "src/jobs/schedule.ts"
+        },
+        {
+          "repo": "shop",
+          "file": "src/jobs/index.ts"
+        },
+        {
+          "repo": "shop",
+          "file": "src/jobs/expire-carts.ts"
+        },
+        {
+          "repo": "shop",
+          "file": "src/carts/store.ts"
+        }
+      ],
+      "note": "the interval callback starts the stack: startScheduler and main.ts aren't under it"
+    },
+    {
+      "at": {
+        "repo": "shop",
+        "file": "src/stock.ts",
+        "line": 7
+      },
+      "frames": [
+        {
+          "repo": "shop",
+          "file": "src/jobs/schedule.ts"
+        },
+        {
+          "repo": "shop",
+          "file": "src/jobs/index.ts"
+        },
+        {
+          "repo": "shop",
+          "file": "src/jobs/expire-carts.ts"
+        }
+      ]
+    }
   ]
 }

@@ -592,7 +592,7 @@
       "changed": true,
       "summary": "handle_refund_requested passes order_id and amount_minor=int(payload['amount']) to payments.refund.",
       "details": "handle_refund_requested passes order_id and amount_minor=int(payload['amount']) to payments.refund.",
-      "from": "s16",
+      "from": "s15",
       "via": {
         "cites": [
           {

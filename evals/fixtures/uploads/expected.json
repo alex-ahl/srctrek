@@ -35,5 +35,26 @@
       ],
       "detail": "net/http cancels r.Context() when ServeHTTP returns, right after the 202; a worker that takes the job later derives its timeout from that cancelled context, and Disk.Put returns context.Canceled before writing. The upload is logged as failed and lost. Memory.Put ignores the context, so local runs and tests with the default STORE=memory never show it."
     }
+  ],
+  "stacks": [
+    {
+      "at": {
+        "repo": "server",
+        "file": "store/disk.go",
+        "line": 16
+      },
+      "frames": [
+        {
+          "repo": "server",
+          "file": "upload/worker.go"
+        },
+        {
+          "repo": "server",
+          "file": "upload/worker.go",
+          "optional": true
+        }
+      ],
+      "note": "the worker goroutine takes the job off the channel and starts its own stack: the HTTP handler isn't under it"
+    }
   ]
 }

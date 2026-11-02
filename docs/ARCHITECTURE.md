@@ -255,9 +255,11 @@ or a test) serve only as ground truth in evals.
 
 Each fixture under `evals/fixtures/` is a base tree plus a patch per repo, and an
 expected.json: where to run `trail` and with which arguments, the route, the links and their
-evidence, and the planted bugs. The eval runner (`packages/evals/`) builds temporary git repos
-from them, runs the agent in `CODETRAIL_AGENT` as a background build, and scores the saved
-tour: route entries reached and their order, links cited or guessed, bugs found (a bug line inside a step flagged high), and how many steps carry flags.
+evidence, the planted bugs, and the call stack expected at a few lines. The eval runner
+(`packages/evals/`) builds temporary git repos from them, runs the agent in `CODETRAIL_AGENT` as
+a background build, and scores the saved tour: route entries reached and their order, links
+cited or guessed, bugs found (a bug line inside a step flagged high), stacks as expected (every
+step showing the line under the expected frames, by file), and how many steps carry flags.
 
 ## Distribution
 

@@ -20,16 +20,29 @@ const ExpectedSchema = z.object({
     z.object({ from: Place, to: Place, evidence: z.array(Line).min(1), note: z.string() }),
   ),
   bugs: z.array(z.object({ summary: z.string(), files: z.array(Line).min(1) })),
+  // the call stack under every step that shows `at`, outermost frame first, by file; a frame
+  // a good tour may leave out is optional
+  stacks: z
+    .array(
+      z.object({
+        at: Line,
+        frames: z.array(Place.extend({ optional: z.boolean().optional() })),
+        note: z.string().optional(),
+      }),
+    )
+    .default([]),
   // repos beside the route that a tour shouldn't step into, by folder
   decoys: z.array(z.string()).default([]),
 })
 
 /**
  * What a good tour of a fixture does: the route it walks, the links it cites, the bugs it
- * finds, the decoys it stays out of. Repos are named by their fixture folder.
+ * finds, the stacks it shows, the decoys it stays out of. Repos are named by their fixture
+ * folder.
  */
 export type Expected = z.infer<typeof ExpectedSchema>
 export type ExpectedLine = z.infer<typeof Line>
+export type ExpectedPlace = z.infer<typeof Place>
 
 /** The fixture's expected.json, in the folder `dir`. */
 export async function readExpected(dir: string): Promise<Expected> {

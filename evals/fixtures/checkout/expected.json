@@ -33,5 +33,62 @@
       "detail": "body.customerId is undefined, String(undefined) is \"undefined\", the vault has no card for it, and the handler returns 404 { error: \"no saved card\" }; the shop's chargeSavedCard reads that as a Charge with no status, so the customer sees \"Your card was declined\"."
     }
   ],
+  "stacks": [
+    {
+      "at": {
+        "repo": "shop",
+        "file": "src/clients/payments.ts",
+        "line": 16
+      },
+      "frames": [
+        {
+          "repo": "shop",
+          "file": "src/main.ts"
+        },
+        {
+          "repo": "shop",
+          "file": "src/checkout.ts"
+        }
+      ]
+    },
+    {
+      "at": {
+        "repo": "pay-backend",
+        "file": "src/vault.ts",
+        "line": 5
+      },
+      "frames": [
+        {
+          "repo": "pay-backend",
+          "file": "src/server.ts",
+          "optional": true
+        },
+        {
+          "repo": "pay-backend",
+          "file": "src/routes.ts",
+          "optional": true
+        },
+        {
+          "repo": "pay-backend",
+          "file": "src/handlers/saved-card.ts"
+        }
+      ],
+      "note": "the request starts a new stack in pay-backend; the routes table is a lookup, not a frame"
+    },
+    {
+      "at": {
+        "repo": "shop",
+        "file": "src/checkout.ts",
+        "line": 14
+      },
+      "frames": [
+        {
+          "repo": "shop",
+          "file": "src/main.ts"
+        }
+      ],
+      "note": "the response comes back to payWithSavedCard awaiting it: a return, not a hop"
+    }
+  ],
   "decoys": ["api"]
 }

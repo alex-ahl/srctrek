@@ -5,15 +5,29 @@ import { buildFixture, fixtureNames } from "../src/fixture"
 
 type Cited = { repo: string; file: string; line: number }
 
-// Every line expected.json points at: both ends of each route entry, link evidence, bug lines.
+// Every line expected.json points at: both ends of each route entry, link evidence, bug lines,
+// and the line each stack is checked at.
 function citedLines(expected: Expected): Cited[] {
   const routeEnds = expected.route.flatMap(({ repo, file, lines }) =>
     lines.map((line) => ({ repo, file, line })),
   )
   const evidence = expected.links.flatMap((link) => link.evidence)
   const bugLines = expected.bugs.flatMap((bug) => bug.files)
+  const stackLines = expected.stacks.map((stack) => stack.at)
 
-  return [...routeEnds, ...evidence, ...bugLines]
+  return [...routeEnds, ...evidence, ...bugLines, ...stackLines]
+}
+
+// The files the expected stacks name as frames, which must exist at the change's end.
+async function missingFrameFiles(repos: Record<string, string>, expected: Expected) {
+  const frames = expected.stacks.flatMap((stack) => stack.frames)
+  const exists = async ({ repo, file }: { repo: string; file: string }) => {
+    const dir = repos[repo]
+    return dir !== undefined && (await readFileAt(dir, "feature", file)) !== undefined
+  }
+  const found = await Promise.all(frames.map(exists))
+
+  return frames.filter((_, i) => !found[i]).map(({ repo, file }) => `${repo} ${file}: no such file`)
 }
 
 // Why a cited line can't be what the fixture means, at the change's end: missing or blank.
@@ -34,7 +48,7 @@ const names = await fixtureNames()
 
 describe("every fixture's expected.json", () => {
   for (const name of names) {
-    test(`${name}: runs in one of its repos and cites lines that exist`, async () => {
+    test(`${name}: runs in one of its repos and cites lines and files that exist`, async () => {
       const fixture = await buildFixture(name)
       const expected = await readExpected(fixture.dir)
       const problems = await Promise.all(
@@ -43,6 +57,7 @@ describe("every fixture's expected.json", () => {
 
       expect(Object.keys(fixture.repos)).toContain(expected.run.in)
       expect(problems.flat()).toEqual([])
+      expect(await missingFrameFiles(fixture.repos, expected)).toEqual([])
     })
   }
 })

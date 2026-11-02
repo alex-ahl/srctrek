@@ -30,5 +30,38 @@
       ],
       "detail": "checkout saves the order while pending and again once paid; both pass the status check, so 499 SEK earns 998 points. app/web/admin.py:10 saves a paid order when a note is added, awarding 499 more each time."
     }
+  ],
+  "stacks": [
+    {
+      "at": {
+        "repo": "app",
+        "file": "app/accounts.py",
+        "line": 7
+      },
+      "frames": [
+        {
+          "repo": "app",
+          "file": "app/web/router.py",
+          "optional": true
+        },
+        {
+          "repo": "app",
+          "file": "app/web/checkout.py"
+        },
+        {
+          "repo": "app",
+          "file": "app/models/base.py"
+        },
+        {
+          "repo": "app",
+          "file": "app/events/__init__.py"
+        },
+        {
+          "repo": "app",
+          "file": "app/plugins/loyalty.py"
+        }
+      ],
+      "note": "emit calls each handler right away, so the handler is a call, not a hop"
+    }
   ]
 }

@@ -46,5 +46,79 @@
       ],
       "detail": "data-amount carries order.total (499, major units from GET /orders); the spec and API treat amount as minor units, so validation passes and the worker refunds 499 minor units (4.99) instead of 49900."
     }
+  ],
+  "stacks": [
+    {
+      "at": {
+        "repo": "web",
+        "file": "src/api.ts",
+        "line": 10
+      },
+      "frames": [
+        {
+          "repo": "web",
+          "file": "src/main.ts"
+        },
+        {
+          "repo": "web",
+          "file": "src/actions.ts"
+        },
+        {
+          "repo": "web",
+          "file": "src/refunds.ts"
+        }
+      ],
+      "note": "post() runs under the click handler, not under the page load that drew the button"
+    },
+    {
+      "at": {
+        "repo": "api",
+        "file": "src/bus.ts",
+        "line": 8
+      },
+      "frames": [
+        {
+          "repo": "api",
+          "file": "src/server.ts"
+        },
+        {
+          "repo": "api",
+          "file": "src/handlers/refunds.ts"
+        }
+      ],
+      "note": "the request starts a new stack in the api"
+    },
+    {
+      "at": {
+        "repo": "worker",
+        "file": "worker/payments.py",
+        "line": 14
+      },
+      "frames": [
+        {
+          "repo": "worker",
+          "file": "worker/main.py"
+        },
+        {
+          "repo": "worker",
+          "file": "worker/handlers/refunds.py"
+        }
+      ],
+      "note": "poll_once calls the handler; queue.read has yielded the message by then"
+    },
+    {
+      "at": {
+        "repo": "web",
+        "file": "src/actions.ts",
+        "line": 11
+      },
+      "frames": [
+        {
+          "repo": "web",
+          "file": "src/main.ts"
+        }
+      ],
+      "note": "the response comes back to the action awaiting it: a return, not a hop"
+    }
   ]
 }

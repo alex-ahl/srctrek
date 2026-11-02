@@ -11,6 +11,10 @@
   to no frame rejected and `from` always naming an earlier step; `calls` removed. The guide
   says code that runs later in response to something is a hop. The refund tour's split
   function is one step, its click handler a hop.
+- Step 4c: the evals score call stacks: each fixture names lines and the frames, by file, that
+  every step showing one must sit under (`stacks` in expected.json). The guide says a response
+  coming back to the caller awaiting it is a return, an event handled at once is a call, and a
+  call through a lookup cites where its target is registered.
 
 ## 2026-10-27 — Milestone 3: tour building
 

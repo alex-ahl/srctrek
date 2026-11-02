@@ -1,9 +1,10 @@
 import { type Tour, type TourStep, folderName, parseRepoEntry } from "@codetrail/core"
 import type { Expected, ExpectedLine } from "./expected"
+import { covers, inFile } from "./places"
+import { type StackCheck, checkStacks } from "./stacks"
 
 type RouteEntry = Expected["route"][number]
 type Link = Expected["links"][number]
-type Place = { repo: string; file: string }
 
 /** How a tour reached one expected link: cited as the fixture does, guessed, or not at all. */
 export type LinkFound = "cited" | "cited, guessed" | "guessed" | "no evidence" | "not reached"
@@ -25,6 +26,7 @@ export type Score = {
   }
   links: { link: Link; found: LinkFound }[]
   bugs: { summary: string; lines: LineFlag[] }[]
+  stacks: StackCheck[]
   // how many of the tour's steps carry a flag, by severity
   flags: { steps: number } & Record<Severity, number>
   // the fixture's decoy repos the tour stepped into, and how many steps each
@@ -33,18 +35,10 @@ export type Score = {
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"]
 
-function inFile(at: Place, place: Place): boolean {
-  return at.repo === place.repo && at.file === place.file
-}
-
 function overlaps(step: TourStep, entry: RouteEntry): boolean {
   const [start, end] = entry.lines
 
   return inFile(step, entry) && step.start_line <= end && step.end_line >= start
-}
-
-function covers(step: TourStep, line: ExpectedLine): boolean {
-  return inFile(step, line) && step.start_line <= line.line && line.line <= step.end_line
 }
 
 // Each entry is met at or after the step that met the one before: one step may cover two
@@ -167,6 +161,7 @@ export function scoreTour(tour: Tour, expected: Expected, ranIn = expected.run.i
       summary: bug.summary,
       lines: bug.files.map((line) => lineFlag(steps, line)),
     })),
+    stacks: checkStacks(steps, expected.stacks),
     flags: countFlags(steps),
     decoys: decoysVisited(steps, expected.decoys),
   }
