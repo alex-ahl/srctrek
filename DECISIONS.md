@@ -2,6 +2,19 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-02 — Editor requests answer with the view
+
+Each request from an editor answers with the session's view, ready to render; core pushes
+nothing yet. `initialize` carries the protocol version and the client's name, without
+capabilities. Version 1 of the protocol is stepping: open, next, prev, into, over, out, goto.
+Asking joins it with the editors in Milestone 6; continuing to the next changed or flagged step
+stays on the roadmap, and build progress waits for a client that shows it. Replaces "core
+pushes ready-to-render payloads" from 2026-10-22.
+
+With one client per process, every change to the session follows a request from that client,
+so an answer is enough, and a client needn't match pushed messages to what it sent. Core fits
+nothing to what a client can draw, so capabilities would go unread.
+
 ## 2026-11-02 — The call stack comes from the tour's links
 
 Each step's call stack is worked out from `from` and its kind: a call goes on top of the step

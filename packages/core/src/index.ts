@@ -33,6 +33,16 @@ export {
 } from "./session/view"
 export { UnreachableRepoError, viewContext } from "./session/context"
 export {
+  ErrorCode,
+  PROTOCOL_VERSION,
+  RequestParams,
+  TRAIL_VERSION,
+  isMethod,
+  versionMismatch,
+  type InitializeResult,
+  type Method,
+} from "./protocol/messages"
+export {
   TOURS_DIR,
   TourValidationError,
   listTours,

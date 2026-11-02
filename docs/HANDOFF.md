@@ -26,6 +26,9 @@
   revision, the lines its range touches, and stale steps given the change as it is now (the
   tour records commits, not branches, so the caller supplies the change). A missing repo or
   commit is an `UnreachableRepoError` naming it.
+- Step 4g: the protocol's messages in core (`RequestParams`, `ErrorCode`, `PROTOCOL_VERSION`,
+  `TRAIL_VERSION`): requests answer with the view; open takes a tour by name and, for stale
+  steps, trail's arguments. `docs/PROTOCOL.md` describes version 1: stepping.
 
 ## 2026-10-27 — Milestone 3: tour building
 
