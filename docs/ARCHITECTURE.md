@@ -129,11 +129,13 @@ can check; never a bare "line 5".
 - `steps[]`:
   - `id`, `repo`, `file`, `start_line`, `end_line`, `summary`, `details`
   - `blob`: the file's git blob id at the tour's revision; a mismatch marks the step stale
-  - `kind`: `call`, `return`, `hop` (async or cross-process: the call stack resets), or `context`
+  - `kind`: `call` (enters a function), `return` (comes back to a function a step on the
+    call stack showed), `hop` (cross-process, or later: a message, a job, an event handler; the
+    call stack resets), or `context`
   - `changed`: whether the range touches these lines
-  - `from`: the id of the step execution came from, on every executed step but the first;
-    for async work it names the cause (the publish), not the step before it in the tour. A
-    context step is never executed, so `from` never names one.
+  - `from`: the id of the earlier step execution came from, on every executed step but the
+    first; for async work it names the cause (the publish), not the step before it in the
+    tour. A context step is never executed, so `from` never names one.
   - `for`: on a context step, in place of `from`: the step it explains. Context steps sit
     outside the execution chain and the call stack.
   - `via`: the evidence for arriving here — one or more `{ repo, file, line }` citing the
@@ -146,10 +148,16 @@ can check; never a bare "line 5".
     example scenario under the same names across steps, where they tell the reader something
     or let them follow the scenario. Front-ends show each at the end of its line, marked as
     predicted, and let the user hide them.
-  - optional: `calls` (ids of the steps stepped into, in call order), `trivial`, and
+  - optional: `trivial`, and
     `uncertain`: `{ severity, note }`, severity `high` (likely wrong behaviour), `medium`
     (risky), or `low` (worth knowing). Front-ends show `high` inline and the rest in details.
   - `notes[]`: questions asked on this step and their answers (see Asking)
+
+Each executed step's call stack comes from these links, in tour order: a call goes on top of
+the step it came from, a hop starts a new stack, and a return takes the place of the nearest
+frame in its own file below the step it returns from, found back across hops to their cause.
+A step's calls are the steps that come from it as calls. Validation rejects a return that
+comes back to no frame.
 
 ## Building a tour
 

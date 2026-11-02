@@ -56,7 +56,7 @@ describe("parseTour", () => {
       guessed: false,
     }
     expect(issuesOf(tour)).toEqual([
-      `steps.14 (s15).via: crosses from api to worker without citing worker: ${BOTH_SIDES}`,
+      `steps.13 (s15).via: crosses from api to worker without citing worker: ${BOTH_SIDES}`,
     ])
   })
 
@@ -67,7 +67,7 @@ describe("parseTour", () => {
       guessed: false,
     }
     expect(issuesOf(tour)).toEqual([
-      `steps.14 (s15).via: crosses from api to worker without citing api: ${BOTH_SIDES}`,
+      `steps.13 (s15).via: crosses from api to worker without citing api: ${BOTH_SIDES}`,
     ])
   })
 
@@ -82,7 +82,7 @@ describe("parseTour", () => {
       guessed: false,
     }
     expect(issuesOf(tour)).toEqual([
-      `steps.14 (s15).via: crosses from api to worker without citing api: ${BOTH_SIDES}`,
+      `steps.13 (s15).via: crosses from api to worker without citing api: ${BOTH_SIDES}`,
     ])
   })
 
@@ -127,20 +127,12 @@ describe("parseTour", () => {
   test("rejects references to unknown repos and steps", () => {
     const tour = refundTour()
     step(tour, "s1").repo = "mobile"
-    step(tour, "s1").calls = ["s2", "s99"]
     step(tour, "s5").from = "s98"
     step(tour, "s9").for = "s97"
     const issues = issuesOf(tour)
     expect(issues).toContain("steps.0 (s1).repo: unknown repo mobile")
-    expect(issues).toContain("steps.0 (s1).calls.1: calls unknown step s99")
     expect(issues).toContain("steps.4 (s5).from: comes from unknown step s98")
     expect(issues).toContain("steps.8 (s9).for: explains unknown step s97")
-  })
-
-  test("accepts a step that steps into several", () => {
-    const tour = refundTour()
-    step(tour, "s12").calls = ["s13", "s14"]
-    expect(issuesOf(tour)).toEqual([])
   })
 
   test("rejects a context step linked as executed", () => {
@@ -161,13 +153,34 @@ describe("parseTour", () => {
     ])
   })
 
-  test("rejects execution coming from or stepping into a context step", () => {
+  test("rejects execution coming from a context step", () => {
     const tour = refundTour()
     step(tour, "s11").from = "s10"
-    step(tour, "s8").calls = ["s9"]
-    expect(issuesOf(tour)).toEqual([
-      "steps.7 (s8).calls.0: steps into context step s9",
+    expect(issuesOf(tour)).toContain(
       "steps.10 (s11).from: comes from context step s10, which isn't executed: name the step execution came from",
+    )
+  })
+
+  test("rejects execution coming from a later step", () => {
+    const tour = refundTour()
+    step(tour, "s5").from = "s6"
+    expect(issuesOf(tour)).toEqual([
+      "steps.4 (s5).from: comes from s6, which isn't before it: execution comes from an earlier step",
+    ])
+  })
+
+  test("accepts a return to a caller across a hop", () => {
+    // s14 is back in web's refund action (s5) once the api's createRefund (s11) answers
+    expect(step(refundTour(), "s14")).toMatchObject({ kind: "return", from: "s11" })
+    expect(issuesOf(refundTour())).toEqual([])
+  })
+
+  test("rejects a return to code no step on the stack is in", () => {
+    const tour = refundTour()
+    // the worker's handler (s17) hands the refund to payments.refund: a call, not a return
+    step(tour, "s18").kind = "return"
+    expect(issuesOf(tour)).toEqual([
+      "steps.16 (s18).kind: returns to worker/payments.py, which no step on the stack below s17 is in: a function the value is handed to is a call, code that runs later is a hop",
     ])
   })
 

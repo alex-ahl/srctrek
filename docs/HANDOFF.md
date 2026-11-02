@@ -7,6 +7,10 @@
 - Step 4a: context steps name the step they explain (`for`) in place of `from`, citing both
   repos when the two differ, and execution never comes from or steps into one; `calls` lists
   the steps a step steps into, in call order. The Neovim prototype steps into the first.
+- Step 4b: call stacks worked out from the links (`callStacks`), with a return that comes back
+  to no frame rejected and `from` always naming an earlier step; `calls` removed. The guide
+  says code that runs later in response to something is a hop. The refund tour's split
+  function is one step, its click handler a hop.
 
 ## 2026-10-27 — Milestone 3: tour building
 
@@ -213,6 +217,10 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   explains, and `for` names one step. Decide in Milestone 5, with the design, whether context
   stays in the steps list or becomes a tour-level list whose entries name every step they
   explain.
+- One function reached from two callers: a step names one `from`, so the second caller has
+  no step to step into.
+- The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
+  says the api calls it.
 - Large repos: editor worktrees should check out only the files a tour visits (sparse
   checkout), with the editors in Milestone 6.
 - Token use: most of it is the context re-read every turn as it grows, so turns matter more

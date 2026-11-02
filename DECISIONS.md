@@ -2,6 +2,23 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-02 — The call stack comes from the tour's links
+
+Each step's call stack is worked out from `from` and its kind: a call goes on top of the step
+it came from, a hop starts a new stack, and a return comes back to a frame on the stack. A
+return that comes back to no frame is rejected, and code that runs later in response to
+something (an event handler, a timer, a callback) is a hop. `next` keeps tour order; step
+over and step out skip by the stack. `calls` is gone: a step's calls are the steps that come
+from it as calls. Replaces "`calls` lists every step a step steps into" from 2026-10-30.
+
+A stack made from how the reader moved shows nothing when they reach a step with next, so
+the editor would show a wrong one. Worked out from the links, it answers "how did I get
+here" the same way whatever the route, across hops too. Checked on the tours built so far:
+the misuses found were returns to code no frame was in, which validation now catches, and
+one event handler labelled a call, which the guide now covers. Two fields describing the
+same calls could disagree; one function reached from two callers is the case `calls` covered
+that the links don't.
+
 ## 2026-10-30 — Context steps explain a step; a step can step into several
 
 A context step names the step it explains (`for`) instead of where execution came from,

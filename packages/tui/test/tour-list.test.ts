@@ -16,5 +16,5 @@ test("summarises valid tours and keeps invalid ones with their problem", async (
 
   expect(entries.map((e) => e.name)).toEqual(["broken", "refund"])
   expect(entries[0]).toMatchObject({ valid: false })
-  expect(entries[1]).toMatchObject({ valid: true, steps: 20, highFlags: 4 })
+  expect(entries[1]).toMatchObject({ valid: true, steps: 19, highFlags: 4 })
 })

@@ -60,7 +60,7 @@ function stepsFor(repo: string) {
     predicted_values: [{ name: "total", value: "250", line: 1, role: "assignment" }],
   }
   const { predicted_values: _, ...withoutValues } = s1
-  const s2 = { ...withoutValues, id: "s2", start_line: 2, end_line: 2, kind: "return", from: "s1" }
+  const s2 = { ...withoutValues, id: "s2", start_line: 2, end_line: 2, kind: "call", from: "s1" }
   const s2WithEvidence = {
     ...s2,
     via: { cites: [{ repo, file: "src/app.ts", line: 2 }], guessed: false },

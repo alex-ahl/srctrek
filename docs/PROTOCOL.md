@@ -24,7 +24,7 @@ The client's first request is `initialize`:
 | --------------------------- | --------------------------------------------- |
 | `open(tour)`                | Load a tour and start a stepping session      |
 | `next`, `prev`              | Move one step                                 |
-| `into`, `out`               | Follow `calls`, or return to the caller       |
+| `into`, `out`               | Step into a call, or out to the caller        |
 | `goto(step)`                | Jump to a step                                |
 | `continue(kind)`            | Next changed step, or next high-severity flag |
 | `ask(question, selection?)` | Ask about the current step                    |

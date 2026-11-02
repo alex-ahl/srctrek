@@ -1,5 +1,6 @@
 // Rules that span steps, which no single step's schema can check. Each returns its problems
 // rather than throwing, so one tour reports every problem at once.
+import { callStacks } from "./stacks"
 import type { Tour, TourStep } from "./tour"
 
 type Path = (string | number)[]
@@ -56,14 +57,12 @@ function unknownRepos(tour: Tour): Issue[] {
 
 type NamedStep = { id: string; path: Path; message: string }
 
-// Every step a step names by id: each it steps into, where execution came from, and the step
-// it explains.
+// Every step a step names by id: where execution came from, and the step it explains.
 function stepsNamedBy(step: TourStep, i: number): NamedStep[] {
   const named = (id: string | undefined, path: Path, message: string): NamedStep[] =>
     id === undefined ? [] : [{ id, path: ["steps", i, ...path], message }]
 
   return [
-    ...(step.calls ?? []).flatMap((id, j) => named(id, ["calls", j], `calls unknown step ${id}`)),
     ...named(step.from, ["from"], `comes from unknown step ${step.from}`),
     ...named(step.for, ["for"], `explains unknown step ${step.for}`),
   ]
@@ -120,20 +119,45 @@ function linksByKind(tour: Tour): Issue[] {
   )
 }
 
-// Execution never comes from or steps into a context step, which isn't executed.
-function linksIntoContext(tour: Tour): Issue[] {
+// Execution never comes from a context step, which isn't executed.
+function executionFromContext(tour: Tour): Issue[] {
   const context = new Set(tour.steps.filter((s) => s.kind === "context").map((s) => s.id))
 
-  return tour.steps.flatMap((step, i) => [
-    ...issueIf(
+  return tour.steps.flatMap((step, i) =>
+    issueIf(
       step.from !== undefined && context.has(step.from),
       ["steps", i, "from"],
       `comes from context step ${step.from}, which isn't executed: name the step execution came from`,
     ),
-    ...(step.calls ?? []).flatMap((id, j) =>
-      issueIf(context.has(id), ["steps", i, "calls", j], `steps into context step ${id}`),
+  )
+}
+
+// Steps are in execution order, so execution comes from a step before this one; the call
+// stacks are worked out in one pass on that.
+function fromLaterSteps(tour: Tour): Issue[] {
+  const position = new Map(tour.steps.map((s, i) => [s.id, i]))
+
+  return tour.steps.flatMap((step, i) =>
+    issueIf(
+      (position.get(step.from ?? "") ?? -1) >= i,
+      ["steps", i, "from"],
+      `comes from ${step.from}, which isn't before it: execution comes from an earlier step`,
     ),
-  ])
+  )
+}
+
+// A return goes back to code a step on the call stack showed. A value handed on to another
+// function is a call; code that runs later is a hop.
+function misplacedReturns(tour: Tour): Issue[] {
+  const misplaced = new Set(callStacks(tour.steps).misplacedReturns)
+
+  return tour.steps.flatMap((step, i) =>
+    issueIf(
+      misplaced.has(step.id),
+      ["steps", i, "kind"],
+      `returns to ${step.file}, which no step on the stack below ${step.from} is in: a function the value is handed to is a call, code that runs later is a hop`,
+    ),
+  )
 }
 
 // A link to a step in another repo crosses repos, whether execution came from it or a
@@ -168,6 +192,8 @@ export const tourRules = [
   unknownRepos,
   danglingStepIds,
   linksByKind,
-  linksIntoContext,
+  executionFromContext,
+  fromLaterSteps,
+  misplacedReturns,
   oneSidedCrossRepoLinks,
 ]

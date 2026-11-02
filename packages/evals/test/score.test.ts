@@ -28,7 +28,7 @@ describe("scoreTour", () => {
     expect(score.bugs.map(({ lines }) => lines)).toEqual([
       ["high", "low", "medium", "high", "high"],
     ])
-    expect(score.flags).toEqual({ steps: 20, high: 4, medium: 5, low: 4 })
+    expect(score.flags).toEqual({ steps: 19, high: 4, medium: 4, low: 4 })
   })
 
   test("tells a bug walked past from one flagged", () => {

@@ -65,10 +65,18 @@ function M.previous()
   go(state.index - 1)
 end
 
--- The prototype enters the first step called; choosing among several comes with the protocol.
+-- The first step this one calls; choosing among several comes with the protocol.
+local function first_call(id)
+  for i, s in ipairs(state.tour.steps) do
+    if s.kind == "call" and s.from == id then
+      return i
+    end
+  end
+end
+
 function M.into()
   local s = state.tour and state.tour.steps[state.index]
-  local target = s and s.calls and state.by_id[s.calls[1]]
+  local target = s and first_call(s.id)
   if target then
     table.insert(state.stack, state.index)
     go(target)

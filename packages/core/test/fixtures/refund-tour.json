@@ -60,8 +60,7 @@
           "line": 5,
           "role": "assignment"
         }
-      ],
-      "calls": ["s2"]
+      ]
     },
     {
       "id": "s2",
@@ -103,8 +102,7 @@
           "line": 10,
           "role": "assignment"
         }
-      ],
-      "calls": ["s3"]
+      ]
     },
     {
       "id": "s3",
@@ -153,7 +151,7 @@
       "start_line": 7,
       "end_line": 14,
       "blob": "336bde3ec8b438aecd61ebb16b055405a33dd939",
-      "kind": "call",
+      "kind": "hop",
       "changed": false,
       "summary": "The delegated click listener finds the closest [data-action] element and looks up actions['refund'].",
       "details": "Existing dispatch mechanism; the feature plugs in by adding a 'refund' key. Rejections are caught and rendered as a <p class=\"error\">.",
@@ -175,8 +173,7 @@
           "line": 9,
           "role": "assignment"
         }
-      ],
-      "calls": ["s5"]
+      ]
     },
     {
       "id": "s5",
@@ -214,7 +211,6 @@
           "role": "argument"
         }
       ],
-      "calls": ["s6"],
       "uncertain": {
         "severity": "low",
         "note": "On failure the button stays disabled forever and the status line is not updated; only an error paragraph is appended."
@@ -250,7 +246,6 @@
           "role": "argument"
         }
       ],
-      "calls": ["s7"],
       "uncertain": {
         "severity": "medium",
         "note": "This is where the unit conversion (x100, rounded) is missing; the API treats 499 as 499 öre."
@@ -286,7 +281,6 @@
           "role": "assignment"
         }
       ],
-      "calls": ["s8"],
       "uncertain": {
         "severity": "medium",
         "note": "A cross-origin POST with content-type application/json triggers a CORS preflight; the API has no OPTIONS route or Access-Control-* headers (api/src/server.ts:33-44), so this only works if web and API share an origin or a proxy sits in front. Not verifiable from these repos."
@@ -332,8 +326,7 @@
           "line": 36,
           "role": "assignment"
         }
-      ],
-      "calls": ["s11"]
+      ]
     },
     {
       "id": "s9",
@@ -390,12 +383,12 @@
       "repo": "api",
       "file": "src/handlers/refunds.ts",
       "start_line": 8,
-      "end_line": 14,
+      "end_line": 19,
       "blob": "b69967fa2c2dd93cd5ae78fd15ac4dcdc12c6138",
       "kind": "call",
       "changed": true,
-      "summary": "createRefund looks up the order and validates amount as a positive integer no larger than total_minor.",
-      "details": "o_1001 exists. amount 499 is an integer, > 0 and <= 49900, so it passes.",
+      "summary": "createRefund validates amount as a positive integer no larger than total_minor, stores a requested RefundRow, publishes refund.requested, and returns 202.",
+      "details": "o_1001 exists. amount 499 is an integer, > 0 and <= 49900, so it passes. The published payload uses the key amount (not amount_minor), with the same value stored in the row. Order status is never moved to 'refunded' and the RefundRow never leaves 'requested'; db is in-memory, so refunds are lost on API restart while the queue message persists.",
       "from": "s8",
       "via": {
         "cites": [
@@ -425,37 +418,7 @@
           "value": "passes",
           "line": 12,
           "role": "assignment"
-        }
-      ],
-      "calls": ["s12"],
-      "uncertain": {
-        "severity": "high",
-        "note": "Validation accepts the web's major-unit 499 as 499 öre: a full refund silently becomes 4.99 SEK. An order with cents (e.g. total 499.5) would send 499.5 and get a 400. No check against previously requested refunds or order status, so repeated clicks (after reload) can over-refund."
-      }
-    },
-    {
-      "id": "s12",
-      "repo": "api",
-      "file": "src/handlers/refunds.ts",
-      "start_line": 16,
-      "end_line": 19,
-      "blob": "b69967fa2c2dd93cd5ae78fd15ac4dcdc12c6138",
-      "kind": "call",
-      "changed": true,
-      "summary": "Stores a 'requested' RefundRow, publishes refund.requested, and returns 202 {refund_id, status}.",
-      "details": "The published payload uses the key 'amount' (not amount_minor) with the same minor-unit value stored in the row.",
-      "from": "s11",
-      "via": {
-        "cites": [
-          {
-            "repo": "api",
-            "file": "src/handlers/refunds.ts",
-            "line": 12
-          }
-        ],
-        "guessed": false
-      },
-      "predicted_values": [
+        },
         {
           "name": "refund.id",
           "value": "\"r_<uuid>\"",
@@ -475,10 +438,9 @@
           "role": "return"
         }
       ],
-      "calls": ["s13"],
       "uncertain": {
-        "severity": "medium",
-        "note": "Order status is never moved to 'refunded' and the RefundRow never leaves 'requested'; db is in-memory, so refunds are lost on API restart while the queue message persists."
+        "severity": "high",
+        "note": "Validation accepts the web's major-unit 499 as 499 öre: a full refund silently becomes 4.99 SEK. An order with cents (e.g. total 499.5) would send 499.5 and get a 400. No check against previously requested refunds or order status, so repeated clicks (after reload) can over-refund."
       }
     },
     {
@@ -492,7 +454,7 @@
       "changed": false,
       "summary": "publish appends one JSON line {topic, sent_at, payload} to QUEUE_DIR/refund.requested.jsonl.",
       "details": "publish appends one JSON line {topic, sent_at, payload} to QUEUE_DIR/refund.requested.jsonl.",
-      "from": "s12",
+      "from": "s11",
       "via": {
         "cites": [
           {
@@ -510,8 +472,7 @@
           "line": 10,
           "role": "assignment"
         }
-      ],
-      "calls": ["s14"]
+      ]
     },
     {
       "id": "s14",
@@ -524,7 +485,7 @@
       "changed": true,
       "summary": "post() resolves with the 202 body and the action sets the .status text to 'refund requested'.",
       "details": "The returned RefundRequested (refund_id) is discarded; the UI change is local only.",
-      "from": "s12",
+      "from": "s11",
       "via": {
         "cites": [
           {
@@ -580,7 +541,6 @@
         ],
         "guessed": false
       },
-      "calls": ["s16"],
       "uncertain": {
         "severity": "medium",
         "note": "A handler exception is logged and swallowed, and the offset still advances past the message (queue.py:29), so a failed refund (e.g. provider timeout) is never retried and nobody is told."
@@ -616,7 +576,6 @@
           "role": "return"
         }
       ],
-      "calls": ["s17"],
       "uncertain": {
         "severity": "high",
         "note": "The offset is written only after all lines are consumed: if the worker dies after payments.refund succeeds but before line 29, the message is replayed and the customer is refunded twice (no idempotency key is sent to the provider)."
@@ -652,7 +611,6 @@
           "role": "argument"
         }
       ],
-      "calls": ["s18"],
       "uncertain": {
         "severity": "high",
         "note": "Key mismatch is handled (API sends 'amount', worker reads 'amount'), but the value is already wrong by 100x from the web; int() would also silently truncate any fractional value."
@@ -695,7 +653,6 @@
           "uncertain": true
         }
       ],
-      "calls": ["s19"],
       "uncertain": {
         "severity": "medium",
         "note": "Refunds 4.99 SEK on a 499.00 SEK order. Our refund_id is not sent, so the provider cannot dedupe retries or replays."
@@ -708,7 +665,7 @@
       "start_line": 10,
       "end_line": 14,
       "blob": "6b4b8908132722cfe2bc138eedb5d2aacd9a6668",
-      "kind": "call",
+      "kind": "return",
       "changed": true,
       "summary": "Logs the provider id and publishes refund.completed with refund_id, order_id and provider_refund_id.",
       "details": "Logs the provider id and publishes refund.completed with refund_id, order_id and provider_refund_id.",
@@ -722,8 +679,7 @@
           }
         ],
         "guessed": false
-      },
-      "calls": ["s20"]
+      }
     },
     {
       "id": "s20",

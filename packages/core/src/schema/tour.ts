@@ -56,8 +56,6 @@ const StepFields = z.object({
   for: nonEmpty.optional(),
   via: Via.nullable(),
   predicted_values: z.array(PredictedValue).optional(),
-  // the steps this one steps into, in call order
-  calls: z.array(nonEmpty).min(1).optional(),
   trivial: z.boolean().optional(),
   uncertain: Uncertain.optional(),
   notes: z.array(Note).optional(),

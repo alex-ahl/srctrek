@@ -9,6 +9,7 @@ export {
   type TourHeader,
   type TourStep,
 } from "./schema/tour"
+export { callStacks, type CallStacks } from "./schema/stacks"
 export {
   TOURS_DIR,
   TourValidationError,
