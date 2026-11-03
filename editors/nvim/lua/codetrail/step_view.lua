@@ -66,25 +66,40 @@ local function mark_lines(buf, view, first, last)
   end
 end
 
--- Virtual lines don't wrap, so the text is wrapped here, three lines at most; the full text is
--- in details. The sign column may appear only after this redraw, so its two columns are
--- reserved up front.
+-- The narration sits on a band across the window, from its left edge, so it reads as the
+-- tour's commentary on the code rather than a line of it. Virtual lines don't wrap, so the text
+-- is wrapped here, three lines at most; the full text is in details.
+local function band_line(chunks, width)
+  local used = 0
+  for _, chunk in ipairs(chunks) do
+    used = used + vim.fn.strdisplaywidth(chunk[1])
+  end
+  table.insert(chunks, { string.rep(" ", math.max(width - used, 0)), "CodetrailNarration" })
+  return chunks
+end
+
+local function on_band(text_line, group)
+  return { text_line, { "CodetrailNarration", group } }
+end
+
 local function wrapped(line, group, width)
   return vim.tbl_map(function(l)
-    return { { l, group } }
-  end, text.wrap(line, width, 3, "  "))
+    return { on_band("  " .. l, group) }
+  end, text.wrap(line, width - 4, 3, "  "))
 end
 
 local function narration(view, width)
-  local lines = wrapped("▶ " .. view.summary, "CodetrailNarration", width)
+  local lines = wrapped(view.summary, "CodetrailNarration", width)
   if not view.changed then
-    table.insert(lines[#lines], { "  unchanged", "CodetrailUnchanged" })
+    table.insert(lines[#lines], on_band("  unchanged", "CodetrailUnchanged"))
   end
   -- only a high flag shows inline; the rest are in details
   if view.flag ~= vim.NIL and view.flag.severity == "high" then
     vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", width))
   end
-  return lines
+  return vim.tbl_map(function(chunks)
+    return band_line(chunks, width)
+  end, lines)
 end
 
 -- The line itself says what it calls; only a hop into another repo says where it goes.
@@ -147,9 +162,8 @@ local function below(view)
   return lines
 end
 
-local function text_width()
-  local win = vim.api.nvim_get_current_win()
-  return vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff - 4
+local function window_width()
+  return vim.api.nvim_win_get_width(vim.api.nvim_get_current_win())
 end
 
 function M.show(view)
@@ -163,8 +177,12 @@ function M.show(view)
   mark_lines(buf, view, first, last)
   mark_calls(buf, view, line_count)
   inline_values.show(buf, view.predicted_values, line_count)
-  local above = narration(view, text_width())
-  vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, { virt_lines = above, virt_lines_above = true })
+  local above = narration(view, window_width())
+  vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, {
+    virt_lines = above,
+    virt_lines_above = true,
+    virt_lines_leftcol = true,
+  })
   local under = below(view)
   if #under > 0 then
     vim.api.nvim_buf_set_extmark(buf, state.ns, last - 1, 0, { virt_lines = under })

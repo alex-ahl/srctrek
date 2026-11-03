@@ -4,6 +4,7 @@ local popup = require("codetrail.popup")
 local server = require("codetrail.server")
 local state = require("codetrail.state")
 local step_view = require("codetrail.step_view")
+local tab = require("codetrail.tab")
 local winbar = require("codetrail.winbar")
 
 local M = {}
@@ -27,6 +28,7 @@ local function announce(view)
 end
 
 local function show_step(view)
+  tab.focus()
   remember_roots(view)
   step_view.show(view)
   winbar.show(vim.api.nvim_get_current_win(), view)

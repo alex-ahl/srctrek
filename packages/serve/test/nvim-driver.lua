@@ -1,6 +1,7 @@
 -- Drives the Neovim plugin as a user would, for nvim.test.ts: runs each action in
 -- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor,
--- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float), waits
+-- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float,
+-- "edit:<file>" opens a file of the user's own), waits
 -- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
 local codetrail = require("codetrail")
 local state = require("codetrail.state")
@@ -32,11 +33,13 @@ local function marks(buf, ns)
   return vim.api.nvim_buf_get_extmarks(buf, ns, 0, -1, { details = true })
 end
 
+-- Each line's text, without the spaces that pad it across the window.
 local function texts(chunks_list)
   return vim.tbl_map(function(chunks)
-    return table.concat(vim.tbl_map(function(chunk)
+    local line = table.concat(vim.tbl_map(function(chunk)
       return chunk[1]
     end, chunks))
+    return (line:gsub("%s+$", ""))
   end, chunks_list)
 end
 
@@ -76,6 +79,7 @@ local function screen()
     signs = seen.signs,
     calls = seen.calls,
     user_float = user_float ~= nil and vim.api.nvim_win_is_valid(user_float),
+    tabs = #vim.api.nvim_list_tabpages(),
     floats = #vim.tbl_filter(function(w)
       return vim.api.nvim_win_get_config(w).relative ~= ""
     end, vim.api.nvim_list_wins()),
@@ -88,6 +92,7 @@ local function run(action)
   local tour = action:match("^start:(.+)$")
   local line = action:match("^cursor:(%d+)$")
   local own_winbar = action:match("^winbar:(.+)$")
+  local own_file = action:match("^edit:(.+)$")
   if line then
     vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
     -- headless Neovim fires this only for moves made by keys
@@ -95,6 +100,9 @@ local function run(action)
     return
   elseif own_winbar then
     vim.wo.winbar = own_winbar
+    return
+  elseif own_file then
+    vim.cmd.edit(own_file)
     return
   elseif action == "userfloat" then
     open_user_float()

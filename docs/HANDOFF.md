@@ -35,6 +35,11 @@
 - Knowing where the tour is, in Neovim: the step has a tint of its own (`ColorColumn`, not the
   cursor line's), `▶` on its first line, the winbar says `away · <leader>tc returns` once the
   cursor leaves the step, and `<leader>tc` (`:TrailCurrent`) goes back without moving the tour.
+- Knowing you're in a tour, in Neovim: the tour has a tab of its own (a fresh Neovim's empty tab
+  is used as it is) that quit closes, and closing it ends the tour; a `codetrail` badge starts
+  the winbar; the narration sits on a band across the window. The step's tint, the band, and
+  the badge are mixed from the theme's text, background, and info colours, checked across
+  Neovim's built-in themes, dark and light: no theme group is distinct in all of them.
 
 ## 2026-11-03 — Milestone 5: design pass
 

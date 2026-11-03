@@ -46,7 +46,6 @@ end
 
 local function bar(view, away)
   local parts = {
-    " codetrail",
     position(view),
     escape(view.repo .. "/" .. view.file .. ":" .. view.start_line),
   }
@@ -59,7 +58,8 @@ local function bar(view, away)
   if #view.stack > 0 then
     table.insert(parts, stack_text(view.stack))
   end
-  return table.concat(parts, "  ·  ")
+  -- the badge says a tour is on, as -- INSERT -- says a mode is
+  return coloured("CodetrailBadge", " codetrail ") .. "  " .. table.concat(parts, "  ·  ")
 end
 
 -- The window showing the step, the step, and the window's own winbar to put back: the

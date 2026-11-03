@@ -19,6 +19,7 @@ type Screen = {
   signs: { line: number; text: string }[]
   calls: { line: number; text: string }[]
   user_float: boolean
+  tabs: number
   floats: number
   notices: string[]
 }
@@ -75,9 +76,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(overview?.float).toContain("**Outcome:** paid")
     expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
     // the repo is named after its temporary folder
-    expect(first?.winbar).toStartWith(" codetrail  ·  1/3  ·  ")
+    expect(first?.winbar).toStartWith("%#CodetrailBadge# codetrail %*  1/3  ·  ")
     expect(first?.winbar).toEndWith("/main.ts:1  ·  main.ts:1")
-    expect(first?.virt_lines).toEqual(["▶ main calls pay"])
+    expect(first?.virt_lines).toEqual(["  main calls pay"])
     // the first line is where execution is, and the change added it
     expect(first?.signs).toEqual([
       { line: 1, text: "▶+" },
@@ -95,9 +96,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    expect(into?.winbar).toContain("  ·  2/3  ·  ")
+    expect(into?.winbar).toContain("%*  2/3  ·  ")
     expect(into?.winbar).toEndWith("/pay.ts:1  ·  pay ‹ main.ts:1")
-    expect(into?.virt_lines).toEqual(["▶ s", "⚠ 250 is hard-coded"])
+    expect(into?.virt_lines).toEqual(["  s", "  ⚠ 250 is hard-coded"])
     expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
     expect(hidden?.values).toEqual([])
   }, 30_000)
@@ -114,7 +115,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(out).toMatchObject({ file: "main.ts", line: 2 })
-    expect(out?.winbar).toContain("  ·  3/3  ·  ")
+    expect(out?.winbar).toContain("%*  3/3  ·  ")
     expect(end).toMatchObject({ view: "end" })
     expect(end?.float).toContain("**End of tour.** paid")
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 2 })
@@ -166,6 +167,26 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(back?.winbar).not.toContain("away")
   }, 30_000)
 
+  test("shows the tour in a fresh Neovim's empty tab", async () => {
+    const [overview, , quit] = await drive(await repoWithTour(), ["start:pay", "next", "quit"])
+
+    expect(overview?.tabs).toBe(1)
+    expect(quit?.tabs).toBe(1)
+  }, 30_000)
+
+  test("gives the tour a tab of its own beside the user's, and closes it on quit", async () => {
+    const [, opened, stepped, quit] = await drive(await repoWithTour(), [
+      "edit:pay.ts",
+      "start:pay",
+      "next",
+      "quit",
+    ])
+
+    expect(opened?.tabs).toBe(2)
+    expect(stepped).toMatchObject({ tabs: 2, file: "main.ts" })
+    expect(quit).toMatchObject({ tabs: 1, file: "pay.ts", winbar: "" })
+  }, 30_000)
+
   test("puts the window's own winbar back off a step and on quit", async () => {
     const screens = await drive(await repoWithTour(), [
       "winbar:mine",
@@ -177,7 +198,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
     const winbars = screens.map((screen) => screen.winbar)
 
-    expect(winbars[2]).toStartWith(" codetrail")
+    expect(winbars[2]).toContain(" codetrail ")
     expect([winbars[1], winbars[3], winbars[5]]).toEqual(["mine", "mine", "mine"])
   }, 30_000)
 
