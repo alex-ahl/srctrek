@@ -36,15 +36,19 @@ local CHANGE_SIGNS = {
   changed = { text = "~", group = "CodetrailChanged" },
 }
 
--- One sign per line: the change's own lines carry theirs, the step's other lines the bar.
+-- One sign per line, as the sign column shows one: the change's own lines carry theirs, the
+-- step's other lines the bar, and its first line ▶ like a debugger's current line, followed by
+-- that line's change sign if it has one.
 local function signs(view, first, last)
   local by_line = {}
   for l = first, last do
-    by_line[l] = { text = "▎", group = "CodetrailStep" }
+    by_line[l] = { text = "▎", group = "CodetrailStepBar" }
   end
   for _, changed in ipairs(view.changed_lines) do
     by_line[changed.line] = CHANGE_SIGNS[changed.change]
   end
+  local first_change = by_line[first].group == "CodetrailStepBar" and "" or by_line[first].text
+  by_line[first] = { text = "▶" .. first_change, group = "CodetrailCurrent" }
   return by_line
 end
 

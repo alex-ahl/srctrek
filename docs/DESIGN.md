@@ -91,6 +91,9 @@ The vocabulary every surface shares, shown in place on a step in the review page
   only the theme colour's foreground.
 - **Changed code gets the attention.** The step's lines are tinted, the change's own lines carry a
   sign in the gutter, and an unchanged step says so quietly.
+- **It's always clear where the tour is.** The step's tint is its own, never the cursor line's;
+  its first line carries `▶`, as a debugger's current line does; and once the reader moves
+  away, the winbar says so and how to get back.
 - **Nothing predicted reads as fact.** Every predicted value starts with `≈`.
 - **Readers see stops, never ids.** A step shows its number among the stops (`9 / 17`) and its
   place (repo, file, line); step ids are for the protocol and the tour file.
@@ -101,7 +104,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 
 | Role            | Looks like                                    | Wording                     | Neovim default    | VS Code default                   |
 | --------------- | --------------------------------------------- | --------------------------- | ----------------- | --------------------------------- |
-| The step        | tinted lines, a bar at the left edge          |                             | `CursorLine`      | `editor.rangeHighlightBackground` |
+| The step        | tinted lines, a bar at the left edge          |                             | `ColorColumn`     | `editor.rangeHighlightBackground` |
+| Current line    | `▶` in the gutter on the step's first line    |                             | `DiagnosticWarn`  | the debugger's current line       |
 | Narration       | `▶` above the first line, three lines at most | the step's summary          | `Normal`          | `editorCodeLens.foreground`       |
 | Added line      | `+` in the gutter                             |                             | `Added`           | `editorGutter.addedBackground`    |
 | Changed line    | `~` in the gutter                             |                             | `Changed`         | `editorGutter.modifiedBackground` |
@@ -114,6 +118,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Cited link      | `→`, with its evidence                        | “came from”                 | `Normal`          | `foreground`                      |
 | Guessed link    | `⇢`                                           | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
 | Stale step      | a tag in the winbar and details               | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Away            | a tag in the winbar                           | “away · <leader>tc returns” | `Comment`         |                                   |
 | Hop             | `↯` and a dashed rule in the call stack       | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
 | Context steps   | a count under the code, opened from it        | “2 context steps”           | `Comment`         | `descriptionForeground`           |
 | Call to enter   | `→` at the end of the line making it          | `↯ api` into another repo   | `Special`         | `textLink.foreground`             |
@@ -163,15 +168,16 @@ on the step as notes, which details show from then on.
 While a tour is open; every key can be changed or turned off, and in Neovim each action is also a
 command (`:TrailNext`) and a Lua function.
 
-| Action              | Neovim                     | VS Code                  |
-| ------------------- | -------------------------- | ------------------------ |
-| Next, previous      | `]t`, `[t`                 | `Alt+]`, `Alt+[`         |
-| Over                | `<leader>tn`               | `F10`                    |
-| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`       |
-| Details             | `<leader>tt`               | the Details section      |
-| Show or hide values | `<leader>tv`               | Codetrail: Toggle Values |
-| Ask                 | `<leader>ta`               | Codetrail: Ask           |
-| Quit the tour       | `<leader>tq`               | `Escape` in the tour tab |
+| Action              | Neovim                     | VS Code                      |
+| ------------------- | -------------------------- | ---------------------------- |
+| Next, previous      | `]t`, `[t`                 | `Alt+]`, `Alt+[`             |
+| Over                | `<leader>tn`               | `F10`                        |
+| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`           |
+| Back to the step    | `<leader>tc`               | Codetrail: Show Current Step |
+| Details             | `<leader>tt`               | the Details section          |
+| Show or hide values | `<leader>tv`               | Codetrail: Toggle Values     |
+| Ask                 | `<leader>ta`               | Codetrail: Ask               |
+| Quit the tour       | `<leader>tq`               | `Escape` in the tour tab     |
 
 In VS Code the debugger's keys step a tour only while no debug session runs.
 

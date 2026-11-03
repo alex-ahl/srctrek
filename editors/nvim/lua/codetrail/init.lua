@@ -2,13 +2,13 @@
 --   :Trail <tour>   a tour saved in Neovim's working directory, by name
 -- Tours are loaded and stepped by `trail serve`, started in Neovim's working directory.
 -- Default keys while a tour is open (configurable, see DEFAULT_KEYS below):
---   ]t / [t next / previous step   <leader>tn step over
+--   ]t / [t next / previous step   <leader>tn step over   <leader>tc back to the current step
 --   <leader>ti step into           <leader>to step out
 --   <leader>tt details (overview before step 1)               <leader>tq quit
 --   <leader>ta ask about the current step (enter on a cited repo/file:line jumps there)
 --   <leader>tv show or hide predicted values
 -- Every action is also a command (:TrailNext, :TrailPrev, :TrailOver, :TrailInto, :TrailOut,
--- :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a function on this module.
+-- :TrailCurrent, :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a function on this module.
 -- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), the question as its
 -- last argument. Each step fires `User CodetrailStep` with
 -- { path, line, repo } for file explorers or user config to follow.
@@ -36,6 +36,7 @@ local DEFAULT_KEYS = {
   next = "]t",
   previous = "[t",
   over = "<leader>tn",
+  current = "<leader>tc",
   into = "<leader>ti",
   out = "<leader>to",
   details = "<leader>tt",
@@ -95,6 +96,7 @@ function M.quit()
   winbar.restore()
   unbind_keys(active_keys)
   active_keys = {}
+  vim.api.nvim_create_augroup("codetrail_away", { clear = true })
   state.view, state.overview = nil, nil
   server.stop()
 end
@@ -115,6 +117,7 @@ M.previous = when_open(navigation.previous)
 M.over = when_open(navigation.over)
 M.into = when_open(navigation.into)
 M.out = when_open(navigation.out)
+M.current = when_open(navigation.current)
 M.details = when_open(details.show)
 M.ask = when_open(ask.ask)
 M.values = when_open(inline_values.toggle)
@@ -127,6 +130,11 @@ local function opened(overview)
   state.overview, state.roots, state.notes = overview, {}, {}
   active_keys = settings().keys or {}
   bind_keys(active_keys)
+  winbar.set_return_hint(active_keys.current or ":TrailCurrent")
+  vim.api.nvim_create_autocmd({ "CursorMoved", "BufWinEnter" }, {
+    group = vim.api.nvim_create_augroup("codetrail_away", { clear = true }),
+    callback = winbar.follow_cursor,
+  })
   navigation.show(overview)
 end
 

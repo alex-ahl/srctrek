@@ -55,7 +55,8 @@ a failed build `b` builds again.
 The tour opens with an overview. Each step opens its file, highlights its lines, and shows
 a summary above them, with a likely-wrong flag under it; changed lines carry `+` or `~` in
 the sign column, predicted values start with `≈`, and the winbar shows the stop number and
-the call stack. A line ending in `→` makes a call the tour follows: step into takes the one
+the call stack; `▶` marks the step's first line, and the winbar says when you've moved
+away. A line ending in `→` makes a call the tour follows: step into takes the one
 on the cursor's line, or the first not yet visited.
 
 | Key          | Command                     | Action                                    |
@@ -63,6 +64,7 @@ on the cursor's line, or the first not yet visited.
 | `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous step                      |
 | `<leader>tn` | `:TrailOver`                | Step over                                 |
 | `<leader>ti` | `:TrailInto`                | Step into                                 |
+| `<leader>tc` | `:TrailCurrent`             | Back to the current step                  |
 | `<leader>to` | `:TrailOut`                 | Step out                                  |
 | `<leader>tt` | `:TrailDetails`             | Details: flags, predicted values, context |
 | `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current step     |

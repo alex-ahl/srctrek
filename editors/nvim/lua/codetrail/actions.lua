@@ -6,6 +6,7 @@ return {
   { name = "over", command = "TrailOver", desc = "step over" },
   { name = "into", command = "TrailInto", desc = "step into" },
   { name = "out", command = "TrailOut", desc = "step out" },
+  { name = "current", command = "TrailCurrent", desc = "back to the current step" },
   { name = "details", command = "TrailDetails", desc = "details" },
   { name = "ask", command = "TrailAsk", desc = "ask about this step" },
   { name = "values", command = "TrailValues", desc = "show or hide predicted values" },

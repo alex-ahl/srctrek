@@ -32,6 +32,9 @@
   no line of the step is listed under the code.
 - The Neovim plugin leaves the user's setup alone: the window's own winbar comes back off a step
   and on quit, and a move closes only the plugin's own popups, not another plugin's float.
+- Knowing where the tour is, in Neovim: the step has a tint of its own (`ColorColumn`, not the
+  cursor line's), `▶` on its first line, the winbar says `away · <leader>tc returns` once the
+  cursor leaves the step, and `<leader>tc` (`:TrailCurrent`) goes back without moving the tour.
 
 ## 2026-11-03 — Milestone 5: design pass
 

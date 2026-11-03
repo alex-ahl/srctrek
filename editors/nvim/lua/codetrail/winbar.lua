@@ -37,7 +37,14 @@ local function position(view)
   return number
 end
 
-local function bar(view)
+-- How to get back to the step, as the away note says it: the key, or the command without one.
+local return_hint = ":TrailCurrent"
+
+function M.set_return_hint(hint)
+  return_hint = hint
+end
+
+local function bar(view, away)
   local parts = {
     " codetrail",
     position(view),
@@ -46,14 +53,17 @@ local function bar(view)
   if view.stale then
     table.insert(parts, coloured("CodetrailStale", "stale: file changed since"))
   end
+  if away then
+    table.insert(parts, coloured("CodetrailAway", "away · " .. escape(return_hint) .. " returns"))
+  end
   if #view.stack > 0 then
     table.insert(parts, stack_text(view.stack))
   end
   return table.concat(parts, "  ·  ")
 end
 
--- The window showing the step, and its own winbar to put back: the window-local value, so a
--- window that used the global winbar goes back to using it.
+-- The window showing the step, the step, and the window's own winbar to put back: the
+-- window-local value, so a window that used the global winbar goes back to using it.
 local shown = nil
 
 local function own_winbar(win)
@@ -76,7 +86,29 @@ function M.show(win, view)
     M.restore()
     shown = { win = win, own = own_winbar(win) }
   end
-  set_winbar(win, bar(view))
+  shown.view, shown.away = view, false
+  set_winbar(win, bar(view, false))
+end
+
+-- Away: the step's window shows another file, or its cursor is off the step's lines.
+local function is_away(win, view)
+  if vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win)) ~= view.path then
+    return true
+  end
+  local line = vim.api.nvim_win_get_cursor(win)[1]
+  return line < view.start_line or line > view.end_line
+end
+
+-- Says so in the winbar once the reader moves away from the step, and stops once they're back.
+function M.follow_cursor()
+  if shown == nil or shown.view == nil or not vim.api.nvim_win_is_valid(shown.win) then
+    return
+  end
+  local away = is_away(shown.win, shown.view)
+  if away ~= shown.away then
+    shown.away = away
+    set_winbar(shown.win, bar(shown.view, away))
+  end
 end
 
 return M

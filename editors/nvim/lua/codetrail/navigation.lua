@@ -65,6 +65,11 @@ local function call_at_cursor(view)
   end
 end
 
+-- Back to the step the tour is on, without moving the tour.
+function M.current()
+  M.show(state.view)
+end
+
 M.next = move("next")
 M.previous = move("prev")
 M.over = move("over")

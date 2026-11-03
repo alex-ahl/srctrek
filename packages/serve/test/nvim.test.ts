@@ -78,8 +78,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(first?.winbar).toStartWith(" codetrail  ·  1/3  ·  ")
     expect(first?.winbar).toEndWith("/main.ts:1  ·  main.ts:1")
     expect(first?.virt_lines).toEqual(["▶ main calls pay"])
+    // the first line is where execution is, and the change added it
     expect(first?.signs).toEqual([
-      { line: 1, text: "+" },
+      { line: 1, text: "▶+" },
       { line: 2, text: "+" },
     ])
     expect(first?.calls).toEqual([{ line: 1, text: "  →" }])
@@ -150,6 +151,19 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     const [, , over] = await drive(await repoWithTour(), ["start:pay", "next", "over"])
 
     expect(over).toMatchObject({ file: "main.ts", line: 2 })
+  }, 30_000)
+
+  test("says when the cursor leaves the step, and goes back to it", async () => {
+    const [, , away, back] = await drive(await repoWithTour(), [
+      "start:pay",
+      "next",
+      "cursor:2",
+      "current",
+    ])
+
+    expect(away?.winbar).toContain("away · <leader>tc returns")
+    expect(back).toMatchObject({ file: "main.ts", line: 1 })
+    expect(back?.winbar).not.toContain("away")
   }, 30_000)
 
   test("puts the window's own winbar back off a step and on quit", async () => {

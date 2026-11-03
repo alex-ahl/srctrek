@@ -90,6 +90,8 @@ local function run(action)
   local own_winbar = action:match("^winbar:(.+)$")
   if line then
     vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+    -- headless Neovim fires this only for moves made by keys
+    vim.api.nvim_exec_autocmds("CursorMoved", {})
     return
   elseif own_winbar then
     vim.wo.winbar = own_winbar
@@ -102,7 +104,9 @@ local function run(action)
   else
     codetrail[action]()
   end
-  if action ~= "quit" and action ~= "details" and action ~= "values" then
+  -- these answer at once, without the server
+  local local_only = { quit = true, details = true, values = true, current = true }
+  if not local_only[action] then
     vim.wait(15000, function()
       return state.view ~= view or #notices > notified
     end, 20)
