@@ -19,6 +19,9 @@
 - Step 5d: the terminal screens, in `docs/DESIGN.md` and a review page: the home screen and every
   state of a change's tour, the build view, the route map in lanes per repo, and stepping in the
   terminal for anyone, not only editors without a plugin.
+- Step 5f: OpenTUI kept for the terminal, judged against the designed screens and an Ink build of
+  the route map (Ink adds about 1 MB against OpenTUI's 14 MB, but the screens need nothing it
+  does better). The GUI's design waits until beta testers ask for one.
 
 ## 2026-10-30 — Milestone 4: `trail serve`
 
@@ -101,9 +104,8 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - Check the name before going public.
 - Stop ignoring the .codetrail folder once tours are written with portable sources; clear
   out local-only files (demo tours, changed-lines files) first.
-- OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
-  lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
-  or sooner if an upgrade costs more than a day or a target platform fails to load it.
+- OpenTUI stays, kept up to date with each release until 1.0; it's at 0.6.6 and 0.8.1 is out.
+  Revisit if an upgrade costs more than a day or a target platform fails to load it.
 - Context steps: next and prev should pass over them (`docs/DESIGN.md`), but the stepping
   session still visits them; change it with the editors in Milestone 6. `for` names one step.
 - Over and out count a hop as inside its caller only when a return comes back across it: in a

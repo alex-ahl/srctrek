@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — The terminal keeps OpenTUI
+
+Milestone 7 builds the terminal screens on OpenTUI, kept up to date with each release until 1.0.
+Revisited if an upgrade costs more than a day or a target platform fails to load it.
+
+Judged against the designed screens and an Ink build of the route map: Ink adds about 1 MB to the
+binary against OpenTUI's 14 MB and is pure JavaScript, but the binary is mostly Bun either way,
+and CI's smoke binary already guards the native library. Staying current while it's pre-1.0
+keeps each upgrade small, rather than one large jump at 1.0. OpenTUI's renderer and scroll box
+suit the build view and the stepping view.
+
 ## 2026-11-03 — Anyone can step in the terminal
 
 The terminal's stepping view is for anyone, started with `s` from the home screen or the route
