@@ -39,12 +39,12 @@ local CHANGE_SIGNS = {
 -- One sign per line, as the sign column shows one: the change's own lines carry theirs, the
 -- step's other lines the bar, and its first line ▶ like a debugger's current line, followed by
 -- that line's change sign if it has one.
-local function signs(view, first, last)
+local function signs(view, first, last, new_file)
   local by_line = {}
   for l = first, last do
     by_line[l] = { text = "▎", group = "CodetrailStepBar" }
   end
-  for _, changed in ipairs(view.changed_lines) do
+  for _, changed in ipairs(new_file and {} or view.changed_lines) do
     by_line[changed.line] = CHANGE_SIGNS[changed.change]
   end
   local first_change = by_line[first].group == "CodetrailStepBar" and "" or by_line[first].text
@@ -52,9 +52,9 @@ local function signs(view, first, last)
   return by_line
 end
 
-local function mark_lines(buf, view, first, last)
+local function mark_lines(buf, view, first, last, new_file)
   local line_count = vim.api.nvim_buf_line_count(buf)
-  for l, sign in pairs(signs(view, first, last)) do
+  for l, sign in pairs(signs(view, first, last, new_file)) do
     if l <= line_count then
       local in_step = l >= first and l <= last
       vim.api.nvim_buf_set_extmark(buf, state.ns, l - 1, 0, {
@@ -82,16 +82,25 @@ local function on_band(text_line, group)
   return { text_line, { "CodetrailNarration", group } }
 end
 
+-- Each band line starts with an edge in the info colour, as a callout's does.
 local function wrapped(line, group, width)
   return vim.tbl_map(function(l)
-    return { on_band("  " .. l, group) }
+    return { on_band("▌ ", "CodetrailBandEdge"), on_band(l, group) }
   end, text.wrap(line, width - 4, 3, "  "))
 end
 
-local function narration(view, width)
+local function tag(view, new_file)
+  if new_file then
+    return "new file"
+  end
+  return not view.changed and "unchanged" or nil
+end
+
+local function narration(view, width, new_file)
   local lines = wrapped(view.summary, "CodetrailNarration", width)
-  if not view.changed then
-    table.insert(lines[#lines], on_band("  unchanged", "CodetrailUnchanged"))
+  local tagged = tag(view, new_file)
+  if tagged then
+    table.insert(lines[#lines], on_band("  " .. tagged, "CodetrailUnchanged"))
   end
   -- only a high flag shows inline; the rest are in details
   if view.flag ~= vim.NIL and view.flag.severity == "high" then
@@ -162,6 +171,24 @@ local function below(view)
   return lines
 end
 
+-- A file the change adds whole, so one tag says it rather than a + on every line.
+local function is_new_file(view, line_count)
+  local added = vim.tbl_filter(function(changed)
+    return changed.change == "added"
+  end, view.changed_lines)
+  return #added >= line_count
+end
+
+-- The step near the top, a few lines below it, without scrolling past the end of a short file;
+-- virtual lines above a window's first line show only when it's scrolled to show them.
+local function place_window(first, line_count, above)
+  local height = vim.api.nvim_win_get_height(0)
+  local latest = math.max(1, line_count - height + above + 1)
+  local top = math.min(math.max(1, first - 3), latest)
+  vim.api.nvim_win_set_cursor(0, { first, 0 })
+  vim.fn.winrestview({ topline = top, topfill = top == first and above or 0 })
+end
+
 local function window_width()
   return vim.api.nvim_win_get_width(vim.api.nvim_get_current_win())
 end
@@ -174,10 +201,11 @@ function M.show(view)
   local line_count = vim.api.nvim_buf_line_count(buf)
   local first, last = math.min(view.start_line, line_count), math.min(view.end_line, line_count)
 
-  mark_lines(buf, view, first, last)
+  local new_file = is_new_file(view, line_count)
+  mark_lines(buf, view, first, last, new_file)
   mark_calls(buf, view, line_count)
   inline_values.show(buf, view.predicted_values, line_count)
-  local above = narration(view, window_width())
+  local above = narration(view, window_width(), new_file)
   vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, {
     virt_lines = above,
     virt_lines_above = true,
@@ -188,12 +216,7 @@ function M.show(view)
     vim.api.nvim_buf_set_extmark(buf, state.ns, last - 1, 0, { virt_lines = under })
   end
 
-  vim.api.nvim_win_set_cursor(0, { first, 0 })
-  vim.cmd("normal! zz")
-  -- virtual lines above the first line stay hidden unless the window is scrolled to show them
-  if first == 1 then
-    vim.fn.winrestview({ topline = 1, topfill = #above })
-  end
+  place_window(first, line_count, #above)
 end
 
 return M

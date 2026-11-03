@@ -99,34 +99,36 @@ The vocabulary every surface shares, shown in place on a step in the review page
   carries `▶`, as a debugger's current line does; and once the reader moves away, the winbar
   says so and how to get back.
 - **Nothing predicted reads as fact.** Every predicted value starts with `≈`.
-- **Readers see stops, never ids.** A step shows its number among the stops (`9 / 17`) and its
-  place (repo, file, line); step ids are for the protocol and the tour file.
+- **Readers see stops, never ids.** A step shows its number among the stops (`9 / 17`), in the
+  winbar's strongest text, and its place (repo, file, line); step ids are for the protocol and
+  the tour file.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details.
 
 ### Roles
 
-| Role            | Looks like                                       | Wording                     | Neovim default    | VS Code default                   |
-| --------------- | ------------------------------------------------ | --------------------------- | ----------------- | --------------------------------- |
-| Badge           | `codetrail` at the winbar's start                |                             | info colour       | the debug toolbar                 |
-| The step        | tinted lines, a bar at the left edge             |                             | mixed: text 8%    | `editor.rangeHighlightBackground` |
-| Current line    | `▶` in the gutter on the step's first line       |                             | `DiagnosticWarn`  | the debugger's current line       |
-| Narration       | a band above the first line, three lines at most | the step's summary          | mixed: info 22%   | `editorCodeLens.foreground`       |
-| Added line      | `+` in the gutter                                |                             | `Added`           | `editorGutter.addedBackground`    |
-| Changed line    | `~` in the gutter                                |                             | `Changed`         | `editorGutter.modifiedBackground` |
-| Unchanged step  | a muted tag after the narration                  | “unchanged”                 | `Comment`         | `descriptionForeground`           |
-| Predicted value | `≈ name = value`, italic, at the line's end      | “predicted” in details      | `LspInlayHint`    | `editorInlayHint.foreground`      |
-| Doubtful value  | `≈? name = value`                                | “predicted, unsure”         | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| High flag       | `⚠` line under the narration, tinted             | “likely wrong”              | `DiagnosticError` | `editorError.foreground`          |
-| Medium flag     | `●` in details                                   | “risky”                     | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| Low flag        | `●` in details                                   | “worth knowing”             | `DiagnosticInfo`  | `editorInfo.foreground`           |
-| Cited link      | `→`, with its evidence                           | “came from”                 | `Normal`          | `foreground`                      |
-| Guessed link    | `⇢`                                              | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
-| Stale step      | a tag in the winbar and details                  | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| Away            | a tag in the winbar                              | “away · <leader>tc returns” | `Comment`         |                                   |
-| Hop             | `↯` and a dashed rule in the call stack          | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
-| Context steps   | a count under the code, opened from it           | “2 context steps”           | `Comment`         | `descriptionForeground`           |
-| Call to enter   | `→` at the end of the line making it             | `↯ api` into another repo   | `Special`         | `textLink.foreground`             |
+| Role            | Looks like                                                       | Wording                     | Neovim default    | VS Code default                   |
+| --------------- | ---------------------------------------------------------------- | --------------------------- | ----------------- | --------------------------------- |
+| Badge           | `codetrail` at the winbar's start                                |                             | info colour       | the debug toolbar                 |
+| The step        | tinted lines, a bar at the left edge                             |                             | mixed: text 8%    | `editor.rangeHighlightBackground` |
+| Current line    | `▶` in the gutter on the step's first line                       |                             | `DiagnosticWarn`  | the debugger's current line       |
+| Narration       | a band above the first line with a `▌` edge, three lines at most | the step's summary          | mixed: info 22%   | `editorCodeLens.foreground`       |
+| Added line      | `+` in the gutter                                                |                             | `Added`           | `editorGutter.addedBackground`    |
+| Changed line    | `~` in the gutter                                                |                             | `Changed`         | `editorGutter.modifiedBackground` |
+| Unchanged step  | a muted tag after the narration                                  | “unchanged”                 | `Comment`         | `descriptionForeground`           |
+| New file        | a muted tag after the narration, no signs                        | “new file”                  | `Comment`         | `descriptionForeground`           |
+| Predicted value | `≈ name = value`, italic, at the line's end                      | “predicted” in details      | `LspInlayHint`    | `editorInlayHint.foreground`      |
+| Doubtful value  | `≈? name = value`                                                | “predicted, unsure”         | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| High flag       | `⚠` line under the narration, tinted                             | “likely wrong”              | `DiagnosticError` | `editorError.foreground`          |
+| Medium flag     | `●` in details                                                   | “risky”                     | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Low flag        | `●` in details                                                   | “worth knowing”             | `DiagnosticInfo`  | `editorInfo.foreground`           |
+| Cited link      | `→`, with its evidence                                           | “came from”                 | `Normal`          | `foreground`                      |
+| Guessed link    | `⇢`                                                              | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
+| Stale step      | a tag in the winbar and details                                  | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Away            | a tag in the winbar                                              | “away · <leader>tc returns” | `Comment`         |                                   |
+| Hop             | `↯` and a dashed rule in the call stack                          | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
+| Context steps   | a count under the code, opened from it                           | “2 context steps”           | `Comment`         | `descriptionForeground`           |
+| Call to enter   | `→` at the end of the line making it                             | `↯ api` into another repo   | `Special`         | `textLink.foreground`             |
 
 ### Call stack
 

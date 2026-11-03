@@ -72,7 +72,8 @@ local function screen()
     view = state.view and state.view.kind or vim.NIL,
     file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t"),
     line = vim.api.nvim_win_get_cursor(win)[1],
-    winbar = vim.wo[win].winbar,
+    -- as the reader sees it, without its highlight codes
+    winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%%*", "")),
     float = floating and vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(current), 0, -1, false) or vim.NIL,
     virt_lines = seen.virt_lines,
     values = seen.values,

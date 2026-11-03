@@ -22,6 +22,7 @@ local FOREGROUND = {
   CodetrailCall = { group = "Special" },
   CodetrailUnchanged = { group = "Comment" },
   CodetrailFlagHigh = { group = "DiagnosticError" },
+  CodetrailPosition = { group = "Normal", bold = true },
 }
 
 local function colour(group, attribute)
@@ -51,6 +52,18 @@ local function readable_on(fill, a, b)
   return distance(a) >= distance(b) and a or b
 end
 
+-- The band moved towards the info colour, and towards the text too when that alone leaves it
+-- too close to the background to see, as a light info colour does on a light theme.
+local function band_colour(bg, fg, accent)
+  local towards_info = mix(bg, accent, 0.22)
+  local band, towards_text = towards_info, 0
+  while math.abs(luminance(band) - luminance(bg)) < 24 and towards_text < 0.5 do
+    towards_text = towards_text + 0.04
+    band = mix(towards_info, fg, towards_text)
+  end
+  return band
+end
+
 -- No single theme group is reliably distinct from the background in every theme (ColorColumn
 -- is darker in some, CursorLine is the cursor's own), so the step's tint, the narration's band,
 -- and the badge are mixed from the theme's text, background, and info colours. Without GUI
@@ -63,6 +76,7 @@ local function define_mixed()
     vim.api.nvim_set_hl(0, "CodetrailStep", { link = "CursorLine", default = true })
     vim.api.nvim_set_hl(0, "CodetrailStepBar", { link = "LineNr", default = true })
     vim.api.nvim_set_hl(0, "CodetrailNarration", { link = "Pmenu", default = true })
+    vim.api.nvim_set_hl(0, "CodetrailBandEdge", { link = "Special", default = true })
     vim.api.nvim_set_hl(0, "CodetrailBadge", { link = "PmenuSel", default = true })
     return
   end
@@ -70,7 +84,8 @@ local function define_mixed()
   local tint = mix(bg, fg, 0.08)
   vim.api.nvim_set_hl(0, "CodetrailStep", { bg = tint, default = true })
   vim.api.nvim_set_hl(0, "CodetrailStepBar", { fg = mix(bg, fg, 0.3), default = true })
-  vim.api.nvim_set_hl(0, "CodetrailNarration", { fg = fg, bg = mix(bg, accent, 0.22), default = true })
+  vim.api.nvim_set_hl(0, "CodetrailNarration", { fg = fg, bg = band_colour(bg, fg, accent), default = true })
+  vim.api.nvim_set_hl(0, "CodetrailBandEdge", { fg = accent, default = true })
   vim.api.nvim_set_hl(0, "CodetrailBadge", { fg = readable_on(accent, bg, fg), bg = accent, bold = true, default = true })
 end
 
@@ -80,7 +95,13 @@ local function define()
   end
   for name, role in pairs(FOREGROUND) do
     local theme = vim.api.nvim_get_hl(0, { name = role.group, link = false })
-    vim.api.nvim_set_hl(0, name, { fg = theme.fg, ctermfg = theme.ctermfg, italic = role.italic, default = true })
+    vim.api.nvim_set_hl(0, name, {
+      fg = theme.fg,
+      ctermfg = theme.ctermfg,
+      italic = role.italic,
+      bold = role.bold,
+      default = true,
+    })
   end
   define_mixed()
 end

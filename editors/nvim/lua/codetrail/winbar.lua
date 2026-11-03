@@ -30,7 +30,7 @@ local function stack_text(frames)
 end
 
 local function position(view)
-  local number = string.format("%d/%d", view.number, view.count)
+  local number = coloured("CodetrailPosition", string.format("%d/%d", view.number, view.count))
   if view.step_kind == "context" then
     return number .. " context"
   end

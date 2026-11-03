@@ -38,13 +38,17 @@ function buildersIn(repo: string) {
   return { step, cites }
 }
 
-// A repo on branch feature whose change adds `files` in order, with the steps `stepsIn` gives
-// for its repo saved as the tour "pay".
+// A repo holding `base`, then on branch feature a change committing `files` in order, with the
+// steps `stepsIn` gives for its repo saved as the tour "pay".
 async function repoWithSteps(
   files: [string, string][],
   stepsIn: (builders: ReturnType<typeof buildersIn>) => SubmittedStep[],
+  base: [string, string][] = [],
 ): Promise<string> {
   const dir = await makeRepo()
+  for (const [file, content] of base) {
+    await commit(dir, file, content)
+  }
   await runGit(dir, ["switch", "--quiet", "-c", "feature"])
   for (const [file, content] of files) {
     await commit(dir, file, content)
@@ -104,4 +108,23 @@ export function repoWithTwoCalls(): Promise<string> {
     step({ id: "s2", file: "pay.ts", end_line: 3, from: "s1", via: cites("main.ts", 1) }),
     step({ id: "s3", file: "send.ts", end_line: 3, from: "s1", via: cites("main.ts", 2) }),
   ])
+}
+
+// main.ts and pay.ts are on the base branch; the change edits main.ts's second line. main (s1,
+// both lines) calls pay (s2).
+export function repoWithEdit(): Promise<string> {
+  const base: [string, string][] = [
+    ["pay.ts", "export function pay() {\n  return 250\n}\n"],
+    ["main.ts", "const total = pay()\nconsole.log(total)\n"],
+  ]
+  const files: [string, string][] = [["main.ts", "const total = pay()\nconsole.log(total * 2)\n"]]
+
+  return repoWithSteps(
+    files,
+    ({ step, cites }) => [
+      step({ end_line: 2, summary: "main pays, then logs double" }),
+      step({ id: "s2", file: "pay.ts", end_line: 3, from: "s1", via: cites("main.ts", 1) }),
+    ],
+    base,
+  )
 }

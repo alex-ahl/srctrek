@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
 import { tempDir } from "../../core/test/support/temp"
-import { repoWithTour, repoWithTwoCalls } from "./support/pay-tour"
+import { repoWithEdit, repoWithTour, repoWithTwoCalls } from "./support/pay-tour"
 
 const PLUGIN = join(import.meta.dir, "../../../editors/nvim")
 const DRIVER = join(import.meta.dir, "nvim-driver.lua")
@@ -76,15 +76,22 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(overview?.float).toContain("**Outcome:** paid")
     expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
     // the repo is named after its temporary folder
-    expect(first?.winbar).toStartWith("%#CodetrailBadge# codetrail %*  1/3  ·  ")
+    expect(first?.winbar).toStartWith(" codetrail   1/3  ·  ")
     expect(first?.winbar).toEndWith("/main.ts:1  ·  main.ts:1")
-    expect(first?.virt_lines).toEqual(["  main calls pay"])
-    // the first line is where execution is, and the change added it
-    expect(first?.signs).toEqual([
-      { line: 1, text: "▶+" },
-      { line: 2, text: "+" },
-    ])
+    // the change adds main.ts whole, so a tag says so instead of a + on every line
+    expect(first?.virt_lines).toEqual(["▌ main calls pay  new file"])
+    expect(first?.signs).toEqual([{ line: 1, text: "▶" }])
     expect(first?.calls).toEqual([{ line: 1, text: "  →" }])
+  }, 30_000)
+
+  test("marks the lines a change edits, beside the step's first line", async () => {
+    const [, step] = await drive(await repoWithEdit(), ["start:pay", "next"])
+
+    expect(step?.virt_lines).toEqual(["▌ main pays, then logs double"])
+    expect(step?.signs).toEqual([
+      { line: 1, text: "▶" },
+      { line: 2, text: "~" },
+    ])
   }, 30_000)
 
   test("draws a called step with its stack, high flag, and predicted values", async () => {
@@ -96,9 +103,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    expect(into?.winbar).toContain("%*  2/3  ·  ")
+    expect(into?.winbar).toContain(" codetrail   2/3  ·  ")
     expect(into?.winbar).toEndWith("/pay.ts:1  ·  pay ‹ main.ts:1")
-    expect(into?.virt_lines).toEqual(["  s", "  ⚠ 250 is hard-coded"])
+    expect(into?.virt_lines).toEqual(["▌ s  new file", "▌ ⚠ 250 is hard-coded"])
     expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
     expect(hidden?.values).toEqual([])
   }, 30_000)
@@ -115,7 +122,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(out).toMatchObject({ file: "main.ts", line: 2 })
-    expect(out?.winbar).toContain("%*  3/3  ·  ")
+    expect(out?.winbar).toContain(" codetrail   3/3  ·  ")
     expect(end).toMatchObject({ view: "end" })
     expect(end?.float).toContain("**End of tour.** paid")
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 2 })

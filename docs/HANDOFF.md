@@ -40,6 +40,11 @@
   the winbar; the narration sits on a band across the window. The step's tint, the band, and
   the badge are mixed from the theme's text, background, and info colours, checked across
   Neovim's built-in themes, dark and light: no theme group is distinct in all of them.
+- Reading a step, in Neovim: the stop number is the winbar's strongest text; a file the change
+  adds whole gets a "new file" tag instead of a `+` on every line; the step opens near the top
+  without scrolling past a short file's end; the band has a `▌` edge, and stays distinct from
+  the tint on light themes. `scripts/nvim-screen.lua` captures the plugin's screen as text and a
+  picture, for checking a change across colour schemes.
 
 ## 2026-11-03 — Milestone 5: design pass
 
@@ -70,6 +75,10 @@ visual language that follows the editor's theme, the editor screens in Neovim an
 terminal screens, each reviewed as a mockup. The terminal keeps OpenTUI, kept up to date until 1.0.
 
 **Known gaps**
+
+- A step opens the tour's checkout in the cache even when the user's own file is the same, so
+  the tab shows a cache path and edits land in the cache copy. Next: open the user's file when
+  it matches the tour's version, else the cache copy read-only and marked.
 
 - The Neovim plugin has no Lua formatter yet.
 
