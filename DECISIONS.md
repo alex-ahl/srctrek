@@ -2,6 +2,15 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — Anyone can step in the terminal
+
+The terminal's stepping view is for anyone, started with `s` from the home screen or the route
+map, not only for editors without a plugin. The editor stays the main place to step. Refines
+"The editor is where you step; the TUI is for everything around it" from 2026-10-22.
+
+A quick look at a tour, or at one step from the route map, shouldn't need the editor opened and
+pointed at the right checkout; the terminal already shows the route and the code.
+
 ## 2026-11-03 — Neovim keeps to the user's windows; VS Code steps with the debugger's keys
 
 The Neovim plugin draws in the user's own windows: virtual lines, the winbar, and floats, with no

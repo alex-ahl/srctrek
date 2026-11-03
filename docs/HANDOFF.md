@@ -16,6 +16,9 @@
   overview, a step, details, stepping into one of several calls, the end, and asking, in Neovim
   (no sidebar, floats) and VS Code (CodeLens and a sidebar); VS Code steps with the debugger's
   keys.
+- Step 5d: the terminal screens, in `docs/DESIGN.md` and a review page: the home screen and every
+  state of a change's tour, the build view, the route map in lanes per repo, and stepping in the
+  terminal for anyone, not only editors without a plugin.
 
 ## 2026-10-30 — Milestone 4: `trail serve`
 
@@ -85,7 +88,7 @@ runs not repeated)
   (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
 - 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
   tours built with an older guide, whose prompt hash differs from the current one), build
-  view, route map, and fallback stepping view. `trail` and `trail mcp` report the commit
+  view, route map, and stepping view. `trail` and `trail mcp` report the commit
   they were built from instead of version 0.0.0, and tours record it.
 - 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
 

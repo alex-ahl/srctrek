@@ -161,3 +161,38 @@ command (`:TrailNext`) and a Lua function.
 | Quit the tour       | `<leader>tq`               | `Escape` in the tour tab |
 
 In VS Code the debugger's keys step a tour only while no debug session runs.
+
+## Terminal screens
+
+In the review page for Step 5d. Colours are the terminal's own: green, yellow, red, blue, and
+dim, in the roles of the visual language.
+
+- **Home:** the change at the top, then the change's tour with where it stands, repos the agent
+  proposed (they wait on the user), and every other tour with its state. Enter opens the selected
+  tour in the editor `CODETRAIL_EDITOR` names.
+- **The change's tour, by state:** building (enter watches it), ready, stale (with how many steps
+  changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
+  repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
+  (how to set `CODETRAIL_AGENT`), nothing to tour. With `--code`, the code's triggers, each with
+  its tour's state.
+- **Build view,** a screen of its own opened from a building tour: the overview as soon as the
+  agent starts, steps as they arrive grouped by repo with hops between, what the agent is reading,
+  rejected rounds with their problems, and repos it proposed.
+- **Route map:** one lane per repo, steps in the order they run, hops crossing between lanes,
+  change signs and flags in place; a narrow terminal shows it as a list grouped by repo. Enter
+  opens the selected step in the editor; `c` and `f` show only changed or flagged steps.
+- **Stepping:** the step's code with narration, values, and signs, the call stack beside it, for
+  anyone: `s` starts it from the home screen or the route map. `e` opens the step in `$EDITOR` at
+  its line.
+
+### Keys
+
+| Screen     | Keys                                                                                         |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Home       | `j`/`k` move · `enter` open in the editor · `b` build, update, or rebuild · `r` route map ·  |
+|            | `s` step here · `l` log · `d` dismiss a proposal · `q` quit                                  |
+| Build view | `l` full log · `esc` home                                                                    |
+| Route map  | `j`/`k` move · `enter` open the step in the editor · `s` step from here · `c` changed only · |
+|            | `f` flagged only · `esc` home                                                                |
+| Stepping   | `n`/`p` next, previous · `i` into · `o` out · `O` over · `t` details · `e` open in           |
+|            | `$EDITOR` · `r` route map · `q` home                                                         |

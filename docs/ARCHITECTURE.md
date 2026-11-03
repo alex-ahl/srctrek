@@ -30,8 +30,8 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
   stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
   live view while a tour is built; a route map of the whole trail across repos; and a
-  fallback stepping view with a code panel for editors without a plugin. Holds no
-  tour-building logic.
+  stepping view with a code panel, for a quick look and for editors without a plugin. Holds
+  no tour-building logic.
 - **mcp** — the MCP server (`trail mcp`, stdio, `packages/mcp/`) that the user's agent talks
   to. Exposes core's capabilities as MCP tools and prompts. Holds no tour logic of its own.
 - **serve** — the editor protocol's server (`trail serve`, stdio, `packages/serve/`), started
@@ -243,7 +243,7 @@ commit, is reported by name.
 
 - Neovim (version 1): the plugin steps from inside the editor and renders each step.
 - VS Code and its forks (version 1, Milestone 6): an extension, rendering the same session.
-- Every other editor: the TUI's fallback stepping view shows the code, and `e` opens the
+- Every other editor: the TUI's stepping view shows the code, and `e` opens the
   step at its line with the editor's open-at-line command. No integration beyond that is
   planned.
 
