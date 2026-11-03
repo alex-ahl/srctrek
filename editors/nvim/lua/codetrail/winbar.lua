@@ -1,22 +1,18 @@
 -- The winbar over a step: its stop number, its place, and the call stack, newest frame first.
+local text = require("codetrail.text")
+
 local M = {}
 
-local function escape(text)
-  return (text:gsub("%%", "%%%%"))
+local function escape(s)
+  return (s:gsub("%%", "%%%%"))
 end
 
-local function coloured(group, text)
-  return "%#" .. group .. "#" .. text .. "%*"
-end
-
--- The file's last two path segments and the line: handlers/refunds.ts:8.
-local function place(ref)
-  local short = ref.file:match("[^/]+/[^/]+$") or ref.file
-  return short .. ":" .. ref.start_line
+local function coloured(group, s)
+  return "%#" .. group .. "#" .. s .. "%*"
 end
 
 local function label(ref)
-  return ref.name ~= vim.NIL and ref.name or place(ref)
+  return ref.name ~= vim.NIL and ref.name or text.place(ref)
 end
 
 -- A hop's frame is followed by what started it, so the separator after it says so.

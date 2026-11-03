@@ -30,6 +30,12 @@ export type StepRef = {
 /** One frame of the call stack; `hop` marks the bottom of a stack a hop started. */
 export type Frame = StepRef & { hop: boolean }
 
+/**
+ * A step the current one enters; `call_line` is the line in the current step that makes the
+ * call, from the evidence the entered step cites, or null when it cites none there.
+ */
+export type Call = StepRef & { call_line: number | null }
+
 export type StepView = StepRef & {
   kind: "step"
   number: number
@@ -43,7 +49,7 @@ export type StepView = StepRef & {
   predicted_values: NonNullable<TourStep["predicted_values"]>
   // outermost first, back across every hop to the trigger; empty on a context step
   stack: Frame[]
-  calls: StepRef[]
+  calls: Call[]
   context: StepRef[]
   notes: NonNullable<TourStep["notes"]>
 }
@@ -105,6 +111,17 @@ function changedLinesOf(step: TourStep, context: ViewContext): StepView["changed
   return [...lines].map(([line, change]) => ({ line, change }))
 }
 
+// The line of `step` that the evidence for entering `entered` points at.
+function callLine(step: TourStep, entered: TourStep): number | null {
+  const inStep = (cite: { repo: string; file: string; line: number }) =>
+    cite.repo === step.repo &&
+    cite.file === step.file &&
+    cite.line >= step.start_line &&
+    cite.line <= step.end_line
+
+  return entered.via?.cites.find(inStep)?.line ?? null
+}
+
 function stepView(session: SteppingSession, step: TourStep, context: ViewContext): StepView {
   const { steps } = session.tour
   const ref = (s: TourStep) => refOf(s, context)
@@ -122,7 +139,10 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
     flag: step.uncertain ?? null,
     predicted_values: step.predicted_values ?? [],
     stack: framesOf(session, step, context),
-    calls: enteredFrom(session, step).map(ref),
+    calls: enteredFrom(session, step).map((entered) => ({
+      ...ref(entered),
+      call_line: callLine(step, entered),
+    })),
     context: steps.filter((s) => s.kind === "context" && s.for === step.id).map(ref),
     notes: step.notes ?? [],
   }

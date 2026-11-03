@@ -120,6 +120,21 @@ describe("sessionView", () => {
     expect(viewOf("s11").number).toBe(9)
   })
 
+  test("points each call at the line that makes it, from the evidence it cites", () => {
+    // the router (s8) dispatches to the refund handler (s11) at server.ts:39
+    expect(viewOf("s8").calls).toMatchObject([{ id: "s11", call_line: 39 }])
+  })
+
+  test("leaves a call's line empty when its evidence points elsewhere", () => {
+    const uncited = {
+      ...tour,
+      steps: tour.steps.map((s) => (s.id === "s11" ? { ...s, via: null } : s)),
+    }
+    const view = sessionView(stepTo(openSession(uncited), "s8"), context)
+
+    expect(view).toMatchObject({ kind: "step", calls: [{ id: "s11", call_line: null }] })
+  })
+
   test("gives a context step no stack and nothing to enter", () => {
     const view = viewOf("s9")
 

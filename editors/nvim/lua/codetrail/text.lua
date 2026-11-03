@@ -32,4 +32,10 @@ function M.wrap(text, width, max, indent)
   return lines
 end
 
+-- A step's place, short: its file's last two path segments and its line, handlers/refunds.ts:8.
+function M.place(ref)
+  local short = ref.file:match("[^/]+/[^/]+$") or ref.file
+  return short .. ":" .. ref.start_line
+end
+
 return M

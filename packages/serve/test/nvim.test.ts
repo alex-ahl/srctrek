@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
 import { tempDir } from "../../core/test/support/temp"
-import { repoWithTour } from "./support/pay-tour"
+import { repoWithTour, repoWithTwoCalls } from "./support/pay-tour"
 
 const PLUGIN = join(import.meta.dir, "../../../editors/nvim")
 const DRIVER = join(import.meta.dir, "nvim-driver.lua")
@@ -17,6 +17,7 @@ type Screen = {
   virt_lines: string[]
   values: { line: number; text: string }[]
   signs: { line: number; text: string }[]
+  calls: { line: number; text: string }[]
   notices: string[]
 }
 
@@ -79,6 +80,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       { line: 1, text: "+" },
       { line: 2, text: "+" },
     ])
+    expect(first?.calls).toEqual([{ line: 1, text: "  →" }])
   }, 30_000)
 
   test("draws a called step with its stack, high flag, and predicted values", async () => {
@@ -114,6 +116,32 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(end?.float).toContain("**End of tour.** paid")
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 2 })
     expect(quit).toMatchObject({ view: null, winbar: "", virt_lines: [], signs: [] })
+  }, 30_000)
+
+  test("marks each line that makes a call, and steps into the one under the cursor", async () => {
+    const [, calling, , into] = await drive(await repoWithTwoCalls(), [
+      "start:pay",
+      "next",
+      "cursor:2",
+      "into",
+    ])
+
+    expect(calling?.calls).toEqual([
+      { line: 1, text: "  →" },
+      { line: 2, text: "  →" },
+    ])
+    expect(into).toMatchObject({ file: "send.ts", line: 1 })
+  }, 30_000)
+
+  test("steps into the first call not yet visited when the cursor's line makes none", async () => {
+    const [, , , into] = await drive(await repoWithTwoCalls(), [
+      "start:pay",
+      "next",
+      "cursor:3",
+      "into",
+    ])
+
+    expect(into).toMatchObject({ file: "pay.ts", line: 1 })
   }, 30_000)
 
   test("steps over a call to where the caller carries on", async () => {

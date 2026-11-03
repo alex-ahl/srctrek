@@ -55,7 +55,8 @@ a failed build `b` builds again.
 The tour opens with an overview. Each step opens its file, highlights its lines, and shows
 a summary above them, with a likely-wrong flag under it; changed lines carry `+` or `~` in
 the sign column, predicted values start with `≈`, and the winbar shows the stop number and
-the call stack.
+the call stack. A line ending in `→` makes a call the tour follows: step into takes the one
+on the cursor's line, or the first not yet visited.
 
 | Key          | Command                     | Action                                    |
 | ------------ | --------------------------- | ----------------------------------------- |

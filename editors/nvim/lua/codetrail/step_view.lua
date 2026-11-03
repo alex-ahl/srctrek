@@ -1,5 +1,6 @@
 -- Draws one step in the editor: its lines tinted with a bar at the left edge, change signs, the
--- narration above it, and its context steps counted below.
+-- narration above it, an arrow at each line that leads to another step, and below it what
+-- the code can't point at: calls with no line, and its context steps counted.
 local inline_values = require("codetrail.inline_values")
 local state = require("codetrail.state")
 local text = require("codetrail.text")
@@ -82,12 +83,64 @@ local function narration(view, width)
   return lines
 end
 
+-- The line itself says what it calls; only a hop into another repo says where it goes.
+local function marker(view, call)
+  return call.repo == view.repo and "→" or ("↯ " .. call.repo)
+end
+
+local function calls_by_line(view)
+  local lines = {}
+  for _, call in ipairs(view.calls) do
+    if call.call_line ~= vim.NIL then
+      lines[call.call_line] = lines[call.call_line] or {}
+      local markers = lines[call.call_line]
+      if not vim.tbl_contains(markers, marker(view, call)) then
+        table.insert(markers, marker(view, call))
+      end
+    end
+  end
+  return lines
+end
+
+local function mark_calls(buf, view, line_count)
+  for line, markers in pairs(calls_by_line(view)) do
+    if line <= line_count then
+      vim.api.nvim_buf_set_extmark(buf, state.ns, line - 1, 0, {
+        virt_text = { { "  " .. table.concat(markers, " "), "CodetrailCall" } },
+        virt_text_pos = "eol",
+        -- blended with the step's tint; on their own they'd sit in a block of the plain background
+        hl_mode = "combine",
+      })
+    end
+  end
+end
+
+local function uncited_calls(view)
+  local uncited = vim.tbl_filter(function(call)
+    return call.call_line == vim.NIL
+  end, view.calls)
+  if #uncited == 0 then
+    return nil
+  end
+  return { { "→ " .. table.concat(vim.tbl_map(text.place, uncited), ", "), "CodetrailCall" } }
+end
+
 local function context_count(view)
   local count = #view.context
   if count == 0 then
     return nil
   end
-  return { { { count == 1 and "1 context step" or count .. " context steps", "CodetrailContext" } } }
+  return { { count == 1 and "1 context step" or count .. " context steps", "CodetrailContext" } }
+end
+
+local function below(view)
+  local lines = {}
+  for _, line in ipairs({ uncited_calls(view) or false, context_count(view) or false }) do
+    if line then
+      table.insert(lines, line)
+    end
+  end
+  return lines
 end
 
 local function text_width()
@@ -104,12 +157,13 @@ function M.show(view)
   local first, last = math.min(view.start_line, line_count), math.min(view.end_line, line_count)
 
   mark_lines(buf, view, first, last)
+  mark_calls(buf, view, line_count)
   inline_values.show(buf, view.predicted_values, line_count)
   local above = narration(view, text_width())
   vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, { virt_lines = above, virt_lines_above = true })
-  local below = context_count(view)
-  if below then
-    vim.api.nvim_buf_set_extmark(buf, state.ns, last - 1, 0, { virt_lines = below })
+  local under = below(view)
+  if #under > 0 then
+    vim.api.nvim_buf_set_extmark(buf, state.ns, last - 1, 0, { virt_lines = under })
   end
 
   vim.api.nvim_win_set_cursor(0, { first, 0 })

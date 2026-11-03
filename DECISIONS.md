@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — Step into follows the cursor; calls are marked at their line
+
+A line making a call the tour follows ends in `→`, and step into takes the call on the cursor's
+line, else the first not yet visited. The editors' keys stay their own: Neovim keeps its
+defaults, and users map the debugger's keys if they want them.
+
+Readers couldn't tell when a step had somewhere to go, or which call into would take. Placing
+the cursor is how a debugger picks one call among several, so no picker or "next call"
+marker is needed; the arrow says only what the code can't, that the tour goes there. The line
+comes from the entered step's evidence, which every link already cites.
+
 ## 2026-11-03 — The terminal keeps OpenTUI
 
 Milestone 7 builds the terminal screens on OpenTUI, kept up to date with each release until 1.0.

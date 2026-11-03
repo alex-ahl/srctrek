@@ -38,6 +38,8 @@ local function draw(buf, values, last)
       vim.api.nvim_buf_set_extmark(buf, state.values_ns, line - 1, 0, {
         virt_text = { { "  " .. marker .. table.concat(group.texts, ", "), colour } },
         virt_text_pos = "eol",
+        -- blended with the step's tint; on their own they'd sit in a block of the plain background
+        hl_mode = "combine",
       })
     end
   end

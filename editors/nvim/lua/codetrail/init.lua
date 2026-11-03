@@ -22,24 +22,7 @@ local step_view = require("codetrail.step_view")
 
 local M = {}
 
--- Each role of the visual language, linked to a group the theme defines, so the colours follow
--- the user's colour scheme; set a role's group to override it.
-for name, link in pairs({
-  CodetrailStep = "CursorLine",
-  CodetrailNarration = "Normal",
-  CodetrailAdded = "DiffAdd",
-  CodetrailChanged = "DiffChange",
-  CodetrailUnchanged = "Comment",
-  CodetrailPredicted = "LspInlayHint",
-  CodetrailDoubtful = "DiagnosticWarn",
-  CodetrailFlagHigh = "DiagnosticError",
-  CodetrailStale = "DiagnosticWarn",
-  CodetrailHop = "Comment",
-  CodetrailContext = "Comment",
-  CodetrailCitation = "Underlined",
-}) do
-  vim.api.nvim_set_hl(0, name, { link = link, default = true })
-end
+require("codetrail.highlights").setup()
 
 local actions = require("codetrail.actions")
 

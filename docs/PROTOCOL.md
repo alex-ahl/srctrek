@@ -52,8 +52,8 @@ One of:
 - `overview`: title, overview, trigger, outcome, step count.
 - `step`: number and count, the absolute path in the repo's checkout, lines, kind, name, summary,
   details, flag, predicted values, the change's lines in the file, stale, the call stack back
-  across every hop (hops marked), the steps it can step into, the context steps that explain
-  it, and notes.
+  across every hop (hops marked), the steps it can step into (each with the line making the
+  call, from its evidence, or null), the context steps that explain it, and notes.
 - `end`: title, outcome, step count.
 
 Payloads are ready to render: the client decides nothing beyond fitting text to its window.

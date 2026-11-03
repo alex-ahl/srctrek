@@ -1,6 +1,7 @@
 -- Drives the Neovim plugin as a user would, for nvim.test.ts: runs each action in
--- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one), waits for the server's answer, and
--- writes what the screen shows after each to $DRIVE_OUT as JSON.
+-- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor),
+-- waits for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as
+-- JSON.
 local codetrail = require("codetrail")
 local state = require("codetrail.state")
 
@@ -36,11 +37,14 @@ local function screen()
   local buf = vim.api.nvim_win_get_buf(win)
   local current = vim.api.nvim_get_current_win()
   local floating = vim.api.nvim_win_get_config(current).relative ~= ""
-  local seen = { virt_lines = {}, values = {}, signs = {} }
+  local seen = { virt_lines = {}, values = {}, signs = {}, calls = {} }
   for _, mark in ipairs(marks(buf, state.ns)) do
     local line, details = mark[2] + 1, mark[4]
     if details.virt_lines then
       vim.list_extend(seen.virt_lines, texts(details.virt_lines))
+    end
+    if details.virt_text then
+      table.insert(seen.calls, { line = line, text = texts({ details.virt_text })[1] })
     end
     if details.sign_text then
       table.insert(seen.signs, { line = line, text = vim.trim(details.sign_text) })
@@ -62,6 +66,7 @@ local function screen()
     virt_lines = seen.virt_lines,
     values = seen.values,
     signs = seen.signs,
+    calls = seen.calls,
     notices = vim.list_slice(notices),
   }
 end
@@ -69,7 +74,11 @@ end
 local function run(action)
   local view, notified = state.view, #notices
   local tour = action:match("^start:(.+)$")
-  if tour then
+  local line = action:match("^cursor:(%d+)$")
+  if line then
+    vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+    return
+  elseif tour then
     codetrail.start(tour)
   else
     codetrail[action]()

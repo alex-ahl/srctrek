@@ -19,17 +19,8 @@ const header = {
   author: { model: "m" },
 }
 
-// A repo on branch feature whose change adds main.ts, which calls pay in pay.ts and carries on,
-// with the tour of it saved as "pay": main (s1) calls pay (s2), which returns to main (s3). pay
-// is named, predicts its result, and carries a high flag.
-export async function repoWithTour(): Promise<string> {
-  const dir = await makeRepo()
-  await runGit(dir, ["switch", "--quiet", "-c", "feature"])
-  await commit(dir, "pay.ts", "export function pay() {\n  return 250\n}\n")
-  await commit(dir, "main.ts", "const total = pay()\nconsole.log(total)\n")
-
-  const change = await changeOf(dir)
-  const repo = change.repos[0]?.name ?? ""
+// Builders for a step in `repo`, starting from main.ts's first line, and for evidence there.
+function buildersIn(repo: string) {
   const step = (fields: Partial<SubmittedStep>): SubmittedStep => ({
     id: "s1",
     repo,
@@ -43,7 +34,40 @@ export async function repoWithTour(): Promise<string> {
     ...fields,
   })
   const cites = (file: string, line: number) => ({ cites: [{ repo, file, line }], guessed: false })
-  const steps = [
+
+  return { step, cites }
+}
+
+// A repo on branch feature whose change adds `files` in order, with the steps `stepsIn` gives
+// for its repo saved as the tour "pay".
+async function repoWithSteps(
+  files: [string, string][],
+  stepsIn: (builders: ReturnType<typeof buildersIn>) => SubmittedStep[],
+): Promise<string> {
+  const dir = await makeRepo()
+  await runGit(dir, ["switch", "--quiet", "-c", "feature"])
+  for (const [file, content] of files) {
+    await commit(dir, file, content)
+  }
+
+  const change = await changeOf(dir)
+  const steps = stepsIn(buildersIn(change.repos[0]?.name ?? ""))
+  const { draft, problems } = await addSteps(newDraft(change, header), steps)
+  expect(problems).toEqual([])
+  await saveTour(dir, "pay", draftToTour(draft))
+
+  return dir
+}
+
+// main.ts calls pay in pay.ts and carries on: main (s1) calls pay (s2), which returns to main
+// (s3). pay is named, predicts its result, and carries a high flag.
+export function repoWithTour(): Promise<string> {
+  const files: [string, string][] = [
+    ["pay.ts", "export function pay() {\n  return 250\n}\n"],
+    ["main.ts", "const total = pay()\nconsole.log(total)\n"],
+  ]
+
+  return repoWithSteps(files, ({ step, cites }) => [
     step({ summary: "main calls pay" }),
     step({
       id: "s2",
@@ -63,11 +87,21 @@ export async function repoWithTour(): Promise<string> {
       from: "s2",
       via: cites("pay.ts", 2),
     }),
+  ])
+}
+
+// main.ts makes two calls, a line each: main (s1) calls pay (s2) on line 1, then send (s3) on
+// line 2.
+export function repoWithTwoCalls(): Promise<string> {
+  const files: [string, string][] = [
+    ["pay.ts", "export function pay() {\n  return 250\n}\n"],
+    ["send.ts", "export function send(total) {\n  return total\n}\n"],
+    ["main.ts", "const total = pay()\nsend(total)\nconsole.log(total)\n"],
   ]
 
-  const { draft, problems } = await addSteps(newDraft(change, header), steps)
-  expect(problems).toEqual([])
-  await saveTour(dir, "pay", draftToTour(draft))
-
-  return dir
+  return repoWithSteps(files, ({ step, cites }) => [
+    step({ end_line: 2, summary: "main pays, then sends" }),
+    step({ id: "s2", file: "pay.ts", end_line: 3, from: "s1", via: cites("main.ts", 1) }),
+    step({ id: "s3", file: "send.ts", end_line: 3, from: "s1", via: cites("main.ts", 2) }),
+  ])
 }

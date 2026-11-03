@@ -26,6 +26,10 @@
   reading are gone. Headless Neovim tests drive it against the real server; they're skipped
   where `nvim` isn't installed, as in CI. The terminal opens a tour in Neovim by name, with its
   own `trail serve`.
+- Step 6f: a line that makes a call the tour follows ends in `→` (`↯ api` for a hop into another
+  repo), from the line the entered step's evidence cites, and step into takes the call on the
+  cursor's line, else the first not yet visited. This replaces the into picker. A call citing
+  no line of the step is listed under the code.
 
 ## 2026-11-03 — Milestone 5: design pass
 

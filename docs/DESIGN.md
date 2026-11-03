@@ -87,7 +87,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 
 - **The editor's theme wins.** Each role is named (`CodetrailFlagHigh` in Neovim,
   `codetrail.flagHigh` in VS Code) and defaults to a colour the theme already defines; users
-  override a role without changing their theme.
+  override a role without changing their theme. Text at a line's end or in the gutter takes
+  only the theme colour's foreground.
 - **Changed code gets the attention.** The step's lines are tinted, the change's own lines carry a
   sign in the gutter, and an unchanged step says so quietly.
 - **Nothing predicted reads as fact.** Every predicted value starts with `≈`.
@@ -102,8 +103,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | --------------- | --------------------------------------------- | --------------------------- | ----------------- | --------------------------------- |
 | The step        | tinted lines, a bar at the left edge          |                             | `CursorLine`      | `editor.rangeHighlightBackground` |
 | Narration       | `▶` above the first line, three lines at most | the step's summary          | `Normal`          | `editorCodeLens.foreground`       |
-| Added line      | `+` in the gutter                             |                             | `DiffAdd`         | `editorGutter.addedBackground`    |
-| Changed line    | `~` in the gutter                             |                             | `DiffChange`      | `editorGutter.modifiedBackground` |
+| Added line      | `+` in the gutter                             |                             | `Added`           | `editorGutter.addedBackground`    |
+| Changed line    | `~` in the gutter                             |                             | `Changed`         | `editorGutter.modifiedBackground` |
 | Unchanged step  | a muted tag after the narration               | “unchanged”                 | `Comment`         | `descriptionForeground`           |
 | Predicted value | `≈ name = value`, italic, at the line's end   | “predicted” in details      | `LspInlayHint`    | `editorInlayHint.foreground`      |
 | Doubtful value  | `≈? name = value`                             | “predicted, unsure”         | `DiagnosticWarn`  | `editorWarning.foreground`        |
@@ -115,12 +116,21 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Stale step      | a tag in the winbar and details               | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
 | Hop             | `↯` and a dashed rule in the call stack       | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
 | Context steps   | a count under the code, opened from it        | “2 context steps”           | `Comment`         | `descriptionForeground`           |
+| Call to enter   | `→` at the end of the line making it          | `↯ api` into another repo   | `Special`         | `textLink.foreground`             |
 
 ### Call stack
 
 Newest frame on top, as in a debugger; a hop separates what one process ran from what started
 it. Each frame shows its step's name (`createRefund`) and place (`handlers/refunds.ts:8`), or
 the place alone when the tour gives no name. The route lists steps the same way.
+
+### Calls
+
+A line that makes a call the tour follows ends in `→`; the line already says what it calls, so
+the arrow carries no text, except a hop into another repo, which names it (`↯ api`). Into takes
+the call on the cursor's line, and the first not yet visited when that line makes none, so a
+step opens ready to enter its first call. A call whose evidence points at no line of the step
+is listed under the code with its place (`→ pay.ts:1`).
 
 ### Context steps
 
@@ -134,16 +144,16 @@ windows: virtual lines, the winbar, and floats, with no sidebar. VS Code can't p
 between lines of code, so its narration and high flag sit in a CodeLens above the step, and a
 codetrail sidebar holds the tours, the route, the call stack, details, and notes.
 
-| Screen           | Neovim                                                  | VS Code                                                  |
-| ---------------- | ------------------------------------------------------- | -------------------------------------------------------- |
-| Choosing a tour  | `:Trail`, a picker with each tour's status              | the codetrail view: tours with their status              |
-| Overview         | a scratch buffer: trigger, outcome, story, repos, flags | an editor tab, the route in the sidebar                  |
-| A step           | narration and high flag as virtual lines; values at the | narration and high flag in a CodeLens; values as inline  |
-|                  | ends of their lines; position and stack in the winbar   | decorations; call stack and route in the sidebar         |
-| Details          | a float: came from, flags, values, context, notes       | the sidebar's Details section; flags' full text on hover |
-| Into, of several | `vim.ui.select`, so the user's own picker shows it      | a quick pick                                             |
-| The end          | a scratch buffer: the outcome, every flag to jump to    | the tour tab: the outcome, every flag to jump to         |
-| Asking           | a prompt; the answer in a float with its citations      | an input box; the answer in the sidebar's Notes          |
+| Screen           | Neovim                                                    | VS Code                                                  |
+| ---------------- | --------------------------------------------------------- | -------------------------------------------------------- |
+| Choosing a tour  | `:Trail`, a picker with each tour's status                | the codetrail view: tours with their status              |
+| Overview         | a scratch buffer: trigger, outcome, story, repos, flags   | an editor tab, the route in the sidebar                  |
+| A step           | narration and high flag as virtual lines; values at the   | narration and high flag in a CodeLens; values as inline  |
+|                  | ends of their lines; position and stack in the winbar     | decorations; call stack and route in the sidebar         |
+| Details          | a float: came from, flags, values, context, notes         | the sidebar's Details section; flags' full text on hover |
+| Into, of several | the call on the cursor's line, else the first not visited | the same                                                 |
+| The end          | a scratch buffer: the outcome, every flag to jump to      | the tour tab: the outcome, every flag to jump to         |
+| Asking           | a prompt; the answer in a float with its citations        | an input box; the answer in the sidebar's Notes          |
 
 The overview and the end stay open in a buffer or tab of their own. Answers to questions are saved
 on the step as notes, which details show from then on.

@@ -23,6 +23,7 @@ export {
 export type { RunningFunctions } from "./session/functions"
 export {
   sessionView,
+  type Call,
   type EndView,
   type Frame,
   type OverviewView,
