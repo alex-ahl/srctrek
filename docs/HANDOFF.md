@@ -1,5 +1,15 @@
 # Handoff
 
+## 2026-11-03 — Milestone 5: design pass
+
+**Done**
+
+- Step 5a: the flows, in `docs/DESIGN.md`: reviewing a pull request or work in progress, learning
+  unfamiliar code, coming back to a stale tour, building from the agent's chat, asking, stepping
+  without a plugin, and what happens when it doesn't work. A session starts from the terminal
+  (enter opens the editor `CODETRAIL_EDITOR` names) or from the editor (which lists, opens, and
+  builds tours).
+
 ## 2026-10-30 — Milestone 4: `trail serve`
 
 **Done**

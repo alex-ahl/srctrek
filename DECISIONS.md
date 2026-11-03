@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — A session starts from the terminal or the editor
+
+The terminal's home screen opens a tour in the editor `CODETRAIL_EDITOR` names; nothing is
+detected, and without it `$EDITOR` opens the step at its line. Editors can also list the saved
+tours with their status, open one, and start a build, through requests the protocol gains in
+Milestone 6.
+
+The home screen can open Neovim but not VS Code, and most beta testers use VS Code and rarely
+live in a terminal; the editor needs its own way in. Naming the editor, as `CODETRAIL_AGENT`
+names the agent, keeps codetrail from assuming one.
+
 ## 2026-11-02 — Editor requests answer with the view
 
 Each request from an editor answers with the session's view, ready to render; core pushes

@@ -3,7 +3,7 @@
 codetrail turns a change — git ranges or pull requests, across repos — into a debugger-style
 walkthrough (a "trail") that drives the user's editor from trigger to outcome.
 Command: `trail`. Product: `docs/PRODUCT.md`. Architecture: `docs/ARCHITECTURE.md`.
-Current state: `docs/HANDOFF.md`. Decisions: `DECISIONS.md`.
+Design: `docs/DESIGN.md`. Current state: `docs/HANDOFF.md`. Decisions: `DECISIONS.md`.
 
 ## Phase
 
