@@ -63,4 +63,6 @@ JSON-RPC's own codes for malformed requests, unknown methods, and invalid params
 ## Definitions and tests
 
 - Requests are validated in core against their definitions.
-- Contract tests run each editor client headless against a real `trail serve`.
+- Contract tests (`packages/serve/test/contract.test.ts`) drive a real `trail serve` over its
+  pipes with a JSON-RPC client, as an editor does. Each editor's own client joins them,
+  headless, with the editors in Milestone 6.

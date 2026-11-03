@@ -32,6 +32,9 @@
 - Step 4h: `trail serve` (`packages/serve/`): JSON-RPC over stdio through `vscode-jsonrpc`, the
   handshake, and each request carried out on the stepping session in order, answered with its
   view; failed requests leave the state as it was.
+- Step 4i: contract tests for `trail serve`: a JSON-RPC client drives the real process through
+  the handshake, a whole tour, into, over, out, errors, stale steps, and requests sent together
+  behind a slow open, answered in order.
 
 ## 2026-10-27 — Milestone 3: tour building
 
