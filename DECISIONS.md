@@ -2,6 +2,19 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — The editor's theme colours codetrail; context steps aren't stops
+
+Every visual role (the step, changed lines, predicted values, flags, guessed links, stale steps)
+has its own name and defaults to a colour the editor's theme already defines; predicted values
+start with `≈`; flags read “likely wrong”, “risky”, and “worth knowing”. The call stack shows the
+newest frame on top. Context steps aren't stops: next and prev pass over them, and the step they
+explain shows how many it has. Settles “decide in Milestone 5 how context steps show”.
+
+Colours from the theme stay readable in any theme, high-contrast ones included, and a named role
+can still be changed alone. A context step that next visits can sit before the step it explains;
+reached from that step, it's read where it helps. Newest on top is where every debugger puts the
+current frame.
+
 ## 2026-11-03 — A session starts from the terminal or the editor
 
 The terminal's home screen opens a tour in the editor `CODETRAIL_EDITOR` names; nothing is

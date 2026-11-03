@@ -78,3 +78,48 @@ at its line.
 
 - **Terminal and editor together:** the route map following the editor's step needs several
   clients on one session (`docs/ROADMAP.md`).
+
+## Visual language
+
+The vocabulary every surface shares, shown in place on a step in the review page for Step 5b.
+
+### Principles
+
+- **The editor's theme wins.** Each role is named (`CodetrailFlagHigh` in Neovim,
+  `codetrail.flagHigh` in VS Code) and defaults to a colour the theme already defines; users
+  override a role without changing their theme.
+- **Changed code gets the attention.** The step's lines are tinted, the change's own lines carry a
+  sign in the gutter, and an unchanged step says so quietly.
+- **Nothing predicted reads as fact.** Every predicted value starts with `≈`.
+- **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
+  context steps, and evidence are one key away, in details.
+
+### Roles
+
+| Role            | Looks like                                    | Wording                     | Neovim default    | VS Code default                   |
+| --------------- | --------------------------------------------- | --------------------------- | ----------------- | --------------------------------- |
+| The step        | tinted lines, a bar at the left edge          |                             | `CursorLine`      | `editor.rangeHighlightBackground` |
+| Narration       | `▶` above the first line, three lines at most | the step's summary          | `Normal`          | `editorCodeLens.foreground`       |
+| Added line      | `+` in the gutter                             |                             | `DiffAdd`         | `editorGutter.addedBackground`    |
+| Changed line    | `~` in the gutter                             |                             | `DiffChange`      | `editorGutter.modifiedBackground` |
+| Unchanged step  | a muted tag after the narration               | “unchanged”                 | `Comment`         | `descriptionForeground`           |
+| Predicted value | `≈ name = value`, italic, at the line's end   | “predicted” in details      | `LspInlayHint`    | `editorInlayHint.foreground`      |
+| Doubtful value  | `≈? name = value`                             | “predicted, unsure”         | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| High flag       | `⚠` line under the narration, tinted          | “likely wrong”              | `DiagnosticError` | `editorError.foreground`          |
+| Medium flag     | `●` in details                                | “risky”                     | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Low flag        | `●` in details                                | “worth knowing”             | `DiagnosticInfo`  | `editorInfo.foreground`           |
+| Cited link      | `→`, with its evidence                        | “came from”                 | `Normal`          | `foreground`                      |
+| Guessed link    | `⇢`                                           | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
+| Stale step      | a tag in the winbar and details               | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Hop             | `↯` and a dashed rule in the call stack       | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
+| Context steps   | a count under the code, opened from it        | “2 context steps”           | `Comment`         | `descriptionForeground`           |
+
+### Call stack
+
+Newest frame on top, as in a debugger; a hop separates what one process ran from what started
+it.
+
+### Context steps
+
+Context steps aren't stops: next and prev pass over them, and the step they explain shows how many
+it has, opened on demand.

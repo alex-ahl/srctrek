@@ -9,6 +9,9 @@
   without a plugin, and what happens when it doesn't work. A session starts from the terminal
   (enter opens the editor `CODETRAIL_EDITOR` names) or from the editor (which lists, opens, and
   builds tours).
+- Step 5b: the visual language, in `docs/DESIGN.md` and a review page: each role's look, wording,
+  and the theme colour it follows in Neovim and VS Code; the call stack newest frame first; context
+  steps opened from the step they explain, not visited by next.
 
 ## 2026-10-30 — Milestone 4: `trail serve`
 
@@ -94,10 +97,8 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
   lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
   or sooner if an upgrade costs more than a day or a target platform fails to load it.
-- Context steps: next visits them in tour order, so one placed early sits before the step it
-  explains, and `for` names one step. Decide in Milestone 5, with the design, whether context
-  stays in the steps list or becomes a tour-level list whose entries name every step they
-  explain.
+- Context steps: next and prev should pass over them (`docs/DESIGN.md`), but the stepping
+  session still visits them; change it with the editors in Milestone 6. `for` names one step.
 - Over and out count a hop as inside its caller only when a return comes back across it: in a
   tour that never shows a request's response, over from the caller stops inside the handler.
 - One function reached from two callers: a step names one `from`, so the second caller has
