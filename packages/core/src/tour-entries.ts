@@ -1,4 +1,4 @@
-import { TourValidationError, listTours, loadTour, tourPath } from "@codetrail/core"
+import { TourValidationError, listTours, loadTour, tourPath } from "./tours"
 
 export type TourEntry =
   | { name: string; path: string; valid: true; title: string; steps: number; highFlags: number }

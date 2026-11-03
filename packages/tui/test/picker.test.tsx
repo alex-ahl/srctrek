@@ -1,6 +1,6 @@
 import { expect, mock, test } from "bun:test"
 import { App } from "../src/app"
-import type { TourEntry } from "../src/tour-list"
+import type { TourEntry } from "@codetrail/core"
 import { pressEnterOn } from "./support/keys"
 
 const noop = () => undefined

@@ -1,6 +1,7 @@
 import {
   type ResolvedChange,
-  type TourStatus,
+  agentCommand,
+  buildChangeTour,
   directoryIn,
   readChangeArguments,
   resolveChange,
@@ -10,25 +11,6 @@ import {
 import { startMcpServer } from "@codetrail/mcp"
 import { startServe } from "@codetrail/serve"
 import { startHome } from "@codetrail/tui"
-
-// The agent's headless command line; unset or blank means trail can't build tours.
-function agentCommand(): string | undefined {
-  const command = process.env["CODETRAIL_AGENT"]?.trim()
-
-  return command === "" ? undefined : command
-}
-
-// Starts the agent on the change's tour, under the name a new tour of it gets: updating the
-// tour already there when it's out of date, else building one.
-async function buildTour(
-  cwd: string,
-  args: string[],
-  agent: string,
-  status: () => Promise<TourStatus>,
-) {
-  const { kind, name } = await status()
-  await startBuild(cwd, args, name, agent, kind === "stale" ? "update" : "build")
-}
 
 // The same repos as trail's args, toured from one trigger: --code="<trigger>" for --code.
 function argsForTrigger(args: string[], trigger: string): string[] {
@@ -53,7 +35,7 @@ async function trail(args: string[]): Promise<void> {
   const agent = agentCommand()
 
   const status = () => tourStatus(cwd, change)
-  const build = agent === undefined ? undefined : () => buildTour(cwd, args, agent, status)
+  const build = agent === undefined ? undefined : () => buildChangeTour(cwd, args, change, agent)
   const buildTrigger =
     agent === undefined
       ? undefined

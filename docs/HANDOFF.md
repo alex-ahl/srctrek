@@ -13,6 +13,9 @@
   asks for it. Tours without names still load.
 - The evals count a bug line in a context step as flagged by the step it explains, which the reader
   opens it from; the expire tour that flagged `daysAgo` for `DAY_MS` now scores the bug found.
+- Step 6c: what the editors will need from the terminal's code, moved into core: the saved tours
+  with their summaries (`loadTourEntries`), building or updating the change's tour
+  (`buildChangeTour`), and reading `CODETRAIL_AGENT` (`agentCommand`). Behaviour unchanged.
 
 ## 2026-11-03 — Milestone 5: design pass
 

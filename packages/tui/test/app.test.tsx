@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
-import type { TourEntry } from "../src/tour-list"
+import type { TourEntry } from "@codetrail/core"
 
 const noop = () => undefined
 

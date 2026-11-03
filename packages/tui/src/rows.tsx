@@ -1,5 +1,4 @@
-import type { ProposedRepo, TourStatus, TriggerTour } from "@codetrail/core"
-import type { TourEntry } from "./tour-list"
+import type { ProposedRepo, TourEntry, TourStatus, TriggerTour } from "@codetrail/core"
 
 /**
  * A line in the home screen's list: a repo the agent proposes adding, a trigger found in the

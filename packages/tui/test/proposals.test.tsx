@@ -1,8 +1,7 @@
 import { expect, mock, test } from "bun:test"
-import type { ProposedRepo } from "@codetrail/core"
+import type { ProposedRepo, TourEntry } from "@codetrail/core"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
-import type { TourEntry } from "../src/tour-list"
 import { pressEnterOn, pressKeyOn, pressOn } from "./support/keys"
 
 const noop = () => undefined

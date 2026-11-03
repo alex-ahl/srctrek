@@ -1,10 +1,9 @@
-import type { ProposedRepo, TourStatus } from "@codetrail/core"
+import type { ProposedRepo, TourEntry, TourStatus } from "@codetrail/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { useState } from "react"
 import { ChangeStatus } from "./change-status"
 import { rowsThatFit } from "./layout"
 import { type Row, RowView, rowKey, rowsOf } from "./rows"
-import type { TourEntry } from "./tour-list"
 import { LocationInput } from "./location-input"
 import { visibleWindow } from "./window"
 

@@ -1,11 +1,10 @@
 import { expect, test } from "bun:test"
-import { parseTour, saveTour, tourPath } from "@codetrail/core"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { loadTourEntries } from "../src/tour-list"
-import { tempDir } from "../../core/test/support/temp"
+import { loadTourEntries, parseTour, saveTour, tourPath } from "../src"
+import { tempDir } from "./support/temp"
 
-const fixturePath = join(import.meta.dir, "../../core/test/fixtures/refund-tour.json")
+const fixturePath = join(import.meta.dir, "fixtures/refund-tour.json")
 
 test("summarises valid tours and keeps invalid ones with their problem", async () => {
   const root = await tempDir("tours-")

@@ -1,10 +1,12 @@
 import {
   type ProposedRepo,
+  type TourEntry,
   type TourStatus,
   acceptProposal,
   buildFiles,
   dismissProposal,
   loadProposals,
+  loadTourEntries,
 } from "@codetrail/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
@@ -12,7 +14,6 @@ import { useEffect, useState } from "react"
 import { App } from "./app"
 import { openInNeovim } from "./neovim"
 import { openInPager } from "./pager"
-import { type TourEntry, loadTourEntries } from "./tour-list"
 
 /** What the home screen needs for the change trail was started for. */
 export type HomeChange = {
