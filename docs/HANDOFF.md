@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-11-03 — Milestone 6: the editors
+
+**Done**
+
+- Step 6a: next and prev pass over context steps, which the step they explain offers; a step's
+  number counts the executed steps, and a context step takes the number of the step it explains.
+  Readers see stop numbers, never step ids; the guide numbers executed steps without gaps and
+  gives a context step its step's id plus a letter (`s8a`).
+
 ## 2026-11-03 — Milestone 5: design pass
 
 **Done**
@@ -57,8 +66,9 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   out local-only files (demo tours, changed-lines files) first.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
-- Context steps: next and prev should pass over them (`docs/DESIGN.md`), but the stepping
-  session still visits them; change it with the editors in Milestone 6. `for` names one step.
+- A context step's `for` names one step, so a context step can't explain several.
+- The Neovim prototype still visits context steps with next; it moves onto `trail serve` in
+  Milestone 6.
 - Over and out count a hop as inside its caller only when a return comes back across it: in a
   tour that never shows a request's response, over from the caller stops inside the handler.
 - One function reached from two callers: a step names one `from`, so the second caller has

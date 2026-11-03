@@ -91,6 +91,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 - **Changed code gets the attention.** The step's lines are tinted, the change's own lines carry a
   sign in the gutter, and an unchanged step says so quietly.
 - **Nothing predicted reads as fact.** Every predicted value starts with `≈`.
+- **Readers see stops, never ids.** A step shows its number among the stops (`9 / 17`) and its
+  place (repo, file, line); step ids are for the protocol and the tour file.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details.
 

@@ -40,11 +40,15 @@ describe("moving in tour order", () => {
     expect(at(stepBack(end))).toBe("s20")
   })
 
-  test("visits context steps in tour order", () => {
+  test("passes over context steps, which the step they explain offers", () => {
     // s9 and s10 explain the route match in s8
-    expect(at(stepNext(on("s8")))).toBe("s9")
-    expect(at(stepNext(on("s9")))).toBe("s10")
-    expect(at(stepNext(on("s10")))).toBe("s11")
+    expect(at(stepNext(on("s8")))).toBe("s11")
+    expect(at(stepBack(on("s11")))).toBe("s8")
+  })
+
+  test("goes on from a context step opened from the step it explains", () => {
+    expect(at(stepNext(on("s9")))).toBe("s11")
+    expect(at(stepBack(on("s10")))).toBe("s8")
   })
 
   test("stays put when asked for a step the tour doesn't have", () => {
@@ -107,7 +111,7 @@ describe("stepping over and out", () => {
   })
 
   test("moves on to the next step from a context step", () => {
-    expect(at(stepOver(on("s9")))).toBe("s10")
+    expect(at(stepOver(on("s9")))).toBe("s11")
     expect(at(stepOut(on("s10")))).toBe("s11")
   })
 })

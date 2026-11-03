@@ -39,14 +39,19 @@ function executedStep(session: SteppingSession): TourStep | undefined {
   return step !== undefined && session.executed.has(step.id) ? step : undefined
 }
 
-/** The next step in tour order, context steps included; past the last, the end. */
+/**
+ * The next executed step in tour order; past the last, the end. Context steps are passed over:
+ * the step they explain offers them.
+ */
 export function stepNext(session: SteppingSession): SteppingSession {
-  return session.at.kind === "end" ? session : moveTo(session, indexOf(session) + 1)
+  return session.at.kind === "end" ? session : nextWhere(session, () => true)
 }
 
-/** The step before in tour order; before the first, the overview. */
+/** The executed step before in tour order; before the first, the overview. */
 export function stepBack(session: SteppingSession): SteppingSession {
-  const index = indexOf(session) - 1
+  const from = indexOf(session)
+  const isEarlier = (step: TourStep, index: number) => index < from && session.executed.has(step.id)
+  const index = session.tour.steps.findLastIndex(isEarlier)
 
   return index < 0 ? { ...session, at: { kind: "overview" } } : moveTo(session, index)
 }

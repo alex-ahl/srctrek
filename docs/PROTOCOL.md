@@ -26,7 +26,7 @@ Every request after `initialize` answers with the session's view.
 | ------------------- | ------------------------------------------------------------------- |
 | `open(tour, args?)` | Load a saved tour by name and start at its overview; with `trail`'s |
 |                     | arguments for the change as it is now, stale steps are marked       |
-| `next`, `prev`      | Move one step in tour order, context steps included                 |
+| `next`, `prev`      | Move one step in tour order, passing over context steps             |
 | `into(target?)`     | Step into a call or a hop, the first not yet visited unless named   |
 | `over`              | Step to the next step not inside the current step's calls           |
 | `out`               | Step to the next step outside the current step's function           |

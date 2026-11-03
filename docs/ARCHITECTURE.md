@@ -224,7 +224,8 @@ A saved tour has passed every rule. When one doesn't load:
 The tour is stepped in the editor, in files from the cached worktree. Core's stepping session
 (`packages/core/src/session/`) moves through it:
 
-- next and back: tour order, context steps included, from the overview to the end.
+- next and back: the executed steps in tour order, from the overview to the end; context steps
+  are opened from the step they explain.
 - into: a step the current one calls or starts a hop to, the first not yet visited unless one
   is named.
 - over: the next step not inside what the current step calls.

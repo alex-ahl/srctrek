@@ -14,7 +14,8 @@ export type SteppingSession = {
   readonly at: Position
   // ids of the steps shown so far, so step into can offer the next call not yet seen
   readonly visited: ReadonlySet<string>
-  // ids of the executed steps; context steps are visited in tour order but never entered
+  // ids of the executed steps; next and prev pass over context steps, which the step they explain
+  // offers
   readonly executed: ReadonlySet<string>
   readonly stacks: CallStacks
   readonly functions: RunningFunctions

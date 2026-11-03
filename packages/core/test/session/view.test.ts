@@ -54,16 +54,16 @@ describe("sessionView", () => {
     const overview: SessionView = sessionView(opened, context)
     const end = sessionView(stepNext(stepTo(opened, "s20")), context)
 
-    expect(overview).toMatchObject({ kind: "overview", title: tour.title, count: 19 })
-    expect(end).toMatchObject({ kind: "end", outcome: tour.outcome, count: 19 })
+    expect(overview).toMatchObject({ kind: "overview", title: tour.title, count: 17 })
+    expect(end).toMatchObject({ kind: "end", outcome: tour.outcome, count: 17 })
   })
 
   test("places a step in its repo's checkout, with its number and the lines the change touches", () => {
     const view = viewOf("s11")
 
     expect(view).toMatchObject({
-      number: 11,
-      count: 19,
+      number: 9,
+      count: 17,
       path: "/checkouts/api/src/handlers/refunds.ts",
       start_line: 8,
       end_line: 19,
@@ -95,6 +95,12 @@ describe("sessionView", () => {
 
     expect(ids(view.calls)).toEqual(["s11"])
     expect(ids(view.context)).toEqual(["s9", "s10"])
+  })
+
+  test("numbers the stops, a context step taking the number of the step it explains", () => {
+    expect(viewOf("s8").number).toBe(8)
+    expect(viewOf("s9").number).toBe(8)
+    expect(viewOf("s11").number).toBe(9)
   })
 
   test("gives a context step no stack and nothing to enter", () => {

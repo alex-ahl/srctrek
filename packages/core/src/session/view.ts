@@ -86,6 +86,16 @@ function framesOf(session: SteppingSession, step: TourStep, context: ViewContext
   })
 }
 
+// The step's place among the stops, the executed steps; a context step takes the place of the
+// step it explains.
+function stopNumber(session: SteppingSession, step: TourStep): number {
+  const { steps } = session.tour
+  const stop = step.kind === "context" ? steps.find((s) => s.id === step.for) : step
+  const upTo = steps.slice(0, stop === undefined ? 0 : steps.indexOf(stop) + 1)
+
+  return upTo.filter((s) => session.executed.has(s.id)).length
+}
+
 function changedLinesOf(step: TourStep, context: ViewContext): StepView["changed_lines"] {
   const lines = context.changedLines.get(step.repo)?.get(step.file) ?? new Map<number, LineChange>()
 
@@ -99,8 +109,8 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
   return {
     ...ref(step),
     kind: "step",
-    number: steps.indexOf(step) + 1,
-    count: steps.length,
+    number: stopNumber(session, step),
+    count: session.executed.size,
     step_kind: step.kind,
     details: step.details,
     changed: step.changed,
@@ -118,7 +128,7 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
 /** The view of the session as it stands: its overview, its current step, or its end. */
 export function sessionView(session: SteppingSession, context: ViewContext): SessionView {
   const { tour } = session
-  const count = tour.steps.length
+  const count = session.executed.size
   const step = currentStep(session)
   if (step !== undefined) {
     return stepView(session, step, context)
