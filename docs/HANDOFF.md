@@ -24,6 +24,68 @@
   does better). The GUI's design waits until beta testers ask for one. OpenTUI upgraded from
   0.6.6 to 0.8.1, with no changes to our code.
 
+**Closed 2026-11-03.** `docs/DESIGN.md` says how every surface looks and behaves: the flows, one
+visual language that follows the editor's theme, the editor screens in Neovim and VS Code, and the
+terminal screens, each reviewed as a mockup. The terminal keeps OpenTUI, kept up to date until 1.0.
+
+**Known gaps**
+
+- The Neovim plugin has no automated tests or Lua formatter yet, and still steps through
+  tours by itself; it moves onto `trail serve` in Milestone 6.
+
+**Milestones**
+
+- 6: the editors on the protocol, side by side, to `docs/DESIGN.md`: a VS Code extension (also
+  for its forks), shipped as a .vsix package to beta testers, and the Neovim plugin; each with
+  stepping, narration, change signs, details, stale steps marked, configurable keys, the list of
+  tours, and asking (`trail ask`, answers through MCP, notes on steps, branch trails for what-if
+  questions).
+- 7: the TUI to `docs/DESIGN.md`: home screen (with version, stale, and unreachable states, and
+  tours built with an older guide, whose prompt hash differs from the current one), build
+  view, route map, and stepping view. `trail` and `trail mcp` report the commit
+  they were built from instead of version 0.0.0, and tours record it.
+- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
+
+The beta release follows milestone 6: the `trail` binary and the .vsix package.
+
+**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
+
+**Open**
+
+- Check the name before going public.
+- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
+  out local-only files (demo tours, changed-lines files) first.
+- OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
+  Revisit if an upgrade costs more than a day or a target platform fails to load it.
+- Context steps: next and prev should pass over them (`docs/DESIGN.md`), but the stepping
+  session still visits them; change it with the editors in Milestone 6. `for` names one step.
+- Over and out count a hop as inside its caller only when a return comes back across it: in a
+  tour that never shows a request's response, over from the caller stops inside the handler.
+- One function reached from two callers: a step names one `from`, so the second caller has
+  no step to step into.
+- The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
+  says the api calls it.
+- Progress from trail serve: a first open of a remote tour (clone, fetch, worktree) and asking
+  take seconds to a minute in silence. Add a progress notification with asking in Milestone 6.
+- Large repos: editor worktrees should check out only the files a tour visits (sparse
+  checkout), with the editors in Milestone 6.
+- Token use: most of it is the context re-read every turn as it grows, so turns matter more
+  than answer sizes; the build log's per-read lines show where they go. Runs vary, so compare
+  guide versions over several runs.
+- Proposed repos: a sibling is read on the work's branch only when it has one of the same name
+  (locally or remote-tracking); otherwise at its default branch, with the hop flagged.
+- Headless builds search the code host or read pull request descriptions only when the
+  agent command in `CODETRAIL_AGENT` allows read-only host tools.
+- Nearby repos: only the folder around the current repo is scanned, not nested layouts such
+  as `~/git/org/repo` across organisations.
+- An updated tour keeps a step whose own files are unchanged, which can still be wrong when
+  code it calls changed.
+- Accepting a proposal whose source pins a branch (`<url>@feature`) pins the repos list to it.
+- WSL not yet tested.
+- `bun test` would collect `*.test.ts` files inside eval fixtures.
+- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
+  `evals/` is not typechecked or type-aware linted.
+
 ## 2026-10-30 — Milestone 4: `trail serve`
 
 **Done**
@@ -75,66 +137,6 @@ runs not repeated)
 | points (hard to read statically)   | full  | 1/1    | 28    | 405k / 8k             |
 | uploads (Go, channel hand-off)     | full  | 1/1    | 21    | 365k / 7k             |
 | checkout (misnamed service, decoy) | full  | 3/3    | 26    | 486k / 13k            |
-
-**Known gaps**
-
-- The Neovim plugin has no automated tests or Lua formatter yet, and still steps through
-  tours by itself; it moves onto `trail serve` in Milestone 6.
-
-**Milestones**
-
-- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
-  editors, and a GUI, as mockups reviewed before anything is built; the TUI library chosen
-  against those screens.
-- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
-  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
-  narration, change signs, details, stale steps marked, configurable keys, and asking
-  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
-- 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
-  tours built with an older guide, whose prompt hash differs from the current one), build
-  view, route map, and stepping view. `trail` and `trail mcp` report the commit
-  they were built from instead of version 0.0.0, and tours record it.
-- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
-
-The beta release follows milestone 6: the `trail` binary and the .vsix package.
-
-**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
-
-**Open**
-
-- Check the name before going public.
-- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
-  out local-only files (demo tours, changed-lines files) first.
-- OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
-  Revisit if an upgrade costs more than a day or a target platform fails to load it.
-- Context steps: next and prev should pass over them (`docs/DESIGN.md`), but the stepping
-  session still visits them; change it with the editors in Milestone 6. `for` names one step.
-- Over and out count a hop as inside its caller only when a return comes back across it: in a
-  tour that never shows a request's response, over from the caller stops inside the handler.
-- One function reached from two callers: a step names one `from`, so the second caller has
-  no step to step into.
-- The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
-  says the api calls it.
-- Progress from trail serve: a first open of a remote tour (clone, fetch, worktree) and asking
-  take seconds to a minute in silence. Add a progress notification with asking in Milestone 6.
-- Large repos: editor worktrees should check out only the files a tour visits (sparse
-  checkout), with the editors in Milestone 6.
-- Token use: most of it is the context re-read every turn as it grows, so turns matter more
-  than answer sizes; the build log's per-read lines show where they go. Runs vary, so compare
-  guide versions over several runs.
-- Proposed repos: a sibling is read on the work's branch only when it has one of the same name
-  (locally or remote-tracking); otherwise at its default branch, with the hop flagged.
-- Headless builds search the code host or read pull request descriptions only when the
-  agent command in `CODETRAIL_AGENT` allows read-only host tools.
-- Nearby repos: only the folder around the current repo is scanned, not nested layouts such
-  as `~/git/org/repo` across organisations.
-- An updated tour keeps a step whose own files are unchanged, which can still be wrong when
-  code it calls changed.
-- Accepting a proposal whose source pins a branch (`<url>@feature`) pins the repos list to it.
-- WSL not yet tested.
-- `bun test` would collect `*.test.ts` files inside eval fixtures.
-- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
-  `evals/` is not typechecked or type-aware linted.
 
 ## 2026-10-27 — Milestone 3: tour building
 
