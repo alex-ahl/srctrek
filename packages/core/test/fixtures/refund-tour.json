@@ -60,7 +60,8 @@
           "line": 5,
           "role": "assignment"
         }
-      ]
+      ],
+      "name": "page load"
     },
     {
       "id": "s2",
@@ -102,7 +103,8 @@
           "line": 10,
           "role": "assignment"
         }
-      ]
+      ],
+      "name": "getOrder"
     },
     {
       "id": "s3",
@@ -142,7 +144,8 @@
       "uncertain": {
         "severity": "high",
         "note": "data-amount carries order.total in MAJOR units (499), but POST /refunds expects amount in MINOR units (api/openapi.json:43). Also the button only hides for status 'refunded'; nothing ever sets that status, so it reappears after reload."
-      }
+      },
+      "name": "renderOrder"
     },
     {
       "id": "s4",
@@ -173,7 +176,8 @@
           "line": 9,
           "role": "assignment"
         }
-      ]
+      ],
+      "name": "click listener"
     },
     {
       "id": "s5",
@@ -214,7 +218,8 @@
       "uncertain": {
         "severity": "low",
         "note": "On failure the button stays disabled forever and the status line is not updated; only an error paragraph is appended."
-      }
+      },
+      "name": "actions.refund"
     },
     {
       "id": "s6",
@@ -249,7 +254,8 @@
       "uncertain": {
         "severity": "medium",
         "note": "This is where the unit conversion (x100, rounded) is missing; the API treats 499 as 499 öre."
-      }
+      },
+      "name": "requestRefund"
     },
     {
       "id": "s7",
@@ -284,7 +290,8 @@
       "uncertain": {
         "severity": "medium",
         "note": "A cross-origin POST with content-type application/json triggers a CORS preflight; the API has no OPTIONS route or Access-Control-* headers (api/src/server.ts:33-44), so this only works if web and API share an origin or a proxy sits in front. Not verifiable from these repos."
-      }
+      },
+      "name": "post"
     },
     {
       "id": "s8",
@@ -326,7 +333,8 @@
           "line": 36,
           "role": "assignment"
         }
-      ]
+      ],
+      "name": "POST /refunds"
     },
     {
       "id": "s9",
@@ -353,7 +361,8 @@
         "severity": "low",
         "note": "The spec is only used for routing; requestBody schema is not validated by the server, so the contract with web (which sends major units) is not enforced anywhere except by the handler's own checks."
       },
-      "for": "s8"
+      "for": "s8",
+      "name": "createRefund operation"
     },
     {
       "id": "s10",
@@ -376,7 +385,8 @@
         ],
         "guessed": false
       },
-      "for": "s8"
+      "for": "s8",
+      "name": "handlers"
     },
     {
       "id": "s11",
@@ -441,7 +451,8 @@
       "uncertain": {
         "severity": "high",
         "note": "Validation accepts the web's major-unit 499 as 499 öre: a full refund silently becomes 4.99 SEK. An order with cents (e.g. total 499.5) would send 499.5 and get a 400. No check against previously requested refunds or order status, so repeated clicks (after reload) can over-refund."
-      }
+      },
+      "name": "createRefund"
     },
     {
       "id": "s13",
@@ -472,7 +483,8 @@
           "line": 10,
           "role": "assignment"
         }
-      ]
+      ],
+      "name": "publish"
     },
     {
       "id": "s14",
@@ -512,7 +524,8 @@
       "uncertain": {
         "severity": "low",
         "note": "UI says the refund is requested but nothing ever reports completion or failure back; a reload shows 'paid' and an enabled Refund button again."
-      }
+      },
+      "name": "actions.refund"
     },
     {
       "id": "s15",
@@ -544,7 +557,8 @@
       "uncertain": {
         "severity": "medium",
         "note": "A handler exception is logged and swallowed, and the offset still advances past the message (queue.py:29), so a failed refund (e.g. provider timeout) is never retried and nobody is told."
-      }
+      },
+      "name": "poll_once"
     },
     {
       "id": "s16",
@@ -579,7 +593,8 @@
       "uncertain": {
         "severity": "high",
         "note": "The offset is written only after all lines are consumed: if the worker dies after payments.refund succeeds but before line 29, the message is replayed and the customer is refunded twice (no idempotency key is sent to the provider)."
-      }
+      },
+      "name": "read"
     },
     {
       "id": "s17",
@@ -614,7 +629,8 @@
       "uncertain": {
         "severity": "high",
         "note": "Key mismatch is handled (API sends 'amount', worker reads 'amount'), but the value is already wrong by 100x from the web; int() would also silently truncate any fractional value."
-      }
+      },
+      "name": "handle_refund_requested"
     },
     {
       "id": "s18",
@@ -656,7 +672,8 @@
       "uncertain": {
         "severity": "medium",
         "note": "Refunds 4.99 SEK on a 499.00 SEK order. Our refund_id is not sent, so the provider cannot dedupe retries or replays."
-      }
+      },
+      "name": "refund"
     },
     {
       "id": "s19",
@@ -679,7 +696,8 @@
           }
         ],
         "guessed": false
-      }
+      },
+      "name": "handle_refund_requested"
     },
     {
       "id": "s20",
@@ -706,7 +724,8 @@
       "uncertain": {
         "severity": "low",
         "note": "No consumer of refund.completed exists in any of the three repos: the API never marks the RefundRow 'completed' or the order 'refunded', and there is no 'failed' path at all."
-      }
+      },
+      "name": "publish"
     }
   ]
 }

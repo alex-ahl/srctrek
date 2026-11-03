@@ -8,6 +8,9 @@
   number counts the executed steps, and a context step takes the number of the step it explains.
   Readers see stop numbers, never step ids; the guide numbers executed steps without gaps and
   gives a context step its step's id plus a letter (`s8a`).
+- Step 6b: a step can carry a `name`, the function, route, or handler it shows, and the view
+  passes it on, so the call stack and the route list `createRefund`, not a sentence; the guide
+  asks for it. Tours without names still load.
 
 ## 2026-11-03 — Milestone 5: design pass
 

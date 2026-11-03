@@ -3,6 +3,7 @@ Add steps to the tour, in execution order from trigger to outcome. Each step is 
 - `id`: executed steps in order as "s1", "s2", …; a context step takes the id of the step it explains plus a letter, as "s8a" and "s8b" for s8.
 - `repo` (a name from open_change), `file`, `start_line` and `end_line` (the lines this stop covers, numbered as read_file shows them).
 - `kind`: call (execution enters a function from the step in `from`, also when reached from a return statement), return (execution comes back, bringing a value, to a function a step still on the call stack showed: the caller, or one further out, carrying on after its call, also when a response from another process comes back to the caller awaiting it), hop (it crosses to another process or repo, or runs later: a request, a message, a job, an event or click handler, a timer, a callback registered earlier; the call stack starts over), or context (code read to understand, not executed). The reader sees a call stack built from these, so a value handed on to another function is a call, not a return.
+- `name`: the function, method, route, or handler the step shows, as the code names it ("createRefund", "POST /refunds"); the reader sees it in the call stack and the route.
 - `summary` (one sentence) and `details` (what happens here and why it matters).
 - `from`: the id of the earlier step execution came from; absent on the first step. Never a context step.
 - `for`: on a context step, in place of `from`: the id of the step it explains.

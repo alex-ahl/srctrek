@@ -48,6 +48,8 @@ const StepFields = z.object({
   blob: z.string().regex(/^[0-9a-f]{40}$/),
   kind: z.enum(["call", "return", "hop", "context"]),
   changed: z.boolean(),
+  // the function, route, or handler the step shows, as the code names it
+  name: nonEmpty.optional(),
   summary: nonEmpty,
   details: nonEmpty,
   // the step execution came from; absent on the first step and on context steps

@@ -119,7 +119,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 ### Call stack
 
 Newest frame on top, as in a debugger; a hop separates what one process ran from what started
-it.
+it. Each frame shows its step's name (`createRefund`) and place (`handlers/refunds.ts:8`), or
+the place alone when the tour gives no name. The route lists steps the same way.
 
 ### Context steps
 

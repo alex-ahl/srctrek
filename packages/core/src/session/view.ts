@@ -22,6 +22,8 @@ export type StepRef = {
   path: string
   start_line: number
   end_line: number
+  // the function, route, or handler the step shows; null when the tour doesn't name it
+  name: string | null
   summary: string
 }
 
@@ -66,6 +68,7 @@ function refOf(step: TourStep, context: ViewContext): StepRef {
     path: join(root, step.file),
     start_line: step.start_line,
     end_line: step.end_line,
+    name: step.name ?? null,
     summary: step.summary,
   }
 }

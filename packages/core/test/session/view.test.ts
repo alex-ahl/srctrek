@@ -90,6 +90,23 @@ describe("sessionView", () => {
     expect(stack.filter((frame) => frame.hop).map((frame) => frame.id)).toEqual(["s2", "s4", "s8"])
   })
 
+  test("names each frame by the function or route its step shows", () => {
+    const names = viewOf("s13").stack.map((frame) => frame.name)
+
+    expect(names.slice(-3)).toEqual(["POST /refunds", "createRefund", "publish"])
+  })
+
+  test("leaves a step's name empty when the tour doesn't give one", () => {
+    const withoutName = (step: (typeof tour.steps)[number]) => {
+      const { name: _, ...rest } = step
+      return rest
+    }
+    const unnamed = { ...tour, steps: tour.steps.map(withoutName) }
+    const view = sessionView(stepTo(openSession(unnamed), "s11"), context)
+
+    expect(view).toMatchObject({ kind: "step", name: null })
+  })
+
   test("offers what the step enters, and the context steps that explain it", () => {
     const view = viewOf("s8")
 

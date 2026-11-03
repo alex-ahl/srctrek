@@ -131,6 +131,7 @@ can check; never a bare "line 5".
   path without changes has no range
 - `steps[]`:
   - `id`, `repo`, `file`, `start_line`, `end_line`, `summary`, `details`
+  - optional: `name`, the function, route, or handler the step shows, as the code names it
   - `blob`: the file's git blob id at the tour's revision; a mismatch marks the step stale
   - `kind`: `call` (enters a function), `return` (comes back to a function a step on the
     call stack showed), `hop` (cross-process, or later: a message, a job, an event handler; the
