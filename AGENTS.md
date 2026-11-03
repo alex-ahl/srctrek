@@ -39,6 +39,7 @@ migration layers. When something changes, change it everywhere at once.
 - `packages/cli/` — the `trail` entry point: arguments, resolving the change, starting a
   front-end.
 - `packages/mcp/` — the MCP server, `trail mcp`, for the agent that builds a tour.
+- `packages/serve/` — the editor protocol's server, `trail serve`, for editors stepping a tour.
 - `packages/tui/` — OpenTUI + React front-end.
 - `packages/evals/` — the eval runner: an agent builds a fixture's tour, scored against
   expected.json.

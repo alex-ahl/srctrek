@@ -5,6 +5,7 @@
   "dependencies": {
     "@codetrail/core": "workspace:*",
     "@codetrail/mcp": "workspace:*",
+    "@codetrail/serve": "workspace:*",
     "@codetrail/tui": "workspace:*"
   }
 }

@@ -29,6 +29,9 @@
 - Step 4g: the protocol's messages in core (`RequestParams`, `ErrorCode`, `PROTOCOL_VERSION`,
   `TRAIL_VERSION`): requests answer with the view; open takes a tour by name and, for stale
   steps, trail's arguments. `docs/PROTOCOL.md` describes version 1: stepping.
+- Step 4h: `trail serve` (`packages/serve/`): JSON-RPC over stdio through `vscode-jsonrpc`, the
+  handshake, and each request carried out on the stepping session in order, answered with its
+  view; failed requests leave the state as it was.
 
 ## 2026-10-27 — Milestone 3: tour building
 
@@ -239,6 +242,8 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   no step to step into.
 - The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
   says the api calls it.
+- Progress from trail serve: a first open of a remote tour (clone, fetch, worktree) and asking
+  take seconds to a minute in silence. Add a progress notification with asking in Milestone 6.
 - Large repos: editor worktrees should check out only the files a tour visits (sparse
   checkout), with the editors in Milestone 6.
 - Token use: most of it is the context re-read every turn as it grows, so turns matter more

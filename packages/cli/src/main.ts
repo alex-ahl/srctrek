@@ -8,6 +8,7 @@ import {
   tourStatus,
 } from "@codetrail/core"
 import { startMcpServer } from "@codetrail/mcp"
+import { startServe } from "@codetrail/serve"
 import { startHome } from "@codetrail/tui"
 
 // The agent's headless command line; unset or blank means trail can't build tours.
@@ -66,9 +67,17 @@ async function trail(args: string[]): Promise<void> {
   await startHome(cwd, { status, build, buildTrigger })
 }
 
-// "mcp" as the first word is the command: a folder by that name is given as ./mcp, a branch
-// as part of a range (main...mcp).
+// "mcp" or "serve" as the first word is the command: a folder by that name is given as ./mcp,
+// a branch as part of a range (main...mcp).
 async function run(args: string[]): Promise<void> {
+  if (args[0] === "serve") {
+    if (process.stdin.isTTY) {
+      console.error("trail serve: waiting for an editor on stdin; your editor's plugin starts it")
+    }
+
+    return startServe(process.cwd())
+  }
+
   if (args[0] === "mcp") {
     // Started by hand, the server would sit silent waiting for a client; stderr leaves the
     // protocol on stdout alone.

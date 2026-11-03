@@ -78,6 +78,29 @@
       }
     },
     {
+      "files": ["packages/serve/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/core/src/**",
+                  "@codetrail/core/*",
+                  "@codetrail/tui",
+                  "**/tui/**",
+                  "@codetrail/mcp",
+                  "**/mcp/**"
+                ],
+                "message": "The editor protocol's server imports only @codetrail/core, and no front-end or other server."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["packages/cli/**"],
       "rules": {
         "no-restricted-imports": [

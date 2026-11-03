@@ -34,6 +34,9 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   tour-building logic.
 - **mcp** — the MCP server (`trail mcp`, stdio, `packages/mcp/`) that the user's agent talks
   to. Exposes core's capabilities as MCP tools and prompts. Holds no tour logic of its own.
+- **serve** — the editor protocol's server (`trail serve`, stdio, `packages/serve/`), started
+  by an editor's plugin: carries out each request on core's stepping session and answers with
+  its view. Holds no stepping logic of its own.
 - **cli** — the `trail` binary's entry point (`packages/cli/`): parses arguments, resolves
   repos and ranges through core, and starts a front-end. Front-ends never import each other.
 - **GUI (later)** — a local web front-end served by the same binary (`trail --gui`), using
