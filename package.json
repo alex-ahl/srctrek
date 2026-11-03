@@ -20,9 +20,9 @@
     "build:smoke": "bun build --compile packages/tui/src/smoke.tsx --outfile dist/trail-smoke"
   },
   "devDependencies": {
-    "@types/bun": "1.4.3",
-    "oxlint": "1.89.0",
-    "oxlint-tsgolint": "7.0.2004",
+    "@types/bun": "1.4.4",
+    "oxlint": "1.90.0",
+    "oxlint-tsgolint": "7.0.2005",
     "prettier": "3.9.10",
     "typescript": "7.0.2"
   }
