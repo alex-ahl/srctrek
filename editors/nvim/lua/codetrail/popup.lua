@@ -3,6 +3,18 @@ local state = require("codetrail.state")
 
 local M = {}
 
+-- The popups open now, so a move closes its own and never another plugin's float.
+local open = {}
+
+function M.close()
+  for _, win in ipairs(open) do
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+  open = {}
+end
+
 function M.float(lines, title)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
@@ -14,7 +26,7 @@ function M.float(lines, title)
     rows = rows + math.max(1, math.ceil(vim.fn.strdisplaywidth(l) / (width - 6)))
   end
   local height = math.min(rows, math.floor(vim.o.lines * 0.8))
-  vim.api.nvim_open_win(buf, true, {
+  local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
     height = height,
@@ -23,6 +35,7 @@ function M.float(lines, title)
     border = "rounded",
     title = " " .. (title or "codetrail") .. " ",
   })
+  table.insert(open, win)
   vim.wo.wrap = true
   vim.wo.linebreak = true
   vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })

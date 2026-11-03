@@ -1,4 +1,5 @@
 -- The winbar over a step: its stop number, its place, and the call stack, newest frame first.
+-- It stands in for the window's own winbar while the step is shown.
 local text = require("codetrail.text")
 
 local M = {}
@@ -36,7 +37,7 @@ local function position(view)
   return number
 end
 
-function M.text(view)
+local function bar(view)
   local parts = {
     " codetrail",
     position(view),
@@ -49,6 +50,33 @@ function M.text(view)
     table.insert(parts, stack_text(view.stack))
   end
   return table.concat(parts, "  ·  ")
+end
+
+-- The window showing the step, and its own winbar to put back: the window-local value, so a
+-- window that used the global winbar goes back to using it.
+local shown = nil
+
+local function own_winbar(win)
+  return vim.api.nvim_get_option_value("winbar", { scope = "local", win = win })
+end
+
+local function set_winbar(win, value)
+  vim.api.nvim_set_option_value("winbar", value, { scope = "local", win = win })
+end
+
+function M.restore()
+  if shown and vim.api.nvim_win_is_valid(shown.win) then
+    set_winbar(shown.win, shown.own)
+  end
+  shown = nil
+end
+
+function M.show(win, view)
+  if shown == nil or shown.win ~= win then
+    M.restore()
+    shown = { win = win, own = own_winbar(win) }
+  end
+  set_winbar(win, bar(view))
 end
 
 return M

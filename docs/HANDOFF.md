@@ -30,6 +30,8 @@
   repo), from the line the entered step's evidence cites, and step into takes the call on the
   cursor's line, else the first not yet visited. This replaces the into picker. A call citing
   no line of the step is listed under the code.
+- The Neovim plugin leaves the user's setup alone: the window's own winbar comes back off a step
+  and on quit, and a move closes only the plugin's own popups, not another plugin's float.
 
 ## 2026-11-03 — Milestone 5: design pass
 

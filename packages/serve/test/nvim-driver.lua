@@ -1,7 +1,7 @@
 -- Drives the Neovim plugin as a user would, for nvim.test.ts: runs each action in
--- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor),
--- waits for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as
--- JSON.
+-- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor,
+-- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float), waits
+-- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
 local codetrail = require("codetrail")
 local state = require("codetrail.state")
 
@@ -10,6 +10,14 @@ vim.g.codetrail = { cmd = vim.json.decode(vim.env.DRIVE_CMD) }
 local notices = {}
 vim.notify = function(message)
   table.insert(notices, message)
+end
+
+-- A float the plugin didn't open, as a picker would be.
+local user_float = nil
+
+local function open_user_float()
+  local buf = vim.api.nvim_create_buf(false, true)
+  user_float = vim.api.nvim_open_win(buf, true, { relative = "editor", row = 1, col = 1, width = 10, height = 2 })
 end
 
 local function editor_window()
@@ -67,6 +75,10 @@ local function screen()
     values = seen.values,
     signs = seen.signs,
     calls = seen.calls,
+    user_float = user_float ~= nil and vim.api.nvim_win_is_valid(user_float),
+    floats = #vim.tbl_filter(function(w)
+      return vim.api.nvim_win_get_config(w).relative ~= ""
+    end, vim.api.nvim_list_wins()),
     notices = vim.list_slice(notices),
   }
 end
@@ -75,8 +87,15 @@ local function run(action)
   local view, notified = state.view, #notices
   local tour = action:match("^start:(.+)$")
   local line = action:match("^cursor:(%d+)$")
+  local own_winbar = action:match("^winbar:(.+)$")
   if line then
     vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
+    return
+  elseif own_winbar then
+    vim.wo.winbar = own_winbar
+    return
+  elseif action == "userfloat" then
+    open_user_float()
     return
   elseif tour then
     codetrail.start(tour)

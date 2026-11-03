@@ -1,5 +1,6 @@
 -- Moving through the tour: each move asks the server, and its answer is drawn.
 local details = require("codetrail.details")
+local popup = require("codetrail.popup")
 local server = require("codetrail.server")
 local state = require("codetrail.state")
 local step_view = require("codetrail.step_view")
@@ -28,21 +29,19 @@ end
 local function show_step(view)
   remember_roots(view)
   step_view.show(view)
-  vim.wo.winbar = winbar.text(view)
+  winbar.show(vim.api.nvim_get_current_win(), view)
   announce(view)
 end
 
 function M.show(view)
-  if vim.api.nvim_win_get_config(0).relative ~= "" then
-    vim.cmd("close")
-  end
+  popup.close()
   state.view = view
 
   if view.kind == "step" then
     show_step(view)
   else
     step_view.clear()
-    vim.wo.winbar = ""
+    winbar.restore()
     details.show()
   end
 end

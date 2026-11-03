@@ -18,6 +18,8 @@ type Screen = {
   values: { line: number; text: string }[]
   signs: { line: number; text: string }[]
   calls: { line: number; text: string }[]
+  user_float: boolean
+  floats: number
   notices: string[]
 }
 
@@ -148,6 +150,28 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     const [, , over] = await drive(await repoWithTour(), ["start:pay", "next", "over"])
 
     expect(over).toMatchObject({ file: "main.ts", line: 2 })
+  }, 30_000)
+
+  test("puts the window's own winbar back off a step and on quit", async () => {
+    const screens = await drive(await repoWithTour(), [
+      "winbar:mine",
+      "start:pay",
+      "next",
+      "previous",
+      "next",
+      "quit",
+    ])
+    const winbars = screens.map((screen) => screen.winbar)
+
+    expect(winbars[2]).toStartWith(" codetrail")
+    expect([winbars[1], winbars[3], winbars[5]]).toEqual(["mine", "mine", "mine"])
+  }, 30_000)
+
+  test("closes its own popups on a move, and leaves other plugins' floats open", async () => {
+    const [, , moved] = await drive(await repoWithTour(), ["start:pay", "userfloat", "next"])
+
+    // the overview's popup closed, the other plugin's float still open
+    expect(moved).toMatchObject({ view: "step", user_float: true, floats: 1 })
   }, 30_000)
 
   test("reports a tour the server can't find", async () => {

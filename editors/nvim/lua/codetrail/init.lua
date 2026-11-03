@@ -16,9 +16,11 @@ local ask = require("codetrail.ask")
 local details = require("codetrail.details")
 local inline_values = require("codetrail.inline_values")
 local navigation = require("codetrail.navigation")
+local popup = require("codetrail.popup")
 local server = require("codetrail.server")
 local state = require("codetrail.state")
 local step_view = require("codetrail.step_view")
+local winbar = require("codetrail.winbar")
 
 local M = {}
 
@@ -88,8 +90,9 @@ function M.quit()
   if not state.view then
     return
   end
+  popup.close()
   step_view.clear()
-  vim.wo.winbar = ""
+  winbar.restore()
   unbind_keys(active_keys)
   active_keys = {}
   state.view, state.overview = nil, nil
