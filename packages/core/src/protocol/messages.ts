@@ -1,4 +1,6 @@
 import { z } from "zod"
+import type { TourStatus } from "../build/status"
+import type { TourEntry } from "../tour-entries"
 
 /** The editor protocol's version; client and core must agree on it. */
 export const PROTOCOL_VERSION = 1
@@ -8,10 +10,15 @@ export const TRAIL_VERSION = "0.0.0"
 
 const nonEmpty = z.string().min(1)
 const none = z.object({}).strict().optional()
+// trail's arguments for the change as it is now; none means the current branch's change
+const change = z
+  .object({ args: z.array(z.string()).optional() })
+  .strict()
+  .optional()
 
 /**
- * Each request a client can send, by method, with the params core accepts. Every request but
- * `initialize` answers with the session's view; `initialize` answers with InitializeResult.
+ * Each request a client can send, by method, with the params core accepts. The moves and
+ * `open` answer with the session's view; the rest with their own results below.
  */
 export const RequestParams = {
   initialize: z.object({
@@ -27,11 +34,26 @@ export const RequestParams = {
   over: none,
   out: none,
   goto: z.object({ step: nonEmpty }),
+  // the saved tours, and where the change's tour stands
+  tours: change,
+  // builds the change's tour, or updates it when it's stale
+  build: change,
+  // the last lines of a tour's build log
+  log: z.object({ tour: nonEmpty, lines: z.number().int().positive().optional() }),
 }
 
 export type Method = keyof typeof RequestParams
 
 export type InitializeResult = { protocol_version: number; trail_version: string }
+
+/** What `tours` answers: every saved tour, and the change's tour as it stands. */
+export type ToursResult = { change: TourStatus; tours: TourEntry[] }
+
+/** What `build` answers: the change's tour as it stands once the build has started. */
+export type BuildResult = { change: TourStatus }
+
+/** What `log` answers: the end of a build's log, oldest line first. */
+export type LogResult = { lines: string[] }
 
 /** Error codes core answers with, beside JSON-RPC's own. */
 export const ErrorCode = {
@@ -41,6 +63,8 @@ export const ErrorCode = {
   invalidTour: 4,
   unreachableRepo: 5,
   unknownStep: 6,
+  noAgent: 7,
+  unreadableChange: 8,
 } as const
 
 /** Whether `method` names a request the protocol has. */

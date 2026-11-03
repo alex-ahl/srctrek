@@ -20,7 +20,7 @@ The client's first request is `initialize`:
 
 ## Requests (client → core)
 
-Every request after `initialize` answers with the session's view.
+`open` and the moves answer with the session's view.
 
 | Method              | Does                                                                |
 | ------------------- | ------------------------------------------------------------------- |
@@ -33,6 +33,17 @@ Every request after `initialize` answers with the session's view.
 | `goto(step)`        | Jump to a step                                                      |
 
 A move with nowhere to go answers with the view unchanged.
+
+For the list of tours, each taking `trail`'s arguments for the change (none: the current
+branch's):
+
+| Method              | Answers                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| `tours(args?)`      | Every saved tour (name, title, stops, likely-wrong flags) and where |
+|                     | the change's tour stands: ready, stale, building, failed, missing   |
+| `build(args?)`      | Starts the agent in `CODETRAIL_AGENT` on the change's tour, or      |
+|                     | updates it when stale; answers where it stands once started         |
+| `log(tour, lines?)` | The end of a tour's build log                                       |
 
 ## The view
 
@@ -59,6 +70,8 @@ JSON-RPC's own codes for malformed requests, unknown methods, and invalid params
 | 4    | The tour doesn't load: another format, or invalid      |
 | 5    | A repo the tour names isn't there, or lacks its commit |
 | 6    | `goto` named a step the tour doesn't have              |
+| 7    | `build` with no `CODETRAIL_AGENT` set                  |
+| 8    | `trail`'s arguments don't name a change trail can read |
 
 ## Definitions and tests
 

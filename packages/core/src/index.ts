@@ -39,8 +39,11 @@ export {
   TRAIL_VERSION,
   isMethod,
   versionMismatch,
+  type BuildResult,
   type InitializeResult,
+  type LogResult,
   type Method,
+  type ToursResult,
 } from "./protocol/messages"
 export {
   TOURS_DIR,

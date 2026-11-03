@@ -16,7 +16,9 @@ import {
   stepTo,
   versionMismatch,
 } from "@codetrail/core"
-import { type OpenTour, RequestError, openTour } from "./open"
+import { buildTour, logOf, toursIn } from "./change"
+import { RequestError } from "./errors"
+import { type OpenTour, openTour } from "./open"
 
 /** What trail serve holds between requests. */
 export type ServeState = {
@@ -69,7 +71,8 @@ function gotoStep(session: SteppingSession, params: unknown): SteppingSession {
   return stepTo(session, step)
 }
 
-type Move = Exclude<Method, "initialize" | "open">
+type AboutChange = "tours" | "build" | "log"
+type Move = Exclude<Method, "initialize" | "open" | AboutChange>
 
 // Each move, from the session and the request's params, already checked.
 const MOVES: Record<Move, (session: SteppingSession, params: unknown) => SteppingSession> = {
@@ -90,6 +93,21 @@ function move(state: ServeState, method: Move, params: unknown): Moved {
   return moved(open, state, MOVES[method](open.session, params))
 }
 
+// Requests about the change and its saved tours, from the params already checked; they leave
+// the session as it is.
+const ABOUT_CHANGE: Record<AboutChange, (cwd: string, params: unknown) => Promise<unknown>> = {
+  tours: (cwd, params) => toursIn(cwd, RequestParams.tours.parse(params)?.args ?? []),
+  build: (cwd, params) => buildTour(cwd, RequestParams.build.parse(params)?.args ?? []),
+  log: (cwd, params) => {
+    const { tour, lines } = RequestParams.log.parse(params)
+    return logOf(cwd, tour, lines)
+  },
+}
+
+function isAboutChange(method: Method): method is AboutChange {
+  return Object.hasOwn(ABOUT_CHANGE, method)
+}
+
 async function carryOut(state: ServeState, method: Method, params: unknown): Promise<Moved> {
   if (method === "initialize") {
     return initialize(state, RequestParams.initialize.parse(params).protocol_version)
@@ -103,6 +121,10 @@ async function carryOut(state: ServeState, method: Method, params: unknown): Pro
     const { tour, args } = RequestParams.open.parse(params)
     const open = await openTour(state.cwd, tour, args)
     return { state: { ...state, open }, result: sessionView(open.session, open.context) }
+  }
+
+  if (isAboutChange(method)) {
+    return { state, result: await ABOUT_CHANGE[method](state.cwd, params) }
   }
 
   return move(state, method, params)

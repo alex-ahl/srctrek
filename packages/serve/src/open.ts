@@ -1,40 +1,20 @@
 import {
   ErrorCode,
-  type ResolvedChange,
   type SteppingSession,
   TourValidationError,
   UnreachableRepoError,
   type ViewContext,
-  directoryIn,
   loadTour,
   openSession,
-  readChangeArguments,
-  resolveChange,
   tourPath,
   viewContext,
 } from "@codetrail/core"
 import { existsSync } from "node:fs"
-
-/** A request core can't carry out, with the protocol's code for why. */
-export class RequestError extends Error {
-  constructor(
-    readonly code: number,
-    message: string,
-  ) {
-    super(message)
-  }
-}
+import { changeNow } from "./change"
+import { RequestError } from "./errors"
 
 /** A tour open for stepping: its session, and what its view needs from git. */
 export type OpenTour = { session: SteppingSession; context: ViewContext }
-
-async function changeNow(cwd: string, args: string[]): Promise<ResolvedChange> {
-  try {
-    return await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
-  } catch (error) {
-    throw new RequestError(ErrorCode.noTour, `can't read the change: ${String(error)}`)
-  }
-}
 
 async function loadNamed(cwd: string, name: string) {
   const path = tourPath(cwd, name)

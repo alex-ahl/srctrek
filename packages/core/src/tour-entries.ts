@@ -9,8 +9,10 @@ async function loadEntry(root: string, name: string): Promise<TourEntry> {
   try {
     const tour = await loadTour(path)
     const highFlags = tour.steps.filter((s) => s.uncertain?.severity === "high").length
+    // stops, as the editors number them: context steps are opened from the step they explain
+    const steps = tour.steps.filter((s) => s.kind !== "context").length
 
-    return { name, path, valid: true, title: tour.title, steps: tour.steps.length, highFlags }
+    return { name, path, valid: true, title: tour.title, steps, highFlags }
   } catch (error) {
     if (!(error instanceof TourValidationError)) {
       throw error

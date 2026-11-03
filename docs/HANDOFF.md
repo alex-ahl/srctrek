@@ -16,6 +16,9 @@
 - Step 6c: what the editors will need from the terminal's code, moved into core: the saved tours
   with their summaries (`loadTourEntries`), building or updating the change's tour
   (`buildChangeTour`), and reading `CODETRAIL_AGENT` (`agentCommand`). Behaviour unchanged.
+- Step 6d: `trail serve` answers `tours` (the saved tours and the change's status), `build`
+  (builds or updates the change's tour; error 7 without an agent), and `log`; an unreadable
+  change is error 8. The tour list counts stops, as stepping does.
 
 ## 2026-11-03 — Milestone 5: design pass
 

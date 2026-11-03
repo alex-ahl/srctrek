@@ -177,3 +177,65 @@ describe("trail serve, as an editor sees it", () => {
     expect(await serve.exited).toBe(0)
   })
 })
+
+// The lines a log answer carries.
+function linesOf(answer: unknown): string[] {
+  const lines =
+    typeof answer === "object" && answer !== null && "lines" in answer ? answer.lines : []
+  return Array.isArray(lines) ? lines.filter((line) => typeof line === "string") : []
+}
+
+// A repo on branch feature with one commit and no tour of it yet.
+async function repoWithoutTour(): Promise<string> {
+  const dir = await makeRepo()
+  await runGit(dir, ["switch", "--quiet", "-c", "feature"])
+  await commit(dir, "pay.ts", "export function pay() {\n  return 250\n}\n")
+
+  return dir
+}
+
+// trail serve in `dir` with `agent` as CODETRAIL_AGENT ("" for none), initialized.
+async function servingWithAgent(dir: string, agent: string): Promise<ServeTestClient> {
+  const cache = await tempDir("cache-")
+  client = new ServeTestClient(dir, { XDG_CACHE_HOME: cache, CODETRAIL_AGENT: agent })
+  await client.initialize()
+  return client
+}
+
+describe("trail serve, for the editor's list of tours", () => {
+  test("lists the saved tours, and where the change's tour stands", async () => {
+    const serve = await serving(await repoWithTour())
+
+    const answer = await serve.request("tours")
+
+    expect(answer).toMatchObject({
+      change: { kind: "ready" },
+      tours: [{ name: "pay", valid: true, title: "Pay", steps: 3 }],
+    })
+  })
+
+  test("refuses to build without an agent, saying how to set one", async () => {
+    const serve = await servingWithAgent(await repoWithoutTour(), "")
+
+    expect(await serve.errorCode("build")).toBe(ErrorCode.noAgent)
+  })
+
+  test("starts the agent on the change's tour, and shows its log", async () => {
+    const serve = await servingWithAgent(await repoWithoutTour(), "sleep 1 && echo working on")
+
+    const started = await serve.request("build")
+    expect(started).toMatchObject({ change: { kind: "building", name: "feature" } })
+
+    await Bun.sleep(1500)
+    const log = await serve.request("log", { tour: "feature" })
+    expect(linesOf(log).join("\n")).toContain("working on")
+  })
+
+  test("refuses trail arguments it can't read", async () => {
+    const serve = await serving(await repoWithTour())
+
+    expect(await serve.errorCode("tours", { args: ["../nowhere"] })).toBe(
+      ErrorCode.unreadableChange,
+    )
+  })
+})
