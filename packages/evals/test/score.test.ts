@@ -37,6 +37,22 @@ describe("scoreTour", () => {
     ])
   })
 
+  test("counts a bug line in a context step as flagged by the step it explains", () => {
+    // s9, the openapi entry, explains the route match in s8
+    const bug = {
+      summary: "the spec allows any amount",
+      files: [{ repo: "api", file: "openapi.json", line: 40 }],
+    }
+    const withBug = { ...expected, bugs: [bug] }
+    const flagged = refundTour.steps.map((step) =>
+      step.id === "s8" ? { ...step, uncertain: { severity: "high" as const, note: "n" } } : step,
+    )
+
+    // s9 carries a low flag of its own
+    expect(scoreTour(refundTour, withBug).bugs[0]?.lines).toEqual(["low"])
+    expect(scoreTour({ ...refundTour, steps: flagged }, withBug).bugs[0]?.lines).toEqual(["high"])
+  })
+
   test("tells a response labelled a hop from one that comes back to its caller", () => {
     // s14, back in web's refund action once the api answers, starts a stack of its own as a hop
     const steps = refundTour.steps.map((step) =>

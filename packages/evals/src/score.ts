@@ -99,13 +99,21 @@ function linkFound(steps: TourStep[], link: Link): LinkFound {
   return guessed ? "guessed" : "no evidence"
 }
 
+// The flags over a step's lines: its own, and for a context step those of the step it explains,
+// which the reader opens it from.
+function flagsOver(steps: TourStep[], step: TourStep): (Severity | undefined)[] {
+  const explained = step.kind === "context" ? steps.find((s) => s.id === step.for) : undefined
+
+  return [step.uncertain?.severity, explained?.uncertain?.severity]
+}
+
 function lineFlag(steps: TourStep[], line: ExpectedLine): LineFlag {
   const covering = steps.filter((step) => covers(step, line))
   if (covering.length === 0) {
     return "not in a step"
   }
 
-  const severities = covering.map((step) => step.uncertain?.severity)
+  const severities = covering.flatMap((step) => flagsOver(steps, step))
 
   return SEVERITIES.find((severity) => severities.includes(severity)) ?? "unflagged"
 }

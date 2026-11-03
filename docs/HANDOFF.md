@@ -11,6 +11,8 @@
 - Step 6b: a step can carry a `name`, the function, route, or handler it shows, and the view
   passes it on, so the call stack and the route list `createRefund`, not a sentence; the guide
   asks for it. Tours without names still load.
+- The evals count a bug line in a context step as flagged by the step it explains, which the reader
+  opens it from; the expire tour that flagged `daysAgo` for `DAY_MS` now scores the bug found.
 
 ## 2026-11-03 — Milestone 5: design pass
 
