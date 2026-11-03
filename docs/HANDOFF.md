@@ -21,7 +21,8 @@
   terminal for anyone, not only editors without a plugin.
 - Step 5f: OpenTUI kept for the terminal, judged against the designed screens and an Ink build of
   the route map (Ink adds about 1 MB against OpenTUI's 14 MB, but the screens need nothing it
-  does better). The GUI's design waits until beta testers ask for one.
+  does better). The GUI's design waits until beta testers ask for one. OpenTUI upgraded from
+  0.6.6 to 0.8.1, with no changes to our code.
 
 ## 2026-10-30 — Milestone 4: `trail serve`
 
@@ -104,7 +105,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - Check the name before going public.
 - Stop ignoring the .codetrail folder once tours are written with portable sources; clear
   out local-only files (demo tours, changed-lines files) first.
-- OpenTUI stays, kept up to date with each release until 1.0; it's at 0.6.6 and 0.8.1 is out.
+- OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
 - Context steps: next and prev should pass over them (`docs/DESIGN.md`), but the stepping
   session still visits them; change it with the editors in Milestone 6. `for` names one step.
