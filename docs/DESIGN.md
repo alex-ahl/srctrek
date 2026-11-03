@@ -123,3 +123,41 @@ it.
 
 Context steps aren't stops: next and prev pass over them, and the step they explain shows how many
 it has, opened on demand.
+
+## Editor screens
+
+Neovim and VS Code side by side, in the review page for Step 5c. Neovim keeps to the user's own
+windows: virtual lines, the winbar, and floats, with no sidebar. VS Code can't put lines of text
+between lines of code, so its narration and high flag sit in a CodeLens above the step, and a
+codetrail sidebar holds the tours, the route, the call stack, details, and notes.
+
+| Screen           | Neovim                                                  | VS Code                                                  |
+| ---------------- | ------------------------------------------------------- | -------------------------------------------------------- |
+| Choosing a tour  | `:Trail`, a picker with each tour's status              | the codetrail view: tours with their status              |
+| Overview         | a scratch buffer: trigger, outcome, story, repos, flags | an editor tab, the route in the sidebar                  |
+| A step           | narration and high flag as virtual lines; values at the | narration and high flag in a CodeLens; values as inline  |
+|                  | ends of their lines; position and stack in the winbar   | decorations; call stack and route in the sidebar         |
+| Details          | a float: came from, flags, values, context, notes       | the sidebar's Details section; flags' full text on hover |
+| Into, of several | `vim.ui.select`, so the user's own picker shows it      | a quick pick                                             |
+| The end          | a scratch buffer: the outcome, every flag to jump to    | the tour tab: the outcome, every flag to jump to         |
+| Asking           | a prompt; the answer in a float with its citations      | an input box; the answer in the sidebar's Notes          |
+
+The overview and the end stay open in a buffer or tab of their own. Answers to questions are saved
+on the step as notes, which details show from then on.
+
+### Keys
+
+While a tour is open; every key can be changed or turned off, and in Neovim each action is also a
+command (`:TrailNext`) and a Lua function.
+
+| Action              | Neovim                     | VS Code                  |
+| ------------------- | -------------------------- | ------------------------ |
+| Next, previous      | `]t`, `[t`                 | `Alt+]`, `Alt+[`         |
+| Over                | `<leader>tn`               | `F10`                    |
+| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`       |
+| Details             | `<leader>tt`               | the Details section      |
+| Show or hide values | `<leader>tv`               | Codetrail: Toggle Values |
+| Ask                 | `<leader>ta`               | Codetrail: Ask           |
+| Quit the tour       | `<leader>tq`               | `Escape` in the tour tab |
+
+In VS Code the debugger's keys step a tour only while no debug session runs.

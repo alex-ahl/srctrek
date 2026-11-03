@@ -2,6 +2,16 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — Neovim keeps to the user's windows; VS Code steps with the debugger's keys
+
+The Neovim plugin draws in the user's own windows: virtual lines, the winbar, and floats, with no
+sidebar. The VS Code extension narrates in a CodeLens and keeps the route, call stack, details, and
+notes in a sidebar, and steps with F10, F11, and Shift+F11 while no debug session runs.
+
+Neovim users arrange their windows with care, and a plugin that opens its own rearranges them.
+VS Code has no virtual lines, so the sidebar carries what Neovim shows inline; its debugger's keys
+are the stepping keys VS Code users already know.
+
 ## 2026-11-03 — The editor's theme colours codetrail; context steps aren't stops
 
 Every visual role (the step, changed lines, predicted values, flags, guessed links, stale steps)

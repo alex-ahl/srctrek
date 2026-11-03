@@ -12,6 +12,10 @@
 - Step 5b: the visual language, in `docs/DESIGN.md` and a review page: each role's look, wording,
   and the theme colour it follows in Neovim and VS Code; the call stack newest frame first; context
   steps opened from the step they explain, not visited by next.
+- Step 5c: the editor screens, in `docs/DESIGN.md` and a review page: choosing a tour, the
+  overview, a step, details, stepping into one of several calls, the end, and asking, in Neovim
+  (no sidebar, floats) and VS Code (CodeLens and a sidebar); VS Code steps with the debugger's
+  keys.
 
 ## 2026-10-30 — Milestone 4: `trail serve`
 
