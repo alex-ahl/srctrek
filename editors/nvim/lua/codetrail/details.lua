@@ -1,120 +1,95 @@
--- The overview, a step's details, and the end screen.
+-- The overview, a step's details, and the end screen, from the server's view.
 local popup = require("codetrail.popup")
 local state = require("codetrail.state")
-local step_view = require("codetrail.step_view")
 
 local M = {}
 
-local function present(v)
-  return v ~= nil and v ~= vim.NIL
-end
-
-local function overview(t)
+local function overview(view)
   popup.markdown({
-    "**Trigger** (" .. t.trigger.kind .. "): " .. t.trigger.input,
+    "**Trigger** (" .. view.trigger.kind .. "): " .. view.trigger.input,
     "",
-    "**Outcome:** " .. t.outcome,
+    "**Outcome:** " .. view.outcome,
     "",
-    t.overview,
+    view.overview,
     "",
-    "_" .. #t.steps .. " steps · ]t to start_",
-  }, t.title)
+    "_" .. view.count .. " stops · ]t to start_",
+  }, view.title)
 end
 
-local function step_lines(s, notes)
-  local lines = { "**" .. s.summary .. "**", "", s.details }
-  if present(s.via) then
-    local cites = vim.tbl_map(function(c)
-      return string.format("%s/%s:%d", c.repo, c.file, c.line)
-    end, s.via.cites)
-    vim.list_extend(lines, { "", "**Evidence:** " .. table.concat(cites, ", ") .. (s.via.guessed and "  _guessed_" or "") })
+local FLAGS = {
+  high = "⚠ **likely wrong:** ",
+  medium = "● **risky:** ",
+  low = "● **worth knowing:** ",
+}
+
+local function value_line(v)
+  local described = v.role == "return" and ("returns `" .. v.value .. "`") or ("`" .. v.name .. "` = `" .. v.value .. "`")
+  local wording = v.uncertain and "_predicted, unsure_" or "_predicted_"
+  return string.format("- line %d: ≈ %s %s", v.line, described, wording)
+end
+
+local function note_lines(notes)
+  local lines = {}
+  for _, note in ipairs(notes) do
+    vim.list_extend(lines, { "", "**Q:** " .. note.question, "" })
+    vim.list_extend(lines, vim.split(note.answer, "\n"))
   end
-  if present(s.predicted_values) then
-    vim.list_extend(lines, { "", "**Predicted values**" })
-    for _, v in ipairs(s.predicted_values) do
-      local doubt = v.uncertain and "  ⚠ _uncertain_" or ""
-      table.insert(lines, string.format("- line %d: `%s` = `%s` _(predicted)_%s", v.line, v.name, v.value, doubt))
+  return lines
+end
+
+local function step_lines(view)
+  local lines = { "**" .. view.summary .. "**", "", view.details }
+  if view.flag ~= vim.NIL then
+    vim.list_extend(lines, { "", FLAGS[view.flag.severity] .. view.flag.note })
+  end
+  if #view.predicted_values > 0 then
+    vim.list_extend(lines, { "", "**Values**" })
+    vim.list_extend(lines, vim.tbl_map(value_line, view.predicted_values))
+  end
+  if #view.context > 0 then
+    vim.list_extend(lines, { "", "**Context**" })
+    for _, ref in ipairs(view.context) do
+      table.insert(lines, string.format("- %s/%s:%d: %s", ref.repo, ref.file, ref.start_line, ref.summary))
     end
   end
-  if present(s.uncertain) then
-    vim.list_extend(lines, { "", "> ⚠ **" .. s.uncertain.severity .. ":** " .. s.uncertain.note })
-  end
+  local notes = vim.list_extend(vim.list_slice(view.notes), state.notes[view.id] or {})
   if #notes > 0 then
     vim.list_extend(lines, { "", "---", "", "**Questions**" })
-    for _, note in ipairs(notes) do
-      vim.list_extend(lines, { "", "**Q:** " .. note.question, "" })
-      vim.list_extend(lines, vim.split(note.answer, "\n"))
-    end
+    vim.list_extend(lines, note_lines(notes))
   end
   return lines
 end
 
-local SEVERITY_ORDER = { high = 1, medium = 2, low = 3 }
-
-local function flag_lines(steps)
-  local flagged = vim.tbl_filter(function(s)
-    return present(s.uncertain)
-  end, steps)
-  table.sort(flagged, function(a, b)
-    return SEVERITY_ORDER[a.uncertain.severity] < SEVERITY_ORDER[b.uncertain.severity]
-  end)
-  return vim.tbl_map(function(s)
-    return string.format("- ⚠ **%s** %s/%s:%d: %s", s.uncertain.severity, s.repo, s.file, s.start_line, s.uncertain.note)
-  end, flagged)
+local function step_title(view)
+  local parts = {
+    string.format("%d / %d", view.number, view.count),
+    view.repo,
+    view.step_kind,
+    view.changed and "changed" or "unchanged",
+  }
+  if view.stale then
+    table.insert(parts, "stale: file changed since")
+  end
+  return table.concat(parts, " · ")
 end
 
-local function question_lines()
-  local lines = {}
-  for i = 1, #state.tour.steps do
-    for _, note in ipairs(state.notes[i] or {}) do
-      vim.list_extend(lines, { "", "**" .. state.tour.steps[i].id .. " · Q:** " .. note.question, "" })
-      vim.list_extend(lines, vim.split(note.answer, "\n"))
-    end
-  end
-  return lines
+local function finish(view)
+  popup.markdown({
+    "**End of tour.** " .. view.outcome,
+    "",
+    "_[t last step · <leader>tq end tour_",
+  }, view.title)
 end
 
-local function restart()
-  if vim.api.nvim_win_get_config(0).relative ~= "" then
-    vim.cmd("close")
-  end
-  step_view.clear()
-  vim.wo.winbar = ""
-  state.index, state.stack = 0, {}
-  M.show()
-end
-
--- The end screen sits one position past the last step, so [t returns to that step.
-function M.finish()
-  local t = state.tour
-  state.index = #t.steps + 1
-  local lines = { "**End of trail.** " .. t.outcome }
-  local flags = flag_lines(t.steps)
-  if #flags > 0 then
-    vim.list_extend(lines, { "", "**Flags**" })
-    vim.list_extend(lines, flags)
-  end
-  local questions = question_lines()
-  if #questions > 0 then
-    vim.list_extend(lines, { "", "**Questions**" })
-    vim.list_extend(lines, questions)
-  end
-  vim.list_extend(lines, { "", "_[t last step · gg restart · <leader>tq end tour · enter on a citation jumps_" })
-  local buf = popup.markdown(lines, t.title)
-  vim.keymap.set("n", "gg", restart, { buffer = buf })
-end
-
--- Details for wherever the trail is: the overview, a step, or the end screen.
+-- Details for wherever the tour is: the overview, a step, or the end.
 function M.show()
-  local t = state.tour
-  if state.index > #t.steps then
-    M.finish()
-  elseif state.index == 0 then
-    overview(t)
+  local view = state.view
+  if view.kind == "overview" then
+    overview(view)
+  elseif view.kind == "end" then
+    finish(view)
   else
-    local s = t.steps[state.index]
-    local title = string.format("%s · %s · %s · %s", s.id, s.repo, s.kind, s.changed and "changed" or "unchanged")
-    popup.markdown(step_lines(s, state.notes[state.index] or {}), title)
+    popup.markdown(step_lines(view), step_title(view))
   end
 end
 

@@ -1,93 +1,62 @@
--- Moving through the trail: next, previous, into, out.
+-- Moving through the tour: each move asks the server, and its answer is drawn.
 local details = require("codetrail.details")
+local server = require("codetrail.server")
 local state = require("codetrail.state")
 local step_view = require("codetrail.step_view")
+local winbar = require("codetrail.winbar")
 
 local M = {}
 
-local function step_at(i)
-  local s = vim.deepcopy(state.tour.steps[i])
-  s.path = state.roots[s.repo] .. "/" .. s.file
-  s.changes = state.changed
-  return s
-end
-
-local function winbar()
-  local s = state.tour.steps[state.index]
-  local ids = {}
-  for _, i in ipairs(state.stack) do
-    table.insert(ids, state.tour.steps[i].id)
+-- Every step a view names carries its checkout's path, so the repos' roots come from them.
+local function remember_roots(view)
+  local refs = vim.list_extend({ view }, view.stack)
+  vim.list_extend(refs, view.calls)
+  vim.list_extend(refs, view.context)
+  for _, ref in ipairs(refs) do
+    state.roots[ref.repo] = ref.path:sub(1, #ref.path - #ref.file - 1)
   end
-  table.insert(ids, s.id)
-  vim.wo.winbar = string.format(
-    " codetrail  %d/%d  ·  %s/%s:%d  ·  %s  ·  %s",
-    state.index,
-    #state.tour.steps,
-    s.repo,
-    s.file,
-    s.start_line,
-    s.kind,
-    table.concat(ids, " › ")
-  )
 end
 
 -- Each step fires `User CodetrailStep` with { path, line, repo }; anything may listen.
-local function announce(step)
+local function announce(view)
   vim.api.nvim_exec_autocmds("User", {
     pattern = "CodetrailStep",
-    data = { path = step.path, line = step.start_line, repo = step.repo },
+    data = { path = view.path, line = view.start_line, repo = view.repo },
   })
 end
 
-local function go(i)
-  if not state.tour or i < 1 or i > #state.tour.steps then
-    return
-  end
+local function show_step(view)
+  remember_roots(view)
+  step_view.show(view)
+  vim.wo.winbar = winbar.text(view)
+  announce(view)
+end
+
+function M.show(view)
   if vim.api.nvim_win_get_config(0).relative ~= "" then
     vim.cmd("close")
   end
-  state.index = i
-  local step = step_at(i)
-  step_view.show(step)
-  winbar()
-  announce(step)
-end
+  state.view = view
 
-function M.next()
-  if state.tour and state.index == #state.tour.steps then
-    details.finish()
+  if view.kind == "step" then
+    show_step(view)
   else
-    go(state.index + 1)
+    step_view.clear()
+    vim.wo.winbar = ""
+    details.show()
   end
 end
 
-function M.previous()
-  go(state.index - 1)
-end
-
--- The first step this one calls; choosing among several comes with the protocol.
-local function first_call(id)
-  for i, s in ipairs(state.tour.steps) do
-    if s.kind == "call" and s.from == id then
-      return i
-    end
+local function move(method, params)
+  return function()
+    server.request(method, params, M.show)
   end
 end
 
-function M.into()
-  local s = state.tour and state.tour.steps[state.index]
-  local target = s and first_call(s.id)
-  if target then
-    table.insert(state.stack, state.index)
-    go(target)
-  end
-end
-
-function M.out()
-  local caller = table.remove(state.stack)
-  if caller then
-    go(caller)
-  end
-end
+M.next = move("next")
+M.previous = move("prev")
+M.into = move("into")
+M.over = move("over")
+M.out = move("out")
 
 return M

@@ -48,20 +48,27 @@ a failed build `b` builds again.
 
 ### Stepping in Neovim
 
+`:Trail <name>` opens a tour saved in Neovim's working directory; the plugin starts
+`trail serve` there, so `trail` must be on your `PATH` (or set
+`vim.g.codetrail = { cmd = { "/path/to/trail", "serve" } }`).
+
 The tour opens with an overview. Each step opens its file, highlights its lines, and shows
-a summary above them; changed lines carry `+` or `~` in the sign column.
+a summary above them, with a likely-wrong flag under it; changed lines carry `+` or `~` in
+the sign column, predicted values start with `≈`, and the winbar shows the stop number and
+the call stack.
 
-| Key          | Command                     | Action                                     |
-| ------------ | --------------------------- | ------------------------------------------ |
-| `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous step                       |
-| `<leader>ti` | `:TrailInto`                | Step into                                  |
-| `<leader>to` | `:TrailOut`                 | Step out                                   |
-| `<leader>tt` | `:TrailDetails`             | Details: evidence, predicted values, flags |
-| `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current step      |
-| `<leader>tv` | `:TrailValues`              | Show or hide predicted values              |
-| `<leader>tq` | `:TrailQuit`                | End the trail                              |
+| Key          | Command                     | Action                                    |
+| ------------ | --------------------------- | ----------------------------------------- |
+| `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous step                      |
+| `<leader>tn` | `:TrailOver`                | Step over                                 |
+| `<leader>ti` | `:TrailInto`                | Step into                                 |
+| `<leader>to` | `:TrailOut`                 | Step out                                  |
+| `<leader>tt` | `:TrailDetails`             | Details: flags, predicted values, context |
+| `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current step     |
+| `<leader>tv` | `:TrailValues`              | Show or hide predicted values             |
+| `<leader>tq` | `:TrailQuit`                | End the tour                              |
 
-Keys exist only while a trail is open; the mappings you had on them come back when it ends.
+Keys exist only while a tour is open; the mappings you had on them come back when it ends.
 Change or turn off any key:
 
 ```lua

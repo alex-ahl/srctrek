@@ -1,0 +1,131 @@
+import { describe, expect, test } from "bun:test"
+import { join } from "node:path"
+import { tempDir } from "../../core/test/support/temp"
+import { repoWithTour } from "./support/pay-tour"
+
+const PLUGIN = join(import.meta.dir, "../../../editors/nvim")
+const DRIVER = join(import.meta.dir, "nvim-driver.lua")
+const TRAIL = join(import.meta.dir, "../../cli/src/main.ts")
+
+/** What the editor shows after an action, as nvim-driver.lua records it. */
+type Screen = {
+  view: "overview" | "step" | "end" | null
+  file: string
+  line: number
+  winbar: string
+  float: string[] | null
+  virt_lines: string[]
+  values: { line: number; text: string }[]
+  signs: { line: number; text: string }[]
+  notices: string[]
+}
+
+function isScreens(value: unknown): value is Screen[] {
+  return (
+    Array.isArray(value) && value.every((screen) => typeof screen === "object" && "view" in screen)
+  )
+}
+
+// Headless Neovim in `dir` with the checkout's plugin, running `actions` against the real
+// trail serve.
+async function drive(dir: string, actions: string[]): Promise<Screen[]> {
+  const out = join(await tempDir("nvim-"), "screens.json")
+  const nvim = Bun.spawn(
+    [
+      "nvim",
+      "--headless",
+      "--clean",
+      "--cmd",
+      `set rtp^=${PLUGIN}`,
+      "-c",
+      "runtime! plugin/codetrail.lua",
+      "-c",
+      `luafile ${DRIVER}`,
+    ],
+    {
+      cwd: dir,
+      env: {
+        ...process.env,
+        XDG_CACHE_HOME: await tempDir("cache-"),
+        DRIVE_CMD: JSON.stringify(["bun", TRAIL, "serve"]),
+        DRIVE_ACTIONS: actions.join(","),
+        DRIVE_OUT: out,
+      },
+      stderr: "inherit",
+    },
+  )
+  await nvim.exited
+
+  const screens: unknown = await Bun.file(out).json()
+  if (!isScreens(screens)) {
+    throw new Error(`unexpected screens: ${JSON.stringify(screens)}`)
+  }
+
+  return screens
+}
+
+describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", () => {
+  test("opens a saved tour at its overview, then draws the step the server answers with", async () => {
+    const [overview, first] = await drive(await repoWithTour(), ["start:pay", "next"])
+
+    expect(overview).toMatchObject({ view: "overview", notices: [] })
+    expect(overview?.float).toContain("**Outcome:** paid")
+    expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
+    // the repo is named after its temporary folder
+    expect(first?.winbar).toStartWith(" codetrail  ·  1/3  ·  ")
+    expect(first?.winbar).toEndWith("/main.ts:1  ·  main.ts:1")
+    expect(first?.virt_lines).toEqual(["▶ main calls pay"])
+    expect(first?.signs).toEqual([
+      { line: 1, text: "+" },
+      { line: 2, text: "+" },
+    ])
+  }, 30_000)
+
+  test("draws a called step with its stack, high flag, and predicted values", async () => {
+    const [, , into, hidden] = await drive(await repoWithTour(), [
+      "start:pay",
+      "next",
+      "into",
+      "values",
+    ])
+
+    expect(into).toMatchObject({ file: "pay.ts", line: 1 })
+    expect(into?.winbar).toContain("  ·  2/3  ·  ")
+    expect(into?.winbar).toEndWith("/pay.ts:1  ·  pay ‹ main.ts:1")
+    expect(into?.virt_lines).toEqual(["▶ s", "⚠ 250 is hard-coded"])
+    expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
+    expect(hidden?.values).toEqual([])
+  }, 30_000)
+
+  test("steps out to the end and back, and clears the editor on quit", async () => {
+    const [, , , out, end, back, quit] = await drive(await repoWithTour(), [
+      "start:pay",
+      "next",
+      "into",
+      "out",
+      "next",
+      "previous",
+      "quit",
+    ])
+
+    expect(out).toMatchObject({ file: "main.ts", line: 2 })
+    expect(out?.winbar).toContain("  ·  3/3  ·  ")
+    expect(end).toMatchObject({ view: "end" })
+    expect(end?.float).toContain("**End of tour.** paid")
+    expect(back).toMatchObject({ view: "step", file: "main.ts", line: 2 })
+    expect(quit).toMatchObject({ view: null, winbar: "", virt_lines: [], signs: [] })
+  }, 30_000)
+
+  test("steps over a call to where the caller carries on", async () => {
+    const [, , over] = await drive(await repoWithTour(), ["start:pay", "next", "over"])
+
+    expect(over).toMatchObject({ file: "main.ts", line: 2 })
+  }, 30_000)
+
+  test("reports a tour the server can't find", async () => {
+    const [screen] = await drive(await repoWithTour(), ["start:nope"])
+
+    expect(screen).toMatchObject({ view: null })
+    expect(screen?.notices.join("\n")).toContain("no tour named nope")
+  }, 30_000)
+})

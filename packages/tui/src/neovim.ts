@@ -14,22 +14,36 @@ export function checkoutPluginDir(): string | null {
   return PLUGIN_IN_CHECKOUT.find((dir) => existsSync(dir)) ?? null
 }
 
-export function neovimArgs(tourPath: string, pluginDir: string | null): string[] {
+/**
+ * This trail's own `trail serve`, so the plugin talks to the same version: the binary itself
+ * when compiled (its entry point is inside the binary), or bun with the entry point.
+ */
+export function serveCommand(): string[] {
+  const compiled = Bun.main.startsWith("/$bunfs/")
+
+  return compiled ? [process.execPath, "serve"] : [process.execPath, Bun.main, "serve"]
+}
+
+// A JSON string is a Lua string literal too, for anything without control characters.
+const luaList = (items: string[]) => `{ ${items.map((item) => JSON.stringify(item)).join(", ")} }`
+
+export function neovimArgs(tourName: string, pluginDir: string | null, serve: string[]): string[] {
   // -c runs after the user's config, so a plugin manager that resets the runtimepath at
-  // startup can't drop the checkout's plugin directory.
+  // startup can't drop the checkout's plugin directory, and the user's settings are kept.
   const loadPlugin = pluginDir
     ? ["-c", `set rtp^=${pluginDir}`, "-c", "runtime! plugin/codetrail.lua"]
     : []
+  const useServe = `lua vim.g.codetrail = vim.tbl_deep_extend("force", vim.g.codetrail or {}, { cmd = ${luaList(serve)} })`
 
-  return ["nvim", ...loadPlugin, "-c", `Trail ${tourPath}`]
+  return ["nvim", ...loadPlugin, "-c", useServe, "-c", `Trail ${tourName}`]
 }
 
 /** Hands the terminal to Neovim for the tour, and takes it back when Neovim exits. */
-export async function openInNeovim(renderer: CliRenderer, tourPath: string): Promise<void> {
+export async function openInNeovim(renderer: CliRenderer, tourName: string): Promise<void> {
   const pluginDir = checkoutPluginDir()
   await renderer.suspend()
 
-  const nvim = Bun.spawn(neovimArgs(tourPath, pluginDir), {
+  const nvim = Bun.spawn(neovimArgs(tourName, pluginDir, serveCommand()), {
     stdio: ["inherit", "inherit", "inherit"],
   })
   await nvim.exited

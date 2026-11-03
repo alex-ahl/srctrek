@@ -3,6 +3,7 @@
 return {
   { name = "next", command = "TrailNext", desc = "next step" },
   { name = "previous", command = "TrailPrev", desc = "previous step" },
+  { name = "over", command = "TrailOver", desc = "step over" },
   { name = "into", command = "TrailInto", desc = "step into" },
   { name = "out", command = "TrailOut", desc = "step out" },
   { name = "details", command = "TrailDetails", desc = "details" },

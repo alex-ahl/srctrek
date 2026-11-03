@@ -125,7 +125,7 @@ export async function startHome(root: string, change?: HomeChange): Promise<void
       firstEntries={firstEntries}
       firstStatus={firstStatus}
       firstProposals={firstProposals}
-      onOpen={(entry) => void openInNeovim(renderer, entry.path)}
+      onOpen={(entry) => void openInNeovim(renderer, entry.name)}
       onShowFile={(path) => void openInPager(renderer, path)}
       onQuit={() => {
         renderer.destroy()

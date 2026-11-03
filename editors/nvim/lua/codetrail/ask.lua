@@ -16,13 +16,13 @@ local function agent_cmd()
   return { "sh", "-c", configured .. ' "$CODETRAIL_PROMPT"' }, configured:match("^%S+")
 end
 
+-- A frame by the function it shows, or by its place when the tour doesn't name it.
+local function frame_label(frame)
+  return frame.name ~= vim.NIL and frame.name or string.format("%s/%s:%d", frame.repo, frame.file, frame.start_line)
+end
+
 local function prompt_for(question)
-  local t = state.tour
-  local s = t.steps[state.index]
-  local stack = {}
-  for _, i in ipairs(state.stack) do
-    table.insert(stack, t.steps[i].id)
-  end
+  local view, overview = state.view, state.overview
   local repos = {}
   for name, root in pairs(state.roots) do
     table.insert(repos, "- " .. name .. ": " .. root)
@@ -33,16 +33,17 @@ local function prompt_for(question)
     table.concat(repos, "\n"),
     "Read the code to answer. Do not run anything or modify files.",
     "",
-    "Trail: " .. t.title,
-    "Scenario: " .. t.trigger.input,
+    "Trail: " .. overview.title,
+    "Scenario: " .. overview.trigger.input,
     "",
   }
-  if s then
+  if view.kind == "step" then
+    local v = view
     vim.list_extend(context, {
-      string.format("Current step %s (%d of %d): %s/%s lines %d-%d", s.id, state.index, #t.steps, s.repo, s.file, s.start_line, s.end_line),
-      "Summary: " .. s.summary,
-      "Details: " .. s.details,
-      "Call stack: " .. table.concat(stack, " > "),
+      string.format("Current stop %d of %d: %s/%s lines %d-%d", v.number, v.count, v.repo, v.file, v.start_line, v.end_line),
+      "Summary: " .. v.summary,
+      "Details: " .. v.details,
+      "Call stack: " .. table.concat(vim.tbl_map(frame_label, v.stack), " > "),
       "",
     })
   end
@@ -96,26 +97,26 @@ local function answer_text(res, argv)
 end
 
 local function run(question, argv, name)
-  local index = state.index
+  local view = state.view
   local stop_waiting = show_waiting(name, question)
   local prompt = prompt_for(question)
   local env = { CODETRAIL_PROMPT = prompt }
-  local cwd = state.roots[(state.tour.steps[index] or state.tour.steps[1]).repo]
+  local cwd = view.kind == "step" and state.roots[view.repo] or vim.fn.getcwd()
   vim.system(argv, { cwd = cwd, text = true, env = env }, function(res)
     vim.schedule(function()
       stop_waiting()
       local answer = answer_text(res, argv)
-      state.notes[index] = state.notes[index] or {}
-      table.insert(state.notes[index], { question = question, answer = answer })
+      -- kept on the step, for its details; the overview and the end have none
+      if view.kind == "step" then
+        state.notes[view.id] = state.notes[view.id] or {}
+        table.insert(state.notes[view.id], { question = question, answer = answer })
+      end
       popup.markdown(vim.list_extend({ "**Q:** " .. question, "" }, vim.split(answer, "\n")), "answer")
     end)
   end)
 end
 
 function M.ask()
-  if not state.tour then
-    return
-  end
   local argv, name = agent_cmd()
   if not argv then
     vim.notify("codetrail: set CODETRAIL_AGENT to your agent's headless command", vim.log.levels.ERROR)

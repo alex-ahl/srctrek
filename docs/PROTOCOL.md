@@ -78,4 +78,4 @@ JSON-RPC's own codes for malformed requests, unknown methods, and invalid params
 - Requests are validated in core against their definitions.
 - Contract tests (`packages/serve/test/contract.test.ts`) drive a real `trail serve` over its
   pipes with a JSON-RPC client, as an editor does. Each editor's own client joins them,
-  headless, with the editors in Milestone 6.
+  headless: `packages/serve/test/nvim.test.ts` drives the Neovim plugin against it.

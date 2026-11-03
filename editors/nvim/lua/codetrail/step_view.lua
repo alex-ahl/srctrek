@@ -1,4 +1,5 @@
--- Draws one step in the editor: its lines highlighted, change signs, and narration above it.
+-- Draws one step in the editor: its lines tinted with a bar at the left edge, change signs, the
+-- narration above it, and its context steps counted below.
 local inline_values = require("codetrail.inline_values")
 local state = require("codetrail.state")
 local text = require("codetrail.text")
@@ -29,66 +30,93 @@ local function editor_window()
   return current
 end
 
-local function highlight_range(buf, s, e)
-  for l = s, e do
-    vim.api.nvim_buf_set_extmark(buf, state.ns, l - 1, 0, { line_hl_group = "CodetrailStep" })
+local CHANGE_SIGNS = {
+  added = { text = "+", group = "CodetrailAdded" },
+  changed = { text = "~", group = "CodetrailChanged" },
+}
+
+-- One sign per line: the change's own lines carry theirs, the step's other lines the bar.
+local function signs(view, first, last)
+  local by_line = {}
+  for l = first, last do
+    by_line[l] = { text = "▎", group = "CodetrailStep" }
   end
+  for _, changed in ipairs(view.changed_lines) do
+    by_line[changed.line] = CHANGE_SIGNS[changed.change]
+  end
+  return by_line
 end
 
-local function mark_changes(buf, step, last)
-  local file_changes = (step.changes[step.repo] or {})[step.file] or {}
-  for line, kind in pairs(file_changes) do
-    local l = tonumber(line)
-    if l <= last then
+local function mark_lines(buf, view, first, last)
+  local line_count = vim.api.nvim_buf_line_count(buf)
+  for l, sign in pairs(signs(view, first, last)) do
+    if l <= line_count then
+      local in_step = l >= first and l <= last
       vim.api.nvim_buf_set_extmark(buf, state.ns, l - 1, 0, {
-        sign_text = kind == "added" and "+" or "~",
-        sign_hl_group = kind == "added" and "CodetrailAdded" or "CodetrailChanged",
+        sign_text = sign.text,
+        sign_hl_group = sign.group,
+        line_hl_group = in_step and "CodetrailStep" or nil,
       })
     end
   end
 end
 
--- Virtual lines don't wrap, so the text is wrapped here, up to three lines each; the full
--- text is in the details view. The sign column may appear only after this redraw, so its
--- two columns are reserved up front.
-local function narration(step)
-  local width = vim.api.nvim_win_get_width(0) - vim.fn.getwininfo(vim.api.nvim_get_current_win())[1].textoff - 4
-  local lines = {}
-  for _, l in ipairs(text.wrap("▶ " .. step.summary, width, 3, "  ")) do
-    table.insert(lines, { { l, "CodetrailSummary" } })
+-- Virtual lines don't wrap, so the text is wrapped here, three lines at most; the full text is
+-- in details. The sign column may appear only after this redraw, so its two columns are
+-- reserved up front.
+local function wrapped(line, group, width)
+  return vim.tbl_map(function(l)
+    return { { l, group } }
+  end, text.wrap(line, width, 3, "  "))
+end
+
+local function narration(view, width)
+  local lines = wrapped("▶ " .. view.summary, "CodetrailNarration", width)
+  if not view.changed then
+    table.insert(lines[#lines], { "  unchanged", "CodetrailUnchanged" })
   end
-  if not step.changed then
-    table.insert(lines[#lines], { "  unchanged", "CodetrailMuted" })
-  end
-  -- only high-severity flags show inline; the rest are in the details view
-  local flag = step.uncertain
-  if flag and flag ~= vim.NIL and flag.severity == "high" then
-    for _, l in ipairs(text.wrap("⚠ " .. flag.note, width, 3, "  ")) do
-      table.insert(lines, { { l, "CodetrailWarn" } })
-    end
+  -- only a high flag shows inline; the rest are in details
+  if view.flag ~= vim.NIL and view.flag.severity == "high" then
+    vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", width))
   end
   return lines
 end
 
-function M.show(step)
+local function context_count(view)
+  local count = #view.context
+  if count == 0 then
+    return nil
+  end
+  return { { { count == 1 and "1 context step" or count .. " context steps", "CodetrailContext" } } }
+end
+
+local function text_width()
+  local win = vim.api.nvim_get_current_win()
+  return vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff - 4
+end
+
+function M.show(view)
   M.clear()
   vim.api.nvim_set_current_win(editor_window())
-  vim.cmd("edit " .. vim.fn.fnameescape(step.path))
+  vim.cmd("edit " .. vim.fn.fnameescape(view.path))
   local buf = vim.api.nvim_get_current_buf()
-  local last = vim.api.nvim_buf_line_count(buf)
-  local s, e = math.min(step.start_line, last), math.min(step.end_line, last)
+  local line_count = vim.api.nvim_buf_line_count(buf)
+  local first, last = math.min(view.start_line, line_count), math.min(view.end_line, line_count)
 
-  highlight_range(buf, s, e)
-  mark_changes(buf, step, last)
-  inline_values.show(buf, step, last)
-  local lines = narration(step)
-  vim.api.nvim_buf_set_extmark(buf, state.ns, s - 1, 0, { virt_lines = lines, virt_lines_above = true })
+  mark_lines(buf, view, first, last)
+  inline_values.show(buf, view.predicted_values, line_count)
+  local above = narration(view, text_width())
+  vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, { virt_lines = above, virt_lines_above = true })
+  local below = context_count(view)
+  if below then
+    vim.api.nvim_buf_set_extmark(buf, state.ns, last - 1, 0, { virt_lines = below })
+  end
 
-  vim.api.nvim_win_set_cursor(0, { s, 0 })
+  vim.api.nvim_win_set_cursor(0, { first, 0 })
   vim.cmd("normal! zz")
   -- virtual lines above the first line stay hidden unless the window is scrolled to show them
-  if s == 1 then
-    vim.fn.winrestview({ topline = 1, topfill = #lines })
+  if first == 1 then
+    vim.fn.winrestview({ topline = 1, topfill = #above })
   end
 end
 

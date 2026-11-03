@@ -5,7 +5,7 @@
 ```
 local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──► user's agent
                            │        ▲
-                           ▼        │ JSON over stdio
+                           ▼        │ JSON-RPC over stdio (trail serve)
         tour (.codetrail/tours/<name>.json)   ├── Neovim plugin (stepping, in the editor)
                                               └── tui (home, build view, route map, fallback)
 ```
@@ -24,9 +24,8 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   only while a trail is active and are set through `setup({ keys = … })` or
   `vim.g.codetrail`, where any can be changed or turned off. No integrations with other
   plugins: users wire which-key, explorers, and the like to the commands, functions, and
-  the step event themselves. Today a prototype that reads tour files and steps through them itself; in
-  Milestone 6 it renders core's stepping session through `docs/PROTOCOL.md` and holds no
-  stepping logic of its own.
+  the step event themselves. It starts `trail serve` and draws the views it answers with
+  (`docs/PROTOCOL.md`), holding no stepping logic of its own.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
   stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
   live view while a tour is built; a route map of the whole trail across repos; and a

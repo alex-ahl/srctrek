@@ -1,13 +1,11 @@
--- The one stepping session, shared by every module.
+-- What the plugin keeps while a tour is open; the tour itself and where it stands are the
+-- server's.
 local M = {
-  tour = nil,
-  index = 0, -- 0 is the overview; #tour.steps + 1 is the end screen
-  stack = {}, -- indexes of the steps stepped into, outermost first
-  by_id = {},
-  roots = {}, -- repo name -> directory
-  changed = {}, -- repo -> file -> line -> "added" | "changed"
-  notes = {}, -- step index -> questions asked there
-  saved_maps = {}, -- the user's own mappings on the trail's keys, restored when it ends
+  overview = nil, -- the open tour's overview, as the server first answered
+  view = nil, -- the server's last answer: an overview, a step, or the end
+  roots = {}, -- repo name -> checkout, from the steps seen so far
+  notes = {}, -- step id -> questions asked there this session
+  saved_maps = {}, -- the user's own mappings on the tour's keys, restored when it ends
   show_values = true, -- predicted values at the end of their lines
 }
 

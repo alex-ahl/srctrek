@@ -19,6 +19,13 @@
 - Step 6d: `trail serve` answers `tours` (the saved tours and the change's status), `build`
   (builds or updates the change's tour; error 7 without an agent), and `log`; an unreadable
   change is error 8. The tour list counts stops, as stepping does.
+- Step 6e: the Neovim plugin on `trail serve`: `:Trail <name>` starts it and opens the tour,
+  every move is a request, and the plugin draws the view it gets to the visual language (stop
+  number and call stack in the winbar, `≈` values, the high flag under the narration, stale
+  steps, a count of context steps). Step over is on `<leader>tn`. Its stepping logic and tour
+  reading are gone. Headless Neovim tests drive it against the real server; they're skipped
+  where `nvim` isn't installed, as in CI. The terminal opens a tour in Neovim by name, with its
+  own `trail serve`.
 
 ## 2026-11-03 — Milestone 5: design pass
 
@@ -50,8 +57,7 @@ terminal screens, each reviewed as a mockup. The terminal keeps OpenTUI, kept up
 
 **Known gaps**
 
-- The Neovim plugin has no automated tests or Lua formatter yet, and still steps through
-  tours by itself; it moves onto `trail serve` in Milestone 6.
+- The Neovim plugin has no Lua formatter yet.
 
 **Milestones**
 
@@ -78,8 +84,8 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
 - A context step's `for` names one step, so a context step can't explain several.
-- The Neovim prototype still visits context steps with next; it moves onto `trail serve` in
-  Milestone 6.
+- Neovim's details float has lost the evidence for a step's link (the view doesn't carry `via`)
+  and the end screen its list of flags; both come back with the details and end screens (6f).
 - Over and out count a hop as inside its caller only when a return comes back across it: in a
   tour that never shows a request's response, over from the caller stops inside the handler.
 - One function reached from two callers: a step names one `from`, so the second caller has
