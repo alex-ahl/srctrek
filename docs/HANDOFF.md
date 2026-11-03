@@ -36,6 +36,85 @@
   the handshake, a whole tour, into, over, out, errors, stale steps, and requests sent together
   behind a slow open, answered in order.
 
+**Closed 2026-11-03.** Editors step through a tour by talking to `trail serve`: core holds the
+stepping session (next, prev, into, over, out, goto) over call stacks worked out from the
+tour's links, and answers each request with a view ready to render. Evals score the stacks
+agents build.
+
+**Eval baseline** (one run each, with Step 4c's guide; Milestone 3's baseline stands for the
+runs not repeated)
+
+| Run                                | Score | Stacks | Turns | Input / output tokens |
+| ---------------------------------- | ----- | ------ | ----- | --------------------- |
+| refund, all repos named            | full  | 4/4    | 37    | 506k / 18k            |
+| expire (trigger in unchanged code) | full  | 2/2    | 22    | 386k / 9k             |
+| points (hard to read statically)   | full  | 1/1    | 28    | 405k / 8k             |
+| uploads (Go, channel hand-off)     | full  | 1/1    | 21    | 365k / 7k             |
+| checkout (misnamed service, decoy) | full  | 3/3    | 26    | 486k / 13k            |
+
+**Known gaps**
+
+- The Neovim plugin has no automated tests or Lua formatter yet, and still steps through
+  tours by itself; it moves onto `trail serve` in Milestone 6.
+
+**Milestones**
+
+- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
+  editors, and a GUI, as mockups reviewed before anything is built; the TUI library chosen
+  against those screens.
+- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
+  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
+  narration, change signs, details, stale steps marked, configurable keys, and asking
+  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
+- 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
+  tours built with an older guide, whose prompt hash differs from the current one), build
+  view, route map, and fallback stepping view. `trail` and `trail mcp` report the commit
+  they were built from instead of version 0.0.0, and tours record it.
+- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
+
+The beta release follows milestone 6: the `trail` binary and the .vsix package.
+
+**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
+
+**Open**
+
+- Check the name before going public.
+- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
+  out local-only files (demo tours, changed-lines files) first.
+- OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
+  lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
+  or sooner if an upgrade costs more than a day or a target platform fails to load it.
+- Context steps: next visits them in tour order, so one placed early sits before the step it
+  explains, and `for` names one step. Decide in Milestone 5, with the design, whether context
+  stays in the steps list or becomes a tour-level list whose entries name every step they
+  explain.
+- Over and out count a hop as inside its caller only when a return comes back across it: in a
+  tour that never shows a request's response, over from the caller stops inside the handler.
+- One function reached from two callers: a step names one `from`, so the second caller has
+  no step to step into.
+- The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
+  says the api calls it.
+- Progress from trail serve: a first open of a remote tour (clone, fetch, worktree) and asking
+  take seconds to a minute in silence. Add a progress notification with asking in Milestone 6.
+- Large repos: editor worktrees should check out only the files a tour visits (sparse
+  checkout), with the editors in Milestone 6.
+- Token use: most of it is the context re-read every turn as it grows, so turns matter more
+  than answer sizes; the build log's per-read lines show where they go. Runs vary, so compare
+  guide versions over several runs.
+- Proposed repos: a sibling is read on the work's branch only when it has one of the same name
+  (locally or remote-tracking); otherwise at its default branch, with the hop flagged.
+- Headless builds search the code host or read pull request descriptions only when the
+  agent command in `CODETRAIL_AGENT` allows read-only host tools.
+- Nearby repos: only the folder around the current repo is scanned, not nested layouts such
+  as `~/git/org/repo` across organisations.
+- An updated tour keeps a step whose own files are unchanged, which can still be wrong when
+  code it calls changed.
+- Accepting a proposal whose source pins a branch (`<url>@feature`) pins the repos list to it.
+- WSL not yet tested.
+- `bun test` would collect `*.test.ts` files inside eval fixtures.
+- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
+  `evals/` is not typechecked or type-aware linted.
+
 ## 2026-10-27 — Milestone 3: tour building
 
 **Done**
@@ -203,68 +282,6 @@ tours are marked and updated; evals score quality and measure token use.
 | uploads (Go, channel hand-off)               | full                | 19–20 | 320–350k / 5–7k       |
 | checkout (misnamed service, decoy)           | full, decoy avoided | 26    | 440–480k / 12k        |
 | refund `--update` after a one-line follow-up | full                | 15    | 256k / 3k             |
-
-**Known gaps**
-
-- The Neovim plugin has no automated tests or Lua formatter yet.
-
-**Milestones**
-
-- 4: core as a long-lived process (`trail serve`) with the stepping session and the editor
-  protocol (`docs/PROTOCOL.md`), with contract tests.
-- 5: front-end design pass: flows, screens, and a shared visual language for the TUI, the
-  editors, and a GUI, as mockups reviewed before anything is built; the TUI library chosen
-  against those screens.
-- 6: the editors on the protocol, side by side: a VS Code extension (also for its forks),
-  shipped as a .vsix package to beta testers, and the Neovim plugin; each with stepping,
-  narration, change signs, details, stale steps marked, configurable keys, and asking
-  (`trail ask`, answers through MCP, notes on steps, branch trails for what-if questions).
-- 7: the TUI to the design: home screen (with version, stale, and unreachable states, and
-  tours built with an older guide, whose prompt hash differs from the current one), build
-  view, route map, and fallback stepping view. `trail` and `trail mcp` report the commit
-  they were built from instead of version 0.0.0, and tours record it.
-- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
-
-The beta release follows milestone 6: the `trail` binary and the .vsix package.
-
-**Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
-
-**Open**
-
-- Check the name before going public.
-- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
-  out local-only files (demo tours, changed-lines files) first.
-- OpenTUI, reviewed after Milestone 2: kept for now (about 12.5 MB of the binary, about 40
-  lines of use, all in `packages/tui`). Revisit at Milestone 5 against the designed screens,
-  or sooner if an upgrade costs more than a day or a target platform fails to load it.
-- Context steps: next visits them in tour order, so one placed early sits before the step it
-  explains, and `for` names one step. Decide in Milestone 5, with the design, whether context
-  stays in the steps list or becomes a tour-level list whose entries name every step they
-  explain.
-- One function reached from two callers: a step names one `from`, so the second caller has
-  no step to step into.
-- The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
-  says the api calls it.
-- Progress from trail serve: a first open of a remote tour (clone, fetch, worktree) and asking
-  take seconds to a minute in silence. Add a progress notification with asking in Milestone 6.
-- Large repos: editor worktrees should check out only the files a tour visits (sparse
-  checkout), with the editors in Milestone 6.
-- Token use: most of it is the context re-read every turn as it grows, so turns matter more
-  than answer sizes; the build log's per-read lines show where they go. Runs vary, so compare
-  guide versions over several runs.
-- Proposed repos: a sibling is read on the work's branch only when it has one of the same name
-  (locally or remote-tracking); otherwise at its default branch, with the hop flagged.
-- Headless builds search the code host or read pull request descriptions only when the
-  agent command in `CODETRAIL_AGENT` allows read-only host tools.
-- Nearby repos: only the folder around the current repo is scanned, not nested layouts such
-  as `~/git/org/repo` across organisations.
-- An updated tour keeps a step whose own files are unchanged, which can still be wrong when
-  code it calls changed.
-- Accepting a proposal whose source pins a branch (`<url>@feature`) pins the repos list to it.
-- WSL not yet tested.
-- `bun test` would collect `*.test.ts` files inside eval fixtures.
-- `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
-  `evals/` is not typechecked or type-aware linted.
 
 ## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
 
