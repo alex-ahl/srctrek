@@ -55,7 +55,9 @@ One of:
   without one), lines, kind, name, summary,
   details, flag, predicted values, the change's lines in the file, stale, the call stack back
   across every hop (hops marked), the steps it can step into (each with the line making the
-  call, from its evidence, or null), the context steps that explain it, and notes.
+  call, from its evidence, or null), the context steps that explain it, notes, and where it came
+  from (`came_from`: the earlier step, or the step a context step explains, with its stop
+  number, whether the link is guessed, and the lines its evidence cites with paths to open).
 - `end`: title, outcome, step count.
 
 Payloads are ready to render: the client decides nothing beyond fitting text to its window.

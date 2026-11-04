@@ -51,6 +51,10 @@
   a branch that moved on since keeps opening the user's files; a file that differs opens from
   the tour's copy in the cache, read-only, with "tour's version" in the winbar. The copy is
   checked out only when some file differs.
+- Details show where a step came from: the earlier step by its stop number, `→` for a cited
+  link and `⇢` for one guessed by name, and the lines its evidence cites. Enter on the link goes
+  to that step, on an evidence line opens it, on a context step opens that. The float is plain
+  text coloured by line, so it reads the same without a markdown plugin.
 
 ## 2026-11-03 — Milestone 5: design pass
 
@@ -109,8 +113,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
 - A context step's `for` names one step, so a context step can't explain several.
-- Neovim's details float has lost the evidence for a step's link (the view doesn't carry `via`)
-  and the end screen its list of flags; both come back with the details and end screens (6f).
+- Neovim's end screen has lost its list of flags (the end view doesn't carry them).
 - Over and out count a hop as inside its caller only when a return comes back across it: in a
   tour that never shows a request's response, over from the caller stops inside the handler.
 - One function reached from two callers: a step names one `from`, so the second caller has

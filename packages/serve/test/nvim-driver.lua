@@ -2,7 +2,8 @@
 -- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor,
 -- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float,
 -- "edit:<file>" opens a file of the user's own, "type:<text>" replaces its first line unsaved,
--- "nohidden" turns 'hidden' off), waits
+-- "nohidden" turns 'hidden' off, "enter:<text>" presses enter on the popup line holding <text>),
+-- waits
 -- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
 local codetrail = require("codetrail")
 local state = require("codetrail.state")
@@ -109,6 +110,7 @@ local function run(action)
   local own_winbar = action:match("^winbar:(.+)$")
   local own_file = action:match("^edit:(.+)$")
   local typed = action:match("^type:(.+)$")
+  local entered = action:match("^enter:(.+)$")
   if line then
     vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
     -- headless Neovim fires this only for moves made by keys
@@ -117,6 +119,14 @@ local function run(action)
   elseif own_winbar then
     vim.wo.winbar = own_winbar
     return
+  elseif entered then
+    for i, popup_line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
+      if popup_line:find(entered, 1, true) then
+        vim.api.nvim_win_set_cursor(0, { i, 0 })
+        break
+      end
+    end
+    vim.api.nvim_feedkeys(vim.keycode("<cr>"), "x", false)
   elseif typed then
     vim.api.nvim_buf_set_lines(0, 0, 1, false, { typed })
     return

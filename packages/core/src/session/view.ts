@@ -37,6 +37,20 @@ export type StepRef = {
   summary: string
 }
 
+/** A line the evidence for a link points at, with where the editor opens it. */
+export type Cite = { repo: string; file: string; line: number; path: string }
+
+/**
+ * The step a step came from (`from`), or that a context step explains (`for`), with its stop
+ * number and the link's evidence; `guessed` marks a link matched only by name.
+ */
+export type CameFrom = StepRef & {
+  relation: "from" | "for"
+  number: number
+  guessed: boolean
+  cites: Cite[]
+}
+
 /** One frame of the call stack; `hop` marks the bottom of a stack a hop started. */
 export type Frame = StepRef & { hop: boolean }
 
@@ -62,6 +76,8 @@ export type StepView = StepRef & {
   calls: Call[]
   context: StepRef[]
   notes: NonNullable<TourStep["notes"]>
+  // null for the first step, which came from the trigger
+  came_from: CameFrom | null
 }
 
 export type OverviewView = Pick<Tour, "title" | "overview" | "trigger" | "outcome"> & {
@@ -74,18 +90,26 @@ export type EndView = Pick<Tour, "title" | "outcome"> & { kind: "end"; count: nu
 /** What a front-end draws for the session as it stands, ready to render. */
 export type SessionView = OverviewView | StepView | EndView
 
-function refOf(step: TourStep, context: ViewContext): StepRef {
-  const own = context.own.get(step.repo)
-  const isOwn = own?.files.has(step.file) === true
-  const root = isOwn ? own.root : (context.roots.get(step.repo) ?? "")
+// Where the editor opens a file: the user's own when it's the tour's version, else the tour's
+// copy.
+function placeOf(repo: string, file: string, context: ViewContext) {
+  const own = context.own.get(repo)
+  const isOwn = own?.files.has(file) === true
+  const root = isOwn ? own.root : (context.roots.get(repo) ?? "")
 
+  return {
+    path: join(root, file),
+    tour_copy: !isOwn,
+    own_path: own === undefined ? null : join(own.root, file),
+  }
+}
+
+function refOf(step: TourStep, context: ViewContext): StepRef {
   return {
     id: step.id,
     repo: step.repo,
     file: step.file,
-    path: join(root, step.file),
-    tour_copy: !isOwn,
-    own_path: own === undefined ? null : join(own.root, step.file),
+    ...placeOf(step.repo, step.file, context),
     start_line: step.start_line,
     end_line: step.end_line,
     name: step.name ?? null,
@@ -136,6 +160,27 @@ function callLine(step: TourStep, entered: TourStep): number | null {
   return entered.via?.cites.find(inStep)?.line ?? null
 }
 
+function cameFrom(session: SteppingSession, step: TourStep, context: ViewContext): CameFrom | null {
+  const relation = step.kind === "context" ? "for" : "from"
+  const earlier = session.tour.steps.find((s) => s.id === step[relation])
+  if (earlier === undefined) {
+    return null
+  }
+
+  const cites = (step.via?.cites ?? []).map((cite) => ({
+    ...cite,
+    path: placeOf(cite.repo, cite.file, context).path,
+  }))
+
+  return {
+    ...refOf(earlier, context),
+    relation,
+    number: stopNumber(session, earlier),
+    guessed: step.via?.guessed ?? false,
+    cites,
+  }
+}
+
 function stepView(session: SteppingSession, step: TourStep, context: ViewContext): StepView {
   const { steps } = session.tour
   const ref = (s: TourStep) => refOf(s, context)
@@ -159,6 +204,7 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
     })),
     context: steps.filter((s) => s.kind === "context" && s.for === step.id).map(ref),
     notes: step.notes ?? [],
+    came_from: cameFrom(session, step, context),
   }
 }
 

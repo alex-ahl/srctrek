@@ -149,6 +149,32 @@ describe("sessionView", () => {
     expect(view).toMatchObject({ kind: "step", calls: [{ id: "s11", call_line: null }] })
   })
 
+  test("says where a step came from, by its stop number, with the evidence to open", () => {
+    expect(viewOf("s11").came_from).toMatchObject({
+      id: "s8",
+      relation: "from",
+      number: 8,
+      guessed: false,
+      cites: [
+        { repo: "api", file: "src/server.ts", line: 39, path: "/checkouts/api/src/server.ts" },
+      ],
+    })
+  })
+
+  test("marks a link matched only by name as guessed", () => {
+    const guess = (s: (typeof tour.steps)[number]) =>
+      s.id === "s11" && s.via !== null ? { ...s, via: { ...s.via, guessed: true } } : s
+    const guessed = { ...tour, steps: tour.steps.map(guess) }
+    const view = sessionView(stepTo(openSession(guessed), "s11"), context)
+
+    expect(view).toMatchObject({ kind: "step", came_from: { id: "s8", guessed: true } })
+  })
+
+  test("says which step a context step explains, and that the first step came from the trigger", () => {
+    expect(viewOf("s9").came_from).toMatchObject({ id: "s8", relation: "for", number: 8 })
+    expect(viewOf("s1").came_from).toBeNull()
+  })
+
   test("gives a context step no stack and nothing to enter", () => {
     const view = viewOf("s9")
 

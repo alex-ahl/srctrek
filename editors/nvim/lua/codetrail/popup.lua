@@ -43,6 +43,22 @@ function M.float(lines, title)
   return buf
 end
 
+-- A popup of plain lines, coloured by line, where enter runs a line's action:
+-- doc = { lines, groups = { [line] = group }, actions = { [line] = function } }.
+function M.document(doc, title)
+  local buf = M.float(doc.lines, title)
+  for line, group in pairs(doc.groups) do
+    vim.api.nvim_buf_set_extmark(buf, state.ns, line - 1, 0, { end_row = line, hl_group = group, hl_eol = false })
+  end
+  vim.keymap.set("n", "<cr>", function()
+    local action = doc.actions[vim.api.nvim_win_get_cursor(0)[1]]
+    if action then
+      action()
+    end
+  end, { buffer = buf })
+  return buf
+end
+
 -- A citation reads <repo>/<path>:<line>; the repo name picks the root.
 local function jump_to_citation()
   local word = vim.fn.expand("<cWORD>")

@@ -24,6 +24,10 @@ local FOREGROUND = {
   CodetrailFlagHigh = { group = "DiagnosticError" },
   CodetrailPosition = { group = "Normal", bold = true },
   CodetrailTourCopy = { group = "DiagnosticHint" },
+  CodetrailFlagMedium = { group = "DiagnosticWarn" },
+  CodetrailFlagLow = { group = "DiagnosticInfo" },
+  CodetrailGuessed = { group = "DiagnosticHint" },
+  CodetrailHeading = { group = "Normal", bold = true },
 }
 
 local function colour(group, attribute)

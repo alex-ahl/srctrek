@@ -183,6 +183,20 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     })
   }, 30_000)
 
+  test("says in details where a step came from, with its evidence, and goes back there", async () => {
+    const [, , , details, back] = await drive(await repoWithTour(), [
+      "start:pay",
+      "next",
+      "into",
+      "details",
+      "enter:came from",
+    ])
+
+    expect(details?.float).toContain("→ came from 1 · main.ts:1")
+    expect(details?.float?.join("\n")).toMatch(/evidence: [^/]+\/main\.ts:1/)
+    expect(back).toMatchObject({ view: "step", file: "main.ts", line: 1, floats: 0 })
+  }, 30_000)
+
   test("steps over a call to where the caller carries on", async () => {
     const [, , over] = await drive(await repoWithTour(), ["start:pay", "next", "over"])
 
