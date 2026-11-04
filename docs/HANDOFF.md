@@ -58,6 +58,8 @@
 - The winbar's call stack reads outermost first, `viewContext › ownCheckout`, cut from the left
   when it doesn't fit; the step's place is its repo and short path, the full path being in the
   status line.
+- The band names what details hold beyond every step's text and evidence: a risky or worth-knowing
+  flag, a guessed link, notes; a step with nothing extra shows nothing.
 
 ## 2026-11-03 — Milestone 5: design pass
 

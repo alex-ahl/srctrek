@@ -107,7 +107,9 @@ The vocabulary every surface shares, shown in place on a step in the review page
   winbar's strongest text, and its place (repo, file, line); step ids are for the protocol and
   the tour file.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
-  context steps, and evidence are one key away, in details.
+  context steps, and evidence are one key away, in details. What details hold beyond every
+  step's own text and evidence is named at the end of the band, so it's clear when they're worth
+  opening: `● risky`, `⇢ guessed link`, `2 notes`.
 
 ### Roles
 

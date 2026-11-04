@@ -147,6 +147,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       { line: 2, text: "  →" },
     ])
     expect(into).toMatchObject({ file: "send.ts", line: 1 })
+    // what details hold beyond the band: the risky flag and the guessed link
+    expect(into?.virt_lines).toEqual(["▌ s  new file  ·  ● risky  ·  ⇢ guessed link"])
   }, 30_000)
 
   test("steps into the first call not yet visited when the cursor's line makes none", async () => {

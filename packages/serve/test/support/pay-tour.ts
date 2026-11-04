@@ -95,7 +95,7 @@ export function repoWithTour(): Promise<string> {
 }
 
 // main.ts makes two calls, a line each: main (s1) calls pay (s2) on line 1, then send (s3) on
-// line 2.
+// line 2; the link to send is guessed, and send is flagged risky.
 export function repoWithTwoCalls(): Promise<string> {
   const files: [string, string][] = [
     ["pay.ts", "export function pay() {\n  return 250\n}\n"],
@@ -106,7 +106,14 @@ export function repoWithTwoCalls(): Promise<string> {
   return repoWithSteps(files, ({ step, cites }) => [
     step({ end_line: 2, summary: "main pays, then sends" }),
     step({ id: "s2", file: "pay.ts", end_line: 3, from: "s1", via: cites("main.ts", 1) }),
-    step({ id: "s3", file: "send.ts", end_line: 3, from: "s1", via: cites("main.ts", 2) }),
+    step({
+      id: "s3",
+      file: "send.ts",
+      end_line: 3,
+      from: "s1",
+      via: { ...cites("main.ts", 2), guessed: true },
+      uncertain: { severity: "medium", note: "total may be undefined" },
+    }),
   ])
 }
 

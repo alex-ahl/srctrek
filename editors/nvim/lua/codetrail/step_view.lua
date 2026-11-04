@@ -92,18 +92,65 @@ end
 
 local function tag(view, new_file)
   if new_file then
-    return "new file"
+    return { "new file", "CodetrailUnchanged" }
   end
-  return not view.changed and "unchanged" or nil
+  return not view.changed and { "unchanged", "CodetrailUnchanged" } or nil
+end
+
+local FLAG_HINTS = {
+  medium = { "● risky", "CodetrailFlagMedium" },
+  low = { "● worth knowing", "CodetrailFlagLow" },
+}
+
+-- What details hold that the band doesn't show, so the reader knows they're worth opening; the
+-- details text and evidence every step has don't count.
+local function hints(view)
+  local found = {}
+  if view.flag ~= vim.NIL and FLAG_HINTS[view.flag.severity] then
+    table.insert(found, FLAG_HINTS[view.flag.severity])
+  end
+  if view.came_from ~= vim.NIL and view.came_from.guessed then
+    table.insert(found, { "⇢ guessed link", "CodetrailGuessed" })
+  end
+  local notes = #view.notes + #(state.notes[view.id] or {})
+  if notes > 0 then
+    table.insert(found, { notes == 1 and "1 note" or notes .. " notes", "CodetrailUnchanged" })
+  end
+  return found
+end
+
+local function display_width(chunks)
+  local width = 0
+  for _, chunk in ipairs(chunks) do
+    width = width + vim.fn.strdisplaywidth(chunk[1])
+  end
+  return width
+end
+
+-- The tags and hints after the summary, on its last line, or a line of their own when they
+-- don't fit there.
+local function add_extras(lines, extras, width)
+  if #extras == 0 then
+    return
+  end
+  local chunks = {}
+  for i, extra in ipairs(extras) do
+    table.insert(chunks, on_band(i == 1 and "  " or "  ·  ", "CodetrailUnchanged"))
+    table.insert(chunks, on_band(extra[1], extra[2]))
+  end
+  local last = lines[#lines]
+  if display_width(last) + display_width(chunks) > width then
+    last = { on_band("▌ ", "CodetrailBandEdge") }
+    table.insert(lines, last)
+  end
+  vim.list_extend(last, chunks)
 end
 
 local function narration(view, width, new_file)
   local lines = wrapped(view.summary, "CodetrailNarration", width)
-  local tagged = tag(view, new_file)
-  if tagged then
-    table.insert(lines[#lines], on_band("  " .. tagged, "CodetrailUnchanged"))
-  end
-  -- only a high flag shows inline; the rest are in details
+  local extras = vim.list_extend({ tag(view, new_file) }, hints(view))
+  add_extras(lines, extras, width)
+  -- only a high flag shows inline; the rest are hinted at, and in details
   if view.flag ~= vim.NIL and view.flag.severity == "high" then
     vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", width))
   end
