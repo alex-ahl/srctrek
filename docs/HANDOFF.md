@@ -120,6 +120,10 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 
 **Open**
 
+- The overview float, later: `1 stops` reads `1 stop`; repos and flags show only when there's
+  something to say; wrapped trigger and outcome lines hang under their text; one line of keys
+  (`]t next · [t back · <leader>tt details · ? keys`) with the full list behind `?`. Check how
+  long the agent's overviews run in the evals, and whether the prompt needs a limit.
 - Check the name before going public.
 - Stop ignoring the .codetrail folder once tours are written with portable sources; clear
   out local-only files (demo tours, changed-lines files) first.
