@@ -53,9 +53,30 @@ function M.show(view)
   end
 end
 
+local NOWHERE = {
+  next = "the tour ends here",
+  prev = "this is the start of the tour",
+  into = "nothing to step into here",
+  over = "nothing to step over here",
+  out = "nothing to step out to",
+}
+
+-- A move with nowhere to go answers with the view it had; redrawing that would snap the cursor
+-- back to the step's first line, so it says so instead.
+local function answer(method)
+  return function(view)
+    local before = state.view
+    if before and before.kind == view.kind and before.id == view.id then
+      vim.api.nvim_echo({ { "codetrail: " .. NOWHERE[method] } }, true, {})
+      return
+    end
+    M.show(view)
+  end
+end
+
 local function move(method, params)
   return function()
-    server.request(method, params, M.show)
+    server.request(method, params, answer(method))
   end
 end
 
@@ -85,6 +106,6 @@ M.out = move("out")
 -- Into the call on the cursor's line; elsewhere the server picks the first not yet visited.
 function M.into()
   local call = call_at_cursor(state.view)
-  server.request("into", call and { target = call.id } or nil, M.show)
+  server.request("into", call and { target = call.id } or nil, answer("into"))
 end
 return M

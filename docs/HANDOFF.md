@@ -62,6 +62,13 @@
   flag, a guessed link, notes; a step with nothing extra shows nothing.
 - The end of a tour lists every flag, most severe first, each with its stop and place; enter on
   one goes to its step.
+- A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
+  empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
+  once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
+  (`:tnext`); a move with nowhere to go says so and leaves the cursor; the overview lists the
+  repos, flag counts, and the keys; floats fit their text. The band names each context step and
+  where to look (`◇ not_opened, above`, or its place in another file), and code in the step's
+  file gets `◇` down the gutter; nothing sits under the step's code any more.
 
 ## 2026-11-03 — Milestone 5: design pass
 

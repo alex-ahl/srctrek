@@ -95,7 +95,8 @@ export function repoWithTour(): Promise<string> {
 }
 
 // main.ts makes two calls, a line each: main (s1) calls pay (s2) on line 1, then send (s3) on
-// line 2; the link to send is guessed, and send is flagged risky.
+// line 2; the link to send is guessed, and send is flagged risky. pay's return (s2a) is context
+// for pay, in its own file.
 export function repoWithTwoCalls(): Promise<string> {
   const files: [string, string][] = [
     ["pay.ts", "export function pay() {\n  return 250\n}\n"],
@@ -106,6 +107,16 @@ export function repoWithTwoCalls(): Promise<string> {
   return repoWithSteps(files, ({ step, cites }) => [
     step({ end_line: 2, summary: "main pays, then sends" }),
     step({ id: "s2", file: "pay.ts", end_line: 3, from: "s1", via: cites("main.ts", 1) }),
+    step({
+      id: "s2a",
+      kind: "context",
+      file: "pay.ts",
+      start_line: 2,
+      end_line: 2,
+      summary: "returns a fixed amount",
+      for: "s2",
+      via: cites("pay.ts", 2),
+    }),
     step({
       id: "s3",
       file: "send.ts",
@@ -118,7 +129,7 @@ export function repoWithTwoCalls(): Promise<string> {
 }
 
 // main.ts and pay.ts are on the base branch; the change edits main.ts's second line. main (s1,
-// both lines) calls pay (s2).
+// both lines) calls pay (s2); pay in pay.ts (s1a) is context for main.
 export function repoWithEdit(): Promise<string> {
   const base: [string, string][] = [
     ["pay.ts", "export function pay() {\n  return 250\n}\n"],
@@ -130,6 +141,16 @@ export function repoWithEdit(): Promise<string> {
     files,
     ({ step, cites }) => [
       step({ end_line: 2, summary: "main pays, then logs double" }),
+      step({
+        id: "s1a",
+        kind: "context",
+        file: "pay.ts",
+        end_line: 3,
+        name: "pay",
+        summary: "where the amount comes from",
+        for: "s1",
+        via: cites("main.ts", 1),
+      }),
       step({ id: "s2", file: "pay.ts", end_line: 3, from: "s1", via: cites("main.ts", 1) }),
     ],
     base,

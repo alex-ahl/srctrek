@@ -83,6 +83,10 @@ export type StepView = StepRef & {
 export type OverviewView = Pick<Tour, "title" | "overview" | "trigger" | "outcome"> & {
   kind: "overview"
   count: number
+  // the repos the tour goes through, by name
+  repos: string[]
+  // how many steps carry a flag of each severity
+  flags: Record<NonNullable<TourStep["uncertain"]>["severity"], number>
 }
 
 /** A flagged step, for the end of a tour: its stop number and what its flag says. */
@@ -249,6 +253,14 @@ export function sessionView(session: SteppingSession, context: ViewContext): Ses
   }
 
   const { title, overview, trigger, outcome } = tour
+  const repos = tour.repos.map((repo) => repo.name)
+  const severityCount = (severity: string) =>
+    tour.steps.filter((s) => s.uncertain?.severity === severity).length
+  const flags = {
+    high: severityCount("high"),
+    medium: severityCount("medium"),
+    low: severityCount("low"),
+  }
 
-  return { kind: "overview", title, overview, trigger, outcome, count }
+  return { kind: "overview", title, overview, trigger, outcome, count, repos, flags }
 }

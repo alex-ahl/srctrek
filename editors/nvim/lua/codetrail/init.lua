@@ -95,8 +95,9 @@ function M.quit()
   end
   popup.close()
   step_view.clear()
-  winbar.restore()
+  -- the window's own buffer first: window options like the winbar follow the buffer shown
   origin.restore()
+  winbar.restore()
   unbind_keys(active_keys)
   active_keys = {}
   vim.api.nvim_create_augroup("codetrail_tour", { clear = true })
@@ -104,14 +105,20 @@ function M.quit()
   server.stop()
 end
 
+local function say(message)
+  vim.api.nvim_echo({ { "codetrail: " .. message } }, false, {})
+end
+
 -- The actions, callable from keys, commands, or the user's own mappings at any time.
 local function when_open(fn)
   return function()
-    if not state.view then
+    if state.view then
+      fn()
+    elseif state.opening then
+      say("still opening " .. state.opening .. "…")
+    else
       vim.notify("codetrail: no tour is open; start one with :Trail <tour>", vim.log.levels.WARN)
-      return
     end
-    fn()
   end
 end
 
@@ -132,23 +139,43 @@ local function watch_cursor()
   })
 end
 
-local function opened(overview)
+local function bind_tour_keys()
   if next(active_keys) ~= nil then
     unbind_keys(active_keys)
   end
-  step_view.clear()
-  state.overview, state.roots, state.notes = overview, {}, {}
   active_keys = settings().keys or {}
+  state.keys = active_keys
   bind_keys(active_keys)
   winbar.set_return_hint(active_keys.current or ":TrailCurrent")
+end
+
+local function opened(overview)
+  -- the "opening…" message has done its job
+  vim.api.nvim_echo({}, false, {})
+  step_view.clear()
+  state.opening, state.overview, state.roots, state.notes = nil, overview, {}, {}
   watch_cursor()
   navigation.show(overview)
 end
 
+-- A tour that didn't open leaves no keys behind, unless another tour is still open.
+local function not_opened()
+  state.opening = nil
+  if not state.view then
+    unbind_keys(active_keys)
+    active_keys = {}
+  end
+end
+
+-- The tour's keys are bound at once, so keys pressed while it opens reach codetrail rather than
+-- Neovim's own commands.
 function M.start(name)
+  state.opening = name
+  bind_tour_keys()
+  say("opening " .. name .. "…")
   server.start(settings().cmd, function()
-    server.request("open", { tour = name }, opened)
-  end)
+    server.request("open", { tour = name }, opened, not_opened)
+  end, not_opened)
 end
 
 return M

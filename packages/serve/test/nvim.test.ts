@@ -25,6 +25,8 @@ type Screen = {
   path: string
   read_only: boolean
   event: { path: string; shown: string; line: number } | null
+  next_key_ours: boolean
+  message: string
   floats: number
   notices: string[]
 }
@@ -78,7 +80,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     const [overview, first] = await drive(await repoWithTour(), ["start:pay", "next"])
 
     expect(overview).toMatchObject({ view: "overview", notices: [] })
-    expect(overview?.float).toContain("**Outcome:** paid")
+    for (const line of ["Outcome   paid", "Flags     1 likely wrong", "  ]t           next step"]) {
+      expect(overview?.float).toContain(line)
+    }
     expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
     // the repo is named after its temporary folder
     expect(first?.winbar).toStartWith(" codetrail   1/3  ·  ")
@@ -92,7 +96,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
   test("marks the lines a change edits, beside the step's first line", async () => {
     const [, step] = await drive(await repoWithEdit(), ["start:pay", "next"])
 
-    expect(step?.virt_lines).toEqual(["▌ main pays, then logs double"])
+    // its context step is in another file, so the band names it
+    expect(step?.virt_lines).toEqual(["▌ main pays, then logs double  ◇ pay · pay.ts:1"])
     expect(step?.signs).toEqual([
       { line: 1, text: "▶" },
       { line: 2, text: "~" },
@@ -161,6 +166,11 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
+    // pay's context step is in pay.ts too, so it's marked where its code is
+    expect(into?.calls).toEqual([{ line: 2, text: "  context: returns a fixed amount" }])
+    expect(into?.signs).toContainEqual({ line: 2, text: "◇" })
+    // and the band points to it
+    expect(into?.virt_lines).toEqual(["▌ s  new file  ·  ◇ line 2, in this step"])
   }, 30_000)
 
   test("opens the user's own file when it's the tour's version", async () => {
@@ -211,6 +221,22 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(flagged).toMatchObject({ view: "step", file: "pay.ts", line: 1 })
   }, 30_000)
 
+  test("says when a move has nowhere to go, and leaves the cursor where it is", async () => {
+    // main's last line calls nothing
+    const [, , , stayed] = await drive(await repoWithTour(), [
+      "start:pay",
+      "goto:s3",
+      "cursor:1",
+      "into",
+    ])
+
+    expect(stayed).toMatchObject({
+      file: "main.ts",
+      line: 1,
+      message: "codetrail: nothing to step into here",
+    })
+  }, 30_000)
+
   test("steps over a call to where the caller carries on", async () => {
     const [, , over] = await drive(await repoWithTour(), ["start:pay", "next", "over"])
 
@@ -241,6 +267,12 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(quit).toMatchObject({ file: "pay.ts", line: 2, winbar: "" })
+  }, 30_000)
+
+  test("leaves a fresh Neovim's window empty again when the tour ends", async () => {
+    const [, , , quit] = await drive(await repoWithTour(), ["start:pay", "next", "next", "quit"])
+
+    expect(quit).toMatchObject({ file: "", first_line: "", winbar: "" })
   }, 30_000)
 
   test("keeps unsaved changes and undo history with 'hidden' off, and steps on", async () => {
@@ -282,7 +314,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
   test("reports a tour the server can't find", async () => {
     const [screen] = await drive(await repoWithTour(), ["start:nope"])
 
-    expect(screen).toMatchObject({ view: null })
+    // and leaves no keys of its own behind
+    expect(screen).toMatchObject({ view: null, next_key_ours: false })
     expect(screen?.notices.join("\n")).toContain("no tour named nope")
   }, 30_000)
 })

@@ -55,6 +55,10 @@ local function texts(chunks_list)
   end, chunks_list)
 end
 
+local function last_message()
+  return vim.fn.execute("1messages")
+end
+
 local function screen()
   local win = editor_window()
   local buf = vim.api.nvim_win_get_buf(win)
@@ -89,6 +93,9 @@ local function screen()
     path = vim.api.nvim_buf_get_name(buf),
     read_only = not vim.bo[buf].modifiable,
     event = last_event,
+    -- Neovim maps ]t itself, to :tnext
+    message = vim.trim(last_message()),
+    next_key_ours = (vim.fn.maparg("]t", "n", false, true).desc or ""):find("^codetrail") ~= nil,
     -- as the reader sees it, without its highlight codes
     winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%[%*<]", "")),
     float = floating and vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(current), 0, -1, false) or vim.NIL,
@@ -105,7 +112,7 @@ local function screen()
 end
 
 local function run(action)
-  local view, notified = state.view, #notices
+  local view, notified, message = state.view, #notices, last_message()
   local tour = action:match("^start:(.+)$")
   local line = action:match("^cursor:(%d+)$")
   local own_winbar = action:match("^winbar:(.+)$")
@@ -152,7 +159,7 @@ local function run(action)
   local local_only = { quit = true, details = true, values = true, current = true }
   if not local_only[action] then
     vim.wait(15000, function()
-      return state.view ~= view or #notices > notified
+      return state.view ~= view or #notices > notified or last_message() ~= message
     end, 20)
   end
 end

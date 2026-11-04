@@ -106,6 +106,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 - **Readers see stops, never ids.** A step shows its number among the stops (`9 / 17`), in the
   winbar's strongest text, and its place (repo, file, line); step ids are for the protocol and
   the tour file.
+- **Every action answers.** Opening a tour says so at once; a move with nowhere to go says so
+  and leaves the cursor where it is.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details. What details hold beyond every
   step's own text and evidence is named at the end of the band, so it's clear when they're worth
@@ -113,29 +115,29 @@ The vocabulary every surface shares, shown in place on a step in the review page
 
 ### Roles
 
-| Role            | Looks like                                                       | Wording                     | Neovim default    | VS Code default                   |
-| --------------- | ---------------------------------------------------------------- | --------------------------- | ----------------- | --------------------------------- |
-| Badge           | `codetrail` at the winbar's start                                |                             | info colour       | the debug toolbar                 |
-| The step        | tinted lines, a bar at the left edge                             |                             | mixed: text 8%    | `editor.rangeHighlightBackground` |
-| Current line    | `▶` in the gutter on the step's first line                       |                             | `DiagnosticWarn`  | the debugger's current line       |
-| Narration       | a band above the first line with a `▌` edge, three lines at most | the step's summary          | mixed: info 22%   | `editorCodeLens.foreground`       |
-| Added line      | `+` in the gutter                                                |                             | `Added`           | `editorGutter.addedBackground`    |
-| Changed line    | `~` in the gutter                                                |                             | `Changed`         | `editorGutter.modifiedBackground` |
-| Unchanged step  | a muted tag after the narration                                  | “unchanged”                 | `Comment`         | `descriptionForeground`           |
-| New file        | a muted tag after the narration, no signs                        | “new file”                  | `Comment`         | `descriptionForeground`           |
-| Predicted value | `≈ name = value`, italic, at the line's end                      | “predicted” in details      | `LspInlayHint`    | `editorInlayHint.foreground`      |
-| Doubtful value  | `≈? name = value`                                                | “predicted, unsure”         | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| High flag       | `⚠` line under the narration, tinted                             | “likely wrong”              | `DiagnosticError` | `editorError.foreground`          |
-| Medium flag     | `●` in details                                                   | “risky”                     | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| Low flag        | `●` in details                                                   | “worth knowing”             | `DiagnosticInfo`  | `editorInfo.foreground`           |
-| Cited link      | `→`, with its evidence                                           | “came from”                 | `Normal`          | `foreground`                      |
-| Guessed link    | `⇢`                                                              | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
-| Stale step      | a tag in the winbar and details                                  | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| Tour's version  | a tag in the winbar; the file opens read-only                    | “tour's version”            | `DiagnosticHint`  | a read-only editor                |
-| Away            | a tag in the winbar                                              | “away · <leader>tc returns” | `Comment`         |                                   |
-| Hop             | `↯` and a dashed rule in the call stack                          | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
-| Context steps   | a count under the code, opened from it                           | “2 context steps”           | `Comment`         | `descriptionForeground`           |
-| Call to enter   | `→` at the end of the line making it                             | `↯ api` into another repo   | `Special`         | `textLink.foreground`             |
+| Role            | Looks like                                                                     | Wording                     | Neovim default    | VS Code default                   |
+| --------------- | ------------------------------------------------------------------------------ | --------------------------- | ----------------- | --------------------------------- |
+| Badge           | `codetrail` at the winbar's start                                              |                             | info colour       | the debug toolbar                 |
+| The step        | tinted lines, a bar at the left edge                                           |                             | mixed: text 8%    | `editor.rangeHighlightBackground` |
+| Current line    | `▶` in the gutter on the step's first line                                     |                             | `DiagnosticWarn`  | the debugger's current line       |
+| Narration       | a band above the first line with a `▌` edge, three lines at most               | the step's summary          | mixed: info 22%   | `editorCodeLens.foreground`       |
+| Added line      | `+` in the gutter                                                              |                             | `Added`           | `editorGutter.addedBackground`    |
+| Changed line    | `~` in the gutter                                                              |                             | `Changed`         | `editorGutter.modifiedBackground` |
+| Unchanged step  | a muted tag after the narration                                                | “unchanged”                 | `Comment`         | `descriptionForeground`           |
+| New file        | a muted tag after the narration, no signs                                      | “new file”                  | `Comment`         | `descriptionForeground`           |
+| Predicted value | `≈ name = value`, italic, at the line's end                                    | “predicted” in details      | `LspInlayHint`    | `editorInlayHint.foreground`      |
+| Doubtful value  | `≈? name = value`                                                              | “predicted, unsure”         | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| High flag       | `⚠` line under the narration, tinted                                           | “likely wrong”              | `DiagnosticError` | `editorError.foreground`          |
+| Medium flag     | `●` in details                                                                 | “risky”                     | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Low flag        | `●` in details                                                                 | “worth knowing”             | `DiagnosticInfo`  | `editorInfo.foreground`           |
+| Cited link      | `→`, with its evidence                                                         | “came from”                 | `Normal`          | `foreground`                      |
+| Guessed link    | `⇢`                                                                            | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
+| Stale step      | a tag in the winbar and details                                                | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Tour's version  | a tag in the winbar; the file opens read-only                                  | “tour's version”            | `DiagnosticHint`  | a read-only editor                |
+| Away            | a tag in the winbar                                                            | “away · <leader>tc returns” | `Comment`         |                                   |
+| Hop             | `↯` and a dashed rule in the call stack                                        | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
+| Context steps   | named on the band; in the step's file, `◇` down the gutter beside its code too | “◇ not_opened, above”       | info colour       | `descriptionForeground`           |
+| Call to enter   | `→` at the end of the line making it                                           | `↯ api` into another repo   | `Special`         | `textLink.foreground`             |
 
 ### Call stack
 
@@ -151,13 +153,16 @@ name. The route lists steps the same way.
 A line that makes a call the tour follows ends in `→`; the line already says what it calls, so
 the arrow carries no text, except a hop into another repo, which names it (`↯ api`). Into takes
 the call on the cursor's line, and the first not yet visited when that line makes none, so a
-step opens ready to enter its first call. A call whose evidence points at no line of the step
-is listed under the code with its place (`→ pay.ts:1`).
+step opens ready to enter its first call. A call whose evidence points at no line of the step has no arrow; next and into still reach it.
 
 ### Context steps
 
-Context steps aren't stops: next and prev pass over them, and the step they explain shows how many
-it has, opened on demand.
+Context steps aren't stops: next and prev pass over them. The band of the step they explain names
+each, since the reader's eyes are there: `◇ not_opened, above` when its code is in the step's file
+(or "below", or "in this step"), else `◇ is_fresh · tab.lua:12`. Code in the step's file is also
+marked in place, `◇` down the gutter beside its lines and its summary at the end of its first,
+with the window scrolled to show it beside the step when both fit. Details list them, and enter
+opens one.
 
 ## Editor screens
 
@@ -170,15 +175,15 @@ codetrail sidebar holds the tours, the route, the call stack, details, and notes
 | Screen           | Neovim                                                              | VS Code                                                  |
 | ---------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
 | Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status              |
-| Overview         | a scratch buffer: trigger, outcome, story, repos, flags             | an editor tab, the route in the sidebar                  |
+| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys    | an editor tab, the route in the sidebar                  |
 | A step           | narration and high flag as virtual lines; values at the             | narration and high flag in a CodeLens; values as inline  |
 |                  | ends of their lines; position and stack in the winbar               | decorations; call stack and route in the sidebar         |
 | Details          | a float: came from, flags, values, context, notes                   | the sidebar's Details section; flags' full text on hover |
 | Into, of several | the call on the cursor's line, else the first not visited           | the same                                                 |
-| The end          | a scratch buffer: the outcome, every flag to jump to                | the tour tab: the outcome, every flag to jump to         |
+| The end          | a float: the outcome, every flag to jump to                         | the tour tab: the outcome, every flag to jump to         |
 | Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes          |
 
-The overview and the end stay open in a buffer or tab of their own. Answers to questions are saved
+Answers to questions are saved
 on the step as notes, which details show from then on.
 
 ### Keys

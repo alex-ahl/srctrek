@@ -5,7 +5,6 @@ local M = {}
 local LINKED = {
   CodetrailStale = "DiagnosticWarn",
   CodetrailHop = "Comment",
-  CodetrailContext = "Comment",
   CodetrailAway = "Comment",
   CodetrailCitation = "Underlined",
 }
@@ -82,6 +81,7 @@ local function define_mixed()
     vim.api.nvim_set_hl(0, "CodetrailStepBar", { link = "LineNr", default = true })
     vim.api.nvim_set_hl(0, "CodetrailNarration", { link = "Pmenu", default = true })
     vim.api.nvim_set_hl(0, "CodetrailBandEdge", { link = "Special", default = true })
+    vim.api.nvim_set_hl(0, "CodetrailContext", { link = "DiagnosticInfo", default = true })
     vim.api.nvim_set_hl(0, "CodetrailBadge", { link = "PmenuSel", default = true })
     return
   end
@@ -91,6 +91,8 @@ local function define_mixed()
   vim.api.nvim_set_hl(0, "CodetrailStepBar", { fg = mix(bg, fg, 0.3), default = true })
   vim.api.nvim_set_hl(0, "CodetrailNarration", { fg = fg, bg = band_colour(bg, fg, accent), default = true })
   vim.api.nvim_set_hl(0, "CodetrailBandEdge", { fg = accent, default = true })
+  -- context steps are the tour's commentary, as the band is
+  vim.api.nvim_set_hl(0, "CodetrailContext", { fg = accent, default = true })
   vim.api.nvim_set_hl(0, "CodetrailBadge", { fg = readable_on(accent, bg, fg), bg = accent, bold = true, default = true })
 end
 

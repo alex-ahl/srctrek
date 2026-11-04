@@ -15,22 +15,18 @@ function M.close()
   open = {}
 end
 
+-- Opened one row high, then sized to its lines as they wrap in the window, which only the
+-- window itself can measure.
 function M.float(lines, title)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   vim.bo[buf].modifiable = false
   local width = math.min(110, math.floor(vim.o.columns * 0.8))
-  -- height in screen rows: long lines wrap, so count each one's wrapped rows
-  local rows = 0
-  for _, l in ipairs(lines) do
-    rows = rows + math.max(1, math.ceil(vim.fn.strdisplaywidth(l) / (width - 6)))
-  end
-  local height = math.min(rows, math.floor(vim.o.lines * 0.8))
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
-    height = height,
-    row = math.floor((vim.o.lines - height) / 2) - 1,
+    height = 1,
+    row = 0,
     col = math.floor((vim.o.columns - width) / 2),
     border = "rounded",
     title = " " .. (title or "codetrail") .. " ",
@@ -38,6 +34,13 @@ function M.float(lines, title)
   table.insert(open, win)
   vim.wo.wrap = true
   vim.wo.linebreak = true
+  local height = math.min(vim.api.nvim_win_text_height(win, {}).all, math.floor(vim.o.lines * 0.8))
+  vim.api.nvim_win_set_config(win, {
+    relative = "editor",
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2) - 1,
+    col = math.floor((vim.o.columns - width) / 2),
+  })
   vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
   vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = buf })
   return buf

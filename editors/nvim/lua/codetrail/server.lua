@@ -11,8 +11,9 @@ local function report(message)
   vim.notify("codetrail: " .. message, vim.log.levels.ERROR)
 end
 
--- Sends `method`; `on_result` gets the result, and an error is reported instead.
-function M.request(method, params, on_result)
+-- Sends `method`; `on_result` gets the result, and an error is reported instead, then
+-- `on_error` runs if given.
+function M.request(method, params, on_result, on_error)
   if client == nil then
     report("trail serve isn't running")
     return
@@ -21,6 +22,9 @@ function M.request(method, params, on_result)
   client.request(method, params, function(err, result)
     if err then
       report(err.message)
+      if on_error then
+        on_error()
+      end
       return
     end
 
@@ -62,9 +66,10 @@ function M.stop()
   stopped.terminate()
 end
 
--- Starts `cmd` and shakes hands; `on_ready` runs once the server has agreed. A server that
--- disagrees, on the protocol version say, is stopped: it would refuse everything after.
-function M.start(cmd, on_ready)
+-- Starts `cmd` and shakes hands; `on_ready` runs once the server has agreed, `on_failed` when
+-- it can't start or disagrees. A server that disagrees, on the protocol version say, is
+-- stopped: it would refuse everything after.
+function M.start(cmd, on_ready, on_failed)
   if client ~= nil then
     on_ready()
     return
@@ -72,6 +77,7 @@ function M.start(cmd, on_ready)
 
   client = spawn(cmd)
   if client == nil then
+    on_failed()
     return
   end
 
@@ -79,6 +85,7 @@ function M.start(cmd, on_ready)
     if err then
       report(err.message)
       M.stop()
+      on_failed()
       return
     end
 

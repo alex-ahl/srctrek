@@ -55,7 +55,13 @@ describe("sessionView", () => {
     const overview: SessionView = sessionView(opened, context)
     const end = sessionView(stepNext(stepTo(opened, "s20")), context)
 
-    expect(overview).toMatchObject({ kind: "overview", title: tour.title, count: 17 })
+    expect(overview).toMatchObject({
+      kind: "overview",
+      title: tour.title,
+      count: 17,
+      repos: ["web", "api", "worker"],
+      flags: { high: 4, medium: 4, low: 4 },
+    })
     expect(end).toMatchObject({ kind: "end", outcome: tour.outcome, count: 17 })
   })
 

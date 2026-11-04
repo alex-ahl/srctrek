@@ -1,4 +1,5 @@
 -- The overview, a step's details, and the end screen, from the server's view.
+local actions = require("codetrail.actions")
 local popup = require("codetrail.popup")
 local server = require("codetrail.server")
 local state = require("codetrail.state")
@@ -6,22 +7,10 @@ local text = require("codetrail.text")
 
 local M = {}
 
-local function overview(view)
-  popup.markdown({
-    "**Trigger** (" .. view.trigger.kind .. "): " .. view.trigger.input,
-    "",
-    "**Outcome:** " .. view.outcome,
-    "",
-    view.overview,
-    "",
-    "_" .. view.count .. " stops · ]t to start_",
-  }, view.title)
-end
-
 local FLAGS = {
-  high = { text = "⚠ likely wrong · ", group = "CodetrailFlagHigh" },
-  medium = { text = "● risky · ", group = "CodetrailFlagMedium" },
-  low = { text = "● worth knowing · ", group = "CodetrailFlagLow" },
+  high = { text = "⚠ likely wrong · ", wording = "likely wrong", group = "CodetrailFlagHigh" },
+  medium = { text = "● risky · ", wording = "risky", group = "CodetrailFlagMedium" },
+  low = { text = "● worth knowing · ", wording = "worth knowing", group = "CodetrailFlagLow" },
 }
 
 local function value_line(v)
@@ -116,7 +105,7 @@ local function step_lines(view)
     doc.add("")
     doc.add("Context", nil, "CodetrailHeading")
     for _, ref in ipairs(view.context) do
-      doc.add("  " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id))
+      doc.add("  ◇ " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id), "CodetrailContext")
     end
   end
   local notes = vim.list_extend(vim.list_slice(view.notes), state.notes[view.id] or {})
@@ -141,6 +130,44 @@ local function step_title(view)
     table.insert(parts, "stale: file changed since")
   end
   return table.concat(parts, " · ")
+end
+
+local function flag_counts(flags)
+  local counted = {}
+  for _, severity in ipairs({ "high", "medium", "low" }) do
+    if flags[severity] > 0 then
+      table.insert(counted, flags[severity] .. " " .. FLAGS[severity].wording)
+    end
+  end
+  return #counted > 0 and table.concat(counted, " · ") or "none"
+end
+
+-- The keys this tour has, as configured; turned-off ones aren't listed.
+local function key_lines(doc)
+  for _, action in ipairs(actions) do
+    local key = state.keys[action.name]
+    if key then
+      doc.add(string.format("  %-12s %s", key, action.desc))
+    end
+  end
+end
+
+-- The story, where it starts and ends, its repos and flags, and the keys to step it with.
+local function overview(view)
+  local doc = new_doc()
+  doc.extend(vim.split(view.overview, "\n"))
+  doc.add("")
+  doc.add("Trigger   " .. view.trigger.kind .. " · " .. view.trigger.input)
+  doc.add("Outcome   " .. view.outcome)
+  doc.add("Repos     " .. table.concat(view.repos, ", "))
+  doc.add("Flags     " .. flag_counts(view.flags))
+  doc.add("")
+  doc.add("Keys", nil, "CodetrailHeading")
+  key_lines(doc)
+  doc.add("")
+  local start = state.keys.next and (state.keys.next .. " to start") or ":TrailNext to start"
+  doc.add(view.count .. " stops · " .. start, nil, "CodetrailUnchanged")
+  popup.document(doc, view.title)
 end
 
 -- The outcome, then every flag in the tour, most severe first; enter on one goes to its step.
