@@ -32,6 +32,18 @@ a write, an emitted event) in execution order.
 - **Any agent.** Neovim and VS Code (and its forks) get full editor integration; any other
   editor gets the terminal view and opens steps at their line.
 
+## The tour on screen
+
+- **Next and the narration are the whole tour.** A developer who only steps to the next stop and
+  reads each step's narration follows the flow and sees what's likely wrong.
+- **The narration holds what that takes:** the step's summary, a likely-wrong flag, and short tags
+  such as risky.
+- **Quiet marks may sit in the code:** change signs, predicted values, arrows on the lines that
+  make calls. They're read when wanted and pass unnoticed otherwise.
+- **Everything else is a key away:** details (evidence, values, other flags, context, notes),
+  stepping into, over, and out, and going back to the step. None of it asks for attention until
+  it's used.
+
 ## What it is not
 
 - Not a summary or a review bot. The developer steps through; nothing is concluded for them.

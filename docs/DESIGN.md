@@ -108,6 +108,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
   the tour file.
 - **Every action answers.** Opening a tour says so at once; a move with nowhere to go says so
   and leaves the cursor where it is.
+- **Next and the narration are the whole tour** (`docs/PRODUCT.md`): in Neovim, `]t` and the band
+  above the step; in VS Code, `Alt+]` and the CodeLens.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details. What details hold beyond every
   step's own text and evidence is named at the end of the band, so it's clear when they're worth
