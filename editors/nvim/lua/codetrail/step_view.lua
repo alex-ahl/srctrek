@@ -68,7 +68,10 @@ end
 
 -- The narration sits on a band across the window, from its left edge, so it reads as the
 -- tour's commentary on the code rather than a line of it. Virtual lines don't wrap, so the text
--- is wrapped here, three lines at most; the full text is in details.
+-- is wrapped here, at a width that reads easily however wide the window is.
+local READABLE_WIDTH = 90
+local MAX_LINES = 6
+
 local function band_line(chunks, width)
   local used = 0
   for _, chunk in ipairs(chunks) do
@@ -83,17 +86,14 @@ local function on_band(text_line, group)
 end
 
 -- Each band line starts with an edge in the info colour, as a callout's does.
+local function text_width(width)
+  return math.min(width - 4, READABLE_WIDTH)
+end
+
 local function wrapped(line, group, width)
   return vim.tbl_map(function(l)
     return { on_band("▌ ", "CodetrailBandEdge"), on_band(l, group) }
-  end, text.wrap(line, width - 4, 3, "  "))
-end
-
-local function tag(view, new_file)
-  if new_file then
-    return { "new file", "CodetrailUnchanged" }
-  end
-  return not view.changed and { "unchanged", "CodetrailUnchanged" } or nil
+  end, text.wrap(line, text_width(width), MAX_LINES, ""))
 end
 
 local FLAG_HINTS = {
@@ -101,28 +101,11 @@ local FLAG_HINTS = {
   low = { "● worth knowing", "CodetrailFlagLow" },
 }
 
--- A context step as the band names it: in this file, by where to look; elsewhere, by place.
-local function context_label(view, ref)
-  local name = ref.name ~= vim.NIL and ref.name or nil
-  if ref.path == view.path then
-    local inside = ref.start_line >= view.start_line and ref.start_line <= view.end_line
-    local way = inside and "in this step" or (ref.start_line < view.start_line and "above" or "below")
-    return (name or ("line " .. ref.start_line)) .. ", " .. way
-  end
-  return name and (name .. " · " .. text.place(ref)) or text.place(ref)
-end
-
--- What a reader stepping with next alone mustn't miss: a risky or worth-knowing flag, and the
--- context steps that explain this one. The rest is in details.
+-- What a reader stepping with next alone mustn't miss beyond the narration: a risky or
+-- worth-knowing flag. Background code is named in the narration itself; details list it.
 local function hints(view)
-  local found = {}
-  if view.flag ~= vim.NIL and FLAG_HINTS[view.flag.severity] then
-    table.insert(found, FLAG_HINTS[view.flag.severity])
-  end
-  for _, ref in ipairs(view.context) do
-    table.insert(found, { "◇ " .. context_label(view, ref), "CodetrailContext" })
-  end
-  return found
+  local flag = view.flag ~= vim.NIL and FLAG_HINTS[view.flag.severity]
+  return flag and { flag } or {}
 end
 
 local function display_width(chunks)
@@ -145,17 +128,16 @@ local function add_extras(lines, extras, width)
     table.insert(chunks, on_band(extra[1], extra[2]))
   end
   local last = lines[#lines]
-  if display_width(last) + display_width(chunks) > width then
+  if display_width(last) + display_width(chunks) > text_width(width) + 2 then
     last = { on_band("▌ ", "CodetrailBandEdge") }
     table.insert(lines, last)
   end
   vim.list_extend(last, chunks)
 end
 
-local function narration(view, width, new_file)
+local function narration(view, width)
   local lines = wrapped(view.summary, "CodetrailNarration", width)
-  local extras = vim.list_extend({ tag(view, new_file) }, hints(view))
-  add_extras(lines, extras, width)
+  add_extras(lines, hints(view), width)
   -- only a high flag shows inline; the rest are hinted at, and in details
   if view.flag ~= vim.NIL and view.flag.severity == "high" then
     vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", width))
@@ -238,7 +220,7 @@ function M.show(view)
   mark_lines(buf, view, first, last, new_file)
   mark_calls(buf, view, line_count)
   inline_values.show(buf, view.predicted_values, line_count)
-  local above = narration(view, window_width(), new_file)
+  local above = narration(view, window_width())
   vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, {
     virt_lines = above,
     virt_lines_above = true,
@@ -246,6 +228,7 @@ function M.show(view)
   })
 
   place_window(first, line_count, #above)
+  return { new_file = new_file }
 end
 
 return M

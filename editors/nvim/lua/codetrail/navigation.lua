@@ -35,8 +35,8 @@ end
 
 local function show_step(view)
   remember_roots(view)
-  step_view.show(view)
-  winbar.show(vim.api.nvim_get_current_win(), view)
+  local drawn = step_view.show(view)
+  winbar.show(vim.api.nvim_get_current_win(), view, drawn.new_file)
   announce(view)
 end
 

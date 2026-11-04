@@ -58,10 +58,12 @@
 - The winbar's call stack reads outermost first, `viewContext › ownCheckout`, cut from the left
   when it doesn't fit; the step's place is its repo and short path, the full path being in the
   status line.
-- The band's end names what a reader stepping with next alone mustn't miss: a risky or
-  worth-knowing flag, and the context steps that explain the step, with where to look.
+- The band holds only the narration, flush left, and at its end a risky or worth-knowing flag;
+  the narration names background code, and the winbar tags a step "existing code" or "new file"
+  beside its stop number.
 - The end of a tour lists every flag, most severe first, each with its stop and place; enter on
   one goes to its step.
+- The band wraps the narration at about 90 characters, up to six lines, however wide the window.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -99,9 +101,17 @@ terminal screens, each reviewed as a mockup. The terminal keeps OpenTUI, kept up
 
 **Walking an agent-built tour (refund eval, 2026-11-04)**
 
-Stepping it with `]t` alone, the reader couldn't tell what happened or what each step does. Next:
-the guide's narration first, then an eval run and another walk, then the screen, one small step
-each.
+Stepping it with `]t` alone, the reader couldn't tell what happened or what each step does. The
+guide's narration was rewritten first; on a second walk the story connected from stop to stop,
+background code came with its reason, and the queue hop was cited (refund eval: route 10/10, both
+links cited, bug flagged high, stacks 4/4, 39 turns). The guide items below are done; the screen
+follows, one small step each.
+
+From the second walk:
+
+- The tour's title is long and repeats the route; the guide should ask for a few words.
+- Details' "came from" lists places without what they show: read "Reached from stop N · name",
+  with each evidence line showing its code.
 
 What the agent writes (`packages/core/prompts/`):
 

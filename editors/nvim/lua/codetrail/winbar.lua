@@ -44,9 +44,19 @@ function M.set_return_hint(hint)
   return_hint = hint
 end
 
-local function bar(view, away)
+-- What kind of code the step is, beside its number: code the change adds whole, or existing code
+-- the flow passes through; code the change edits needs no word, its signs show it.
+local function code_tag(view, new_file)
+  if new_file then
+    return "new file"
+  end
+  return not view.changed and "existing code" or nil
+end
+
+local function bar(view, away, new_file)
+  local tag = code_tag(view, new_file)
   local parts = {
-    position(view),
+    position(view) .. (tag and ("  " .. coloured("CodetrailUnchanged", tag)) or ""),
     -- the full path is in the status line; the stack needs the room
     escape(view.repo .. " · " .. text.place(view)),
   }
@@ -85,13 +95,13 @@ function M.restore()
   shown = nil
 end
 
-function M.show(win, view)
+function M.show(win, view, new_file)
   if shown == nil or shown.win ~= win then
     M.restore()
     shown = { win = win, own = own_winbar(win) }
   end
-  shown.view, shown.away = view, false
-  set_winbar(win, bar(view, false))
+  shown.view, shown.away, shown.new_file = view, false, new_file
+  set_winbar(win, bar(view, false, new_file))
 end
 
 -- Away: the step's window shows another file, or its cursor is off the step's lines.
@@ -111,7 +121,7 @@ function M.follow_cursor()
   local away = is_away(shown.win, shown.view)
   if away ~= shown.away then
     shown.away = away
-    set_winbar(shown.win, bar(shown.view, away))
+    set_winbar(shown.win, bar(shown.view, away, shown.new_file))
   end
 end
 

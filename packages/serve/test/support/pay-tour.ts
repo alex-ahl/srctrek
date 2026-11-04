@@ -156,3 +156,15 @@ export function repoWithEdit(): Promise<string> {
     base,
   )
 }
+
+// One step whose narration runs to several sentences, longer than a band line.
+export const LONG_NARRATION = Array.from(
+  { length: 6 },
+  (_, i) => `Sentence ${i + 1} says what happens at this stop and why it matters for paying.`,
+).join(" ")
+
+export function repoWithLongNarration(): Promise<string> {
+  const files: [string, string][] = [["main.ts", "const total = 250\nconsole.log(total)\n"]]
+
+  return repoWithSteps(files, ({ step }) => [step({ summary: LONG_NARRATION })])
+}

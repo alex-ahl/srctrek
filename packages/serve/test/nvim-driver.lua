@@ -3,7 +3,7 @@
 -- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float,
 -- "edit:<file>" opens a file of the user's own, "type:<text>" replaces its first line unsaved,
 -- "nohidden" turns 'hidden' off, "enter:<text>" presses enter on the popup line holding <text>,
--- "goto:<step>" jumps the tour to a step by id),
+-- "goto:<step>" jumps the tour to a step by id, "columns:<n>" sets the screen's width),
 -- waits
 -- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
 local codetrail = require("codetrail")
@@ -120,6 +120,7 @@ local function run(action)
   local typed = action:match("^type:(.+)$")
   local entered = action:match("^enter:(.+)$")
   local step = action:match("^goto:(.+)$")
+  local columns = action:match("^columns:(%d+)$")
   if line then
     vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
     -- headless Neovim fires this only for moves made by keys
@@ -127,6 +128,9 @@ local function run(action)
     return
   elseif own_winbar then
     vim.wo.winbar = own_winbar
+    return
+  elseif columns then
+    vim.o.columns = tonumber(columns)
     return
   elseif step then
     require("codetrail.server").request("goto", { step = step }, require("codetrail.navigation").show)
