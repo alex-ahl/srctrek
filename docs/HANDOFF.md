@@ -67,7 +67,9 @@
 - `<leader>tx` shows a step's context code (contracts, types, where its data came from) in a
   float over the step, each piece under its reason; `q` closes it, enter opens a piece as a step.
   On steps that have any, the winbar shows `◇` beside the stop number; the overview explains it.
-- The band's text starts in the code's column, with half a row of padding above and below.
+- The band's text starts in the code's column, with half a row of padding above and below; the
+  step's tint runs from the window's left edge, under its signs and line numbers, and the band's
+  bottom padding turns into it, so band and step read as one block.
 - Details say where a step came from as "Reached from stop N · name", with each cited line and its
   code under it, so the evidence reads without opening it.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window

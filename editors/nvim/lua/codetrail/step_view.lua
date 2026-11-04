@@ -57,10 +57,12 @@ local function mark_lines(buf, view, first, last, new_file)
   for l, sign in pairs(signs(view, first, last, new_file)) do
     if l <= line_count then
       local in_step = l >= first and l <= last
+      -- the step's tint runs under its signs and line numbers too, from the window's left edge
       vim.api.nvim_buf_set_extmark(buf, state.ns, l - 1, 0, {
         sign_text = sign.text,
-        sign_hl_group = sign.group,
+        sign_hl_group = in_step and (sign.group .. "InStep") or sign.group,
         line_hl_group = in_step and "CodetrailStep" or nil,
+        number_hl_group = in_step and "CodetrailStepNumber" or nil,
       })
     end
   end
@@ -141,11 +143,20 @@ local function add_extras(lines, extras, layout)
   vim.list_extend(last, chunks)
 end
 
--- Half a row of room above and below the text: a terminal row can't be split, so each padding
--- row is half filled in the band's colour against the text, ▄ above and ▀ below.
+-- Half a row of room above and below the text: a terminal row can't be split, so each padding row
+-- is half filled in the band's colour, ▄ above and ▀ below. Below, the other half takes the step's
+-- tint, which runs under the gutter too, so the band runs into its code.
+-- The edge carries on through both, as a quarter block: a cell holds only two colours.
 local function padded(lines, layout)
-  table.insert(lines, 1, { { string.rep("▄", layout.width), "CodetrailBandPad" } })
-  table.insert(lines, { { string.rep("▀", layout.width), "CodetrailBandPad" } })
+  local rest = layout.width - 1
+  table.insert(lines, 1, {
+    { "▖", "CodetrailBandPadEdge" },
+    { string.rep("▄", rest), "CodetrailBandPad" },
+  })
+  table.insert(lines, {
+    { "▘", "CodetrailBandPadEdgeStep" },
+    { string.rep("▀", rest), "CodetrailBandPadStep" },
+  })
   return lines
 end
 

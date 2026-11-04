@@ -72,6 +72,16 @@ end
 -- is darker in some, CursorLine is the cursor's own), so the step's tint, the narration's band,
 -- and the badge are mixed from the theme's text, background, and info colours. Without GUI
 -- colours they fall back to theme groups.
+-- The gutter's signs and line numbers on a step's lines: their own colours on the step's tint.
+local IN_STEP = { "CodetrailStepBar", "CodetrailAdded", "CodetrailChanged", "CodetrailCurrent" }
+
+local function define_in_step(tint)
+  for _, group in ipairs(IN_STEP) do
+    vim.api.nvim_set_hl(0, group .. "InStep", { fg = colour(group, "fg"), bg = tint, default = true })
+  end
+  vim.api.nvim_set_hl(0, "CodetrailStepNumber", { fg = colour("LineNr", "fg"), bg = tint, default = true })
+end
+
 local function define_mixed()
   local fg, accent = colour("Normal", "fg"), colour("DiagnosticInfo", "fg")
   -- a transparent theme leaves the background to the terminal
@@ -79,9 +89,13 @@ local function define_mixed()
   if not (vim.o.termguicolors and fg and accent) then
     vim.api.nvim_set_hl(0, "CodetrailStep", { link = "CursorLine", default = true })
     vim.api.nvim_set_hl(0, "CodetrailStepBar", { link = "LineNr", default = true })
+    define_in_step(colour("CursorLine", "bg"))
     vim.api.nvim_set_hl(0, "CodetrailNarration", { link = "Pmenu", default = true })
     vim.api.nvim_set_hl(0, "CodetrailBandPad", { fg = colour("Pmenu", "bg"), default = true })
+    vim.api.nvim_set_hl(0, "CodetrailBandPadStep", { fg = colour("Pmenu", "bg"), bg = colour("CursorLine", "bg"), default = true })
     vim.api.nvim_set_hl(0, "CodetrailBandEdge", { link = "Special", default = true })
+    vim.api.nvim_set_hl(0, "CodetrailBandPadEdge", { link = "Special", default = true })
+    vim.api.nvim_set_hl(0, "CodetrailBandPadEdgeStep", { link = "Special", default = true })
     vim.api.nvim_set_hl(0, "CodetrailContext", { link = "DiagnosticInfo", default = true })
     vim.api.nvim_set_hl(0, "CodetrailBadge", { link = "PmenuSel", default = true })
     return
@@ -90,10 +104,14 @@ local function define_mixed()
   local tint = mix(bg, fg, 0.08)
   vim.api.nvim_set_hl(0, "CodetrailStep", { bg = tint, default = true })
   vim.api.nvim_set_hl(0, "CodetrailStepBar", { fg = mix(bg, fg, 0.3), default = true })
+  define_in_step(tint)
   local band = band_colour(bg, fg, accent)
   vim.api.nvim_set_hl(0, "CodetrailNarration", { fg = fg, bg = band, default = true })
   vim.api.nvim_set_hl(0, "CodetrailBandPad", { fg = band, default = true })
+  vim.api.nvim_set_hl(0, "CodetrailBandPadStep", { fg = band, bg = tint, default = true })
   vim.api.nvim_set_hl(0, "CodetrailBandEdge", { fg = accent, default = true })
+  vim.api.nvim_set_hl(0, "CodetrailBandPadEdge", { fg = accent, default = true })
+  vim.api.nvim_set_hl(0, "CodetrailBandPadEdgeStep", { fg = accent, bg = tint, default = true })
   -- context steps are the tour's commentary, as the band is
   vim.api.nvim_set_hl(0, "CodetrailContext", { fg = accent, default = true })
   vim.api.nvim_set_hl(0, "CodetrailBadge", { fg = readable_on(accent, bg, fg), bg = accent, bold = true, default = true })

@@ -43,8 +43,8 @@ function isScreens(value: unknown): value is Screen[] {
   )
 }
 
-// The band's text, without the half rows that pad it above and below.
-const onBand = (lines: string[] = []) => lines.filter((line) => !/^[▄▀]+$/.test(line))
+// The band's text, without the rows that pad it above and below.
+const onBand = (lines: string[] = []) => lines.filter((line) => !/^[▖▘][▄▀]*$/.test(line))
 
 // Headless Neovim in `dir` with the checkout's plugin, running `actions` against the real
 // trail serve.
