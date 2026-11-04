@@ -85,7 +85,15 @@ export type OverviewView = Pick<Tour, "title" | "overview" | "trigger" | "outcom
   count: number
 }
 
-export type EndView = Pick<Tour, "title" | "outcome"> & { kind: "end"; count: number }
+/** A flagged step, for the end of a tour: its stop number and what its flag says. */
+export type FlaggedStep = StepRef & { number: number } & NonNullable<TourStep["uncertain"]>
+
+export type EndView = Pick<Tour, "title" | "outcome"> & {
+  kind: "end"
+  count: number
+  // every flag in the tour, most severe first, then in tour order
+  flags: FlaggedStep[]
+}
 
 /** What a front-end draws for the session as it stands, ready to render. */
 export type SessionView = OverviewView | StepView | EndView
@@ -208,6 +216,19 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
   }
 }
 
+const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 }
+
+function flagsOf(session: SteppingSession, context: ViewContext): FlaggedStep[] {
+  const flagged = session.tour.steps.flatMap((step) =>
+    step.uncertain === undefined
+      ? []
+      : [{ ...refOf(step, context), number: stopNumber(session, step), ...step.uncertain }],
+  )
+
+  // a stable sort, so steps of one severity stay in tour order
+  return flagged.toSorted((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
+}
+
 /** The view of the session as it stands: its overview, its current step, or its end. */
 export function sessionView(session: SteppingSession, context: ViewContext): SessionView {
   const { tour } = session
@@ -218,7 +239,13 @@ export function sessionView(session: SteppingSession, context: ViewContext): Ses
   }
 
   if (session.at.kind === "end") {
-    return { kind: "end", title: tour.title, outcome: tour.outcome, count }
+    return {
+      kind: "end",
+      title: tour.title,
+      outcome: tour.outcome,
+      count,
+      flags: flagsOf(session, context),
+    }
   }
 
   const { title, overview, trigger, outcome } = tour

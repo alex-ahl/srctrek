@@ -60,6 +60,8 @@
   status line.
 - The band names what details hold beyond every step's text and evidence: a risky or worth-knowing
   flag, a guessed link, notes; a step with nothing extra shows nothing.
+- The end of a tour lists every flag, most severe first, each with its stop and place; enter on
+  one goes to its step.
 
 ## 2026-11-03 — Milestone 5: design pass
 
@@ -118,7 +120,6 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
 - A context step's `for` names one step, so a context step can't explain several.
-- Neovim's end screen has lost its list of flags (the end view doesn't carry them).
 - Over and out count a hop as inside its caller only when a return comes back across it: in a
   tour that never shows a request's response, over from the caller stops inside the handler.
 - One function reached from two callers: a step names one `from`, so the second caller has

@@ -58,7 +58,8 @@ One of:
   call, from its evidence, or null), the context steps that explain it, notes, and where it came
   from (`came_from`: the earlier step, or the step a context step explains, with its stop
   number, whether the link is guessed, and the lines its evidence cites with paths to open).
-- `end`: title, outcome, step count.
+- `end`: title, outcome, step count, and every flag in the tour, most severe first, each with its
+  step and stop number.
 
 Payloads are ready to render: the client decides nothing beyond fitting text to its window.
 

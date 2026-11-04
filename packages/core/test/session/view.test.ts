@@ -59,6 +59,30 @@ describe("sessionView", () => {
     expect(end).toMatchObject({ kind: "end", outcome: tour.outcome, count: 17 })
   })
 
+  test("lists every flag at the end, most severe first, then in tour order", () => {
+    const end = sessionView(stepNext(stepTo(opened, "s20")), context)
+    if (end.kind !== "end") {
+      throw new Error("no end view")
+    }
+
+    expect(end.flags.map((flag) => `${flag.id}:${flag.severity}`)).toEqual([
+      "s3:high",
+      "s11:high",
+      "s16:high",
+      "s17:high",
+      "s6:medium",
+      "s7:medium",
+      "s15:medium",
+      "s18:medium",
+      "s5:low",
+      "s9:low",
+      "s14:low",
+      "s20:low",
+    ])
+    // s9 is a context step, so it takes the number of the step it explains
+    expect(end.flags.find((flag) => flag.id === "s9")?.number).toBe(8)
+  })
+
   test("places a step in its repo's checkout, with its number and the lines the change touches", () => {
     const view = viewOf("s11")
 

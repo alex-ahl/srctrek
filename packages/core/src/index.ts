@@ -27,6 +27,7 @@ export {
   type CameFrom,
   type Cite,
   type EndView,
+  type FlaggedStep,
   type Frame,
   type OverviewView,
   type OwnCheckout,

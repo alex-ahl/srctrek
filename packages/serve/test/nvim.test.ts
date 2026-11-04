@@ -129,7 +129,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(out).toMatchObject({ file: "main.ts", line: 2 })
     expect(out?.winbar).toContain(" codetrail   3/3  ·  ")
     expect(end).toMatchObject({ view: "end" })
-    expect(end?.float).toContain("**End of tour.** paid")
+    expect(end?.float?.slice(0, 2)).toEqual(["End of tour", "paid"])
+    expect(end?.float).toContain("⚠ likely wrong · 2 · pay.ts:1 · pay")
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 2 })
     expect(quit).toMatchObject({ view: null, winbar: "", virt_lines: [], signs: [] })
   }, 30_000)
@@ -197,6 +198,17 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(details?.float).toContain("→ came from 1 · main.ts:1")
     expect(details?.float?.join("\n")).toMatch(/evidence: [^/]+\/main\.ts:1/)
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 1, floats: 0 })
+  }, 30_000)
+
+  test("goes from a flag at the end to its step", async () => {
+    const [, , , flagged] = await drive(await repoWithTour(), [
+      "start:pay",
+      "goto:s3",
+      "next",
+      "enter:likely wrong",
+    ])
+
+    expect(flagged).toMatchObject({ view: "step", file: "pay.ts", line: 1 })
   }, 30_000)
 
   test("steps over a call to where the caller carries on", async () => {

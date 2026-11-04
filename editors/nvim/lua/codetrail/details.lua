@@ -19,9 +19,9 @@ local function overview(view)
 end
 
 local FLAGS = {
-  high = { text = "⚠ likely wrong: ", group = "CodetrailFlagHigh" },
-  medium = { text = "● risky: ", group = "CodetrailFlagMedium" },
-  low = { text = "● worth knowing: ", group = "CodetrailFlagLow" },
+  high = { text = "⚠ likely wrong · ", group = "CodetrailFlagHigh" },
+  medium = { text = "● risky · ", group = "CodetrailFlagMedium" },
+  low = { text = "● worth knowing · ", group = "CodetrailFlagLow" },
 }
 
 local function value_line(v)
@@ -143,12 +143,25 @@ local function step_title(view)
   return table.concat(parts, " · ")
 end
 
+-- The outcome, then every flag in the tour, most severe first; enter on one goes to its step.
 local function finish(view)
-  popup.markdown({
-    "**End of tour.** " .. view.outcome,
-    "",
-    "_[t last step · <leader>tq end tour_",
-  }, view.title)
+  local doc = new_doc()
+  doc.add("End of tour", nil, "CodetrailHeading")
+  doc.extend(vim.split(view.outcome, "\n"))
+  doc.add("")
+  if #view.flags == 0 then
+    doc.add("No flags.", nil, "CodetrailUnchanged")
+  else
+    doc.add("Flags", nil, "CodetrailHeading")
+  end
+  for _, flag in ipairs(view.flags) do
+    local style = FLAGS[flag.severity]
+    doc.add(string.format("%s%d · %s", style.text, flag.number, labelled(flag)), go_to(flag.id), style.group)
+    doc.add("    " .. flag.note, go_to(flag.id))
+  end
+  doc.add("")
+  doc.add("enter on a flag goes to its step · [t last step · <leader>tq ends the tour", nil, "CodetrailUnchanged")
+  popup.document(doc, view.title)
 end
 
 -- Details for wherever the tour is: the overview, a step, or the end.
