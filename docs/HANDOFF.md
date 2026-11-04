@@ -112,6 +112,15 @@ From the second walk:
 - The tour's title is long and repeats the route; the guide should ask for a few words.
 - Details' "came from" lists places without what they show: read "Reached from stop N · name",
   with each evidence line showing its code.
+- A contract a step crosses or implements (a spec entry, a schema, a message's type) is often the
+  key fact at a boundary: in the refund tour, the spec says amounts are in minor units and web
+  sends 499 major. The narration should name the contract and the term that matters ("the spec
+  says amount is in minor units; web sends 499"), since stop 5's didn't. Fuller version: the
+  roadmap's boundary cards.
+- A contract must be easy to find. Viewing one takes details, then enter on it in Context; next:
+  a key of its own, `<leader>tb`, that opens the step's background code (a pick list, each named
+  by its reason, when there are several; `<leader>tc` back), with `◇ <leader>tb` at the band's
+  end on steps that have any.
 
 What the agent writes (`packages/core/prompts/`):
 
