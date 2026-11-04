@@ -16,11 +16,11 @@ local ask = require("codetrail.ask")
 local details = require("codetrail.details")
 local inline_values = require("codetrail.inline_values")
 local navigation = require("codetrail.navigation")
+local origin = require("codetrail.origin")
 local popup = require("codetrail.popup")
 local server = require("codetrail.server")
 local state = require("codetrail.state")
 local step_view = require("codetrail.step_view")
-local tab = require("codetrail.tab")
 local winbar = require("codetrail.winbar")
 
 local M = {}
@@ -95,7 +95,7 @@ function M.quit()
   popup.close()
   step_view.clear()
   winbar.restore()
-  tab.leave()
+  origin.restore()
   unbind_keys(active_keys)
   active_keys = {}
   vim.api.nvim_create_augroup("codetrail_tour", { clear = true })
@@ -124,17 +124,10 @@ M.details = when_open(details.show)
 M.ask = when_open(ask.ask)
 M.values = when_open(inline_values.toggle)
 
--- The away note follows the cursor, and closing the tour's tab ends the tour.
-local function watch_tour()
-  local group = vim.api.nvim_create_augroup("codetrail_tour", { clear = true })
-  vim.api.nvim_create_autocmd({ "CursorMoved", "BufWinEnter" }, { group = group, callback = winbar.follow_cursor })
-  vim.api.nvim_create_autocmd("TabClosed", {
-    group = group,
-    callback = function()
-      if not tab.is_open() then
-        M.quit()
-      end
-    end,
+local function watch_cursor()
+  vim.api.nvim_create_autocmd({ "CursorMoved", "BufWinEnter" }, {
+    group = vim.api.nvim_create_augroup("codetrail_tour", { clear = true }),
+    callback = winbar.follow_cursor,
   })
 end
 
@@ -147,8 +140,7 @@ local function opened(overview)
   active_keys = settings().keys or {}
   bind_keys(active_keys)
   winbar.set_return_hint(active_keys.current or ":TrailCurrent")
-  tab.enter()
-  watch_tour()
+  watch_cursor()
   navigation.show(overview)
 end
 

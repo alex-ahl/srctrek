@@ -19,7 +19,8 @@ type Screen = {
   signs: { line: number; text: string }[]
   calls: { line: number; text: string }[]
   user_float: boolean
-  tabs: number
+  first_line: string
+  modified: boolean
   floats: number
   notices: string[]
 }
@@ -174,24 +175,31 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(back?.winbar).not.toContain("away")
   }, 30_000)
 
-  test("shows the tour in a fresh Neovim's empty tab", async () => {
-    const [overview, , quit] = await drive(await repoWithTour(), ["start:pay", "next", "quit"])
-
-    expect(overview?.tabs).toBe(1)
-    expect(quit?.tabs).toBe(1)
-  }, 30_000)
-
-  test("gives the tour a tab of its own beside the user's, and closes it on quit", async () => {
-    const [, opened, stepped, quit] = await drive(await repoWithTour(), [
+  test("puts the user back on the file and line they had when the tour ends", async () => {
+    // the tour is on main.ts when it ends
+    const [, , , , quit] = await drive(await repoWithTour(), [
       "edit:pay.ts",
+      "cursor:2",
       "start:pay",
       "next",
       "quit",
     ])
 
-    expect(opened?.tabs).toBe(2)
-    expect(stepped).toMatchObject({ tabs: 2, file: "main.ts" })
-    expect(quit).toMatchObject({ tabs: 1, file: "pay.ts", winbar: "" })
+    expect(quit).toMatchObject({ file: "pay.ts", line: 2, winbar: "" })
+  }, 30_000)
+
+  test("keeps unsaved changes and undo history with 'hidden' off, and steps on", async () => {
+    const [, , , , stepped, quit] = await drive(await repoWithTour(), [
+      "nohidden",
+      "edit:pay.ts",
+      "type:// mine",
+      "start:pay",
+      "next",
+      "quit",
+    ])
+
+    expect(stepped).toMatchObject({ file: "main.ts", notices: [] })
+    expect(quit).toMatchObject({ file: "pay.ts", first_line: "// mine", modified: true })
   }, 30_000)
 
   test("puts the window's own winbar back off a step and on quit", async () => {

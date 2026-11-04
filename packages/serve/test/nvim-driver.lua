@@ -1,7 +1,8 @@
 -- Drives the Neovim plugin as a user would, for nvim.test.ts: runs each action in
 -- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor,
 -- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float,
--- "edit:<file>" opens a file of the user's own), waits
+-- "edit:<file>" opens a file of the user's own, "type:<text>" replaces its first line unsaved,
+-- "nohidden" turns 'hidden' off), waits
 -- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
 local codetrail = require("codetrail")
 local state = require("codetrail.state")
@@ -73,6 +74,8 @@ local function screen()
     file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t"),
     line = vim.api.nvim_win_get_cursor(win)[1],
     -- as the reader sees it, without its highlight codes
+    first_line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1],
+    modified = vim.bo[buf].modified,
     winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%%*", "")),
     float = floating and vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(current), 0, -1, false) or vim.NIL,
     virt_lines = seen.virt_lines,
@@ -80,7 +83,6 @@ local function screen()
     signs = seen.signs,
     calls = seen.calls,
     user_float = user_float ~= nil and vim.api.nvim_win_is_valid(user_float),
-    tabs = #vim.api.nvim_list_tabpages(),
     floats = #vim.tbl_filter(function(w)
       return vim.api.nvim_win_get_config(w).relative ~= ""
     end, vim.api.nvim_list_wins()),
@@ -94,6 +96,7 @@ local function run(action)
   local line = action:match("^cursor:(%d+)$")
   local own_winbar = action:match("^winbar:(.+)$")
   local own_file = action:match("^edit:(.+)$")
+  local typed = action:match("^type:(.+)$")
   if line then
     vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
     -- headless Neovim fires this only for moves made by keys
@@ -101,6 +104,12 @@ local function run(action)
     return
   elseif own_winbar then
     vim.wo.winbar = own_winbar
+    return
+  elseif typed then
+    vim.api.nvim_buf_set_lines(0, 0, 1, false, { typed })
+    return
+  elseif action == "nohidden" then
+    vim.o.hidden = false
     return
   elseif own_file then
     vim.cmd.edit(own_file)

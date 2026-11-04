@@ -35,9 +35,7 @@
 - Knowing where the tour is, in Neovim: the step has a tint of its own (`ColorColumn`, not the
   cursor line's), `▶` on its first line, the winbar says `away · <leader>tc returns` once the
   cursor leaves the step, and `<leader>tc` (`:TrailCurrent`) goes back without moving the tour.
-- Knowing you're in a tour, in Neovim: the tour has a tab of its own (a fresh Neovim's empty tab
-  is used as it is) that quit closes, and closing it ends the tour; a `codetrail` badge starts
-  the winbar; the narration sits on a band across the window. The step's tint, the band, and
+- Knowing you're in a tour, in Neovim: a `codetrail` badge starts the winbar; the narration sits on a band across the window. The step's tint, the band, and
   the badge are mixed from the theme's text, background, and info colours, checked across
   Neovim's built-in themes, dark and light: no theme group is distinct in all of them.
 - Reading a step, in Neovim: the stop number is the winbar's strongest text; a file the change
@@ -45,6 +43,10 @@
   without scrolling past a short file's end; the band has a `▌` edge, and stays distinct from
   the tint on light themes. `scripts/nvim-screen.lua` captures the plugin's screen as text and a
   picture, for checking a change across colour schemes.
+- A tour loses nothing of the user's: the tab it had is gone, and each window it draws in gets
+  back its file, cursor, and scroll on quit. A buffer it replaces stays loaded while the tour
+  runs, so with 'hidden' off its unsaved changes and undo history survive and the step still
+  opens.
 
 ## 2026-11-03 — Milestone 5: design pass
 

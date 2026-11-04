@@ -91,10 +91,12 @@ The vocabulary every surface shares, shown in place on a step in the review page
   only the theme colour's foreground. No theme group is distinct from the background in every
   theme, so the step's tint, the narration's band, and the badge are mixed from the theme's
   text, background, and info colours.
+- **Nothing the user has is lost.** A tour changes no file, buffer, window, key, or setting of the
+  user's for good: whatever it borrows (a window, a key, the winbar) comes back as it was when the
+  tour ends, and nothing it does while running can throw away unsaved changes or undo history.
 - **Changed code gets the attention.** The step's lines are tinted, the change's own lines carry a
   sign in the gutter, and an unchanged step says so quietly.
-- **It's always clear you're in a tour, and where.** The tour has a tab of its own and a badge at
-  the start of the winbar; the narration sits on a band across the window, so it reads as
+- **It's always clear you're in a tour, and where.** A badge starts the winbar; the narration sits on a band across the window, so it reads as
   commentary, not code; the step's tint is its own, never the cursor line's; its first line
   carries `▶`, as a debugger's current line does; and once the reader moves away, the winbar
   says so and how to get back.
@@ -151,9 +153,9 @@ it has, opened on demand.
 
 ## Editor screens
 
-Neovim and VS Code side by side, in the review page for Step 5c. Neovim shows the tour in a tab of
-its own (a fresh Neovim's empty tab is used as it is), closed on quit, with virtual lines, the
-winbar, and floats, and no sidebar; closing the tab ends the tour. VS Code can't put lines of text
+Neovim and VS Code side by side, in the review page for Step 5c. Neovim draws the tour in the
+user's own windows, with virtual lines, the winbar, and floats, and no sidebar; quitting puts back
+what each window showed. VS Code can't put lines of text
 between lines of code, so its narration and high flag sit in a CodeLens above the step, and a
 codetrail sidebar holds the tours, the route, the call stack, details, and notes.
 

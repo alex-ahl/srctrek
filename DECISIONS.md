@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-03 — A tour loses nothing of the user's, and has no tab
+
+A tour borrows the user's own windows and gives them back on quit: each window returns to its
+file, cursor, and scroll, and a buffer the tour replaces stays loaded while it runs. Nothing a
+tour does may throw away unsaved changes, undo history, or a setting.
+
+The tour's own tab was dropped: the badge, the band, and the tint already say a tour is on,
+`<leader>tc` goes back to it, and the tab's label was a file path. What it protected, the
+user's windows, is restored directly instead. Opening a second Neovim was rejected: Neovim can't
+open a terminal itself without assuming the user's terminal or multiplexer, and the user would
+lose their buffers and language servers beside the tour.
+
 ## 2026-11-03 — Step into follows the cursor; calls are marked at their line
 
 A line making a call the tour follows ends in `→`, and step into takes the call on the cursor's

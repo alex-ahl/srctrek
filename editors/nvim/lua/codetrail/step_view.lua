@@ -2,6 +2,7 @@
 -- narration above it, an arrow at each line that leads to another step, and below it what
 -- the code can't point at: calls with no line, and its context steps counted.
 local inline_values = require("codetrail.inline_values")
+local origin = require("codetrail.origin")
 local state = require("codetrail.state")
 local text = require("codetrail.text")
 
@@ -195,7 +196,9 @@ end
 
 function M.show(view)
   M.clear()
-  vim.api.nvim_set_current_win(editor_window())
+  local win = editor_window()
+  origin.keep(win)
+  vim.api.nvim_set_current_win(win)
   vim.cmd("edit " .. vim.fn.fnameescape(view.path))
   local buf = vim.api.nvim_get_current_buf()
   local line_count = vim.api.nvim_buf_line_count(buf)

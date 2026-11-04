@@ -52,8 +52,7 @@ a failed build `b` builds again.
 `trail serve` there, so `trail` must be on your `PATH` (or set
 `vim.g.codetrail = { cmd = { "/path/to/trail", "serve" } }`).
 
-The tour opens in a tab of its own, with an overview; quitting closes the tab. Each step opens
-its file, highlights its lines, and shows
+The tour opens with an overview. Each step opens its file in your window, highlights its lines, and shows
 a summary on a band above them, with a likely-wrong flag under it; changed lines carry `+` or `~` in
 the sign column, predicted values start with `≈`, and the winbar shows the stop number and
 the call stack; `▶` marks the step's first line, and the winbar says when you've moved
@@ -72,7 +71,8 @@ on the cursor's line, or the first not yet visited.
 | `<leader>tv` | `:TrailValues`              | Show or hide predicted values             |
 | `<leader>tq` | `:TrailQuit`                | End the tour                              |
 
-Keys exist only while a tour is open; the mappings you had on them come back when it ends.
+Keys exist only while a tour is open; the mappings you had on them come back when it ends, and
+each window the tour used goes back to the file and place you had.
 Change or turn off any key:
 
 ```lua

@@ -3,8 +3,6 @@
 local M = {
   overview = nil, -- the open tour's overview, as the server first answered
   view = nil, -- the server's last answer: an overview, a step, or the end
-  tab = nil, -- the tab the tour shows in
-  own_tab = false, -- whether the tour opened that tab, and so closes it
   roots = {}, -- repo name -> checkout, from the steps seen so far
   notes = {}, -- step id -> questions asked there this session
   saved_maps = {}, -- the user's own mappings on the tour's keys, restored when it ends
