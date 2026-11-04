@@ -1,4 +1,4 @@
--- The winbar over a step: its stop number, its place, and the call stack, newest frame first.
+-- The winbar over a step: its stop number, its place, and the call stack.
 -- It stands in for the window's own winbar while the step is shown.
 local text = require("codetrail.text")
 
@@ -16,17 +16,17 @@ local function label(ref)
   return ref.name ~= vim.NIL and ref.name or text.place(ref)
 end
 
--- A hop's frame is followed by what started it, so the separator after it says so.
+-- Outermost first, as a path reads, with ↯ before the frame a hop started. Cut from the left
+-- when the window is narrow (%<), so the step's own frame stays in view.
 local function stack_text(frames)
   local parts = {}
-  for i = #frames, 1, -1 do
-    local frame = frames[i]
-    table.insert(parts, escape(label(frame)))
+  for i, frame in ipairs(frames) do
     if i > 1 then
-      table.insert(parts, frame.hop and coloured("CodetrailHop", " ↯ ") or " ‹ ")
+      table.insert(parts, frame.hop and coloured("CodetrailHop", " ↯ ") or " › ")
     end
+    table.insert(parts, escape(label(frame)))
   end
-  return table.concat(parts)
+  return "%<" .. table.concat(parts)
 end
 
 local function position(view)
@@ -47,7 +47,8 @@ end
 local function bar(view, away)
   local parts = {
     position(view),
-    escape(view.repo .. "/" .. view.file .. ":" .. view.start_line),
+    -- the full path is in the status line; the stack needs the room
+    escape(view.repo .. " · " .. text.place(view)),
   }
   if view.tour_copy then
     table.insert(parts, coloured("CodetrailTourCopy", "tour's version"))

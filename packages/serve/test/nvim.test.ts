@@ -82,7 +82,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
     // the repo is named after its temporary folder
     expect(first?.winbar).toStartWith(" codetrail   1/3  ·  ")
-    expect(first?.winbar).toEndWith("/main.ts:1  ·  main.ts:1")
+    expect(first?.winbar).toEndWith(" · main.ts:1  ·  main.ts:1")
     // the change adds main.ts whole, so a tag says so instead of a + on every line
     expect(first?.virt_lines).toEqual(["▌ main calls pay  new file"])
     expect(first?.signs).toEqual([{ line: 1, text: "▶" }])
@@ -109,7 +109,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
     expect(into?.winbar).toContain(" codetrail   2/3  ·  ")
-    expect(into?.winbar).toEndWith("/pay.ts:1  ·  pay ‹ main.ts:1")
+    expect(into?.winbar).toEndWith(" · pay.ts:1  ·  main.ts:1 › pay")
     expect(into?.virt_lines).toEqual(["▌ s  new file", "▌ ⚠ 250 is hard-coded"])
     expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
     expect(hidden?.values).toEqual([])

@@ -55,6 +55,9 @@
   link and `⇢` for one guessed by name, and the lines its evidence cites. Enter on the link goes
   to that step, on an evidence line opens it, on a context step opens that. The float is plain
   text coloured by line, so it reads the same without a markdown plugin.
+- The winbar's call stack reads outermost first, `viewContext › ownCheckout`, cut from the left
+  when it doesn't fit; the step's place is its repo and short path, the full path being in the
+  status line.
 
 ## 2026-11-03 — Milestone 5: design pass
 

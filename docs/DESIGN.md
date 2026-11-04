@@ -137,9 +137,12 @@ The vocabulary every surface shares, shown in place on a step in the review page
 
 ### Call stack
 
-Newest frame on top, as in a debugger; a hop separates what one process ran from what started
-it. Each frame shows its step's name (`createRefund`) and place (`handlers/refunds.ts:8`), or
-the place alone when the tour gives no name. The route lists steps the same way.
+A list of frames (VS Code's sidebar) puts the newest on top, as in a debugger. A line of them
+(Neovim's winbar) reads outermost first, as a path does, `POST /refunds › createRefund ›
+publish`, and is cut from the left when it doesn't fit, so the step's own frame stays in view. A
+hop separates what one process ran from what started it (`↯` in place of `›`). Each frame shows
+its step's name (`createRefund`), or its place (`handlers/refunds.ts:8`) when the tour gives no
+name. The route lists steps the same way.
 
 ### Calls
 
