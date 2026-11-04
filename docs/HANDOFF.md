@@ -97,6 +97,47 @@
 visual language that follows the editor's theme, the editor screens in Neovim and VS Code, and the
 terminal screens, each reviewed as a mockup. The terminal keeps OpenTUI, kept up to date until 1.0.
 
+**Walking an agent-built tour (refund eval, 2026-11-04)**
+
+Stepping it with `]t` alone, the reader couldn't tell what happened or what each step does. Next:
+the guide's narration first, then an eval run and another walk, then the screen, one small step
+each.
+
+What the agent writes (`packages/core/prompts/`):
+
+- Background code comes with the reason to look, in words, in the narration ("the order id and
+  amount come from `renderOrder`, which drew the button"), not a name and place tacked on the
+  band. The most important item.
+- Narration of a few sentences when a step needs it: what happens, and why it matters for the
+  scenario.
+- Each stop says how it follows from the last, most of all after a return or a hop ("once the
+  api answers 202…"). To be tested on the walk after the guide changes.
+- Values that decide the path first, and short (`<button refund o_1001 499>`, not the markup).
+- A step that receives a request is named by its route (`POST /refunds`), not "HTTP server".
+- A call through a lookup cites its call site as well as where the target is registered.
+- A link is guessed only when no cited line proves it: a shared topic, URL, or config value cited
+  on both sides is cited, and a remaining doubt is a low flag. The guide currently says both.
+
+The tour format:
+
+- A guessed link carries what was assumed and how to check it.
+- Context steps stay, or become a "see also" list with a reason each: still to decide.
+
+The screen:
+
+- The band says where `]t` goes next ("next: into `refund`, line 11"), and that call's arrow
+  stands out.
+- A hop nobody waits on (a queue, an event) starts a fresh stack, `poll_once ↯ started by publish
+(api)`; a hop with an answer keeps the chain. The stack names the repo at a hop.
+- "unchanged" says that the step is existing code the flow passes through.
+- Values read `name ≈ value`, cut at about 40 characters, in full in details.
+- The tour's marks come before diagnostics and other text at a line's end.
+- Diagnostics are hidden in the tour's read-only copies.
+- Details offer a guessed link's evidence in the quickfix list.
+- The away note reworded and placed where it doesn't shift the winbar.
+- The winbar's parts get colour and clearer separators.
+- The step event names the file's repo root, so a file tree can follow into another repo.
+
 **Known gaps**
 
 - The Neovim plugin has no Lua formatter yet.
