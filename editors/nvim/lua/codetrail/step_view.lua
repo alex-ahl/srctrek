@@ -1,5 +1,5 @@
 -- Draws one step in the editor: its lines tinted with a bar at the left edge, change signs, the
--- narration above it, an arrow at each line that leads to another step, and its context steps.
+-- narration above it, and an arrow at each line that leads to another step.
 local inline_values = require("codetrail.inline_values")
 local origin = require("codetrail.origin")
 local state = require("codetrail.state")
@@ -112,22 +112,15 @@ local function context_label(view, ref)
   return name and (name .. " · " .. text.place(ref)) or text.place(ref)
 end
 
--- What details hold that the band doesn't show, so the reader knows they're worth opening; the
--- details text and evidence every step has don't count.
+-- What a reader stepping with next alone mustn't miss: a risky or worth-knowing flag, and the
+-- context steps that explain this one. The rest is in details.
 local function hints(view)
   local found = {}
   if view.flag ~= vim.NIL and FLAG_HINTS[view.flag.severity] then
     table.insert(found, FLAG_HINTS[view.flag.severity])
   end
-  if view.came_from ~= vim.NIL and view.came_from.guessed then
-    table.insert(found, { "⇢ guessed link", "CodetrailGuessed" })
-  end
   for _, ref in ipairs(view.context) do
     table.insert(found, { "◇ " .. context_label(view, ref), "CodetrailContext" })
-  end
-  local notes = #view.notes + #(state.notes[view.id] or {})
-  if notes > 0 then
-    table.insert(found, { notes == 1 and "1 note" or notes .. " notes", "CodetrailUnchanged" })
   end
   return found
 end
@@ -204,28 +197,6 @@ local function mark_calls(buf, view, line_count)
   end
 end
 
--- A context step whose code is in this file is marked where that code is, ◇ down the gutter and
--- its summary on its first line, so the block reads as one; the band points the reader to it.
-local function context_here(view)
-  return vim.tbl_filter(function(ref)
-    return ref.path == view.path
-  end, view.context)
-end
-
-local function mark_context(buf, view, line_count)
-  for _, ref in ipairs(context_here(view)) do
-    for line = ref.start_line, math.min(ref.end_line, line_count) do
-      vim.api.nvim_buf_set_extmark(buf, state.ns, line - 1, 0, {
-        sign_text = "◇",
-        sign_hl_group = "CodetrailContext",
-        virt_text = line == ref.start_line and { { "  context: " .. ref.summary, "CodetrailContext" } } or nil,
-        virt_text_pos = line == ref.start_line and "eol" or nil,
-        hl_mode = "combine",
-      })
-    end
-  end
-end
-
 -- A file the change adds whole, so one tag says it rather than a + on every line.
 local function is_new_file(view, line_count)
   local added = vim.tbl_filter(function(changed)
@@ -235,18 +206,11 @@ local function is_new_file(view, line_count)
 end
 
 -- The step near the top, a few lines below it, without scrolling past the end of a short file;
--- context code above it in the same file is brought into view too when both fit. Virtual lines
--- above a window's first line show only when it's scrolled to show them.
-local function place_window(view, first, last, line_count, above)
+-- virtual lines above a window's first line show only when it's scrolled to show them.
+local function place_window(first, line_count, above)
   local height = vim.api.nvim_win_get_height(0)
-  local earliest = first
-  for _, ref in ipairs(context_here(view)) do
-    if last - ref.start_line + above + 2 < height then
-      earliest = math.min(earliest, ref.start_line)
-    end
-  end
   local latest = math.max(1, line_count - height + above + 1)
-  local top = math.min(math.max(1, earliest - 3), latest)
+  local top = math.min(math.max(1, first - 3), latest)
   vim.api.nvim_win_set_cursor(0, { first, 0 })
   vim.fn.winrestview({ topline = top, topfill = top == first and above or 0 })
 end
@@ -273,7 +237,6 @@ function M.show(view)
   local new_file = is_new_file(view, line_count)
   mark_lines(buf, view, first, last, new_file)
   mark_calls(buf, view, line_count)
-  mark_context(buf, view, line_count)
   inline_values.show(buf, view.predicted_values, line_count)
   local above = narration(view, window_width(), new_file)
   vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, {
@@ -282,7 +245,7 @@ function M.show(view)
     virt_lines_leftcol = true,
   })
 
-  place_window(view, first, last, line_count, #above)
+  place_window(first, line_count, #above)
 end
 
 return M

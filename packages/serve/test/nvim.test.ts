@@ -153,8 +153,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       { line: 2, text: "  →" },
     ])
     expect(into).toMatchObject({ file: "send.ts", line: 1 })
-    // what details hold beyond the band: the risky flag and the guessed link
-    expect(into?.virt_lines).toEqual(["▌ s  new file  ·  ● risky  ·  ⇢ guessed link"])
+    // the risky flag a reader stepping with next mustn't miss; the guessed link is in details
+    expect(into?.virt_lines).toEqual(["▌ s  new file  ·  ● risky"])
   }, 30_000)
 
   test("steps into the first call not yet visited when the cursor's line makes none", async () => {
@@ -166,10 +166,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    // pay's context step is in pay.ts too, so it's marked where its code is
-    expect(into?.calls).toEqual([{ line: 2, text: "  context: returns a fixed amount" }])
-    expect(into?.signs).toContainEqual({ line: 2, text: "◇" })
-    // and the band points to it
+    // pay's context step is in pay.ts too, so the band says where to look
     expect(into?.virt_lines).toEqual(["▌ s  new file  ·  ◇ line 2, in this step"])
   }, 30_000)
 
