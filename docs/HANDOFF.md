@@ -33,7 +33,7 @@
 - The Neovim plugin leaves the user's setup alone: the window's own winbar comes back off a step
   and on quit, and a move closes only the plugin's own popups, not another plugin's float.
 - Knowing where the tour is, in Neovim: the step has a tint of its own (`ColorColumn`, not the
-  cursor line's), `▶` on its first line, the winbar says `away · <leader>tc returns` once the
+  cursor line's), `▶` on its first line, the winbar says `away` once the
   cursor leaves the step, and `<leader>tc` (`:TrailCurrent`) goes back without moving the tour.
 - Knowing you're in a tour, in Neovim: a `codetrail` badge starts the winbar; the narration sits on a band across the window. The step's tint, the band, and
   the badge are mixed from the theme's text, background, and info colours, checked across
@@ -64,6 +64,10 @@
 - The end of a tour lists every flag, most severe first, each with its stop and place; enter on
   one goes to its step.
 - The band wraps the narration at about 90 characters, up to six lines, however wide the window.
+- `<leader>tx` shows a step's context code (contracts, types, where its data came from) in a
+  float over the step, each piece under its reason; `q` closes it, enter opens a piece as a step.
+  On steps that have any, the winbar shows `◇` beside the stop number; the overview explains it.
+- The band's text starts in the code's column, with half a row of padding above and below.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -117,10 +121,7 @@ From the second walk:
   sends 499 major. The narration should name the contract and the term that matters ("the spec
   says amount is in minor units; web sends 499"), since stop 5's didn't. Fuller version: the
   roadmap's boundary cards.
-- A contract must be easy to find. Viewing one takes details, then enter on it in Context; next:
-  a key of its own, `<leader>tb`, that opens the step's background code (a pick list, each named
-  by its reason, when there are several; `<leader>tc` back), with `◇ <leader>tb` at the band's
-  end on steps that have any.
+- A contract must be easy to find: done with `<leader>tx`, below.
 
 What the agent writes (`packages/core/prompts/`):
 

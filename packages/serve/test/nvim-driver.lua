@@ -160,7 +160,7 @@ local function run(action)
     codetrail[action]()
   end
   -- these answer at once, without the server
-  local local_only = { quit = true, details = true, values = true, current = true }
+  local local_only = { quit = true, details = true, values = true, current = true, context = true }
   if not local_only[action] then
     vim.wait(15000, function()
       return state.view ~= view or #notices > notified or last_message() ~= message

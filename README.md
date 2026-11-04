@@ -65,6 +65,7 @@ on the cursor's line, or the first not yet visited.
 | `<leader>tn` | `:TrailOver`                | Step over                                 |
 | `<leader>ti` | `:TrailInto`                | Step into                                 |
 | `<leader>tc` | `:TrailCurrent`             | Back to the current step                  |
+| `<leader>tx` | `:TrailContext`             | Context code, on stops marked `◇`         |
 | `<leader>to` | `:TrailOut`                 | Step out                                  |
 | `<leader>tt` | `:TrailDetails`             | Details: flags, predicted values, context |
 | `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current step     |

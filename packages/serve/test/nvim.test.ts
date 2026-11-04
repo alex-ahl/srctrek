@@ -43,6 +43,9 @@ function isScreens(value: unknown): value is Screen[] {
   )
 }
 
+// The band's text, without the half rows that pad it above and below.
+const onBand = (lines: string[] = []) => lines.filter((line) => !/^[▄▀]+$/.test(line))
+
 // Headless Neovim in `dir` with the checkout's plugin, running `actions` against the real
 // trail serve.
 async function drive(dir: string, actions: string[]): Promise<Screen[]> {
@@ -94,7 +97,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(first?.winbar).toStartWith(" codetrail   1/3  new file  ·  ")
     expect(first?.winbar).toEndWith(" · main.ts:1  ·  main.ts:1")
     // the change adds main.ts whole, so the winbar says so instead of a + on every line
-    expect(first?.virt_lines).toEqual(["▌ main calls pay"])
+    expect(onBand(first?.virt_lines)).toEqual(["▌ main calls pay"])
     expect(first?.winbar).toContain("1/3  new file")
     expect(first?.signs).toEqual([{ line: 1, text: "▶" }])
     expect(first?.calls).toEqual([{ line: 1, text: "  →" }])
@@ -103,8 +106,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
   test("marks the lines a change edits, beside the step's first line", async () => {
     const [, step] = await drive(await repoWithEdit(), ["start:pay", "next"])
 
-    // its context step is left to the narration and details
-    expect(step?.virt_lines).toEqual(["▌ main pays, then logs double"])
+    // its context step is one key away
+    expect(onBand(step?.virt_lines)).toEqual(["▌ main pays, then logs double"])
+    expect(step?.winbar).toContain("1/2 ◇")
     expect(step?.signs).toEqual([
       { line: 1, text: "▶" },
       { line: 2, text: "~" },
@@ -117,11 +121,26 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       "start:pay",
       "next",
     ])
-    const lines = step?.virt_lines ?? []
+    const lines = onBand(step?.virt_lines)
 
     expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(92)
-    const text = lines.map((line) => line.replace(/^▌ /, "").trim()).join(" ")
+    const text = lines
+      .map((line) => line.replace(/^▌/, "").trim())
+      .filter((line) => line !== "")
+      .join(" ")
     expect(text).toStartWith(LONG_NARRATION)
+  }, 30_000)
+
+  test("shows a step's context code over it, and opens it as a step on enter", async () => {
+    const [, , peek, opened] = await drive(await repoWithEdit(), [
+      "start:pay",
+      "next",
+      "context",
+      "enter:return 250",
+    ])
+
+    expect(peek?.float).toEqual(["export function pay() {", "  return 250", "}", ""])
+    expect(opened).toMatchObject({ view: "step", file: "pay.ts", floats: 0 })
   }, 30_000)
 
   test("draws a called step with its stack, high flag, and predicted values", async () => {
@@ -135,7 +154,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
     expect(into?.winbar).toContain(" codetrail   2/3  new file  ·  ")
     expect(into?.winbar).toEndWith(" · pay.ts:1  ·  main.ts:1 › pay")
-    expect(into?.virt_lines).toEqual(["▌ s", "▌ ⚠ 250 is hard-coded"])
+    expect(onBand(into?.virt_lines)).toEqual(["▌ s", "▌ ⚠ 250 is hard-coded"])
     expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
     expect(hidden?.values).toEqual([])
   }, 30_000)
@@ -174,7 +193,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
     expect(into).toMatchObject({ file: "send.ts", line: 1 })
     // the risky flag a reader stepping with next mustn't miss; the guessed link is in details
-    expect(into?.virt_lines).toEqual(["▌ s  ● risky"])
+    expect(onBand(into?.virt_lines)).toEqual(["▌ s  ● risky"])
   }, 30_000)
 
   test("steps into the first call not yet visited when the cursor's line makes none", async () => {
@@ -186,7 +205,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    expect(into?.virt_lines).toEqual(["▌ s"])
+    expect(onBand(into?.virt_lines)).toEqual(["▌ s"])
+    expect(into?.winbar).toContain("2/3 ◇")
   }, 30_000)
 
   test("opens the user's own file when it's the tour's version", async () => {
@@ -267,7 +287,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       "current",
     ])
 
-    expect(away?.winbar).toContain("away · <leader>tc returns")
+    expect(away?.winbar).toContain("  ·  away  ·  ")
     expect(back).toMatchObject({ file: "main.ts", line: 1 })
     expect(back?.winbar).not.toContain("away")
   }, 30_000)

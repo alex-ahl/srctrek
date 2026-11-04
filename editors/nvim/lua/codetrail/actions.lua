@@ -7,6 +7,7 @@ return {
   { name = "into", command = "TrailInto", desc = "step into the call on the cursor's line" },
   { name = "out", command = "TrailOut", desc = "step out" },
   { name = "current", command = "TrailCurrent", desc = "back to the current step" },
+  { name = "context", command = "TrailContext", desc = "context code: contracts, types, where data came from" },
   { name = "details", command = "TrailDetails", desc = "details: where it came from, flags, values" },
   { name = "ask", command = "TrailAsk", desc = "ask about this step" },
   { name = "values", command = "TrailValues", desc = "show or hide predicted values" },

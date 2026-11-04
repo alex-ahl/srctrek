@@ -8,12 +8,14 @@
 --   <leader>ta ask about the current step (enter on a cited repo/file:line jumps there)
 --   <leader>tv show or hide predicted values
 -- Every action is also a command (:TrailNext, :TrailPrev, :TrailOver, :TrailInto, :TrailOut,
--- :TrailCurrent, :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a function on this module.
+-- :TrailCurrent, :TrailContext, :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a
+-- function on this module.
 -- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), the question as its
 -- last argument. Each step fires `User CodetrailStep` with { path, shown, line, repo } for file
 -- explorers or user config to follow: `path` is the file in the user's project, `shown` the
 -- file opened (the tour's copy when the user's file differs).
 local ask = require("codetrail.ask")
+local context_code = require("codetrail.context_code")
 local details = require("codetrail.details")
 local inline_values = require("codetrail.inline_values")
 local navigation = require("codetrail.navigation")
@@ -39,6 +41,7 @@ local DEFAULT_KEYS = {
   previous = "[t",
   over = "<leader>tn",
   current = "<leader>tc",
+  context = "<leader>tx",
   into = "<leader>ti",
   out = "<leader>to",
   details = "<leader>tt",
@@ -129,6 +132,7 @@ M.into = when_open(navigation.into)
 M.out = when_open(navigation.out)
 M.current = when_open(navigation.current)
 M.details = when_open(details.show)
+M.context = when_open(context_code.show)
 M.ask = when_open(ask.ask)
 M.values = when_open(inline_values.toggle)
 
@@ -146,7 +150,6 @@ local function bind_tour_keys()
   active_keys = settings().keys or {}
   state.keys = active_keys
   bind_keys(active_keys)
-  winbar.set_return_hint(active_keys.current or ":TrailCurrent")
 end
 
 local function opened(overview)

@@ -72,12 +72,14 @@ end
 local READABLE_WIDTH = 90
 local MAX_LINES = 6
 
-local function band_line(chunks, width)
+-- `layout` is the window's: its `width`, and `indent`, the columns before the code (signs, line
+-- numbers), so the narration starts where the code does.
+local function band_line(chunks, layout)
   local used = 0
   for _, chunk in ipairs(chunks) do
     used = used + vim.fn.strdisplaywidth(chunk[1])
   end
-  table.insert(chunks, { string.rep(" ", math.max(width - used, 0)), "CodetrailNarration" })
+  table.insert(chunks, { string.rep(" ", math.max(layout.width - used, 0)), "CodetrailNarration" })
   return chunks
 end
 
@@ -85,15 +87,20 @@ local function on_band(text_line, group)
   return { text_line, { "CodetrailNarration", group } }
 end
 
--- Each band line starts with an edge in the info colour, as a callout's does.
-local function text_width(width)
-  return math.min(width - 4, READABLE_WIDTH)
+-- Each band line starts with an edge in the left margin, as a callout's does, and its text in the
+-- code's first column.
+local function edge(mark, group, layout)
+  return on_band(mark .. string.rep(" ", math.max(layout.indent - 1, 1)), group)
 end
 
-local function wrapped(line, group, width)
+local function text_width(layout)
+  return math.min(layout.width - layout.indent - 2, READABLE_WIDTH)
+end
+
+local function wrapped(line, group, layout)
   return vim.tbl_map(function(l)
-    return { on_band("▌ ", "CodetrailBandEdge"), on_band(l, group) }
-  end, text.wrap(line, text_width(width), MAX_LINES, ""))
+    return { edge("▌", "CodetrailBandEdge", layout), on_band(l, group) }
+  end, text.wrap(line, text_width(layout), MAX_LINES, ""))
 end
 
 local FLAG_HINTS = {
@@ -102,7 +109,7 @@ local FLAG_HINTS = {
 }
 
 -- What a reader stepping with next alone mustn't miss beyond the narration: a risky or
--- worth-knowing flag. Background code is named in the narration itself; details list it.
+-- worth-knowing flag.
 local function hints(view)
   local flag = view.flag ~= vim.NIL and FLAG_HINTS[view.flag.severity]
   return flag and { flag } or {}
@@ -116,9 +123,8 @@ local function display_width(chunks)
   return width
 end
 
--- The tags and hints after the summary, on its last line, or a line of their own when they
--- don't fit there.
-local function add_extras(lines, extras, width)
+-- The hints after the summary, on its last line, or a line of their own when they don't fit.
+local function add_extras(lines, extras, layout)
   if #extras == 0 then
     return
   end
@@ -128,23 +134,31 @@ local function add_extras(lines, extras, width)
     table.insert(chunks, on_band(extra[1], extra[2]))
   end
   local last = lines[#lines]
-  if display_width(last) + display_width(chunks) > text_width(width) + 2 then
-    last = { on_band("▌ ", "CodetrailBandEdge") }
+  if display_width(last) + display_width(chunks) > layout.indent + text_width(layout) then
+    last = { edge("▌", "CodetrailBandEdge", layout) }
     table.insert(lines, last)
   end
   vim.list_extend(last, chunks)
 end
 
-local function narration(view, width)
-  local lines = wrapped(view.summary, "CodetrailNarration", width)
-  add_extras(lines, hints(view), width)
+-- Half a row of room above and below the text: a terminal row can't be split, so each padding
+-- row is half filled in the band's colour against the text, ▄ above and ▀ below.
+local function padded(lines, layout)
+  table.insert(lines, 1, { { string.rep("▄", layout.width), "CodetrailBandPad" } })
+  table.insert(lines, { { string.rep("▀", layout.width), "CodetrailBandPad" } })
+  return lines
+end
+
+local function narration(view, layout)
+  local lines = wrapped(view.summary, "CodetrailNarration", layout)
+  add_extras(lines, hints(view), layout)
   -- only a high flag shows inline; the rest are hinted at, and in details
   if view.flag ~= vim.NIL and view.flag.severity == "high" then
-    vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", width))
+    vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", layout))
   end
   return vim.tbl_map(function(chunks)
-    return band_line(chunks, width)
-  end, lines)
+    return band_line(chunks, layout)
+  end, padded(lines, layout))
 end
 
 -- The line itself says what it calls; only a hop into another repo says where it goes.
@@ -197,8 +211,12 @@ local function place_window(first, line_count, above)
   vim.fn.winrestview({ topline = top, topfill = top == first and above or 0 })
 end
 
-local function window_width()
-  return vim.api.nvim_win_get_width(vim.api.nvim_get_current_win())
+-- Measured after a redraw: a sign column that appears with the step's signs counts only once
+-- it's on screen.
+local function window_layout()
+  vim.cmd("redraw")
+  local win = vim.api.nvim_get_current_win()
+  return { width = vim.api.nvim_win_get_width(win), indent = vim.fn.getwininfo(win)[1].textoff }
 end
 
 function M.show(view)
@@ -220,7 +238,7 @@ function M.show(view)
   mark_lines(buf, view, first, last, new_file)
   mark_calls(buf, view, line_count)
   inline_values.show(buf, view.predicted_values, line_count)
-  local above = narration(view, window_width())
+  local above = narration(view, window_layout())
   vim.api.nvim_buf_set_extmark(buf, state.ns, first - 1, 0, {
     virt_lines = above,
     virt_lines_above = true,

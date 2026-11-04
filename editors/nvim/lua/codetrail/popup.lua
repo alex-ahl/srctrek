@@ -15,13 +15,29 @@ function M.close()
   open = {}
 end
 
--- Opened one row high, then sized to its lines as they wrap in the window, which only the
--- window itself can measure.
-function M.float(lines, title)
+-- Sizes a popup to its lines as they wrap in the window, virtual lines included, which only the
+-- window itself can measure, and at least `min_height` of the screen; again after anything is
+-- added to it.
+function M.fit(win, min_height)
+  local width = vim.api.nvim_win_get_width(win)
+  local wanted = math.max(vim.api.nvim_win_text_height(win, {}).all, math.floor(vim.o.lines * (min_height or 0)))
+  local height = math.min(wanted, math.floor(vim.o.lines * 0.8))
+  vim.api.nvim_win_set_config(win, {
+    relative = "editor",
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2) - 1,
+    col = math.floor((vim.o.columns - width) / 2),
+  })
+end
+
+-- Opened one row high, then fitted to its lines; `width` is a share of the screen, capped for
+-- reading unless given.
+function M.float(lines, title, width_share)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   vim.bo[buf].modifiable = false
-  local width = math.min(110, math.floor(vim.o.columns * 0.8))
+  local width = width_share and math.floor(vim.o.columns * width_share)
+    or math.min(140, math.floor(vim.o.columns * 0.9))
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
@@ -34,13 +50,11 @@ function M.float(lines, title)
   table.insert(open, win)
   vim.wo.wrap = true
   vim.wo.linebreak = true
-  local height = math.min(vim.api.nvim_win_text_height(win, {}).all, math.floor(vim.o.lines * 0.8))
-  vim.api.nvim_win_set_config(win, {
-    relative = "editor",
-    height = height,
-    row = math.floor((vim.o.lines - height) / 2) - 1,
-    col = math.floor((vim.o.columns - width) / 2),
-  })
+  -- a column of space inside the border on the left, so text doesn't sit against it
+  vim.wo.foldcolumn = "1"
+  -- room left below the text stays blank rather than filled with ~
+  vim.wo.fillchars = "eob: "
+  M.fit(win)
   vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
   vim.keymap.set("n", "<esc>", "<cmd>close<cr>", { buffer = buf })
   return buf

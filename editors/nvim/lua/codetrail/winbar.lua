@@ -29,19 +29,17 @@ local function stack_text(frames)
   return "%<" .. table.concat(parts)
 end
 
+-- A step with context code to show gets ◇ beside its number: a mark, not words, as the key that
+-- shows it is the same on every step.
 local function position(view)
   local number = coloured("CodetrailPosition", string.format("%d/%d", view.number, view.count))
+  if #view.context > 0 then
+    number = number .. " " .. coloured("CodetrailContext", "◇")
+  end
   if view.step_kind == "context" then
     return number .. " context"
   end
   return number
-end
-
--- How to get back to the step, as the away note says it: the key, or the command without one.
-local return_hint = ":TrailCurrent"
-
-function M.set_return_hint(hint)
-  return_hint = hint
 end
 
 -- What kind of code the step is, beside its number: code the change adds whole, or existing code
@@ -67,7 +65,8 @@ local function bar(view, away, new_file)
     table.insert(parts, coloured("CodetrailStale", "stale: file changed since"))
   end
   if away then
-    table.insert(parts, coloured("CodetrailAway", "away · " .. escape(return_hint) .. " returns"))
+    -- the key back is in the overview, like every other key
+    table.insert(parts, coloured("CodetrailAway", "away"))
   end
   if #view.stack > 0 then
     table.insert(parts, stack_text(view.stack))
