@@ -68,6 +68,8 @@
   float over the step, each piece under its reason; `q` closes it, enter opens a piece as a step.
   On steps that have any, the winbar shows `◇` beside the stop number; the overview explains it.
 - The band's text starts in the code's column, with half a row of padding above and below.
+- Details say where a step came from as "Reached from stop N · name", with each cited line and its
+  code under it, so the evidence reads without opening it.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -114,8 +116,7 @@ follows, one small step each.
 From the second walk:
 
 - The tour's title is long and repeats the route; the guide should ask for a few words.
-- Details' "came from" lists places without what they show: read "Reached from stop N · name",
-  with each evidence line showing its code.
+- Details' "came from" listed places without what they show: done, below.
 - A contract a step crosses or implements (a spec entry, a schema, a message's type) is often the
   key fact at a boundary: in the refund tour, the spec says amounts are in minor units and web
   sends 499 major. The narration should name the contract and the term that matters ("the spec

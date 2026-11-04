@@ -238,11 +238,12 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       "next",
       "into",
       "details",
-      "enter:came from",
+      "enter:Reached from",
     ])
 
-    expect(details?.float).toContain("→ came from 1 · main.ts:1")
-    expect(details?.float?.join("\n")).toMatch(/evidence: [^/]+\/main\.ts:1/)
+    expect(details?.float).toContain("Reached from stop 1")
+    // each line of evidence with its code under it
+    expect(details?.float?.join("\n")).toMatch(/: main\.ts:1\n {4}const total = pay\(\)/)
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 1, floats: 0 })
   }, 30_000)
 

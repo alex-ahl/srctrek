@@ -65,21 +65,36 @@ local function labelled(ref)
   return text.place(ref) .. name
 end
 
--- Where the step came from, cited (→) or guessed by name (⇢), and the lines its evidence cites.
+-- The cited line's own code, so the evidence reads without opening it.
+local function code_at(path, line)
+  local ok, lines = pcall(vim.fn.readfile, path, "", line)
+  return ok and vim.trim(lines[line] or "") or ""
+end
+
+local function link_wording(view, link)
+  if link.relation == "for" then
+    return "Explains"
+  end
+  return view.step_kind == "hop" and "Reached by a hop from" or "Reached from"
+end
+
+-- Where the step came from, by stop and name, then each line its evidence cites with that line's
+-- code under it; a link with no evidence of its own says it's guessed.
 local function came_from_lines(view, doc)
   local link = view.came_from
   if link == vim.NIL then
     return
   end
-  local marker = link.guessed and "⇢" or "→"
-  local wording = link.relation == "for" and "explains" or (view.step_kind == "hop" and "hop from" or "came from")
-  local guessed = link.guessed and "   guessed: matched by name" or ""
+  local name = link.name ~= vim.NIL and (" · " .. link.name) or ""
+  local guessed = link.guessed and "   (guessed: matched by name)" or ""
+  local heading = string.format("%s stop %d%s%s", link_wording(view, link), link.number, name, guessed)
   doc.add("")
-  local line = string.format("%s %s %d · %s%s", marker, wording, link.number, labelled(link), guessed)
-  doc.add(line, go_to(link.id), link.guessed and "CodetrailGuessed" or nil)
+  doc.add(heading, go_to(link.id), link.guessed and "CodetrailGuessed" or nil)
+
   for _, cite in ipairs(link.cites) do
-    local evidence = string.format("  evidence: %s/%s:%d", cite.repo, cite.file, cite.line)
-    doc.add(evidence, open_at(cite.path, cite.line), "CodetrailCitation")
+    local open = open_at(cite.path, cite.line)
+    doc.add(string.format("  %s: %s:%d", cite.repo, cite.file, cite.line), open, "CodetrailUnchanged")
+    doc.add("    " .. code_at(cite.path, cite.line), open)
   end
 end
 
@@ -115,7 +130,7 @@ local function step_lines(view)
     doc.extend(note_lines(notes))
   end
   doc.add("")
-  doc.add("enter on a → line, an evidence line, or a context step goes there", nil, "CodetrailUnchanged")
+  doc.add("enter on where it came from, a line of evidence, or a context step goes there", nil, "CodetrailUnchanged")
   return doc
 end
 
