@@ -162,16 +162,16 @@ what each window showed. VS Code can't put lines of text
 between lines of code, so its narration and high flag sit in a CodeLens above the step, and a
 codetrail sidebar holds the tours, the route, the call stack, details, and notes.
 
-| Screen           | Neovim                                                    | VS Code                                                  |
-| ---------------- | --------------------------------------------------------- | -------------------------------------------------------- |
-| Choosing a tour  | `:Trail`, a picker with each tour's status                | the codetrail view: tours with their status              |
-| Overview         | a scratch buffer: trigger, outcome, story, repos, flags   | an editor tab, the route in the sidebar                  |
-| A step           | narration and high flag as virtual lines; values at the   | narration and high flag in a CodeLens; values as inline  |
-|                  | ends of their lines; position and stack in the winbar     | decorations; call stack and route in the sidebar         |
-| Details          | a float: came from, flags, values, context, notes         | the sidebar's Details section; flags' full text on hover |
-| Into, of several | the call on the cursor's line, else the first not visited | the same                                                 |
-| The end          | a scratch buffer: the outcome, every flag to jump to      | the tour tab: the outcome, every flag to jump to         |
-| Asking           | a prompt; the answer in a float with its citations        | an input box; the answer in the sidebar's Notes          |
+| Screen           | Neovim                                                              | VS Code                                                  |
+| ---------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
+| Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status              |
+| Overview         | a scratch buffer: trigger, outcome, story, repos, flags             | an editor tab, the route in the sidebar                  |
+| A step           | narration and high flag as virtual lines; values at the             | narration and high flag in a CodeLens; values as inline  |
+|                  | ends of their lines; position and stack in the winbar               | decorations; call stack and route in the sidebar         |
+| Details          | a float: came from, flags, values, context, notes                   | the sidebar's Details section; flags' full text on hover |
+| Into, of several | the call on the cursor's line, else the first not visited           | the same                                                 |
+| The end          | a scratch buffer: the outcome, every flag to jump to                | the tour tab: the outcome, every flag to jump to         |
+| Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes          |
 
 The overview and the end stay open in a buffer or tab of their own. Answers to questions are saved
 on the step as notes, which details show from then on.

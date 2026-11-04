@@ -21,6 +21,9 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - **Diff toggle:** a step's lines before and after the change, inline.
 - **Route panel:** every step grouped by repo, with the current step and the hops marked;
   any step can be jumped to.
+- **Choosing a tour in Neovim:** `:Trail` without a name lists the saved tours with their
+  status in `vim.ui.select`, and `:Trail <Tab>` completes their names; until then tours are
+  chosen in the terminal.
 
 ## Building
 
