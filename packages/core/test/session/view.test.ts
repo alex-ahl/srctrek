@@ -21,6 +21,7 @@ const context: ViewContext = {
     ["api", "/checkouts/api"],
     ["worker", "/checkouts/worker"],
   ]),
+  own: new Map([["api", { root: "/mine/api", files: new Set(["src/handlers/refunds.ts"]) }]]),
   changedLines: new Map([
     [
       "api",
@@ -64,7 +65,6 @@ describe("sessionView", () => {
     expect(view).toMatchObject({
       number: 9,
       count: 17,
-      path: "/checkouts/api/src/handlers/refunds.ts",
       start_line: 8,
       end_line: 19,
       step_kind: "call",
@@ -76,6 +76,20 @@ describe("sessionView", () => {
       { line: 12, change: "changed" },
     ])
     expect(view.flag?.severity).toBe("high")
+  })
+
+  test("opens the user's own file when it's the tour's version, else the tour's copy", () => {
+    expect(viewOf("s11")).toMatchObject({
+      path: "/mine/api/src/handlers/refunds.ts",
+      tour_copy: false,
+    })
+    expect(viewOf("s13")).toMatchObject({
+      path: "/checkouts/api/src/bus.ts",
+      tour_copy: true,
+      own_path: "/mine/api/src/bus.ts",
+    })
+    // web has no checkout of the user's
+    expect(viewOf("s1")).toMatchObject({ tour_copy: true, own_path: null })
   })
 
   test("marks a step whose file has changed since as stale", () => {

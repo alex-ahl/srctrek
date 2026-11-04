@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import { realpath, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { tempDir } from "../../core/test/support/temp"
 import { repoWithEdit, repoWithTour, repoWithTwoCalls } from "./support/pay-tour"
@@ -21,6 +22,9 @@ type Screen = {
   user_float: boolean
   first_line: string
   modified: boolean
+  path: string
+  read_only: boolean
+  event: { path: string; shown: string; line: number } | null
   floats: number
   notices: string[]
 }
@@ -154,6 +158,29 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
+  }, 30_000)
+
+  test("opens the user's own file when it's the tour's version", async () => {
+    const dir = await repoWithTour()
+    const [, step] = await drive(dir, ["start:pay", "next"])
+
+    expect(step).toMatchObject({ path: join(await realpath(dir), "main.ts"), read_only: false })
+    expect(step?.winbar).not.toContain("tour's version")
+  }, 30_000)
+
+  test("opens the tour's copy, read-only, of a file the user has edited since", async () => {
+    const dir = await repoWithTour()
+    await writeFile(join(dir, "main.ts"), "const total = pay() * 2\nconsole.log(total)\n")
+    const [, step] = await drive(dir, ["start:pay", "next"])
+
+    expect(step).toMatchObject({ file: "main.ts", read_only: true })
+    expect(step?.path.startsWith(await realpath(dir))).toBe(false)
+    expect(step?.winbar).toContain("tour's version")
+    // a file tree still follows to the user's own main.ts
+    expect(step?.event).toMatchObject({
+      path: join(await realpath(dir), "main.ts"),
+      shown: step?.path,
+    })
   }, 30_000)
 
   test("steps over a call to where the caller carries on", async () => {

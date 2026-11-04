@@ -91,6 +91,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
   only the theme colour's foreground. No theme group is distinct from the background in every
   theme, so the step's tint, the narration's band, and the badge are mixed from the theme's
   text, background, and info colours.
+- **The user's own files, where they can be.** A step opens the user's own file when it's the
+  version the tour describes; only a file that differs opens from the tour's copy, read-only.
 - **Nothing the user has is lost.** A tour changes no file, buffer, window, key, or setting of the
   user's for good: whatever it borrows (a window, a key, the winbar) comes back as it was when the
   tour ends, and nothing it does while running can throw away unsaved changes or undo history.
@@ -127,6 +129,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Cited link      | `→`, with its evidence                                           | “came from”                 | `Normal`          | `foreground`                      |
 | Guessed link    | `⇢`                                                              | “guessed: matched by name”  | `DiagnosticHint`  | `editorHint.foreground`           |
 | Stale step      | a tag in the winbar and details                                  | “stale: file changed since” | `DiagnosticWarn`  | `editorWarning.foreground`        |
+| Tour's version  | a tag in the winbar; the file opens read-only                    | “tour's version”            | `DiagnosticHint`  | a read-only editor                |
 | Away            | a tag in the winbar                                              | “away · <leader>tc returns” | `Comment`         |                                   |
 | Hop             | `↯` and a dashed rule in the call stack                          | “hop · HTTP request from …” | `Comment`         | `descriptionForeground`           |
 | Context steps   | a count under the code, opened from it                           | “2 context steps”           | `Comment`         | `descriptionForeground`           |

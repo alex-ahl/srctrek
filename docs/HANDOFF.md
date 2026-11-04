@@ -47,6 +47,10 @@
   back its file, cursor, and scroll on quit. A buffer it replaces stays loaded while the tour
   runs, so with 'hidden' off its unsaved changes and undo history survive and the step still
   opens.
+- A step opens the user's own file when its content is the tour's version, decided per file, so
+  a branch that moved on since keeps opening the user's files; a file that differs opens from
+  the tour's copy in the cache, read-only, with "tour's version" in the winbar. The copy is
+  checked out only when some file differs.
 
 ## 2026-11-03 — Milestone 5: design pass
 
@@ -77,10 +81,6 @@ visual language that follows the editor's theme, the editor screens in Neovim an
 terminal screens, each reviewed as a mockup. The terminal keeps OpenTUI, kept up to date until 1.0.
 
 **Known gaps**
-
-- A step opens the tour's checkout in the cache even when the user's own file is the same, so
-  the tab shows a cache path and edits land in the cache copy. Next: open the user's file when
-  it matches the tour's version, else the cache copy read-only and marked.
 
 - The Neovim plugin has no Lua formatter yet.
 

@@ -50,7 +50,9 @@ branch's):
 One of:
 
 - `overview`: title, overview, trigger, outcome, step count.
-- `step`: number and count, the absolute path in the repo's checkout, lines, kind, name, summary,
+- `step`: number and count, the absolute path (the user's own file when it's the tour's version,
+  else the tour's copy, marked `tour_copy`), the file's path in the user's checkout (`own_path`, null
+  without one), lines, kind, name, summary,
   details, flag, predicted values, the change's lines in the file, stale, the call stack back
   across every hop (hops marked), the steps it can step into (each with the line making the
   call, from its evidence, or null), the context steps that explain it, and notes.

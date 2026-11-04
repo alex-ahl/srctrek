@@ -9,6 +9,15 @@ local state = require("codetrail.state")
 
 vim.g.codetrail = { cmd = vim.json.decode(vim.env.DRIVE_CMD) }
 
+-- what the last step told anything listening, as a file tree would hear it
+local last_event = vim.NIL
+vim.api.nvim_create_autocmd("User", {
+  pattern = "CodetrailStep",
+  callback = function(event)
+    last_event = event.data
+  end,
+})
+
 local notices = {}
 vim.notify = function(message)
   table.insert(notices, message)
@@ -73,9 +82,12 @@ local function screen()
     view = state.view and state.view.kind or vim.NIL,
     file = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t"),
     line = vim.api.nvim_win_get_cursor(win)[1],
-    -- as the reader sees it, without its highlight codes
     first_line = vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1],
     modified = vim.bo[buf].modified,
+    path = vim.api.nvim_buf_get_name(buf),
+    read_only = not vim.bo[buf].modifiable,
+    event = last_event,
+    -- as the reader sees it, without its highlight codes
     winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%%*", "")),
     float = floating and vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(current), 0, -1, false) or vim.NIL,
     virt_lines = seen.virt_lines,

@@ -18,11 +18,18 @@ local function remember_roots(view)
   end
 end
 
--- Each step fires `User CodetrailStep` with { path, line, repo }; anything may listen.
+-- Each step fires `User CodetrailStep` with { path, shown, line, repo }; anything may listen.
+-- `path` is where the file lives in the user's project, for a file tree to reveal; `shown` is
+-- the file opened, the tour's copy when the user's file differs.
 local function announce(view)
   vim.api.nvim_exec_autocmds("User", {
     pattern = "CodetrailStep",
-    data = { path = view.path, line = view.start_line, repo = view.repo },
+    data = {
+      path = view.own_path ~= vim.NIL and view.own_path or view.path,
+      shown = view.path,
+      line = view.start_line,
+      repo = view.repo,
+    },
   })
 end
 

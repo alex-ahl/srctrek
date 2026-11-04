@@ -49,6 +49,9 @@ local function bar(view, away)
     position(view),
     escape(view.repo .. "/" .. view.file .. ":" .. view.start_line),
   }
+  if view.tour_copy then
+    table.insert(parts, coloured("CodetrailTourCopy", "tour's version"))
+  end
   if view.stale then
     table.insert(parts, coloured("CodetrailStale", "stale: file changed since"))
   end

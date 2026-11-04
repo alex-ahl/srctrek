@@ -23,6 +23,7 @@ local FOREGROUND = {
   CodetrailUnchanged = { group = "Comment" },
   CodetrailFlagHigh = { group = "DiagnosticError" },
   CodetrailPosition = { group = "Normal", bold = true },
+  CodetrailTourCopy = { group = "DiagnosticHint" },
 }
 
 local function colour(group, attribute)

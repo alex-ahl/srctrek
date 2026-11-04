@@ -4,10 +4,15 @@ import type { Tour, TourStep } from "../schema/tour"
 import { enteredFrom } from "./moves"
 import { type SteppingSession, currentStep } from "./session"
 
+/** The user's own checkout of a repo, and the files the tour visits that are the same there. */
+export type OwnCheckout = { readonly root: string; readonly files: ReadonlySet<string> }
+
 /** What a view needs from outside the tour: where each repo is checked out, and git's facts. */
 export type ViewContext = {
   // the folder each repo is checked out in at the tour's revision, by repo name
   readonly roots: ReadonlyMap<string, string>
+  // the user's own checkout of each repo that has one, by repo name
+  readonly own: ReadonlyMap<string, OwnCheckout>
   // the lines the change touches, by repo and file
   readonly changedLines: ReadonlyMap<string, ReadonlyMap<string, ReadonlyMap<number, LineChange>>>
   // the steps whose file differs now from the version the tour describes
@@ -19,7 +24,12 @@ export type StepRef = {
   id: string
   repo: string
   file: string
+  // the user's own file when it's the tour's version, else the tour's copy of it
   path: string
+  tour_copy: boolean
+  // where the file lives in the user's checkout, even when `path` is the tour's copy; null for a
+  // repo the user has no checkout of
+  own_path: string | null
   start_line: number
   end_line: number
   // the function, route, or handler the step shows; null when the tour doesn't name it
@@ -65,13 +75,17 @@ export type EndView = Pick<Tour, "title" | "outcome"> & { kind: "end"; count: nu
 export type SessionView = OverviewView | StepView | EndView
 
 function refOf(step: TourStep, context: ViewContext): StepRef {
-  const root = context.roots.get(step.repo) ?? ""
+  const own = context.own.get(step.repo)
+  const isOwn = own?.files.has(step.file) === true
+  const root = isOwn ? own.root : (context.roots.get(step.repo) ?? "")
 
   return {
     id: step.id,
     repo: step.repo,
     file: step.file,
     path: join(root, step.file),
+    tour_copy: !isOwn,
+    own_path: own === undefined ? null : join(own.root, step.file),
     start_line: step.start_line,
     end_line: step.end_line,
     name: step.name ?? null,

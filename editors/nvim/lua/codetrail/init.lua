@@ -10,8 +10,9 @@
 -- Every action is also a command (:TrailNext, :TrailPrev, :TrailOver, :TrailInto, :TrailOut,
 -- :TrailCurrent, :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a function on this module.
 -- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), the question as its
--- last argument. Each step fires `User CodetrailStep` with
--- { path, line, repo } for file explorers or user config to follow.
+-- last argument. Each step fires `User CodetrailStep` with { path, shown, line, repo } for file
+-- explorers or user config to follow: `path` is the file in the user's project, `shown` the
+-- file opened (the tour's copy when the user's file differs).
 local ask = require("codetrail.ask")
 local details = require("codetrail.details")
 local inline_values = require("codetrail.inline_values")

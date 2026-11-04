@@ -201,6 +201,11 @@ function M.show(view)
   vim.api.nvim_set_current_win(win)
   vim.cmd("edit " .. vim.fn.fnameescape(view.path))
   local buf = vim.api.nvim_get_current_buf()
+  -- the tour's copy lives in trail's cache, where an edit would be lost
+  if view.tour_copy then
+    vim.bo[buf].readonly = true
+    vim.bo[buf].modifiable = false
+  end
   local line_count = vim.api.nvim_buf_line_count(buf)
   local first, last = math.min(view.start_line, line_count), math.min(view.end_line, line_count)
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { readFile, realpath } from "node:fs/promises"
+import { readFile, realpath, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { UnreachableRepoError, type Tour, loadTour, tourPath, viewContext } from "../../src"
 import { changeOf, makeBranchRepo, saveTourOf } from "../support/branch"
@@ -46,6 +46,29 @@ describe("viewContext", () => {
     expect(root.startsWith(cacheDir)).toBe(true)
     expect(await readFile(join(root, "app.ts"), "utf8")).toBe("const total = 250\n")
     expect(context.stale).toEqual(new Set(["s1"]))
+  })
+
+  test("opens the user's own file after the branch moves on, while it's the tour's version", async () => {
+    const { dir, tour, cacheDir } = await repoWithTour()
+    const name = tour.repos[0]?.name ?? ""
+    await commit(dir, "other.ts", "export {}\n")
+
+    const context = await viewContext(dir, tour, { cacheDir })
+
+    expect(context.own.get(name)).toEqual({ root: await realpath(dir), files: new Set(["app.ts"]) })
+    // every file the tour visits is the user's own, so no copy of the tour's is checked out
+    expect(context.roots.get(name)).toBe(await realpath(dir))
+  })
+
+  test("shows the tour's copy of a file the user has edited since", async () => {
+    const { dir, tour, cacheDir } = await repoWithTour()
+    const name = tour.repos[0]?.name ?? ""
+    await writeFile(join(dir, "app.ts"), "const total = 999\n")
+
+    const context = await viewContext(dir, tour, { cacheDir })
+
+    expect(context.own.get(name)).toEqual({ root: await realpath(dir), files: new Set() })
+    expect(context.roots.get(name)?.startsWith(cacheDir)).toBe(true)
   })
 
   test("names a repo that isn't where the tour says", async () => {

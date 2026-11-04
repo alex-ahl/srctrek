@@ -71,6 +71,12 @@ on the cursor's line, or the first not yet visited.
 | `<leader>tv` | `:TrailValues`              | Show or hide predicted values             |
 | `<leader>tq` | `:TrailQuit`                | End the tour                              |
 
+A step opens your own file when it's the version the tour describes. A file you've changed
+since opens from the tour's copy, read-only, and the winbar says "tour's version".
+
+Each step fires `User CodetrailStep` with `{ path, shown, line, repo }`, for a file tree or your
+own config to follow: `path` is the file in your project, `shown` the file the step opened.
+
 Keys exist only while a tour is open; the mappings you had on them come back when it ends, and
 each window the tour used goes back to the file and place you had.
 Change or turn off any key:
