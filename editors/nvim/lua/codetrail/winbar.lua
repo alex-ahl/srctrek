@@ -16,17 +16,38 @@ local function label(ref)
   return ref.name ~= vim.NIL and ref.name or text.place(ref)
 end
 
+-- A frame after a hop into another repo names that repo, so web and api don't read as one program.
+local function frame_text(frame, previous)
+  local crossed = frame.hop and previous ~= nil and previous.repo ~= frame.repo
+  return escape((crossed and (frame.repo .. ": ") or "") .. label(frame))
+end
+
+-- What started a stack that begins at a hop nobody waits on: shown dimmed, as it isn't running.
+local function cause_of(view)
+  return view.started_by ~= vim.NIL and view.started_by or nil
+end
+
+local function started_by_text(view)
+  local cause = cause_of(view)
+  if cause == nil then
+    return ""
+  end
+  return coloured("CodetrailHop", "started by " .. escape(cause.repo .. ": " .. label(cause)) .. " ↯ ")
+end
+
 -- Outermost first, as a path reads, with ↯ before the frame a hop started. Cut from the left
 -- when the window is narrow (%<), so the step's own frame stays in view.
-local function stack_text(frames)
+local function stack_text(view)
   local parts = {}
-  for i, frame in ipairs(frames) do
+  for i, frame in ipairs(view.stack) do
     if i > 1 then
       table.insert(parts, frame.hop and coloured("CodetrailHop", " ↯ ") or " › ")
     end
-    table.insert(parts, escape(label(frame)))
+    -- the first frame of a fresh stack follows its cause
+    local previous = view.stack[i - 1] or cause_of(view)
+    table.insert(parts, frame_text(frame, previous))
   end
-  return "%<" .. table.concat(parts)
+  return "%<" .. started_by_text(view) .. table.concat(parts)
 end
 
 -- A step with context code to show gets ◇ beside its number: a mark, not words, as the key that
@@ -69,7 +90,7 @@ local function bar(view, away, new_file)
     table.insert(parts, coloured("CodetrailAway", "away"))
   end
   if #view.stack > 0 then
-    table.insert(parts, stack_text(view.stack))
+    table.insert(parts, stack_text(view))
   end
   -- the badge says a tour is on, as -- INSERT -- says a mode is
   return coloured("CodetrailBadge", " codetrail ") .. "  " .. table.concat(parts, "  ·  ")

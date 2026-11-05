@@ -72,6 +72,9 @@
   bottom padding turns into it, so band and step read as one block.
 - Details say where a step came from as "Reached from stop N · name", with each cited line and its
   code under it, so the evidence reads without opening it.
+- The call stack goes back only across hops whose caller waits for an answer; a hop nobody waits
+  on starts a fresh stack, `started by api: publish ↯ worker: poll_once`, and a frame across a hop
+  into another repo names it (`post ↯ api: POST /refunds`). The view carries `started_by`.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -151,8 +154,8 @@ The screen:
 
 - The band says where `]t` goes next ("next: into `refund`, line 11"), and that call's arrow
   stands out.
-- A hop nobody waits on (a queue, an event) starts a fresh stack, `poll_once ↯ started by publish
-(api)`; a hop with an answer keeps the chain. The stack names the repo at a hop.
+- A hop nobody waits on (a queue, an event) starts a fresh stack, and the stack names the repo at
+  a hop: done, below.
 - "unchanged" says that the step is existing code the flow passes through.
 - Values read `name ≈ value`, cut at about 40 characters, in full in details.
 - The tour's marks come before diagnostics and other text at a line's end.

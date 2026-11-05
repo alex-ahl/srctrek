@@ -71,8 +71,10 @@ export type StepView = StepRef & {
   changed_lines: { line: number; change: LineChange }[]
   flag: TourStep["uncertain"] | null
   predicted_values: NonNullable<TourStep["predicted_values"]>
-  // outermost first, back across every hop to the trigger; empty on a context step
+  // outermost first, back across every hop whose caller waits for it; empty on a context step
   stack: Frame[]
+  // what started this stack when it begins at a hop nobody waits on, such as a queued message
+  started_by: StepRef | null
   calls: Call[]
   context: StepRef[]
   notes: NonNullable<TourStep["notes"]>
@@ -129,20 +131,36 @@ function refOf(step: TourStep, context: ViewContext): StepRef {
   }
 }
 
-// Every frame under the step, back across every hop to the trigger: how execution got here.
-function framesOf(session: SteppingSession, step: TourStep, context: ViewContext): Frame[] {
-  const { stacks, beneath } = session.stacks
+// The frames running at the step: its own stack, and the stacks beneath it back across every hop
+// whose caller waits for its answer, such as a request. A hop nobody waits on (a queued message,
+// an event) runs on its own, so the frames end there and `started_by` names its cause instead.
+function framesOf(
+  session: SteppingSession,
+  step: TourStep,
+  context: ViewContext,
+): { stack: Frame[]; started_by: StepRef | null } {
+  const { stacks, beneath, answeredHops } = session.stacks
   const byId = new Map(session.tour.steps.map((s) => [s.id, s]))
+  let startedBy: string | undefined
 
-  const chain = (id: string): string[] => {
+  const chain = (id: string): readonly string[] => {
+    const frames = stacks.get(id) ?? []
     const below = beneath.get(id)
-    return [...(below === undefined ? [] : chain(below)), ...(stacks.get(id) ?? [])]
+    const hop = frames[0]
+    if (below !== undefined && hop !== undefined && !answeredHops.has(hop)) {
+      startedBy = below
+      return frames
+    }
+    return [...(below === undefined ? [] : chain(below)), ...frames]
   }
 
-  return chain(step.id).flatMap((id) => {
+  const stack = chain(step.id).flatMap((id) => {
     const frame = byId.get(id)
     return frame === undefined ? [] : [{ ...refOf(frame, context), hop: frame.kind === "hop" }]
   })
+  const cause = startedBy === undefined ? undefined : byId.get(startedBy)
+
+  return { stack, started_by: cause === undefined ? null : refOf(cause, context) }
 }
 
 // The step's place among the stops, the executed steps; a context step takes the place of the
@@ -209,7 +227,7 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
     changed_lines: changedLinesOf(step, context),
     flag: step.uncertain ?? null,
     predicted_values: step.predicted_values ?? [],
-    stack: framesOf(session, step, context),
+    ...framesOf(session, step, context),
     calls: enteredFrom(session, step).map((entered) => ({
       ...ref(entered),
       call_line: callLine(step, entered),

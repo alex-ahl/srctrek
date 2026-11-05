@@ -146,9 +146,12 @@ The vocabulary every surface shares, shown in place on a step in the review page
 A list of frames (VS Code's sidebar) puts the newest on top, as in a debugger. A line of them
 (Neovim's winbar) reads outermost first, as a path does, `POST /refunds › createRefund ›
 publish`, and is cut from the left when it doesn't fit, so the step's own frame stays in view. A
-hop separates what one process ran from what started it (`↯` in place of `›`). Each frame shows
-its step's name (`createRefund`), or its place (`handlers/refunds.ts:8`) when the tour gives no
-name. The route lists steps the same way.
+hop separates what one process ran from what started it (`↯` in place of `›`), and a frame across
+a hop into another repo names it: `post ↯ api: POST /refunds › createRefund`. The stack goes back
+only across hops whose caller waits for an answer, such as a request; a hop nobody waits on, such
+as a queued message or an event, starts a fresh stack, which names its cause dimmed: `started by
+api: publish ↯ worker: poll_once`. Each frame shows its step's name (`createRefund`), or its place
+(`handlers/refunds.ts:8`) when the tour gives no name. The route lists steps the same way.
 
 ### Calls
 

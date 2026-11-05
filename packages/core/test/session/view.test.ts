@@ -126,12 +126,21 @@ describe("sessionView", () => {
     expect(viewOf("s13").stale).toBe(true)
   })
 
-  test("shows the stack back across every hop to the trigger, marking where hops start", () => {
-    const stack = viewOf("s13").stack
+  test("keeps the frames that wait across a hop, back to the hop nobody waits on", () => {
+    const view = viewOf("s13")
 
-    // the page load drew the button (s1-s3), the click (s4) led to the request (s8)
-    expect(ids(stack)).toEqual(["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s11", "s13"])
-    expect(stack.filter((frame) => frame.hop).map((frame) => frame.id)).toEqual(["s2", "s4", "s8"])
+    // the click (s4) led to the request (s8), which web waits on; nothing waits on the click
+    expect(ids(view.stack)).toEqual(["s4", "s5", "s6", "s7", "s8", "s11", "s13"])
+    expect(view.stack.filter((frame) => frame.hop).map((frame) => frame.id)).toEqual(["s4", "s8"])
+    expect(view.started_by?.id).toBe("s3")
+  })
+
+  test("starts a fresh stack at a hop nobody waits on, naming what started it", () => {
+    // publish (s13) queued the message; the worker (s15) picks it up on its own
+    const view = viewOf("s17")
+
+    expect(ids(view.stack)).toEqual(["s15", "s17"])
+    expect(view.started_by?.id).toBe("s13")
   })
 
   test("names each frame by the function or route its step shows", () => {
