@@ -157,7 +157,11 @@ export function repoWithEdit(): Promise<string> {
   )
 }
 
-// One step whose narration runs to several sentences, longer than a band line.
+// A value longer than a line's end has room for.
+export const LONG_VALUE = "250 öre, read from the order total after rounding half up"
+
+// One step whose narration runs to several sentences, longer than a band line, with a long value
+// the tour doubts.
 export const LONG_NARRATION = Array.from(
   { length: 6 },
   (_, i) => `Sentence ${i + 1} says what happens at this stop and why it matters for paying.`,
@@ -166,5 +170,12 @@ export const LONG_NARRATION = Array.from(
 export function repoWithLongNarration(): Promise<string> {
   const files: [string, string][] = [["main.ts", "const total = 250\nconsole.log(total)\n"]]
 
-  return repoWithSteps(files, ({ step }) => [step({ summary: LONG_NARRATION })])
+  return repoWithSteps(files, ({ step }) => [
+    step({
+      summary: LONG_NARRATION,
+      predicted_values: [
+        { name: "total", value: LONG_VALUE, line: 1, role: "assignment", uncertain: true },
+      ],
+    }),
+  ])
 }

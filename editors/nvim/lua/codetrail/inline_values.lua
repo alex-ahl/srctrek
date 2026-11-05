@@ -1,6 +1,6 @@
--- Predicted values at the end of the lines they belong to, like a debugger's inline values.
--- Each starts with ≈, codetrail runs nothing; a line with a doubtful value reads ≈? and takes
--- the warning colour.
+-- Predicted values at the end of the lines they belong to, like a debugger's inline values:
+-- `name ≈ value`, as nothing runs, and `name ≈? value` in the warning colour when the tour doubts
+-- it. Long values are cut so the line stays readable; details show them whole.
 local state = require("codetrail.state")
 
 local M = {}
@@ -8,35 +8,47 @@ local M = {}
 -- What's on screen, so a toggle can redraw the values without moving the view.
 local current = nil
 
-local function describe(value)
-  if value.role == "return" then
-    return "returns " .. value.value
-  end
+local MAX_VALUE = 40
 
-  return value.name .. " = " .. value.value
+local function shortened(text)
+  if vim.fn.strchars(text) <= MAX_VALUE then
+    return text
+  end
+  return vim.fn.strcharpart(text, 0, MAX_VALUE - 1) .. "…"
 end
 
--- Values grouped by line, in the order the tour lists them.
+local function describe(value)
+  local sign = value.uncertain and "≈?" or "≈"
+  local subject = value.role == "return" and "returns" or value.name
+  return string.format("%s %s %s", subject, sign, shortened(value.value))
+end
+
+-- Each line's values, in the order the tour lists them, each in its own colour.
 local function by_line(values)
   local lines = {}
   for _, value in ipairs(values) do
-    lines[value.line] = lines[value.line] or { texts = {}, uncertain = false }
-    table.insert(lines[value.line].texts, describe(value))
-    lines[value.line].uncertain = lines[value.line].uncertain or value.uncertain == true
+    lines[value.line] = lines[value.line] or {}
+    table.insert(lines[value.line], value)
   end
-
   return lines
 end
 
+local function chunks_of(values)
+  local chunks = { { "  ", "CodetrailPredicted" } }
+  for i, value in ipairs(values) do
+    if i > 1 then
+      table.insert(chunks, { ", ", "CodetrailPredicted" })
+    end
+    table.insert(chunks, { describe(value), value.uncertain and "CodetrailDoubtful" or "CodetrailPredicted" })
+  end
+  return chunks
+end
+
 local function draw(buf, values, last)
-  for line, group in pairs(by_line(values)) do
+  for line, on_line in pairs(by_line(values)) do
     if line <= last then
-      local marker, colour = "≈ ", "CodetrailPredicted"
-      if group.uncertain then
-        marker, colour = "≈? ", "CodetrailDoubtful"
-      end
       vim.api.nvim_buf_set_extmark(buf, state.values_ns, line - 1, 0, {
-        virt_text = { { "  " .. marker .. table.concat(group.texts, ", "), colour } },
+        virt_text = chunks_of(on_line),
         virt_text_pos = "eol",
         -- blended with the step's tint; on their own they'd sit in a block of the plain background
         hl_mode = "combine",

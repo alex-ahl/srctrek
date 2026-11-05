@@ -13,10 +13,11 @@ local FLAGS = {
   low = { text = "● worth knowing · ", wording = "worth knowing", group = "CodetrailFlagLow" },
 }
 
+-- In full, as the code's line shows it shortened.
 local function value_line(v)
-  local described = v.role == "return" and ("returns " .. v.value) or (v.name .. " = " .. v.value)
+  local subject = v.role == "return" and "returns" or v.name
   local wording = v.uncertain and "predicted, unsure" or "predicted"
-  return string.format("  line %d: ≈ %s   %s", v.line, described, wording)
+  return string.format("  line %d: %s %s %s   %s", v.line, subject, v.uncertain and "≈?" or "≈", v.value, wording)
 end
 
 local function note_lines(notes)

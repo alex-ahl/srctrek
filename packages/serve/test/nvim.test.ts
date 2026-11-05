@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { tempDir } from "../../core/test/support/temp"
 import {
   LONG_NARRATION,
+  LONG_VALUE,
   repoWithEdit,
   repoWithLongNarration,
   repoWithTour,
@@ -145,6 +146,12 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(opened).toMatchObject({ view: "step", file: "pay.ts", floats: 0 })
   }, 30_000)
 
+  test("cuts a long predicted value and marks one the tour doubts", async () => {
+    const [, step] = await drive(await repoWithLongNarration(), ["start:pay", "next"])
+
+    expect(step?.values).toEqual([{ line: 1, text: `  total ≈? ${LONG_VALUE.slice(0, 39)}…` }])
+  }, 30_000)
+
   test("draws a called step with its stack, high flag, and predicted values", async () => {
     const [, , into, hidden] = await drive(await repoWithTour(), [
       "start:pay",
@@ -160,7 +167,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       "▌ s  next: back to main.ts:2",
       "▌ ⚠ 250 is hard-coded",
     ])
-    expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
+    expect(into?.values).toEqual([{ line: 2, text: "  returns ≈ 250" }])
     expect(hidden?.values).toEqual([])
   }, 30_000)
 
