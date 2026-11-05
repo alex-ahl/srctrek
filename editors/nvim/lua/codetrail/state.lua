@@ -12,6 +12,9 @@ local M = {
 }
 
 M.ns = vim.api.nvim_create_namespace("codetrail")
+-- Text at a line's end is drawn in order of priority, lowest first; diagnostics and most plugins
+-- use the default, 4096, so the tour's marks come before them rather than pushed off the edge.
+M.EOL_PRIORITY = 100
 -- Predicted values get their own namespace, so hiding them leaves the step's other marks.
 M.values_ns = vim.api.nvim_create_namespace("codetrail_values")
 

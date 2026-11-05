@@ -80,6 +80,8 @@
   line next enters from is bold. The view carries `next`.
 - Predicted values read `name ≈ value` (`returns ≈ 250`, `name ≈? value` when doubtful), each
   cut at about 40 characters; details show them whole in the same form.
+- The tour's arrows and values come first at a line's end, before diagnostics and other plugins'
+  text, which Neovim draws in order of priority.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -162,7 +164,7 @@ The screen:
   a hop: done, below.
 - "unchanged" says that the step is existing code the flow passes through.
 - Values read `name ≈ value`: done, below.
-- The tour's marks come before diagnostics and other text at a line's end.
+- The tour's marks come before diagnostics at a line's end: done, below.
 - Diagnostics are hidden in the tour's read-only copies.
 - Details offer a guessed link's evidence in the quickfix list.
 - The away note reworded and placed where it doesn't shift the winbar.

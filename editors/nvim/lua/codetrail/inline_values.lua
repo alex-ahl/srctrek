@@ -52,6 +52,7 @@ local function draw(buf, values, last)
         virt_text_pos = "eol",
         -- blended with the step's tint; on their own they'd sit in a block of the plain background
         hl_mode = "combine",
+        priority = state.EOL_PRIORITY,
       })
     end
   end
