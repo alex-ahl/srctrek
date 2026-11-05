@@ -28,10 +28,11 @@ Use `uncertain` on a step for a real risk the reader should check: likely wrong 
 - `summary`: the narration. Most readers step from stop to stop and read only this, so it alone must tell the story. In two or three short sentences, plain words, the scenario's terms:
   - what happens here, and why it matters for the scenario: what this stop receives, decides, or hands on;
   - how it follows from the previous stop, above all after a return or a hop ("Once the api answers 202, the action…", "With the order found, …");
-  - background code that explains it, named with the reason to look: "the order id and amount come from renderOrder, which drew the button".
+  - background code that explains it, named with the reason to look: "the order id and amount come from renderOrder, which drew the button";
+  - on a step that crosses or implements a contract (a request, a message, a spec entry, a schema), the contract and the term in it that matters for the scenario: "the spec says amount is in minor units, and web sends 499".
 - `details`: what the reader can't see from the code and doesn't need to follow the story: other paths, edge cases, why the code is built this way, what a guessed link assumes.
 - `name`: for a step that receives a request, its route (`POST /refunds`), not the server's.
-- The tour's `overview` says what the change does (or, for code as it is, what the code is for) and what the tour follows; `title` names it.
+- The tour's `overview` says what the change does (or, for code as it is, what the code is for) and what the tour follows. `title` names what the change does in a few words ("Refunding an order"); the route belongs in the overview.
 
 Call start_tour, then add_steps (in batches, in order), then finish_tour with a short name after the branch or feature (lowercase letters, digits, and dashes). When a call reports problems, fix those steps and send them again under the same ids; nothing is kept from a rejected batch.
 

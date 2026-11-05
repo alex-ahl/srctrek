@@ -117,13 +117,14 @@ follows, one small step each.
 
 From the second walk:
 
-- The tour's title is long and repeats the route; the guide should ask for a few words.
+- The tour's title is long and repeats the route: the guide now asks for a few words; to check on
+  the next walk.
 - Details' "came from" listed places without what they show: done, below.
 - A contract a step crosses or implements (a spec entry, a schema, a message's type) is often the
   key fact at a boundary: in the refund tour, the spec says amounts are in minor units and web
   sends 499 major. The narration should name the contract and the term that matters ("the spec
-  says amount is in minor units; web sends 499"), since stop 5's didn't. Fuller version: the
-  roadmap's boundary cards.
+  says amount is in minor units; web sends 499"), since stop 5's didn't: now in the guide; to check
+  on the next walk. Fuller version: the roadmap's boundary cards.
 - A contract must be easy to find: done with `<leader>tx`, below.
 
 What the agent writes (`packages/core/prompts/`):
