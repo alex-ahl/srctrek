@@ -7,6 +7,27 @@ local text = require("codetrail.text")
 
 local M = {}
 
+-- The tour's copies whose diagnostics are hidden, to show again when the tour ends.
+local quieted = {}
+
+-- A copy in trail's cache has no dependencies installed, so a language server flags every import;
+-- the errors can't be acted on in a read-only copy. The user's own files keep theirs.
+local function quiet_diagnostics(buf)
+  if not quieted[buf] then
+    quieted[buf] = true
+    vim.diagnostic.enable(false, { bufnr = buf })
+  end
+end
+
+function M.restore_diagnostics()
+  for buf in pairs(quieted) do
+    if vim.api.nvim_buf_is_valid(buf) then
+      vim.diagnostic.enable(true, { bufnr = buf })
+    end
+  end
+  quieted = {}
+end
+
 function M.clear()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_valid(buf) then
@@ -280,6 +301,7 @@ function M.show(view)
   if view.tour_copy then
     vim.bo[buf].readonly = true
     vim.bo[buf].modifiable = false
+    quiet_diagnostics(buf)
   end
   local line_count = vim.api.nvim_buf_line_count(buf)
   local first, last = math.min(view.start_line, line_count), math.min(view.end_line, line_count)

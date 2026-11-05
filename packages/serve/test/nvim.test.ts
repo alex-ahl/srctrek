@@ -31,6 +31,7 @@ type Screen = {
   modified: boolean
   path: string
   read_only: boolean
+  diagnostics: boolean
   event: { path: string; shown: string; line: number } | null
   next_key_ours: boolean
   message: string
@@ -225,7 +226,11 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     const dir = await repoWithTour()
     const [, step] = await drive(dir, ["start:pay", "next"])
 
-    expect(step).toMatchObject({ path: join(await realpath(dir), "main.ts"), read_only: false })
+    expect(step).toMatchObject({
+      path: join(await realpath(dir), "main.ts"),
+      read_only: false,
+      diagnostics: true,
+    })
     expect(step?.winbar).not.toContain("tour's version")
   }, 30_000)
 
@@ -234,7 +239,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     await writeFile(join(dir, "main.ts"), "const total = pay() * 2\nconsole.log(total)\n")
     const [, step] = await drive(dir, ["start:pay", "next"])
 
-    expect(step).toMatchObject({ file: "main.ts", read_only: true })
+    // a copy in trail's cache has no dependencies installed, so its diagnostics are hidden
+    expect(step).toMatchObject({ file: "main.ts", read_only: true, diagnostics: false })
     expect(step?.path.startsWith(await realpath(dir))).toBe(false)
     expect(step?.winbar).toContain("tour's version")
     // a file tree still follows to the user's own main.ts

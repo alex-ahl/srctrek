@@ -83,7 +83,7 @@ enter on one opens it. The end of the tour lists every flag, most severe first; 
 goes to its stop.
 
 A step opens your own file when it's the version the tour describes. A file you've changed since
-opens from the tour's copy, read-only.
+opens from the tour's copy, read-only and with its diagnostics hidden.
 
 Keys exist only while a tour is open; the mappings you had on them come back when it ends, and
 each window the tour used goes back to the file and place you had. Change or turn off any key:

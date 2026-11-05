@@ -98,6 +98,7 @@ function M.quit()
   end
   popup.close()
   step_view.clear()
+  step_view.restore_diagnostics()
   -- the window's own buffer first: window options like the winbar follow the buffer shown
   origin.restore()
   winbar.restore()

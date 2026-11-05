@@ -82,6 +82,8 @@
   cut at about 40 characters; details show them whole in the same form.
 - The tour's arrows and values come first at a line's end, before diagnostics and other plugins'
   text, which Neovim draws in order of priority.
+- A tour's read-only copy opens with its diagnostics hidden until the tour ends; the user's own
+  files keep theirs.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -165,7 +167,7 @@ The screen:
 - "unchanged" says that the step is existing code the flow passes through.
 - Values read `name ≈ value`: done, below.
 - The tour's marks come before diagnostics at a line's end: done, below.
-- Diagnostics are hidden in the tour's read-only copies.
+- Diagnostics are hidden in the tour's read-only copies: done, below.
 - Details offer a guessed link's evidence in the quickfix list.
 - The away note reworded and placed where it doesn't shift the winbar.
 - The winbar's parts get colour and clearer separators.

@@ -92,6 +92,7 @@ local function screen()
     modified = vim.bo[buf].modified,
     path = vim.api.nvim_buf_get_name(buf),
     read_only = not vim.bo[buf].modifiable,
+    diagnostics = vim.diagnostic.is_enabled({ bufnr = buf }),
     event = last_event,
     -- Neovim maps ]t itself, to :tnext
     message = vim.trim(last_message()),
