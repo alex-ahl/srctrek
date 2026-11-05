@@ -97,7 +97,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(first?.winbar).toStartWith(" codetrail   1/3  new file  ·  ")
     expect(first?.winbar).toEndWith(" · main.ts:1  ·  main.ts:1")
     // the change adds main.ts whole, so the winbar says so instead of a + on every line
-    expect(onBand(first?.virt_lines)).toEqual(["▌ main calls pay"])
+    expect(onBand(first?.virt_lines)).toEqual(["▌ main calls pay  next: into pay, line 1"])
     expect(first?.winbar).toContain("1/3  new file")
     expect(first?.signs).toEqual([{ line: 1, text: "▶" }])
     expect(first?.calls).toEqual([{ line: 1, text: "  →" }])
@@ -107,7 +107,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     const [, step] = await drive(await repoWithEdit(), ["start:pay", "next"])
 
     // its context step is one key away
-    expect(onBand(step?.virt_lines)).toEqual(["▌ main pays, then logs double"])
+    expect(onBand(step?.virt_lines)).toEqual([
+      "▌ main pays, then logs double  next: into pay.ts:1, line 1",
+    ])
     expect(step?.winbar).toContain("1/2 ◇")
     expect(step?.signs).toEqual([
       { line: 1, text: "▶" },
@@ -154,7 +156,10 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
     expect(into?.winbar).toContain(" codetrail   2/3  new file  ·  ")
     expect(into?.winbar).toEndWith(" · pay.ts:1  ·  main.ts:1 › pay")
-    expect(onBand(into?.virt_lines)).toEqual(["▌ s", "▌ ⚠ 250 is hard-coded"])
+    expect(onBand(into?.virt_lines)).toEqual([
+      "▌ s  next: back to main.ts:2",
+      "▌ ⚠ 250 is hard-coded",
+    ])
     expect(into?.values).toEqual([{ line: 2, text: "  ≈ returns 250" }])
     expect(hidden?.values).toEqual([])
   }, 30_000)
@@ -193,7 +198,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
     expect(into).toMatchObject({ file: "send.ts", line: 1 })
     // the risky flag a reader stepping with next mustn't miss; the guessed link is in details
-    expect(onBand(into?.virt_lines)).toEqual(["▌ s  ● risky"])
+    expect(onBand(into?.virt_lines)).toEqual(["▌ s  ● risky  ·  next: the end of the tour"])
   }, 30_000)
 
   test("steps into the first call not yet visited when the cursor's line makes none", async () => {
@@ -205,7 +210,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    expect(onBand(into?.virt_lines)).toEqual(["▌ s"])
+    expect(onBand(into?.virt_lines)).toEqual(["▌ s  next: send.ts:1"])
     expect(into?.winbar).toContain("2/3 ◇")
   }, 30_000)
 

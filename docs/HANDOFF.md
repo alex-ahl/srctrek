@@ -75,6 +75,9 @@
 - The call stack goes back only across hops whose caller waits for an answer; a hop nobody waits
   on starts a fresh stack, `started by api: publish ↯ worker: poll_once`, and a frame across a hop
   into another repo names it (`post ↯ api: POST /refunds`). The view carries `started_by`.
+- The band ends with where next goes, `next: into requestRefund, line 11`, `next: ↯ api: POST
+/refunds`, `next: back to createRefund`, or `next: the end of the tour`, and the arrow on the
+  line next enters from is bold. The view carries `next`.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -152,8 +155,7 @@ The tour format:
 
 The screen:
 
-- The band says where `]t` goes next ("next: into `refund`, line 11"), and that call's arrow
-  stands out.
+- The band says where `]t` goes next: done, below.
 - A hop nobody waits on (a queue, an event) starts a fresh stack, and the stack names the repo at
   a hop: done, below.
 - "unchanged" says that the step is existing code the flow passes through.

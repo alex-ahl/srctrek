@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import type { LineChange } from "../git/diff"
 import type { Tour, TourStep } from "../schema/tour"
-import { enteredFrom } from "./moves"
+import { enteredFrom, stepNext } from "./moves"
 import { type SteppingSession, currentStep } from "./session"
 
 /** The user's own checkout of a repo, and the files the tour visits that are the same there. */
@@ -51,6 +51,16 @@ export type CameFrom = StepRef & {
   cites: Cite[]
 }
 
+/**
+ * Where next leads from a step: into one of its calls (`line` makes it), across a hop it starts,
+ * back to a caller, on to another step, or to the end of the tour (`to` null).
+ */
+export type NextStop = {
+  how: "into" | "hop" | "back" | "on" | "end"
+  to: StepRef | null
+  line: number | null
+}
+
 /** One frame of the call stack; `hop` marks the bottom of a stack a hop started. */
 export type Frame = StepRef & { hop: boolean }
 
@@ -80,6 +90,7 @@ export type StepView = StepRef & {
   notes: NonNullable<TourStep["notes"]>
   // null for the first step, which came from the trigger
   came_from: CameFrom | null
+  next: NextStop
 }
 
 export type OverviewView = Pick<Tour, "title" | "overview" | "trigger" | "outcome"> & {
@@ -211,6 +222,28 @@ function cameFrom(session: SteppingSession, step: TourStep, context: ViewContext
   }
 }
 
+function howNextLeaves(step: TourStep, next: TourStep): NextStop["how"] {
+  if (next.kind === "return") {
+    return "back"
+  }
+  if (next.from !== step.id) {
+    return "on"
+  }
+  return next.kind === "hop" ? "hop" : "into"
+}
+
+function nextOf(session: SteppingSession, step: TourStep, context: ViewContext): NextStop {
+  const next = currentStep(stepNext(session))
+  if (next === undefined) {
+    return { how: "end", to: null, line: null }
+  }
+
+  const how = howNextLeaves(step, next)
+  const line = how === "into" || how === "hop" ? callLine(step, next) : null
+
+  return { how, to: refOf(next, context), line }
+}
+
 function stepView(session: SteppingSession, step: TourStep, context: ViewContext): StepView {
   const { steps } = session.tour
   const ref = (s: TourStep) => refOf(s, context)
@@ -235,6 +268,7 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
     context: steps.filter((s) => s.kind === "context" && s.for === step.id).map(ref),
     notes: step.notes ?? [],
     came_from: cameFrom(session, step, context),
+    next: nextOf(session, step, context),
   }
 }
 

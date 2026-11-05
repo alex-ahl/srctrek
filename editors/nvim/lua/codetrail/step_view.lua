@@ -110,11 +110,41 @@ local FLAG_HINTS = {
   low = { "● worth knowing", "CodetrailFlagLow" },
 }
 
+local function next_label(ref)
+  return ref.name ~= vim.NIL and ref.name or text.place(ref)
+end
+
+-- Where next goes from here, in words, so the reader knows before pressing it.
+local function where_next(view)
+  local next = view.next
+  if next.how == "end" then
+    return "next: the end of the tour"
+  end
+  local to = next_label(next.to)
+  if next.how == "into" then
+    return "next: into " .. to .. (next.line ~= vim.NIL and (", line " .. next.line) or "")
+  elseif next.how == "hop" then
+    -- a hop names its repo only when it leaves this one
+    local repo = next.to.repo ~= view.repo and (next.to.repo .. ": ") or ""
+    return "next: ↯ " .. repo .. to
+  elseif next.how == "back" then
+    return "next: back to " .. to
+  end
+  return "next: " .. to
+end
+
 -- What a reader stepping with next alone mustn't miss beyond the narration: a risky or
--- worth-knowing flag.
+-- worth-knowing flag, and where next goes.
 local function hints(view)
+  local found = {}
   local flag = view.flag ~= vim.NIL and FLAG_HINTS[view.flag.severity]
-  return flag and { flag } or {}
+  if flag then
+    table.insert(found, flag)
+  end
+  if view.step_kind ~= "context" then
+    table.insert(found, { where_next(view), "CodetrailUnchanged" })
+  end
+  return found
 end
 
 local function display_width(chunks)
@@ -191,11 +221,19 @@ local function calls_by_line(view)
   return lines
 end
 
+-- The line next enters from, so its arrow can stand out from the others.
+local function next_line(view)
+  local next = view.next
+  return (next.how == "into" or next.how == "hop") and next.line ~= vim.NIL and next.line or nil
+end
+
 local function mark_calls(buf, view, line_count)
+  local leads_next = next_line(view)
   for line, markers in pairs(calls_by_line(view)) do
     if line <= line_count then
+      local group = line == leads_next and "CodetrailCallNext" or "CodetrailCall"
       vim.api.nvim_buf_set_extmark(buf, state.ns, line - 1, 0, {
-        virt_text = { { "  " .. table.concat(markers, " "), "CodetrailCall" } },
+        virt_text = { { "  " .. table.concat(markers, " "), group } },
         virt_text_pos = "eol",
         -- blended with the step's tint; on their own they'd sit in a block of the plain background
         hl_mode = "combine",

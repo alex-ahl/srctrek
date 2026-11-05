@@ -214,6 +214,14 @@ describe("sessionView", () => {
     expect(viewOf("s1").came_from).toBeNull()
   })
 
+  test("says where next leads: into a call, across a hop, back, on, or to the end", () => {
+    expect(viewOf("s11").next).toMatchObject({ how: "into", to: { id: "s13" }, line: 18 })
+    expect(viewOf("s7").next).toMatchObject({ how: "hop", to: { id: "s8" }, line: 10 })
+    expect(viewOf("s13").next).toMatchObject({ how: "back", to: { id: "s14" }, line: null })
+    expect(viewOf("s14").next).toMatchObject({ how: "on", to: { id: "s15" } })
+    expect(viewOf("s20").next).toEqual({ how: "end", to: null, line: null })
+  })
+
   test("gives a context step no stack and nothing to enter", () => {
     const view = viewOf("s9")
 

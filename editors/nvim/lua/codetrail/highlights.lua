@@ -19,6 +19,7 @@ local FOREGROUND = {
   CodetrailPredicted = { group = "LspInlayHint", italic = true },
   CodetrailDoubtful = { group = "DiagnosticWarn", italic = true },
   CodetrailCall = { group = "Special" },
+  CodetrailCallNext = { group = "Special", bold = true },
   CodetrailUnchanged = { group = "Comment" },
   CodetrailFlagHigh = { group = "DiagnosticError" },
   CodetrailPosition = { group = "Normal", bold = true },
