@@ -99,6 +99,11 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   cursor's line, else the first not visited. Each line making a call ends in `→` (`→?` guessed,
   `↯ repo` into another repo), bold on the line next enters from, and a move with nowhere to go
   says so in the status bar and leaves the cursor.
+- `bun editors/vscode/test/capture-vscode.ts <tour> <out-dir>` steps a saved tour in the installed
+  VS Code, maximized in a profile of its own, and saves a PNG of the main screen at the overview,
+  each stop, and the end. Run by hand on a machine with a desktop session; macOS asks once for the
+  terminal's Screen Recording permission. The extension's commands answer with the view they leave
+  the tour on.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

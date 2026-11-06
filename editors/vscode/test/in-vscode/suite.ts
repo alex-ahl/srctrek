@@ -3,6 +3,7 @@
 import { strict as assert } from "node:assert"
 import { basename } from "node:path"
 import * as vscode from "vscode"
+import { useTestServe } from "./serve"
 
 type Check = { name: string; run: () => Promise<void> }
 
@@ -64,14 +65,6 @@ const checks: Check[] = [
     },
   },
 ]
-
-async function useTestServe(): Promise<void> {
-  const command = process.env["CODETRAIL_SERVE"]
-  assert.ok(command, "CODETRAIL_SERVE names the trail serve to use")
-  await vscode.workspace
-    .getConfiguration("codetrail")
-    .update("serveCommand", JSON.parse(command), vscode.ConfigurationTarget.Global)
-}
 
 export async function run(): Promise<void> {
   await useTestServe()

@@ -106,23 +106,25 @@ async function pickTour(running: TrailClient): Promise<string | undefined> {
 }
 
 // Given a tour's name, as a test or a keybinding can, it opens that one without asking.
-async function openTour(name?: unknown): Promise<void> {
+async function openTour(name?: unknown): Promise<SessionView | undefined> {
   client?.close()
   client = startClient()
   await client.initialize()
   const tour = typeof name === "string" ? name : await pickTour(client)
   if (tour === undefined) {
-    return
+    return undefined
   }
 
   await vscode.commands.executeCommand("setContext", "codetrail.open", true)
-  await show(await client.open(tour))
+  const view = await client.open(tour)
+  await show(view)
+  return view
 }
 
-async function move(to: Move, params?: object): Promise<void> {
+async function move(to: Move, params?: object): Promise<SessionView | undefined> {
   if (client === undefined) {
     void vscode.window.showWarningMessage("codetrail: no tour is open; run Codetrail: Open Tour…")
-    return
+    return undefined
   }
 
   const before = current
@@ -130,9 +132,10 @@ async function move(to: Move, params?: object): Promise<void> {
   // redrawing the same view would snap the cursor back to the step's first line
   if (before !== undefined && sameView(before, after)) {
     vscode.window.setStatusBarMessage(`codetrail: ${NOWHERE[to]}`, 4000)
-    return
+    return after
   }
   await show(after)
+  return after
 }
 
 function callAtCursor(): string | undefined {
@@ -145,9 +148,9 @@ function callAtCursor(): string | undefined {
 }
 
 // Into the call on the cursor's line; elsewhere the server picks the first not yet visited.
-async function into(): Promise<void> {
+function into(): Promise<SessionView | undefined> {
   const target = callAtCursor()
-  await move("into", target === undefined ? undefined : { target })
+  return move("into", target === undefined ? undefined : { target })
 }
 
 async function quit(): Promise<void> {
@@ -160,8 +163,9 @@ async function quit(): Promise<void> {
   await vscode.commands.executeCommand("setContext", "codetrail.open", false)
 }
 
-// A command that reports a failure instead of throwing it into VS Code's log.
-function command(name: string, run: (argument?: unknown) => Promise<void>): vscode.Disposable {
+// A command that reports a failure instead of throwing it into VS Code's log. A move or an open
+// answers with the view it left the tour on, for scripts and tests driving the tour.
+function command(name: string, run: (argument?: unknown) => Promise<unknown>): vscode.Disposable {
   return vscode.commands.registerCommand(name, (argument?: unknown) =>
     run(argument).catch(reportFailure),
   )
