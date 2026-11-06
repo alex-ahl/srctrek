@@ -4,6 +4,7 @@ import { type Arrows, createArrows } from "./arrows"
 import { type Move, TrailClient } from "./client"
 import { type InlineValues, createInlineValues } from "./inline-values"
 import { type Narration, createNarration } from "./narration"
+import { type TourTab, createTourTab } from "./tour-tab"
 import { NOWHERE, callAt, narrationLine, placeOf, sameView, statusText } from "./view"
 
 // The open tour's connection and where it is, at the edge as a server's current state is; one
@@ -16,6 +17,7 @@ let values: InlineValues | undefined
 let decorations: vscode.TextEditorDecorationType[] = []
 let status: vscode.StatusBarItem | undefined
 let narration: Narration | undefined
+let tourTab: TourTab | undefined
 
 function serveCommand(): string[] {
   return (
@@ -71,17 +73,14 @@ async function show(view: SessionView): Promise<void> {
     status.show()
   }
   if (view.kind === "step") {
+    tourTab?.hide()
     await showStep(view)
     return
   }
 
   narration?.hide()
   clearDecorations()
-  if (view.kind === "overview") {
-    void vscode.window.showInformationMessage(`${view.title}: ${view.overview}`)
-  } else {
-    void vscode.window.showInformationMessage(`End of the tour: ${view.outcome}`)
-  }
+  tourTab?.show(view)
 }
 
 function pickItem(entry: TourEntry): vscode.QuickPickItem {
@@ -172,6 +171,7 @@ async function quit(): Promise<void> {
   current = undefined
   status?.hide()
   narration?.hide()
+  tourTab?.hide()
   clearDecorations()
   await vscode.commands.executeCommand("setContext", "codetrail.open", false)
 }
@@ -197,10 +197,15 @@ export function activate(context: vscode.ExtensionContext): void {
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   const panel = createNarration()
   narration = panel
+  const tab = createTourTab((step) => {
+    move("goto", { step }).catch(reportFailure)
+  })
+  tourTab = tab
   context.subscriptions.push(
     ...decorations,
     status,
     panel,
+    tab,
     command("codetrail.openTour", openTour),
     command("codetrail.next", () => move("next")),
     command("codetrail.previous", () => move("prev")),

@@ -13,7 +13,7 @@ export const PROTOCOL_VERSION = 1
 const CLIENT = { name: "codetrail-vscode", version: "0.0.0" }
 
 /** The moves that answer with the session's view. */
-export type Move = "next" | "prev" | "over" | "out" | "into"
+export type Move = "next" | "prev" | "over" | "out" | "into" | "goto"
 
 /** The extension's side of the protocol: `trail serve` as a child process, started in `cwd`. */
 export class TrailClient {

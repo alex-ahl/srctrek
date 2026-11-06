@@ -83,4 +83,5 @@ export const NOWHERE: Record<Move, string> = {
   into: "nothing to step into here",
   over: "nothing to step over here",
   out: "nothing to step out to",
+  goto: "already there",
 }

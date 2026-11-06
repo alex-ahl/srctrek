@@ -111,6 +111,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
 - VS Code shows predicted values at the ends of their lines, `name ≈ value` in the inlay-hint colour
   and `≈?` in the warning colour, cut at 40 characters; "Codetrail: Show or Hide Values" toggles
   them.
+- VS Code's overview and end open in a tour tab (a webview in the theme's colours, its own script
+  only): the overview has the story, trigger, outcome, repos, flag counts, and the keys; the end has
+  the outcome and every flag, each a link that goes to its stop through `goto`. Stepping onto a
+  stop closes the tab.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`
