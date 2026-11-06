@@ -133,9 +133,9 @@ code --extensionDevelopmentPath=<codetrail>/editors/vscode <the repo whose tours
 Run "Codetrail: Open Tour…", pick a tour, and step with `F8` and `Shift+F8`; `F10`, `F11`, and
 `Shift+F11` step over, into the call on the cursor's line, and out. Each stop's narration shows in a
 panel above its code; VS Code also lists it in its Comments view, which it opens by itself the first
-time. The extension starts `trail serve` in the workspace folder, so `trail` must be on your `PATH`,
-or set
-`codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
+time. Predicted values show at the ends of their lines as `name ≈ value`; "Codetrail: Show or Hide
+Values" turns them off. The extension starts `trail serve` in the workspace folder, so `trail` must
+be on your `PATH`, or set `codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
 
 ## Where it's going
 

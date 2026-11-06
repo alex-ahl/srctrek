@@ -2,6 +2,7 @@ import type { SessionView, StepView, TourEntry } from "@codetrail/core"
 import * as vscode from "vscode"
 import { type Arrows, createArrows } from "./arrows"
 import { type Move, TrailClient } from "./client"
+import { type InlineValues, createInlineValues } from "./inline-values"
 import { type Narration, createNarration } from "./narration"
 import { NOWHERE, callAt, narrationLine, placeOf, sameView, statusText } from "./view"
 
@@ -11,6 +12,7 @@ let client: TrailClient | undefined
 let current: SessionView | undefined
 let stepTint: vscode.TextEditorDecorationType | undefined
 let arrows: Arrows | undefined
+let values: InlineValues | undefined
 let decorations: vscode.TextEditorDecorationType[] = []
 let status: vscode.StatusBarItem | undefined
 let narration: Narration | undefined
@@ -50,6 +52,7 @@ async function showStep(view: StepView): Promise<void> {
     editor.setDecorations(stepTint, [range])
   }
   arrows?.show(editor, view)
+  values?.show(editor, view)
   if (view.tour_copy) {
     // the tour's version of a file, kept in trail's cache, isn't for editing
     await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
@@ -157,6 +160,12 @@ function into(): Promise<SessionView | undefined> {
   return move("into", target === undefined ? undefined : { target })
 }
 
+function toggleValues(): Promise<void> {
+  const shown = values?.toggle() ?? false
+  vscode.window.setStatusBarMessage(`codetrail: values ${shown ? "shown" : "hidden"}`, 3000)
+  return Promise.resolve()
+}
+
 async function quit(): Promise<void> {
   client?.close()
   client = undefined
@@ -182,7 +191,9 @@ export function activate(context: vscode.ExtensionContext): void {
   })
   const callArrows = createArrows()
   arrows = callArrows
-  decorations = [stepTint, ...callArrows.types]
+  const inlineValues = createInlineValues()
+  values = inlineValues
+  decorations = [stepTint, ...callArrows.types, inlineValues.type]
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   const panel = createNarration()
   narration = panel
@@ -196,6 +207,7 @@ export function activate(context: vscode.ExtensionContext): void {
     command("codetrail.over", () => move("over")),
     command("codetrail.into", into),
     command("codetrail.out", () => move("out")),
+    command("codetrail.toggleValues", toggleValues),
     command("codetrail.quit", quit),
   )
 }

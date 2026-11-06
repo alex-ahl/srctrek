@@ -108,6 +108,9 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   worth-knowing flag and where next goes after it, and the step's tags in its header (existing code
   or new file, guessed link, context available, tour's version, stale). A tour's copy of a file
   opens read-only for the session.
+- VS Code shows predicted values at the ends of their lines, `name ≈ value` in the inlay-hint colour
+  and `≈?` in the warning colour, cut at 40 characters; "Codetrail: Show or Hide Values" toggles
+  them.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

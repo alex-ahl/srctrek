@@ -39,6 +39,10 @@
         "title": "Codetrail: Step Out"
       },
       {
+        "command": "codetrail.toggleValues",
+        "title": "Codetrail: Show or Hide Values"
+      },
+      {
         "command": "codetrail.quit",
         "title": "Codetrail: End the Tour"
       }
