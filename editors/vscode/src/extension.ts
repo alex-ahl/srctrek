@@ -50,8 +50,12 @@ async function showStep(view: StepView): Promise<void> {
     editor.setDecorations(stepTint, [range])
   }
   arrows?.show(editor, view)
+  if (view.tour_copy) {
+    // the tour's version of a file, kept in trail's cache, isn't for editing
+    await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
+  }
 
-  narration?.show(uri, view)
+  narration?.show(editor.document, view)
   // from the line the narration hangs below, so it shows above the step rather than off the top
   const shown = new vscode.Range(narrationLine(place), 0, place.last, 0)
   editor.revealRange(shown, vscode.TextEditorRevealType.AtTop)

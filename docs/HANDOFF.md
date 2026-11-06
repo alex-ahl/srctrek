@@ -104,6 +104,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   each stop, and the end. Run by hand on a machine with a desktop session; macOS asks once for the
   terminal's Screen Recording permission. The extension's commands answer with the view they leave
   the tour on.
+- The VS Code narration panel wraps; carries a high flag under the narration, a risky or
+  worth-knowing flag and where next goes after it, and the step's tags in its header (existing code
+  or new file, guessed link, context available, tour's version, stale). A tour's copy of a file
+  opens read-only for the session.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

@@ -1,17 +1,27 @@
 import type { StepView } from "@codetrail/core"
 import * as vscode from "vscode"
+import { isNewFile, panelBody, panelLabel } from "./narration-text"
 import { narrationLine, placeOf } from "./view"
 
 // A read-only comment thread is the one widget VS Code lets an extension place between lines that
 // wraps its text; a CodeLens or a decoration stays on one row.
-export type Narration = { show: (uri: vscode.Uri, view: StepView) => void; hide: () => void }
+export type Narration = {
+  show: (document: vscode.TextDocument, view: StepView) => void
+  hide: () => void
+}
 
-function bodyOf(view: StepView): vscode.Comment {
+// VS Code counts the empty line after a file's last newline; the tour doesn't.
+function linesOf(document: vscode.TextDocument): number {
+  const last = document.lineAt(document.lineCount - 1)
+  return last.isEmptyOrWhitespace ? document.lineCount - 1 : document.lineCount
+}
+
+function commentOf(document: vscode.TextDocument, view: StepView): vscode.Comment {
   return {
-    body: new vscode.MarkdownString().appendText(view.summary),
+    body: new vscode.MarkdownString(panelBody(view)),
     mode: vscode.CommentMode.Preview,
     author: { name: "codetrail" },
-    label: `stop ${String(view.number)} of ${String(view.count)}`,
+    label: panelLabel(view, isNewFile(view, linesOf(document))),
   }
 }
 
@@ -24,10 +34,11 @@ export function createNarration(): Narration & vscode.Disposable {
     thread = undefined
   }
 
-  const show = (uri: vscode.Uri, view: StepView): void => {
+  const show = (document: vscode.TextDocument, view: StepView): void => {
     hide()
     const line = narrationLine(placeOf(view))
-    thread = controller.createCommentThread(uri, new vscode.Range(line, 0, line, 0), [bodyOf(view)])
+    const range = new vscode.Range(line, 0, line, 0)
+    thread = controller.createCommentThread(document.uri, range, [commentOf(document, view)])
     thread.canReply = false
     thread.collapsibleState = vscode.CommentThreadCollapsibleState.Expanded
   }
