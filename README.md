@@ -130,7 +130,8 @@ bun run --cwd editors/vscode build
 code --extensionDevelopmentPath=<codetrail>/editors/vscode <the repo whose tours you want>
 ```
 
-Run "Codetrail: Open Tour…", pick a tour, and step with `Alt+]` and `Alt+[`. The extension starts
+Run "Codetrail: Open Tour…", pick a tour, and step with `F8` and `Shift+F8`. Each stop's narration
+shows in a panel above its code; the tour also lists there in VS Code's Comments view. The extension starts
 `trail serve` in the workspace folder, so `trail` must be on your `PATH`, or set
 `codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
 

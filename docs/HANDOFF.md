@@ -91,6 +91,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   bundles none of core's code. The VS Code layer's checks run inside the installed VS Code, with a
   profile of their own, through `bun editors/vscode/test/run-in-vscode.ts`, run by hand on a
   machine with a desktop session.
+- The VS Code extension shows each stop's narration in full, wrapped, in a read-only comment
+  thread above the step (the line before it; below the first line on a file's first line), with
+  "codetrail" and "stop N of M" in its header. Next and previous moved to `F8` and `Shift+F8`, only
+  while no debug session runs.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

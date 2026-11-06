@@ -1,12 +1,14 @@
 import type { SessionView, StepView, TourEntry } from "@codetrail/core"
 import * as vscode from "vscode"
 import { type Move, TrailClient } from "./client"
-import { placeOf, statusText } from "./view"
+import { type Narration, createNarration } from "./narration"
+import { narrationLine, placeOf, statusText } from "./view"
 
 // The open tour's connection, at the edge as a server's current state is; one tour at a time.
 let client: TrailClient | undefined
 let stepTint: vscode.TextEditorDecorationType | undefined
 let status: vscode.StatusBarItem | undefined
+let narration: Narration | undefined
 
 function serveCommand(): string[] {
   return (
@@ -25,15 +27,18 @@ function reportFailure(error: unknown): void {
 
 async function showStep(view: StepView): Promise<void> {
   const place = placeOf(view)
-  const editor = await vscode.window.showTextDocument(vscode.Uri.file(place.path), {
-    preview: false,
-  })
+  const uri = vscode.Uri.file(place.path)
+  const editor = await vscode.window.showTextDocument(uri, { preview: false })
   const range = new vscode.Range(place.first, 0, place.last, 0)
   editor.selection = new vscode.Selection(place.first, 0, place.first, 0)
-  editor.revealRange(range, vscode.TextEditorRevealType.AtTop)
   if (stepTint !== undefined) {
     editor.setDecorations(stepTint, [range])
   }
+
+  narration?.show(uri, view)
+  // from the line the narration hangs below, so it shows above the step rather than off the top
+  const shown = new vscode.Range(narrationLine(place), 0, place.last, 0)
+  editor.revealRange(shown, vscode.TextEditorRevealType.AtTop)
 }
 
 async function show(view: SessionView): Promise<void> {
@@ -43,7 +48,11 @@ async function show(view: SessionView): Promise<void> {
   }
   if (view.kind === "step") {
     await showStep(view)
-  } else if (view.kind === "overview") {
+    return
+  }
+
+  narration?.hide()
+  if (view.kind === "overview") {
     void vscode.window.showInformationMessage(`${view.title}: ${view.overview}`)
   } else {
     void vscode.window.showInformationMessage(`End of the tour: ${view.outcome}`)
@@ -104,6 +113,7 @@ async function quit(): Promise<void> {
   client?.close()
   client = undefined
   status?.hide()
+  narration?.hide()
   for (const editor of vscode.window.visibleTextEditors) {
     if (stepTint !== undefined) {
       editor.setDecorations(stepTint, [])
@@ -125,9 +135,12 @@ export function activate(context: vscode.ExtensionContext): void {
     isWholeLine: true,
   })
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
+  const panel = createNarration()
+  narration = panel
   context.subscriptions.push(
     stepTint,
     status,
+    panel,
     command("codetrail.openTour", openTour),
     command("codetrail.next", () => move("next")),
     command("codetrail.previous", () => move("prev")),

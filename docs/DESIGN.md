@@ -109,7 +109,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 - **Every action answers.** Opening a tour says so at once; a move with nowhere to go says so
   and leaves the cursor where it is.
 - **Next and the narration are the whole tour** (`docs/PRODUCT.md`): in Neovim, `]t` and the band
-  above the step; in VS Code, `Alt+]` and the CodeLens.
+  above the step; in VS Code, `F8` and the narration panel.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details. The band holds the narration and,
   at its end, a medium or low flag (`● risky`) and where next goes (`next: into refund, line 11`),
@@ -123,7 +123,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Badge           | `codetrail` at the winbar's start                                                                                                                                                                                                                       |                                                                                          | info colour       | the debug toolbar                 |
 | The step        | tinted lines from the window's left edge, under the signs and line numbers too, with a bar in the gutter                                                                                                                                                |                                                                                          | mixed: text 8%    | `editor.rangeHighlightBackground` |
 | Current line    | `▶` in the gutter on the step's first line                                                                                                                                                                                                              |                                                                                          | `DiagnosticWarn`  | the debugger's current line       |
-| Narration       | a band across the window above the step, half a row of padding above and below, the lower half of the bottom row already the step's tint so the two read as one block; its text in the code's column, wrapped at about 90 characters, six lines at most | the step's summary                                                                       | mixed: info 22%   | `editorCodeLens.foreground`       |
+| Narration       | a band across the window above the step, half a row of padding above and below, the lower half of the bottom row already the step's tint so the two read as one block; its text in the code's column, wrapped at about 90 characters, six lines at most | the step's summary                                                                       | mixed: info 22%   | the comment widget's own          |
 | Added line      | `+` in the gutter                                                                                                                                                                                                                                       |                                                                                          | `Added`           | `editorGutter.addedBackground`    |
 | Changed line    | `~` in the gutter                                                                                                                                                                                                                                       |                                                                                          | `Changed`         | `editorGutter.modifiedBackground` |
 | Existing code   | a muted tag beside the stop number in the winbar                                                                                                                                                                                                        | “existing code”                                                                          | `Comment`         | `descriptionForeground`           |
@@ -182,20 +182,21 @@ closing the float is the way back; enter on a piece opens it as a step. Details 
 
 Neovim and VS Code side by side, in the review page for Step 5c. Neovim draws the tour in the
 user's own windows, with virtual lines, the winbar, and floats, and no sidebar; quitting puts back
-what each window showed. VS Code can't put lines of text
-between lines of code, so its narration and high flag sit in a CodeLens above the step, and a
+what each window showed. VS Code lets an extension put
+wrapped text between lines of code only in a comment thread, so its narration and high flag sit in a
+read-only one, the narration panel, above the step, and a
 codetrail sidebar holds the tours, the route, the call stack, details, and notes.
 
-| Screen           | Neovim                                                              | VS Code                                                  |
-| ---------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
-| Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status              |
-| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys    | an editor tab, the route in the sidebar                  |
-| A step           | narration and high flag as virtual lines; values at the             | narration and high flag in a CodeLens; values as inline  |
-|                  | ends of their lines; position and stack in the winbar               | decorations; call stack and route in the sidebar         |
-| Details          | a float: came from, flags, values, context, notes                   | the sidebar's Details section; flags' full text on hover |
-| Into, of several | the call on the cursor's line, else the first not visited           | the same                                                 |
-| The end          | a float: the outcome, every flag to jump to                         | the tour tab: the outcome, every flag to jump to         |
-| Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes          |
+| Screen           | Neovim                                                              | VS Code                                                          |
+| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status                      |
+| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys    | an editor tab, the route in the sidebar                          |
+| A step           | narration and high flag as virtual lines; values at the             | narration and high flag in the narration panel; values as inline |
+|                  | ends of their lines; position and stack in the winbar               | decorations; call stack and route in the sidebar                 |
+| Details          | a float: came from, flags, values, context, notes                   | the sidebar's Details section; flags' full text on hover         |
+| Into, of several | the call on the cursor's line, else the first not visited           | the same                                                         |
+| The end          | a float: the outcome, every flag to jump to                         | the tour tab: the outcome, every flag to jump to                 |
+| Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes                  |
 
 Answers to questions are saved
 on the step as notes, which details show from then on.
@@ -207,7 +208,7 @@ command (`:TrailNext`) and a Lua function.
 
 | Action              | Neovim                     | VS Code                      |
 | ------------------- | -------------------------- | ---------------------------- |
-| Next, previous      | `]t`, `[t`                 | `Alt+]`, `Alt+[`             |
+| Next, previous      | `]t`, `[t`                 | `F8`, `Shift+F8`             |
 | Over                | `<leader>tn`               | `F10`                        |
 | Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`           |
 | Back to the step    | `<leader>tc`               | Codetrail: Show Current Step |
@@ -217,7 +218,7 @@ command (`:TrailNext`) and a Lua function.
 | Ask (later)         | `<leader>ta`               | Codetrail: Ask               |
 | Quit the tour       | `<leader>tq`               | `Escape` in the tour tab     |
 
-In VS Code the debugger's keys step a tour only while no debug session runs.
+In VS Code the keys step a tour only while no debug session runs.
 
 ## Terminal screens
 

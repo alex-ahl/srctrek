@@ -50,13 +50,13 @@
     "keybindings": [
       {
         "command": "codetrail.next",
-        "key": "alt+]",
-        "when": "codetrail.open"
+        "key": "f8",
+        "when": "codetrail.open && !inDebugMode"
       },
       {
         "command": "codetrail.previous",
-        "key": "alt+[",
-        "when": "codetrail.open"
+        "key": "shift+f8",
+        "when": "codetrail.open && !inDebugMode"
       }
     ]
   },
