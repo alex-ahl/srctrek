@@ -121,7 +121,7 @@ local function step_lines(view)
     doc.add("")
     doc.add("Context", nil, "CodetrailHeading")
     for _, ref in ipairs(view.context) do
-      doc.add("  ◇ " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id), "CodetrailContext")
+      doc.add("  " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id), "CodetrailContext")
     end
   end
   local notes = vim.list_extend(vim.list_slice(view.notes), state.notes[view.id] or {})
@@ -181,7 +181,7 @@ local function overview(view)
   doc.add("Keys", nil, "CodetrailHeading")
   key_lines(doc)
   local context = state.keys.context or ":TrailContext"
-  doc.add("  ◇ by a stop's number: that step has context code to show, " .. context, nil, "CodetrailContext")
+  doc.add("  \"context available\" in the winbar: " .. context .. " shows it", nil, "CodetrailContext")
   doc.add("")
   local start = state.keys.next and (state.keys.next .. " to start") or ":TrailNext to start"
   doc.add(view.count .. " stops · " .. start, nil, "CodetrailUnchanged")

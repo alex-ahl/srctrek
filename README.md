@@ -60,23 +60,23 @@ flags, and the keys. Then `]t` steps through it in execution order, and each sto
   touches, predicted values at the ends of their lines (always `≈`, as nothing runs), and `→` on
   each line that makes a call the tour follows; the one `]t` enters from is bold.
 - **The winbar**: the stop number, "existing code" or "new file" when that's what the step is,
-  `◇` when it has context code, the repo and file, and the call stack, outermost first. A hop
+  "context available" when it has context code, the repo and file, and the call stack, outermost first. A hop
   into another repo is marked `↯`; a hop nobody waits on, such as a queued message, starts a
   fresh stack and names what started it. The winbar says "tour's version" when the file is the
   tour's copy, and "away" once you've moved off the step.
 
-| Key          | Command                     | Action                                               |
-| ------------ | --------------------------- | ---------------------------------------------------- |
-| `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous stop                                 |
-| `<leader>tn` | `:TrailOver`                | Step over                                            |
-| `<leader>ti` | `:TrailInto`                | Step into the call on the cursor's line              |
-| `<leader>to` | `:TrailOut`                 | Step out                                             |
-| `<leader>tc` | `:TrailCurrent`             | Back to the current stop                             |
-| `<leader>tx` | `:TrailContext`             | Context code (contracts, types), on stops marked `◇` |
-| `<leader>tt` | `:TrailDetails`             | Details: where it came from, its evidence, flags     |
-| `<leader>tv` | `:TrailValues`              | Show or hide predicted values                        |
-| `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current stop                |
-| `<leader>tq` | `:TrailQuit`                | End the tour                                         |
+| Key          | Command                     | Action                                           |
+| ------------ | --------------------------- | ------------------------------------------------ |
+| `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous stop                             |
+| `<leader>tn` | `:TrailOver`                | Step over                                        |
+| `<leader>ti` | `:TrailInto`                | Step into the call on the cursor's line          |
+| `<leader>to` | `:TrailOut`                 | Step out                                         |
+| `<leader>tc` | `:TrailCurrent`             | Back to the current stop                         |
+| `<leader>tx` | `:TrailContext`             | Context code (contracts, types), when available  |
+| `<leader>tt` | `:TrailDetails`             | Details: where it came from, its evidence, flags |
+| `<leader>tv` | `:TrailValues`              | Show or hide predicted values                    |
+| `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current stop            |
+| `<leader>tq` | `:TrailQuit`                | End the tour                                     |
 
 Details say which stop this one was reached from and show each line of evidence with its code;
 enter on one opens it. The end of the tour lists every flag, most severe first; enter on one

@@ -98,7 +98,7 @@ local function screen()
     message = vim.trim(last_message()),
     next_key_ours = (vim.fn.maparg("]t", "n", false, true).desc or ""):find("^codetrail") ~= nil,
     -- as the reader sees it, without its highlight codes
-    winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%[%*<]", "")),
+    winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%[%*<=]", "")),
     float = floating and vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(current), 0, -1, false) or vim.NIL,
     virt_lines = seen.virt_lines,
     values = seen.values,

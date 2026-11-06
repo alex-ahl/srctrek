@@ -138,10 +138,18 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Stale step      | a tag in the winbar and details                                                                                                                                                                                                                         | “stale: file changed since”                                                              | `DiagnosticWarn`  | `editorWarning.foreground`        |
 | Tour's version  | a tag in the winbar; the file opens read-only, its diagnostics hidden until the tour ends                                                                                                                                                               | “tour's version”                                                                         | `DiagnosticHint`  | a read-only editor                |
 | Where next goes | a muted note at the band's end; the arrow on the line it enters from is bold                                                                                                                                                                            | “next: into refund, line 11”, “next: ↯ api: POST /refunds”, “next: back to createRefund” | `Comment`         |                                   |
-| Away            | a tag in the winbar                                                                                                                                                                                                                                     | “away”                                                                                   | `Comment`         |                                   |
+| Away            | a tag at the winbar's right end                                                                                                                                                                                                                         | “away”                                                                                   | `Comment`         |                                   |
 | Hop             | `↯` and a dashed rule in the call stack                                                                                                                                                                                                                 | “hop · HTTP request from …”                                                              | `Comment`         | `descriptionForeground`           |
-| Context steps   | named in the narration; `◇` beside the stop number in the winbar; `<leader>tx` shows them                                                                                                                                                               | “◇”                                                                                      | info colour       | `descriptionForeground`           |
+| Context steps   | named in the narration; a “context available” tag in the winbar; `<leader>tx` shows them                                                                                                                                                                | “context available”                                                                      | info colour       | `descriptionForeground`           |
 | Call to enter   | `→` at the end of the line making it                                                                                                                                                                                                                    | `↯ api` into another repo                                                                | `Special`         | `textLink.foreground`             |
+
+### Winbar
+
+The stop number, its tags ("existing code" or "new file", "context available", "tour's version",
+"stale"),
+the step's place as `repo: path` with the repo in its own colour, and the call stack, its frames
+below the step's dimmed; every part is split from the next by a dim `│`. "away" sits at the right end, so it
+doesn't move the rest.
 
 ### Call stack
 
@@ -166,8 +174,7 @@ step opens ready to enter its first call. A call whose evidence points at no lin
 
 Context steps aren't stops: next and prev pass over them. The narration of the step they explain
 names the background with the reason to look ("the button was drawn by renderOrder, which put the
-order id and amount on it"), and the winbar shows `◇` beside its stop number, a mark rather than
-words, since the key is the same on every step and the overview names it. The key opens the
+order id and amount on it"), and the winbar says "context available"; the overview names the key. The key opens the
 context code in a float over the step, each piece under its reason, so the tour stays put and
 closing the float is the way back; enter on a piece opens it as a step. Details list them too.
 

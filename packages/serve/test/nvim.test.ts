@@ -96,11 +96,11 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     }
     expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
     // the repo is named after its temporary folder
-    expect(first?.winbar).toStartWith(" codetrail   1/3  new file  ·  ")
-    expect(first?.winbar).toEndWith(" · main.ts:1  ·  main.ts:1")
+    expect(first?.winbar).toStartWith(" codetrail   1/3  │  new file  │  ")
+    expect(first?.winbar).toEndWith(": main.ts:1  │  main.ts:1")
     // the change adds main.ts whole, so the winbar says so instead of a + on every line
     expect(onBand(first?.virt_lines)).toEqual(["▌ main calls pay  next: into pay, line 1"])
-    expect(first?.winbar).toContain("1/3  new file")
+    expect(first?.winbar).toContain("1/3  │  new file")
     expect(first?.signs).toEqual([{ line: 1, text: "▶" }])
     expect(first?.calls).toEqual([{ line: 1, text: "  →" }])
   }, 30_000)
@@ -112,7 +112,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(onBand(step?.virt_lines)).toEqual([
       "▌ main pays, then logs double  next: into pay.ts:1, line 1",
     ])
-    expect(step?.winbar).toContain("1/2 ◇")
+    expect(step?.winbar).toContain("1/2  │  context available")
     expect(step?.signs).toEqual([
       { line: 1, text: "▶" },
       { line: 2, text: "~" },
@@ -162,8 +162,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    expect(into?.winbar).toContain(" codetrail   2/3  new file  ·  ")
-    expect(into?.winbar).toEndWith(" · pay.ts:1  ·  main.ts:1 › pay")
+    expect(into?.winbar).toContain(" codetrail   2/3  │  new file  │  ")
+    expect(into?.winbar).toEndWith(": pay.ts:1  │  main.ts:1 › pay")
     expect(onBand(into?.virt_lines)).toEqual([
       "▌ s  next: back to main.ts:2",
       "▌ ⚠ 250 is hard-coded",
@@ -184,7 +184,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(out).toMatchObject({ file: "main.ts", line: 2 })
-    expect(out?.winbar).toContain(" codetrail   3/3  new file  ·  ")
+    expect(out?.winbar).toContain(" codetrail   3/3  │  new file  │  ")
     expect(end).toMatchObject({ view: "end" })
     expect(end?.float?.slice(0, 2)).toEqual(["End of tour", "paid"])
     expect(end?.float).toContain("⚠ likely wrong · 2 · pay.ts:1 · pay")
@@ -219,7 +219,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
     expect(onBand(into?.virt_lines)).toEqual(["▌ s  next: send.ts:1"])
-    expect(into?.winbar).toContain("2/3 ◇")
+    expect(into?.winbar).toContain("context available")
   }, 30_000)
 
   test("opens the user's own file when it's the tour's version", async () => {
@@ -306,7 +306,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       "current",
     ])
 
-    expect(away?.winbar).toContain("  ·  away  ·  ")
+    expect(away?.winbar).toEndWith("away ")
     expect(back).toMatchObject({ file: "main.ts", line: 1 })
     expect(back?.winbar).not.toContain("away")
   }, 30_000)

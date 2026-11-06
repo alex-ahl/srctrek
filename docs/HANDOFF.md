@@ -66,7 +66,7 @@
 - The band wraps the narration at about 90 characters, up to six lines, however wide the window.
 - `<leader>tx` shows a step's context code (contracts, types, where its data came from) in a
   float over the step, each piece under its reason; `q` closes it, enter opens a piece as a step.
-  On steps that have any, the winbar shows `◇` beside the stop number; the overview explains it.
+  On steps that have any, the winbar says "context available"; the overview names the key.
 - The band's text starts in the code's column, with half a row of padding above and below; the
   step's tint runs from the window's left edge, under its signs and line numbers, and the band's
   bottom padding turns into it, so band and step read as one block.
@@ -84,6 +84,9 @@
   text, which Neovim draws in order of priority.
 - A tour's read-only copy opens with its diagnostics hidden until the tour ends; the user's own
   files keep theirs.
+- The winbar: the stop number and its tags, then the place as `repo: path`, the repo in its own
+  colour, then the stack, its frames below the step's dimmed, split by a dim `│`; "away" at the
+  right end.
 - A crisper flow, from a walk through every screen: quitting a fresh Neovim leaves its window
   empty again (Neovim had reused the start buffer for the tour's first file); opening says so at
   once and binds the keys, so a key pressed meanwhile no longer runs Neovim's own `]t`
@@ -169,8 +172,8 @@ The screen:
 - The tour's marks come before diagnostics at a line's end: done, below.
 - Diagnostics are hidden in the tour's read-only copies: done, below.
 - Details offer a guessed link's evidence in the quickfix list.
-- The away note reworded and placed where it doesn't shift the winbar.
-- The winbar's parts get colour and clearer separators.
+- The away note placed where it doesn't shift the winbar: done, below.
+- The winbar's parts get colour and clearer separators: done, below.
 - The step event names the file's repo root, so a file tree can follow into another repo.
 
 **Known gaps**

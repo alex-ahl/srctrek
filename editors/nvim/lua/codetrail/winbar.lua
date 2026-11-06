@@ -27,12 +27,15 @@ local function cause_of(view)
   return view.started_by ~= vim.NIL and view.started_by or nil
 end
 
+-- Named with its repo only when that isn't the repo of the stack it started.
 local function started_by_text(view)
   local cause = cause_of(view)
   if cause == nil then
     return ""
   end
-  return coloured("CodetrailHop", "started by " .. escape(cause.repo .. ": " .. label(cause)) .. " ↯ ")
+  local first = view.stack[1]
+  local repo = (first == nil or first.repo ~= cause.repo) and (cause.repo .. ": ") or ""
+  return coloured("CodetrailHop", "started by " .. escape(repo .. label(cause)) .. " ↯ ")
 end
 
 -- Outermost first, as a path reads, with ↯ before the frame a hop started. Cut from the left
@@ -43,20 +46,16 @@ local function stack_text(view)
     if i > 1 then
       table.insert(parts, frame.hop and coloured("CodetrailHop", " ↯ ") or " › ")
     end
-    -- the first frame of a fresh stack follows its cause
+    -- the first frame of a fresh stack follows its cause; frames below the step's are dimmed
     local previous = view.stack[i - 1] or cause_of(view)
-    table.insert(parts, frame_text(frame, previous))
+    local shown = frame_text(frame, previous)
+    table.insert(parts, i == #view.stack and shown or coloured("CodetrailStackFrame", shown))
   end
   return "%<" .. started_by_text(view) .. table.concat(parts)
 end
 
--- A step with context code to show gets ◇ beside its number: a mark, not words, as the key that
--- shows it is the same on every step.
 local function position(view)
   local number = coloured("CodetrailPosition", string.format("%d/%d", view.number, view.count))
-  if #view.context > 0 then
-    number = number .. " " .. coloured("CodetrailContext", "◇")
-  end
   if view.step_kind == "context" then
     return number .. " context"
   end
@@ -72,28 +71,43 @@ local function code_tag(view, new_file)
   return not view.changed and "existing code" or nil
 end
 
-local function bar(view, away, new_file)
+-- "repo: path", as the context float writes it, so the repo doesn't read as a folder; the full
+-- path is in the status line, so the stack gets the room.
+local function place_text(view)
+  return coloured("CodetrailRepo", escape(view.repo)) .. ": " .. escape(text.place(view))
+end
+
+local function tags(view, new_file)
+  local found = {}
   local tag = code_tag(view, new_file)
-  local parts = {
-    position(view) .. (tag and ("  " .. coloured("CodetrailUnchanged", tag)) or ""),
-    -- the full path is in the status line; the stack needs the room
-    escape(view.repo .. " · " .. text.place(view)),
-  }
+  if tag then
+    table.insert(found, coloured("CodetrailUnchanged", tag))
+  end
+  if #view.context > 0 then
+    table.insert(found, coloured("CodetrailContext", "context available"))
+  end
   if view.tour_copy then
-    table.insert(parts, coloured("CodetrailTourCopy", "tour's version"))
+    table.insert(found, coloured("CodetrailTourCopy", "tour's version"))
   end
   if view.stale then
-    table.insert(parts, coloured("CodetrailStale", "stale: file changed since"))
+    table.insert(found, coloured("CodetrailStale", "stale: file changed since"))
   end
-  if away then
-    -- the key back is in the overview, like every other key
-    table.insert(parts, coloured("CodetrailAway", "away"))
-  end
+  return found
+end
+
+local function bar(view, away, new_file)
+  local parts = { position(view) }
+  vim.list_extend(parts, tags(view, new_file))
+  table.insert(parts, place_text(view))
   if #view.stack > 0 then
     table.insert(parts, stack_text(view))
   end
+  -- at the right end (%=), so it doesn't shift the rest; the key back is in the overview
+  local away_text = away and ("  %=" .. coloured("CodetrailAway", "away") .. " ") or ""
   -- the badge says a tour is on, as -- INSERT -- says a mode is
-  return coloured("CodetrailBadge", " codetrail ") .. "  " .. table.concat(parts, "  ·  ")
+  local separator = coloured("CodetrailSeparator", "  │  ")
+  local badge = coloured("CodetrailBadge", " codetrail ")
+  return badge .. "  " .. table.concat(parts, separator) .. away_text
 end
 
 -- The window showing the step, the step, and the window's own winbar to put back: the
