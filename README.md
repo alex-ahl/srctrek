@@ -122,21 +122,27 @@ commands also offer `build_tour`.
 
 ## Stepping in VS Code (in progress)
 
-The extension opens a tour and steps through it; the rest of what Neovim shows is coming. To try
-it from this checkout:
+The extension steps a tour as the Neovim plugin does. To try it from this checkout:
 
 ```sh
 bun run --cwd editors/vscode build
 code --extensionDevelopmentPath=<codetrail>/editors/vscode <the repo whose tours you want>
 ```
 
-Run "Codetrail: Open Tour…" and pick a tour; its overview opens in a tab. Step with `F8` and
-`Shift+F8`; `F10`, `F11`, and `Shift+F11` step over, into the call on the cursor's line, and out.
-Each stop's narration shows in a panel above its code; VS Code also lists it in its Comments view,
-which it opens by itself the first time. Predicted values show at the ends of their lines as
-`name ≈ value`; "Codetrail: Show or Hide Values" turns them off. The end of the tour lists every
-flag, each a link to its stop. The extension starts `trail serve` in the workspace folder, so
-`trail` must be on your `PATH`, or set `codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
+- Open a tour with "Codetrail: Open Tour…", or click one in the Explorer's Codetrail Tours view;
+  its overview opens in a tab.
+- Step with `F8` and `Shift+F8`; `F10`, `F11`, and `Shift+F11` step over, into the call on the
+  cursor's line, and out.
+- Each stop's narration shows in a panel above its code. VS Code also lists it in its Comments view,
+  which it opens by itself the first time.
+- Predicted values show at the ends of their lines as `name ≈ value`; "Codetrail: Show or Hide
+  Values" turns them off.
+- The Explorer's Codetrail Stop view shows the stop's call stack, where it came from with the code
+  each piece of evidence cites, its flag, values, context, details, and questions.
+- The end of the tour lists every flag, each a link to its stop.
+
+The extension starts `trail serve` in the workspace folder, so `trail` must be on your `PATH`, or
+set `codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
 
 ## Where it's going
 

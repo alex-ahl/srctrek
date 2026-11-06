@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import type { EndView, OverviewView } from "@codetrail/core"
-import { escapeHtml, tourPageHtml } from "../src/tour-page"
+import { escapeHtml } from "../src/page"
+import { tourPageHtml } from "../src/tour-page"
 import { ref } from "./support/views"
 
 const overview: OverviewView = {

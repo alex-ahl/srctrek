@@ -18,7 +18,8 @@ function shortened(text: string): string {
   return chars.length <= MAX_VALUE ? text : `${chars.slice(0, MAX_VALUE - 1).join("")}…`
 }
 
-function describe(value: PredictedValue): string {
+/** A value as its line shows it: `name ≈ value`, `returns ≈ value`, or `≈?` when doubted. */
+export function valueText(value: PredictedValue): string {
   const sign = value.uncertain === true ? "≈?" : "≈"
   const subject = value.role === "return" ? "returns" : value.name
   return `${subject} ${sign} ${shortened(value.value)}`
@@ -32,7 +33,7 @@ export function valueMarks(view: StepView): ValueMark[] {
     seen.add(value.line)
     return {
       line: value.line - 1,
-      text: first ? describe(value) : `, ${describe(value)}`,
+      text: first ? valueText(value) : `, ${valueText(value)}`,
       doubtful: value.uncertain === true,
       first,
     }

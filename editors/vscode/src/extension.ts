@@ -4,8 +4,10 @@ import { type Arrows, createArrows } from "./arrows"
 import { type Move, TrailClient } from "./client"
 import { type InlineValues, createInlineValues } from "./inline-values"
 import { type Narration, createNarration } from "./narration"
+import { type StopView, createStopView } from "./stop-view"
 import { type TourTab, createTourTab } from "./tour-tab"
-import { NOWHERE, callAt, narrationLine, placeOf, sameView, statusText } from "./view"
+import { createToursView } from "./tours-view"
+import { NOWHERE, callAt, narrationLine, placeOf, sameView, statusText, tourSummary } from "./view"
 
 // The open tour's connection and where it is, at the edge as a server's current state is; one
 // tour at a time.
@@ -18,6 +20,7 @@ let decorations: vscode.TextEditorDecorationType[] = []
 let status: vscode.StatusBarItem | undefined
 let narration: Narration | undefined
 let tourTab: TourTab | undefined
+let stopView: StopView | undefined
 
 function serveCommand(): string[] {
   return (
@@ -68,6 +71,7 @@ async function showStep(view: StepView): Promise<void> {
 
 async function show(view: SessionView): Promise<void> {
   current = view
+  await stopView?.show(view.kind === "step" ? view : null)
   if (status !== undefined) {
     status.text = statusText(view)
     status.show()
@@ -87,12 +91,7 @@ function pickItem(entry: TourEntry): vscode.QuickPickItem {
   if (!entry.valid) {
     return { label: entry.name, description: entry.problem }
   }
-  const flags = entry.highFlags > 0 ? ` · ${String(entry.highFlags)} likely wrong` : ""
-  return {
-    label: entry.name,
-    description: entry.title,
-    detail: `${String(entry.steps)} stops${flags}`,
-  }
+  return { label: entry.name, description: entry.title, detail: tourSummary(entry) }
 }
 
 function startClient(): TrailClient {
@@ -101,6 +100,17 @@ function startClient(): TrailClient {
     throw new Error("open the folder the tours were built in first")
   }
   return new TrailClient(serveCommand(), folder.uri.fsPath)
+}
+
+// The saved tours, from a trail serve started for the asking, so the list works with no tour open.
+async function listTours(): Promise<readonly TourEntry[]> {
+  const listing = startClient()
+  try {
+    await listing.initialize()
+    return (await listing.tours()).tours
+  } finally {
+    listing.close()
+  }
 }
 
 async function pickTour(running: TrailClient): Promise<string | undefined> {
@@ -122,6 +132,8 @@ async function openTour(name?: unknown): Promise<SessionView | undefined> {
   }
 
   await vscode.commands.executeCommand("setContext", "codetrail.open", true)
+  // the Explorer keeps an extension's views collapsed under its files until opened
+  await vscode.commands.executeCommand("codetrail.stop.focus")
   const view = await client.open(tour)
   await show(view)
   return view
@@ -172,6 +184,7 @@ async function quit(): Promise<void> {
   status?.hide()
   narration?.hide()
   tourTab?.hide()
+  await stopView?.show(null)
   clearDecorations()
   await vscode.commands.executeCommand("setContext", "codetrail.open", false)
 }
@@ -197,15 +210,25 @@ export function activate(context: vscode.ExtensionContext): void {
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   const panel = createNarration()
   narration = panel
-  const tab = createTourTab((step) => {
+  const goTo = (step: string): void => {
     move("goto", { step }).catch(reportFailure)
-  })
+  }
+  const tab = createTourTab(goTo)
   tourTab = tab
+  const stop = createStopView(goTo)
+  stopView = stop
+  const tours = createToursView(listTours)
   context.subscriptions.push(
     ...decorations,
     status,
     panel,
     tab,
+    stop,
+    tours,
+    command("codetrail.refreshTours", () => {
+      tours.refresh()
+      return Promise.resolve()
+    }),
     command("codetrail.openTour", openTour),
     command("codetrail.next", () => move("next")),
     command("codetrail.previous", () => move("prev")),

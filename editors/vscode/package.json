@@ -43,10 +43,37 @@
         "title": "Codetrail: Show or Hide Values"
       },
       {
+        "command": "codetrail.refreshTours",
+        "title": "Codetrail: Refresh Tours",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "codetrail.quit",
         "title": "Codetrail: End the Tour"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "codetrail.tours",
+          "name": "Codetrail Tours"
+        },
+        {
+          "id": "codetrail.stop",
+          "name": "Codetrail Stop",
+          "type": "webview"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "codetrail.refreshTours",
+          "when": "view == codetrail.tours",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "title": "codetrail",
       "properties": {

@@ -1,4 +1,4 @@
-import type { Call, SessionView, StepView } from "@codetrail/core"
+import type { Call, SessionView, StepView, TourEntry } from "@codetrail/core"
 import type { Move } from "./client"
 
 /** Where a step opens: its file, and its lines numbered from 0, as VS Code counts them. */
@@ -84,4 +84,10 @@ export const NOWHERE: Record<Move, string> = {
   over: "nothing to step over here",
   out: "nothing to step out to",
   goto: "already there",
+}
+
+/** A valid tour's size and its likely-wrong flags, for the lists of tours. */
+export function tourSummary(entry: Extract<TourEntry, { valid: true }>): string {
+  const flags = entry.highFlags > 0 ? ` · ${String(entry.highFlags)} likely wrong` : ""
+  return `${String(entry.steps)} stops${flags}`
 }

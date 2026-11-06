@@ -115,6 +115,12 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   only): the overview has the story, trigger, outcome, repos, flag counts, and the keys; the end has
   the outcome and every flag, each a link that goes to its stop through `goto`. Stepping onto a
   stop closes the tab.
+- VS Code's sidebar, in the Explorer: Codetrail Tours lists the saved tours (from a `trail serve`
+  started for the listing; refresh in its title bar), each opening on a click; Codetrail Stop, a
+  webview, shows the stop's call stack newest first (hops `↯`, "started by"), where it came from
+  with each cited line's code (a link opens it; "guessed" when it is), the flag, values, details,
+  context steps, and questions, each stop a link. The route (every stop in order) isn't in the
+  protocol's views, so the sidebar doesn't list it.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

@@ -1,17 +1,9 @@
 import { randomBytes } from "node:crypto"
 import * as vscode from "vscode"
-import { type PageMessage, type TourPageView, tourPageHtml } from "./tour-page"
+import { isPageMessage } from "./page"
+import { type TourPageView, tourPageHtml } from "./tour-page"
 
 export type TourTab = { show: (view: TourPageView) => void; hide: () => void }
-
-function isPageMessage(message: unknown): message is PageMessage {
-  return (
-    typeof message === "object" &&
-    message !== null &&
-    "goto" in message &&
-    typeof message.goto === "string"
-  )
-}
 
 /** One tab at a time for the overview and the end; a flag clicked there calls `goTo` with its stop. */
 export function createTourTab(goTo: (step: string) => void): TourTab & vscode.Disposable {
@@ -28,7 +20,7 @@ export function createTourTab(goTo: (step: string) => void): TourTab & vscode.Di
       { enableScripts: true, localResourceRoots: [] },
     )
     opened.webview.onDidReceiveMessage((message: unknown) => {
-      if (isPageMessage(message)) {
+      if (isPageMessage(message) && "goto" in message) {
         goTo(message.goto)
       }
     })
