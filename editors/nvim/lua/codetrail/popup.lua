@@ -1,4 +1,4 @@
--- Centred popups for overview, details, answers and the end screen.
+-- Centred popups for the overview, details, context code, and the end screen.
 local state = require("codetrail.state")
 
 local M = {}
@@ -73,33 +73,6 @@ function M.document(doc, title)
       action()
     end
   end, { buffer = buf })
-  return buf
-end
-
--- A citation reads <repo>/<path>:<line>; the repo name picks the root.
-local function jump_to_citation()
-  local word = vim.fn.expand("<cWORD>")
-  local repo, path, line = word:match("([%w_%-%.]+)/([%w_%-%./]+%.%w+):(%d+)")
-  local root = repo and state.roots[repo]
-  if not root or vim.fn.filereadable(root .. "/" .. path) == 0 then
-    return
-  end
-  vim.cmd("close")
-  vim.cmd("edit " .. vim.fn.fnameescape(root .. "/" .. path))
-  vim.api.nvim_win_set_cursor(0, { tonumber(line), 0 })
-  vim.cmd("normal! zz")
-end
-
--- A popup rendered as markdown, with citations underlined; enter on one jumps there.
-function M.markdown(lines, title)
-  local buf = M.float(lines, title)
-  vim.bo[buf].filetype = "markdown"
-  vim.wo.conceallevel = 2
-  local names = vim.tbl_map(function(n)
-    return vim.fn.escape(n, [[\.]])
-  end, vim.tbl_keys(state.roots))
-  vim.fn.matchadd("CodetrailCitation", [[\v<(]] .. table.concat(names, "|") .. [[)/[[:alnum:]_./-]+:\d+]])
-  vim.keymap.set("n", "<cr>", jump_to_citation, { buffer = buf })
   return buf
 end
 

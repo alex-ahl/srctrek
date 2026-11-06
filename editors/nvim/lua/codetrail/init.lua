@@ -3,18 +3,14 @@
 -- Tours are loaded and stepped by `trail serve`, started in Neovim's working directory.
 -- Default keys while a tour is open (configurable, see DEFAULT_KEYS below):
 --   ]t / [t next / previous step   <leader>tn step over   <leader>tc back to the current step
---   <leader>ti step into           <leader>to step out
+--   <leader>ti step into           <leader>to step out    <leader>tx context code
 --   <leader>tt details (overview before step 1)               <leader>tq quit
---   <leader>ta ask about the current step (enter on a cited repo/file:line jumps there)
 --   <leader>tv show or hide predicted values
 -- Every action is also a command (:TrailNext, :TrailPrev, :TrailOver, :TrailInto, :TrailOut,
--- :TrailCurrent, :TrailContext, :TrailDetails, :TrailAsk, :TrailValues, :TrailQuit) and a
--- function on this module.
--- Asking runs $CODETRAIL_AGENT with sh -c (no shell rc, so no aliases), the question as its
--- last argument. Each step fires `User CodetrailStep` with { path, shown, line, repo } for file
+-- :TrailCurrent, :TrailContext, :TrailDetails, :TrailValues, :TrailQuit) and a function on this
+-- module. Each step fires `User CodetrailStep` with { path, shown, line, repo } for file
 -- explorers or user config to follow: `path` is the file in the user's project, `shown` the
 -- file opened (the tour's copy when the user's file differs).
-local ask = require("codetrail.ask")
 local context_code = require("codetrail.context_code")
 local details = require("codetrail.details")
 local inline_values = require("codetrail.inline_values")
@@ -45,7 +41,6 @@ local DEFAULT_KEYS = {
   into = "<leader>ti",
   out = "<leader>to",
   details = "<leader>tt",
-  ask = "<leader>ta",
   values = "<leader>tv",
   quit = "<leader>tq",
 }
@@ -105,7 +100,7 @@ function M.quit()
   unbind_keys(active_keys)
   active_keys = {}
   vim.api.nvim_create_augroup("codetrail_tour", { clear = true })
-  state.view, state.overview = nil, nil
+  state.view = nil
   server.stop()
 end
 
@@ -134,7 +129,6 @@ M.out = when_open(navigation.out)
 M.current = when_open(navigation.current)
 M.details = when_open(details.show)
 M.context = when_open(context_code.show)
-M.ask = when_open(ask.ask)
 M.values = when_open(inline_values.toggle)
 
 local function watch_cursor()
@@ -157,7 +151,7 @@ local function opened(overview)
   -- the "opening…" message has done its job
   vim.api.nvim_echo({}, false, {})
   step_view.clear()
-  state.opening, state.overview, state.roots, state.notes = nil, overview, {}, {}
+  state.opening = nil
   watch_cursor()
   navigation.show(overview)
 end

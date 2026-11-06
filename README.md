@@ -77,7 +77,6 @@ flags, and the keys. Then `]t` steps through it in execution order, and each sto
 | `<leader>tx` | `:TrailContext`             | Context code (contracts, types), when available  |
 | `<leader>tt` | `:TrailDetails`             | Details: where it came from, its evidence, flags |
 | `<leader>tv` | `:TrailValues`              | Show or hide predicted values                    |
-| `<leader>ta` | `:TrailAsk`                 | Ask your agent about the current stop            |
 | `<leader>tq` | `:TrailQuit`                | End the tour                                     |
 
 Details say which stop this one was reached from and show each line of evidence with its code;
@@ -91,7 +90,7 @@ Keys exist only while a tour is open; the mappings you had on them come back whe
 each window the tour used goes back to the file and place you had. Change or turn off any key:
 
 ```lua
-vim.g.codetrail = { keys = { next = "]w", previous = "[w", ask = false } }
+vim.g.codetrail = { keys = { next = "]w", previous = "[w", values = false } }
 ```
 
 `keys = false` turns them all off, for mapping the commands yourself. `:Trail <name>` opens a
@@ -100,11 +99,6 @@ on your `PATH`, or set `vim.g.codetrail = { cmd = { "/path/to/trail", "serve" } 
 
 Each step fires `User CodetrailStep` with `{ path, shown, line, repo }`, for a file tree or your
 own config to follow: `path` is the file in your project, `shown` the file the step opened.
-
-### Asking
-
-`<leader>ta` runs your agent headless with the current step as context. Set `CODETRAIL_AGENT` to
-its headless command line; the question is appended as the last argument.
 
 ## Building a tour from your agent
 
@@ -120,7 +114,7 @@ agent reads the change at its exact revisions, builds the tour, and saves it to 
 .codetrail/tours folder, where the home screen lists it.
 
 To have `trail` start the build itself, set `CODETRAIL_AGENT` to your agent's headless command
-line, the same setting Asking uses, including whatever it needs to use the codetrail server's
+line, including whatever it needs to use the codetrail server's
 tools without asking. The instruction is appended as the last argument, so an option that takes
 a list of values goes before the one that reads the prompt. A change with no commits has nothing
 to tour, and the home screen says so instead of building. Agents that show MCP prompts as

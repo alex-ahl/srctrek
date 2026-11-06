@@ -84,6 +84,8 @@
   text, which Neovim draws in order of priority.
 - A tour's read-only copy opens with its diagnostics hidden until the tour ends; the user's own
   files keep theirs.
+- The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
+  `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`
   on the line it was guessed from.
 - The winbar: the stop number and its tags, then the place as `repo: path`, the repo in its own

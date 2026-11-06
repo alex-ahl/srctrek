@@ -8,16 +8,6 @@ local winbar = require("codetrail.winbar")
 
 local M = {}
 
--- Every step a view names carries its checkout's path, so the repos' roots come from them.
-local function remember_roots(view)
-  local refs = vim.list_extend({ view }, view.stack)
-  vim.list_extend(refs, view.calls)
-  vim.list_extend(refs, view.context)
-  for _, ref in ipairs(refs) do
-    state.roots[ref.repo] = ref.path:sub(1, #ref.path - #ref.file - 1)
-  end
-end
-
 -- Each step fires `User CodetrailStep` with { path, shown, line, repo }; anything may listen.
 -- `path` is where the file lives in the user's project, for a file tree to reveal; `shown` is
 -- the file opened, the tour's copy when the user's file differs.
@@ -34,7 +24,6 @@ local function announce(view)
 end
 
 local function show_step(view)
-  remember_roots(view)
   local drawn = step_view.show(view)
   winbar.show(vim.api.nvim_get_current_win(), view, drawn.new_file)
   announce(view)

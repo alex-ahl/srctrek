@@ -214,7 +214,7 @@ command (`:TrailNext`) and a Lua function.
 | Background code     | `<leader>tb`               | Codetrail: Show Background   |
 | Details             | `<leader>tt`               | the Details section          |
 | Show or hide values | `<leader>tv`               | Codetrail: Toggle Values     |
-| Ask                 | `<leader>ta`               | Codetrail: Ask               |
+| Ask (later)         | `<leader>ta`               | Codetrail: Ask               |
 | Quit the tour       | `<leader>tq`               | `Escape` in the tour tab     |
 
 In VS Code the debugger's keys step a tour only while no debug session runs.

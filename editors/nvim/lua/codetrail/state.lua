@@ -1,11 +1,8 @@
 -- What the plugin keeps while a tour is open; the tour itself and where it stands are the
 -- server's.
 local M = {
-  overview = nil, -- the open tour's overview, as the server first answered
   opening = nil, -- the tour being opened, until the server answers
   view = nil, -- the server's last answer: an overview, a step, or the end
-  roots = {}, -- repo name -> checkout, from the steps seen so far
-  notes = {}, -- step id -> questions asked there this session
   keys = {}, -- the tour's keys, by action, as configured
   saved_maps = {}, -- the user's own mappings on the tour's keys, restored when it ends
   show_values = true, -- predicted values at the end of their lines

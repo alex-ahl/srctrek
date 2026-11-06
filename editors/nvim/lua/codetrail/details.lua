@@ -124,7 +124,7 @@ local function step_lines(view)
       doc.add("  " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id), "CodetrailContext")
     end
   end
-  local notes = vim.list_extend(vim.list_slice(view.notes), state.notes[view.id] or {})
+  local notes = view.notes
   if #notes > 0 then
     doc.add("")
     doc.add("Questions", nil, "CodetrailHeading")
