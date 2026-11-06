@@ -1,11 +1,11 @@
 // Runs the extension's checks inside the installed VS Code, with a profile of its own so the user's
-// settings and extensions are left alone, on a repo holding the pay tour. Prints each check, and
-// VS Code's log too when one fails, and exits non-zero then.
+// settings and extensions are left alone, on a repo holding the two-call pay tour. Prints each
+// check, and VS Code's log too when one fails, and exits non-zero then.
 //   bun editors/vscode/test/run-in-vscode.ts
 import { mkdtemp } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { repoWithTour } from "../../../packages/serve/test/support/pay-tour"
+import { repoWithTwoCalls } from "../../../packages/serve/test/support/pay-tour"
 
 const EXTENSION = join(import.meta.dir, "..")
 const TRAIL = join(import.meta.dir, "../../../packages/cli/src/main.ts")
@@ -67,6 +67,6 @@ function report(code: number, log: string): void {
 
 await build("src/extension.ts", "extension.js")
 await build("test/in-vscode/suite.ts", "suite.js")
-const code = await runVsCode(await repoWithTour())
+const code = await runVsCode(await repoWithTwoCalls())
 console.log(code === 0 ? "all checks passed" : `VS Code exited with ${String(code)}`)
 process.exit(code)

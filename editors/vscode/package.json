@@ -27,6 +27,18 @@
         "title": "Codetrail: Previous Stop"
       },
       {
+        "command": "codetrail.over",
+        "title": "Codetrail: Step Over"
+      },
+      {
+        "command": "codetrail.into",
+        "title": "Codetrail: Step Into"
+      },
+      {
+        "command": "codetrail.out",
+        "title": "Codetrail: Step Out"
+      },
+      {
         "command": "codetrail.quit",
         "title": "Codetrail: End the Tour"
       }
@@ -56,6 +68,21 @@
       {
         "command": "codetrail.previous",
         "key": "shift+f8",
+        "when": "codetrail.open && !inDebugMode"
+      },
+      {
+        "command": "codetrail.over",
+        "key": "f10",
+        "when": "codetrail.open && !inDebugMode"
+      },
+      {
+        "command": "codetrail.into",
+        "key": "f11",
+        "when": "codetrail.open && !inDebugMode"
+      },
+      {
+        "command": "codetrail.out",
+        "key": "shift+f11",
         "when": "codetrail.open && !inDebugMode"
       }
     ]

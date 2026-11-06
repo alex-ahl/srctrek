@@ -95,6 +95,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   thread above the step (the line before it; below the first line on a file's first line), with
   "codetrail" and "stop N of M" in its header. Next and previous moved to `F8` and `Shift+F8`, only
   while no debug session runs.
+- VS Code steps over, into, and out on `F10`, `F11`, and `Shift+F11`; into takes the call on the
+  cursor's line, else the first not visited. Each line making a call ends in `→` (`→?` guessed,
+  `↯ repo` into another repo), bold on the line next enters from, and a move with nowhere to go
+  says so in the status bar and leaves the cursor.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

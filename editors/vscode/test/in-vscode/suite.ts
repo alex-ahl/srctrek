@@ -1,5 +1,5 @@
-// Runs inside VS Code, loaded by run-in-vscode.ts: drives the extension's commands on the pay
-// tour and checks what the editor shows. VS Code reports a thrown error as a failed run.
+// Runs inside VS Code, loaded by run-in-vscode.ts: drives the extension's commands on the
+// two-call pay tour and checks what the editor shows. VS Code reports a thrown error as a failed run.
 import { strict as assert } from "node:assert"
 import { basename } from "node:path"
 import * as vscode from "vscode"
@@ -10,6 +10,12 @@ function editorAt(): { file: string; line: number } {
   const editor = vscode.window.activeTextEditor
   assert.ok(editor, "an editor is open")
   return { file: basename(editor.document.uri.fsPath), line: editor.selection.active.line + 1 }
+}
+
+function putCursorOn(line: number): void {
+  const editor = vscode.window.activeTextEditor
+  assert.ok(editor, "an editor is open")
+  editor.selection = new vscode.Selection(line - 1, 0, line - 1, 0)
 }
 
 const checks: Check[] = [
@@ -39,6 +45,22 @@ const checks: Check[] = [
     run: async () => {
       await vscode.commands.executeCommand("codetrail.previous")
       assert.deepEqual(editorAt(), { file: "main.ts", line: 1 })
+    },
+  },
+  {
+    name: "into steps into the call on the cursor's line",
+    run: async () => {
+      putCursorOn(2)
+      await vscode.commands.executeCommand("codetrail.into")
+      assert.deepEqual(editorAt(), { file: "send.ts", line: 1 })
+    },
+  },
+  {
+    name: "into with nothing to step into leaves the cursor where it is",
+    run: async () => {
+      putCursorOn(2)
+      await vscode.commands.executeCommand("codetrail.into")
+      assert.deepEqual(editorAt(), { file: "send.ts", line: 2 })
     },
   },
 ]
