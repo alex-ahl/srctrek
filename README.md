@@ -58,9 +58,11 @@ flags, and the keys. Then `]t` steps through it in execution order, and each sto
   or worth-knowing one, and where `]t` goes next (`next: into post, line 6`), end it.
 - **The step's code**, tinted, with `▶` on its first line, `+` or `~` beside the lines the change
   touches, predicted values at the ends of their lines (always `≈`, as nothing runs), and `→` on
-  each line that makes a call the tour follows; the one `]t` enters from is bold.
+  each line that makes a call the tour follows; the one `]t` enters from is bold, and `→?` marks a
+  call the tour matched only by name.
 - **The winbar**: the stop number, "existing code" or "new file" when that's what the step is,
-  "context available" when it has context code, the repo and file, and the call stack, outermost first. A hop
+  "guessed link" when the tour couldn't prove how it got here, "context available" when it has
+  context code, the repo and file, and the call stack, outermost first. A hop
   into another repo is marked `↯`; a hop nobody waits on, such as a queued message, starts a
   fresh stack and names what started it. The winbar says "tour's version" when the file is the
   tour's copy, and "away" once you've moved off the step.

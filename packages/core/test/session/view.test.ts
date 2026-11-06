@@ -175,7 +175,7 @@ describe("sessionView", () => {
 
   test("points each call at the line that makes it, from the evidence it cites", () => {
     // the router (s8) dispatches to the refund handler (s11) at server.ts:39
-    expect(viewOf("s8").calls).toMatchObject([{ id: "s11", call_line: 39 }])
+    expect(viewOf("s8").calls).toMatchObject([{ id: "s11", call_line: 39, guessed: false }])
   })
 
   test("leaves a call's line empty when its evidence points elsewhere", () => {

@@ -200,13 +200,16 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
       "into",
     ])
 
+    // the call to send is a guessed link
     expect(calling?.calls).toEqual([
       { line: 1, text: "  →" },
-      { line: 2, text: "  →" },
+      { line: 2, text: "  →?" },
     ])
     expect(into).toMatchObject({ file: "send.ts", line: 1 })
     // the risky flag a reader stepping with next mustn't miss; the guessed link is in details
     expect(onBand(into?.virt_lines)).toEqual(["▌ s  ● risky  ·  next: the end of the tour"])
+    // it was reached by a guessed link
+    expect(into?.winbar).toContain("  │  guessed link  │  ")
   }, 30_000)
 
   test("steps into the first call not yet visited when the cursor's line makes none", async () => {

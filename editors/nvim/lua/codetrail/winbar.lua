@@ -83,6 +83,9 @@ local function tags(view, new_file)
   if tag then
     table.insert(found, coloured("CodetrailUnchanged", tag))
   end
+  if view.came_from ~= vim.NIL and view.came_from.guessed then
+    table.insert(found, coloured("CodetrailGuessed", "guessed link"))
+  end
   if #view.context > 0 then
     table.insert(found, coloured("CodetrailContext", "context available"))
   end

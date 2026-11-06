@@ -84,6 +84,8 @@
   text, which Neovim draws in order of priority.
 - A tour's read-only copy opens with its diagnostics hidden until the tour ends; the user's own
   files keep theirs.
+- A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`
+  on the line it was guessed from.
 - The winbar: the stop number and its tags, then the place as `repo: path`, the repo in its own
   colour, then the stack, its frames below the step's dimmed, split by a dim `│`; "away" at the
   right end.
@@ -171,10 +173,11 @@ The screen:
 - Values read `name ≈ value`: done, below.
 - The tour's marks come before diagnostics at a line's end: done, below.
 - Diagnostics are hidden in the tour's read-only copies: done, below.
-- Details offer a guessed link's evidence in the quickfix list.
+- Later, if beta testers ask: a guessed link's evidence in the quickfix list.
 - The away note placed where it doesn't shift the winbar: done, below.
 - The winbar's parts get colour and clearer separators: done, below.
-- The step event names the file's repo root, so a file tree can follow into another repo.
+- Later, if beta testers ask: the step event names the file's repo root, so a file tree can follow
+  into another repo.
 
 **Known gaps**
 

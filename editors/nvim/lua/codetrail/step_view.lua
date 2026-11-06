@@ -223,9 +223,11 @@ local function narration(view, layout)
   end, padded(lines, layout))
 end
 
--- The line itself says what it calls; only a hop into another repo says where it goes.
+-- The line itself says what it calls; only a hop into another repo says where it goes, and a
+-- link matched only by name gets a ?, since the tour can't prove this line makes the call.
 local function marker(view, call)
-  return call.repo == view.repo and "→" or ("↯ " .. call.repo)
+  local arrow = call.repo == view.repo and "→" or ("↯ " .. call.repo)
+  return call.guessed and (arrow .. "?") or arrow
 end
 
 local function calls_by_line(view)

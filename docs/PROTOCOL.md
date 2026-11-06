@@ -56,7 +56,7 @@ One of:
   details, flag, predicted values, the change's lines in the file, stale, the call stack back
   across every hop its caller waits on (hops marked) and what started it when it begins at a hop
   nobody waits on (`started_by`), the steps it can step into (each with the line making the
-  call, from its evidence, or null), the context steps that explain it, notes, and where it came
+  call, from its evidence, or null, and whether its link is guessed), the context steps that explain it, notes, and where it came
   from (`came_from`: the earlier step, or the step a context step explains, with its stop
   number, whether the link is guessed, and the lines its evidence cites with paths to open), and
   where next leads (`next`: into one of its calls and from which line, across a hop, back to a

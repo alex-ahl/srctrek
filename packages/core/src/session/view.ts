@@ -66,9 +66,10 @@ export type Frame = StepRef & { hop: boolean }
 
 /**
  * A step the current one enters; `call_line` is the line in the current step that makes the
- * call, from the evidence the entered step cites, or null when it cites none there.
+ * call, from the evidence the entered step cites, or null when it cites none there; `guessed`
+ * marks a link matched only by name.
  */
-export type Call = StepRef & { call_line: number | null }
+export type Call = StepRef & { call_line: number | null; guessed: boolean }
 
 export type StepView = StepRef & {
   kind: "step"
@@ -264,6 +265,7 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
     calls: enteredFrom(session, step).map((entered) => ({
       ...ref(entered),
       call_line: callLine(step, entered),
+      guessed: entered.via?.guessed ?? false,
     })),
     context: steps.filter((s) => s.kind === "context" && s.for === step.id).map(ref),
     notes: step.notes ?? [],
