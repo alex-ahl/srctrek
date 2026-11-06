@@ -57,6 +57,8 @@ describe("callStacks", () => {
     expect(result.stacks.get("s13b")).toEqual(["s13b"])
     expect(result.stacks.get("s14")).toEqual(["s4", "s14"])
     expect(result.misplacedReturns).toEqual([])
+    // the request (s8) still counts as answered, though s13b stood in for its frame by then
+    expect(result.answeredHops.has("s8")).toBe(true)
   })
 
   test("stacks a return that comes back to no frame as a call, and reports it", () => {

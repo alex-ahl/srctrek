@@ -31,6 +31,8 @@ export function callStacks(steps: readonly Link[]): CallStacks {
   const beneath = new Map<string, string | undefined>()
   const continues = new Map<string, string>()
   const answeredHops = new Set<string>()
+  // A return that takes the place of a hop's own frame stands in for that hop from then on.
+  const standsInFor = new Map<string, string>()
   const misplacedReturns: string[] = []
 
   const reachable = (id: string): readonly string[] => {
@@ -55,6 +57,7 @@ export function callStacks(steps: readonly Link[]): CallStacks {
       const hop = stacks.get(at)?.[0]
       if (hop !== undefined) {
         answeredHops.add(hop)
+        answeredHops.add(standsInFor.get(hop) ?? hop)
       }
       at = beneath.get(at)
     }
@@ -71,7 +74,11 @@ export function callStacks(steps: readonly Link[]): CallStacks {
       return
     }
 
-    place(step.id, [...(stacks.get(landsIn) ?? []).slice(0, -1), step.id], beneath.get(landsIn))
+    const landing = [...(stacks.get(landsIn) ?? []).slice(0, -1), step.id]
+    place(step.id, landing, beneath.get(landsIn))
+    if (landing.length === 1) {
+      standsInFor.set(step.id, standsInFor.get(landsIn) ?? landsIn)
+    }
     continues.set(step.id, landsIn)
     markAnswered(from, landsIn)
   }
