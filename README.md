@@ -120,6 +120,20 @@ a list of values goes before the one that reads the prompt. A change with no com
 to tour, and the home screen says so instead of building. Agents that show MCP prompts as
 commands also offer `build_tour`.
 
+## Stepping in VS Code (in progress)
+
+The extension opens a tour and steps through it; the rest of what Neovim shows is coming. To try
+it from this checkout:
+
+```sh
+bun run --cwd editors/vscode build
+code --extensionDevelopmentPath=<codetrail>/editors/vscode <the repo whose tours you want>
+```
+
+Run "Codetrail: Open Tour…", pick a tour, and step with `Alt+]` and `Alt+[`. The extension starts
+`trail serve` in the workspace folder, so `trail` must be on your `PATH`, or set
+`codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
+
 ## Where it's going
 
 - A VS Code extension, for VS Code and its forks, shipped as a .vsix package with the beta.

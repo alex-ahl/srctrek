@@ -1,0 +1,70 @@
+{
+  "name": "codetrail-vscode",
+  "displayName": "codetrail",
+  "description": "Step through a codetrail tour of a change, as a debugger session for code you haven't run.",
+  "version": "0.0.0",
+  "private": true,
+  "publisher": "codetrail",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "main": "./dist/extension.js",
+  "scripts": {
+    "build": "bun build src/extension.ts --outdir dist --target node --format cjs --external vscode"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "codetrail.openTour",
+        "title": "Codetrail: Open Tour…"
+      },
+      {
+        "command": "codetrail.next",
+        "title": "Codetrail: Next Stop"
+      },
+      {
+        "command": "codetrail.previous",
+        "title": "Codetrail: Previous Stop"
+      },
+      {
+        "command": "codetrail.quit",
+        "title": "Codetrail: End the Tour"
+      }
+    ],
+    "configuration": {
+      "title": "codetrail",
+      "properties": {
+        "codetrail.serveCommand": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "trail",
+            "serve"
+          ],
+          "description": "How to start trail serve, in the workspace folder."
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "codetrail.next",
+        "key": "alt+]",
+        "when": "codetrail.open"
+      },
+      {
+        "command": "codetrail.previous",
+        "key": "alt+[",
+        "when": "codetrail.open"
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-jsonrpc": "10.0.0"
+  },
+  "devDependencies": {
+    "@codetrail/core": "workspace:*",
+    "@types/vscode": "1.99.1"
+  }
+}

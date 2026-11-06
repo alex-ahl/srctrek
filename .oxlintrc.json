@@ -101,6 +101,30 @@
       }
     },
     {
+      "files": ["editors/vscode/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/core/src/**",
+                  "@codetrail/core/*",
+                  "@codetrail/tui",
+                  "**/tui/**",
+                  "@codetrail/mcp",
+                  "@codetrail/serve",
+                  "@codetrail/cli"
+                ],
+                "message": "The VS Code extension imports only @codetrail/core's types, and talks to trail serve over its protocol."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "files": ["packages/cli/**"],
       "rules": {
         "no-restricted-imports": [

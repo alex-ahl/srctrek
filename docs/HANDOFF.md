@@ -84,6 +84,13 @@
   text, which Neovim draws in order of priority.
 - A tour's read-only copy opens with its diagnostics hidden until the tour ends; the user's own
   files keep theirs.
+- Step 6g: the VS Code extension's skeleton, in `editors/vscode` (in the workspaces, under `bun run
+check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and `Alt+[` step, each
+  step opens its file with its lines tinted, and the status bar shows the stop. Its client for
+  `trail serve` has no VS Code API in it and is tested against the real server; the extension
+  bundles none of core's code. The VS Code layer's checks run inside the installed VS Code, with a
+  profile of their own, through `bun editors/vscode/test/run-in-vscode.ts`, run by hand on a
+  machine with a desktop session.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

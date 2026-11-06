@@ -18,7 +18,7 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   through `packages/core/src/index.ts`. Runs as a long-lived `trail` process that editor
   plugins talk to over JSON on stdio, the way language servers do.
 - **`editors/nvim/`** — the Neovim plugin (Lua), the main place a tour is followed:
-  highlights, one-line narration, change signs, details, asking. Depends on no file
+  highlights, narration, change signs, details, context code. Depends on no file
   explorer; each step fires a `User CodetrailStep` event that explorers or user config can
   follow. Every action is a command (`:TrailNext` and so on) and a Lua function; keys exist
   only while a trail is active and are set through `setup({ keys = … })` or
@@ -26,6 +26,9 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   plugins: users wire which-key, explorers, and the like to the commands, functions, and
   the step event themselves. It starts `trail serve` and draws the views it answers with
   (`docs/PROTOCOL.md`), holding no stepping logic of its own.
+- **`editors/vscode/`** — the VS Code extension, for VS Code and its forks, on the same protocol:
+  it starts `trail serve` in the workspace folder and draws the views it answers with. It imports
+  only core's types, so its bundle holds none of core's code.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
   stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
   live view while a tour is built; a route map of the whole trail across repos; and a

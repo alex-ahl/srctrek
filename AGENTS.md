@@ -44,5 +44,6 @@ migration layers. When something changes, change it everywhere at once.
 - `packages/evals/` — the eval runner: an agent builds a fixture's tour, scored against
   expected.json.
 - `editors/nvim/` — the Neovim plugin (Lua).
+- `editors/vscode/` — the VS Code extension, for VS Code and its forks.
 - `evals/fixtures/` — sample repos for tour-quality evals.
 - `scripts/` — repo tooling.

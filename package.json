@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "editors/vscode"
   ],
   "engines": {
     "bun": ">=1.3.14"

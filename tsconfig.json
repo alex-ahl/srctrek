@@ -15,5 +15,11 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["packages/*/src", "packages/*/test", "scripts"]
+  "include": [
+    "packages/*/src",
+    "packages/*/test",
+    "editors/vscode/src",
+    "editors/vscode/test",
+    "scripts"
+  ]
 }
