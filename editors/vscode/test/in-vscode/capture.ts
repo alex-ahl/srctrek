@@ -1,5 +1,5 @@
 // Runs inside VS Code, loaded by capture-vscode.ts: opens the tour CODETRAIL_TOUR names and
-// captures the screen into CODETRAIL_SCREENS at the overview, each stop, and the end.
+// captures VS Code's window into CODETRAIL_SCREENS at the overview, each stop, and the end.
 import { strict as assert } from "node:assert"
 import { execFile } from "node:child_process"
 import { join } from "node:path"
@@ -14,6 +14,33 @@ const SETTLE_MS = 800
 // a tour with more stops than this is a loop that never reaches its end
 const MOST_STOPS = 200
 
+// The id of the biggest window VS Code's main process, the extension host's parent, has on
+// screen, so the capture is of VS Code even with another window in front of it.
+const WINDOW_OF = `
+ObjC.import("CoreGraphics")
+function run(argv) {
+  const pid = Number(argv[0])
+  const listed = $.CGWindowListCopyWindowInfo($.kCGWindowListOptionOnScreenOnly, $.kCGNullWindowID)
+  const windows = ObjC.deepUnwrap(ObjC.castRefToObject(listed))
+  const area = (w) => w.kCGWindowBounds.Width * w.kCGWindowBounds.Height
+  const own = windows.filter((w) => w.kCGWindowOwnerPID === pid && w.kCGWindowLayer === 0)
+  own.sort((a, b) => area(b) - area(a))
+  return own.length > 0 ? String(own[0].kCGWindowNumber) : ""
+}`
+
+async function vscodeWindow(): Promise<string> {
+  const { stdout } = await execute("osascript", [
+    "-l",
+    "JavaScript",
+    "-e",
+    WINDOW_OF,
+    String(process.ppid),
+  ])
+  const id = stdout.trim()
+  assert.ok(id !== "", `no window on screen belongs to VS Code's process ${String(process.ppid)}`)
+  return id
+}
+
 function nameOf(view: SessionView): string {
   return view.kind === "step" ? `stop-${String(view.number).padStart(2, "0")}` : view.kind
 }
@@ -21,7 +48,7 @@ function nameOf(view: SessionView): string {
 async function capture(dir: string, index: number, view: SessionView): Promise<void> {
   await new Promise((settled) => setTimeout(settled, SETTLE_MS))
   const file = join(dir, `${String(index).padStart(3, "0")}-${nameOf(view)}.png`)
-  await execute("screencapture", ["-x", "-m", file])
+  await execute("screencapture", ["-x", "-o", "-l", await vscodeWindow(), file])
   console.log(`captured ${file}`)
 }
 

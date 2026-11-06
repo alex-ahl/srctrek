@@ -7,7 +7,7 @@ import { join } from "node:path"
 const EXTENSION = join(import.meta.dir, "..")
 const TRAIL = join(import.meta.dir, "../../../packages/cli/src/main.ts")
 const VSCODE = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
-// maximized, so a capture of the screen is all VS Code, and without the chat sidebar, which isn't
+// maximized, so a capture shows the editor at full size, and without the chat sidebar, which isn't
 // part of the tour
 const SETTINGS = {
   "window.newWindowDimensions": "maximized",

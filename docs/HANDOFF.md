@@ -100,7 +100,7 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   `↯ repo` into another repo), bold on the line next enters from, and a move with nowhere to go
   says so in the status bar and leaves the cursor.
 - `bun editors/vscode/test/capture-vscode.ts <tour> <out-dir>` steps a saved tour in the installed
-  VS Code, maximized in a profile of its own, and saves a PNG of the main screen at the overview,
+  VS Code, maximized in a profile of its own, and saves a PNG of VS Code's window at the overview,
   each stop, and the end. Run by hand on a machine with a desktop session; macOS asks once for the
   terminal's Screen Recording permission. The extension's commands answer with the view they leave
   the tour on.

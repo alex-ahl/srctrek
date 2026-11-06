@@ -1,4 +1,4 @@
-// Captures the screen at each stop of a saved tour, stepping it in the installed VS Code: the
+// Captures VS Code's window at each stop of a saved tour, stepping it in the installed VS Code: the
 // overview, every stop, and the end, as numbered PNGs in <out-dir>. The workspace is the current
 // directory unless given. macOS asks once for the terminal's Screen Recording permission.
 //   bun editors/vscode/test/capture-vscode.ts <tour> <out-dir> [workspace]
