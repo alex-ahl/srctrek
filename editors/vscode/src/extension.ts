@@ -132,7 +132,7 @@ async function openTour(name?: unknown): Promise<SessionView | undefined> {
   }
 
   await vscode.commands.executeCommand("setContext", "codetrail.open", true)
-  // the Explorer keeps an extension's views collapsed under its files until opened
+  // opens codetrail's sidebar on the stop, as starting a debug session opens Run and Debug
   await vscode.commands.executeCommand("codetrail.stop.focus")
   const view = await client.open(tour)
   await show(view)

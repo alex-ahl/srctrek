@@ -32,7 +32,7 @@ async function openAt(path: string, line: number): Promise<void> {
   })
 }
 
-/** The sidebar's Codetrail Stop view; a stop clicked there calls `goTo`, a cited line opens. */
+/** The codetrail sidebar's Stop view; a stop clicked there calls `goTo`, a cited line opens. */
 export function createStopView(goTo: (step: string) => void): StopView & vscode.Disposable {
   let webview: vscode.WebviewView | undefined
   let current: StepView | null = null

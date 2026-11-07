@@ -121,6 +121,9 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   with each cited line's code (a link opens it; "guessed" when it is), the flag, values, details,
   context steps, and questions, each stop a link. The route (every stop in order) isn't in the
   protocol's views, so the sidebar doesn't list it.
+- The two views moved from the Explorer, where they sat collapsed under the files, to codetrail's own
+  sidebar in the activity bar (`editors/vscode/media/trail.svg`), Tours above a taller Stop; opening a tour opens
+  the sidebar on the stop.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

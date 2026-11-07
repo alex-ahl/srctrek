@@ -52,16 +52,27 @@
         "title": "Codetrail: End the Tour"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "codetrail",
+          "title": "codetrail",
+          "icon": "media/trail.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "codetrail": [
         {
           "id": "codetrail.tours",
-          "name": "Codetrail Tours"
+          "name": "Tours",
+          "initialSize": 1
         },
         {
           "id": "codetrail.stop",
-          "name": "Codetrail Stop",
-          "type": "webview"
+          "name": "Stop",
+          "type": "webview",
+          "initialSize": 3
         }
       ]
     },

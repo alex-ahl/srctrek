@@ -17,7 +17,7 @@ function itemOf(entry: TourEntry): vscode.TreeItem {
   return item
 }
 
-/** The sidebar's Codetrail Tours view: the saved tours, each opening on a click. */
+/** The codetrail sidebar's Tours view: the saved tours, each opening on a click. */
 export function createToursView(
   listTours: () => Promise<readonly TourEntry[]>,
 ): ToursView & vscode.Disposable {
