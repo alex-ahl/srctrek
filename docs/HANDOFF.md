@@ -126,6 +126,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   the sidebar on the stop.
 - VS Code: "Codetrail: Show Context" opens the stop's context code in VS Code's peek view over the
   step; "Codetrail: Show Current Stop" goes back to the stop; `Escape` in the end tab ends the tour.
+- `bun run --cwd editors/vscode package` builds `editors/vscode/dist/codetrail.vsix` with
+  `@vscode/vsce`: the bundled extension, its manifest, and its icon, nothing else
+  (`.vscodeignore`). It's packaged without a license or repository field, as the repo has neither
+  yet; `@vscode/vsce-sign`'s postinstall, for signing a published extension, stays blocked.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`
