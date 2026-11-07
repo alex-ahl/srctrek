@@ -139,7 +139,10 @@ code --extensionDevelopmentPath=<codetrail>/editors/vscode <the repo whose tours
   Values" turns them off.
 - The sidebar's Stop view shows the stop's call stack, where it came from with the code
   each piece of evidence cites, its flag, values, context, details, and questions.
-- The end of the tour lists every flag, each a link to its stop.
+- "Codetrail: Show Context" opens the stop's context code in a peek view over the step;
+  "Codetrail: Show Current Stop" goes back to the stop.
+- The end of the tour lists every flag, each a link to its stop. `Escape` there, or "Codetrail: End
+  the Tour", ends it.
 
 The extension starts `trail serve` in the workspace folder, so `trail` must be on your `PATH`, or
 set `codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.

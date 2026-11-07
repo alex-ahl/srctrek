@@ -13,7 +13,12 @@ function editorAt(): { file: string; line: number } {
   return { file: basename(editor.document.uri.fsPath), line: editor.selection.active.line + 1 }
 }
 
-function putCursorOn(line: number): void {
+// VS Code draws the narration panel after the command that asked for it returns, and moves the
+// cursor back to the step as it does; a reader's next key comes long after.
+const SETTLE_MS = 300
+
+async function putCursorOn(line: number): Promise<void> {
+  await new Promise((settled) => setTimeout(settled, SETTLE_MS))
   const editor = vscode.window.activeTextEditor
   assert.ok(editor, "an editor is open")
   editor.selection = new vscode.Selection(line - 1, 0, line - 1, 0)
@@ -51,15 +56,23 @@ const checks: Check[] = [
   {
     name: "into steps into the call on the cursor's line",
     run: async () => {
-      putCursorOn(2)
+      await putCursorOn(2)
       await vscode.commands.executeCommand("codetrail.into")
+      assert.deepEqual(editorAt(), { file: "send.ts", line: 1 })
+    },
+  },
+  {
+    name: "show current stop brings the cursor back to the stop",
+    run: async () => {
+      await putCursorOn(3)
+      await vscode.commands.executeCommand("codetrail.current")
       assert.deepEqual(editorAt(), { file: "send.ts", line: 1 })
     },
   },
   {
     name: "into with nothing to step into leaves the cursor where it is",
     run: async () => {
-      putCursorOn(2)
+      await putCursorOn(2)
       await vscode.commands.executeCommand("codetrail.into")
       assert.deepEqual(editorAt(), { file: "send.ts", line: 2 })
     },

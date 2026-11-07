@@ -124,6 +124,8 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
 - The two views moved from the Explorer, where they sat collapsed under the files, to codetrail's own
   sidebar in the activity bar (`editors/vscode/media/trail.svg`), Tours above a taller Stop; opening a tour opens
   the sidebar on the stop.
+- VS Code: "Codetrail: Show Context" opens the stop's context code in VS Code's peek view over the
+  step; "Codetrail: Show Current Stop" goes back to the stop; `Escape` in the end tab ends the tour.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

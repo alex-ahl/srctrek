@@ -39,6 +39,14 @@
         "title": "Codetrail: Step Out"
       },
       {
+        "command": "codetrail.current",
+        "title": "Codetrail: Show Current Stop"
+      },
+      {
+        "command": "codetrail.context",
+        "title": "Codetrail: Show Context"
+      },
+      {
         "command": "codetrail.toggleValues",
         "title": "Codetrail: Show or Hide Values"
       },
@@ -126,6 +134,11 @@
         "command": "codetrail.out",
         "key": "shift+f11",
         "when": "codetrail.open && !inDebugMode"
+      },
+      {
+        "command": "codetrail.quit",
+        "key": "escape",
+        "when": "activeWebviewPanelId == 'codetrail.tour' && codetrail.atEnd"
       }
     ]
   },

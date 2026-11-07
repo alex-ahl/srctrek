@@ -71,6 +71,8 @@ async function showStep(view: StepView): Promise<void> {
 
 async function show(view: SessionView): Promise<void> {
   current = view
+  // Escape in the tour tab ends the tour only at its end, not on the overview
+  await vscode.commands.executeCommand("setContext", "codetrail.atEnd", view.kind === "end")
   await stopView?.show(view.kind === "step" ? view : null)
   if (status !== undefined) {
     status.text = statusText(view)
@@ -171,6 +173,46 @@ function into(): Promise<SessionView | undefined> {
   return move("into", target === undefined ? undefined : { target })
 }
 
+// Back to the stop the tour is on, without moving the tour.
+async function showCurrent(): Promise<SessionView | undefined> {
+  if (current === undefined) {
+    void vscode.window.showWarningMessage("codetrail: no tour is open; run Codetrail: Open Tour…")
+    return undefined
+  }
+  await show(current)
+  return current
+}
+
+// The stop's context code in VS Code's peek view over the step, so the tour stays where it is.
+async function showContext(): Promise<void> {
+  if (current?.kind !== "step") {
+    vscode.window.setStatusBarMessage("codetrail: context is shown at a stop", 3000)
+    return
+  }
+  if (current.context.length === 0) {
+    vscode.window.setStatusBarMessage("codetrail: this stop has no context", 3000)
+    return
+  }
+
+  const step = current
+  await show(step)
+  const locations = step.context.map(
+    (ref) =>
+      new vscode.Location(
+        vscode.Uri.file(ref.path),
+        new vscode.Range(ref.start_line - 1, 0, ref.end_line - 1, 0),
+      ),
+  )
+  const place = placeOf(step)
+  await vscode.commands.executeCommand(
+    "editor.action.peekLocations",
+    vscode.Uri.file(place.path),
+    new vscode.Position(place.first, 0),
+    locations,
+    "peek",
+  )
+}
+
 function toggleValues(): Promise<void> {
   const shown = values?.toggle() ?? false
   vscode.window.setStatusBarMessage(`codetrail: values ${shown ? "shown" : "hidden"}`, 3000)
@@ -236,6 +278,8 @@ export function activate(context: vscode.ExtensionContext): void {
     command("codetrail.into", into),
     command("codetrail.out", () => move("out")),
     command("codetrail.toggleValues", toggleValues),
+    command("codetrail.current", showCurrent),
+    command("codetrail.context", showContext),
     command("codetrail.quit", quit),
   )
 }

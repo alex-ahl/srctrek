@@ -206,17 +206,17 @@ on the step as notes, which details show from then on.
 While a tour is open; every key can be changed or turned off, and in Neovim each action is also a
 command (`:TrailNext`) and a Lua function.
 
-| Action              | Neovim                     | VS Code                      |
-| ------------------- | -------------------------- | ---------------------------- |
-| Next, previous      | `]t`, `[t`                 | `F8`, `Shift+F8`             |
-| Over                | `<leader>tn`               | `F10`                        |
-| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`           |
-| Back to the step    | `<leader>tc`               | Codetrail: Show Current Step |
-| Background code     | `<leader>tb`               | Codetrail: Show Background   |
-| Details             | `<leader>tt`               | the Details section          |
-| Show or hide values | `<leader>tv`               | Codetrail: Toggle Values     |
-| Ask (later)         | `<leader>ta`               | Codetrail: Ask               |
-| Quit the tour       | `<leader>tq`               | `Escape` in the tour tab     |
+| Action              | Neovim                     | VS Code                        |
+| ------------------- | -------------------------- | ------------------------------ |
+| Next, previous      | `]t`, `[t`                 | `F8`, `Shift+F8`               |
+| Over                | `<leader>tn`               | `F10`                          |
+| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`             |
+| Back to the step    | `<leader>tc`               | Codetrail: Show Current Stop   |
+| Context code        | `<leader>tx`               | Codetrail: Show Context        |
+| Details             | `<leader>tt`               | the sidebar's Stop view        |
+| Show or hide values | `<leader>tv`               | Codetrail: Show or Hide Values |
+| Ask (later)         | `<leader>ta`               | Codetrail: Ask                 |
+| Quit the tour       | `<leader>tq`               | `Escape` in the end tab        |
 
 In VS Code the keys step a tour only while no debug session runs.
 
