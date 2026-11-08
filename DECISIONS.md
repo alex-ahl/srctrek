@@ -2,6 +2,16 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-08 — The beta follows the TUI, as a milestone of its own
+
+Milestone 8 hands srctrek to beta testers: the `trek` binary without a checkout, a clear error
+when an editor can't start `trek serve`, and a tester guide. A GUI, if beta testers want one,
+moves to milestone 9. Replaces "Beta testers get the binary and a .vsix package after milestone
+6" from "Foundation first".
+
+Handing over is work of its own, not a release step at the end of the editors, and testers
+should meet the terminal at its designed screens rather than the interim home screen.
+
 ## 2026-11-03 — A trek loses nothing of the user's, and has no tab
 
 A trek borrows the user's own windows and gives them back on quit: each window returns to its

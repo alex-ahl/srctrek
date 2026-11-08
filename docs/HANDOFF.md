@@ -265,9 +265,11 @@ The screen:
   treks built with an older guide, whose prompt hash differs from the current one), build
   view, route map, and stepping view. `trek` and `trek mcp` report the commit
   they were built from instead of version 0.0.0, and treks record it.
-- 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
-
-The beta release follows milestone 6: the `trek` binary and the .vsix package.
+- 8: the beta: `trek` for testers without a checkout, shipped with the .vsix package; a clear
+  error when an editor can't start `trek serve` (VS Code started from the Dock doesn't see the
+  shell's PATH), and `trek --help`; a one-page tester guide in `docs/`; a list of known rough
+  edges and a feedback channel.
+- 9: a GUI sharing screens with the VS Code extension, if beta testers want it.
 
 **Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
 
