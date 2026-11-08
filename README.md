@@ -4,6 +4,16 @@
 
 <h1 align="center">srctrek</h1>
 
+<p align="center">
+  <a href="https://github.com/alex-ahl/srctrek/actions/workflows/ci.yml"><img src="https://github.com/alex-ahl/srctrek/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/status-pre--release-f5a623?style=flat-square" alt="Status: pre-release">
+  <img src="https://img.shields.io/badge/Bun-%E2%89%A5%201.3.14-0d1640?style=flat-square&logo=bun&logoColor=white" alt="Bun 1.3.14 or later">
+  <img src="https://img.shields.io/badge/TypeScript-strict-1c2f7a?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript, strict">
+  <img src="https://img.shields.io/badge/Neovim-%E2%89%A5%200.10-36c6f4?style=flat-square&logo=neovim&logoColor=white" alt="Neovim 0.10 or later">
+  <img src="https://img.shields.io/badge/VS%20Code-%E2%89%A5%201.99-5ff0c0?style=flat-square" alt="VS Code 1.99 or later">
+  <img src="https://img.shields.io/badge/MCP-trek%20mcp-6b7cff?style=flat-square" alt="MCP server: trek mcp">
+</p>
+
 A debugger session for code you haven't run. `trek` takes a change — a git range or pull
 requests, across one or more repos — and follows one example scenario from its trigger to
 its outcome in execution order, moving your editor to each step: step over, step into,
