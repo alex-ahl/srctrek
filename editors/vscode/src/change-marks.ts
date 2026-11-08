@@ -7,24 +7,28 @@ export type ChangeMarks = {
   types: vscode.TextEditorDecorationType[]
 }
 
-// A bar at the code's left edge in the theme's diff colours, and a mark on the scrollbar: an
-// extension's gutter icon can't take a theme colour, a border can.
-function barOf(colour: string): vscode.TextEditorDecorationType {
+// A bar in the gutter beside the line numbers, where VS Code's own diff bars sit, and a mark on
+// the scrollbar. A gutter icon can't take a theme colour, so it comes in light and dark versions
+// in VS Code's default diff colours; the scrollbar mark follows the theme.
+function barOf(
+  media: vscode.Uri,
+  icon: "added" | "changed",
+  colour: string,
+): vscode.TextEditorDecorationType {
   const themed = new vscode.ThemeColor(colour)
   return vscode.window.createTextEditorDecorationType({
-    isWholeLine: true,
-    borderColor: themed,
-    borderStyle: "solid",
-    borderWidth: "0 0 0 3px",
+    light: { gutterIconPath: vscode.Uri.joinPath(media, `${icon}-light.svg`) },
+    dark: { gutterIconPath: vscode.Uri.joinPath(media, `${icon}-dark.svg`) },
+    gutterIconSize: "contain",
     overviewRulerColor: themed,
     overviewRulerLane: vscode.OverviewRulerLane.Left,
   })
 }
 
 /** The lines the change adds or edits in the stop's file; a file it adds whole gets none. */
-export function createChangeMarks(): ChangeMarks {
-  const added = barOf("editorGutter.addedBackground")
-  const changed = barOf("editorGutter.modifiedBackground")
+export function createChangeMarks(media: vscode.Uri): ChangeMarks {
+  const added = barOf(media, "added", "editorGutter.addedBackground")
+  const changed = barOf(media, "changed", "editorGutter.modifiedBackground")
 
   const show = (editor: vscode.TextEditor, view: StepView, newFile: boolean): void => {
     const lines = changedLinesShown(view, newFile, editor.document.lineCount)

@@ -263,7 +263,7 @@ export function activate(context: vscode.ExtensionContext): void {
   arrows = callArrows
   const inlineValues = createInlineValues()
   values = inlineValues
-  const marks = createChangeMarks()
+  const marks = createChangeMarks(vscode.Uri.joinPath(context.extensionUri, "media"))
   changeMarks = marks
   decorations = [stepTint, ...callArrows.types, inlineValues.type, ...marks.types]
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)

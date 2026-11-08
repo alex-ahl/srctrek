@@ -138,7 +138,7 @@ code --install-extension editors/vscode/dist/codetrail.vsix
 - Each stop's narration, flag, and where next goes head the sidebar's Stop view. The line above the
   step holds its actions: the stop and its flag open the Stop view, "context" opens the context
   code, and "next" steps on.
-- Lines the change adds or edits carry a bar at the code's left edge in the theme's diff colours.
+- Lines the change adds or edits carry a green or blue bar in the gutter, beside the line numbers.
 - Predicted values show at the ends of their lines as `name ≈ value`; "Codetrail: Show or Hide
   Values" turns them off.
 - The sidebar's Stop view shows the stop's call stack, where it came from with the code

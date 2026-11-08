@@ -142,10 +142,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   everything an editor shows: values of each role, a doubtful one, a flag of each severity, a stop
   with two calls, a guessed link, context, a question, and a hop that starts a stack of its own.
   Open it in an editor, or pass it to the VS Code capture as its workspace.
-- VS Code marks the lines the change adds or edits with a bar at the code's left edge and a mark on
-  the scrollbar, in `editorGutter.addedBackground` and `editorGutter.modifiedBackground` (a gutter
-  icon can't take a theme colour); a file the change adds whole gets none, its "new file" tag says
-  it. In the showcase, the change edits the payments file rather than adding it. The overview tab
+- VS Code marks the lines the change adds or edits with a bar in the gutter beside the line numbers,
+  where VS Code's diff bars sit, and a mark on the scrollbar; the gutter icons come light and dark
+  in VS Code's default diff colours, as an icon can't take a theme colour; a file the change adds
+  whole gets none, its "new file" tag says it. In the showcase, the change edits the payments file rather than adding it. The overview tab
   says once, under "On screen", what the bars, `≈`, `→`, and the actions above a stop mean, each
   beside a sample of how it looks.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
