@@ -100,6 +100,12 @@ function packageReadmes(root: string): string[] {
   return readdirSync(join(root, "packages")).map((p) => join("packages", p, "README.md"))
 }
 
+// An editor's README is for its users, so it's checked for paths and links but not held to a
+// package's sections.
+function editorReadmes(root: string): string[] {
+  return readdirSync(join(root, "editors")).map((e) => join("editors", e, "README.md"))
+}
+
 function brokenPaths(root: string, doc: string, exists: (path: string) => boolean): string[] {
   const text = readFileSync(join(root, doc), "utf8")
   const existsFromDoc = (path: string) => exists(join(dirname(doc), path))
@@ -115,7 +121,12 @@ export function checkDocs(root: string): string[] {
   const exists = existenceIn(visibleFiles(root))
   const read = (doc: string) => readFileSync(join(root, doc), "utf8")
   const readmes = packageReadmes(root)
-  const docs = [...ROOT_DOCS, ...currentDocLinks(read("docs/README.md")), ...readmes]
+  const docs = [
+    ...ROOT_DOCS,
+    ...currentDocLinks(read("docs/README.md")),
+    ...readmes,
+    ...editorReadmes(root),
+  ]
 
   const missingDocs = docs.filter((doc) => !exists(doc)).map((doc) => `${doc}: file missing`)
   const brokenLinks = docs
