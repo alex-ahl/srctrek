@@ -2,7 +2,7 @@
 
 Steps through a srctrek tour in VS Code and its forks: the narration for each stop in the
 sidebar, the tour's marks in the code, and step over, into, and out on the debugger's keys.
-Requires VS Code 1.99 or later and `trek`.
+Requires `trek`.
 
 ## Installing
 

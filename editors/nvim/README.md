@@ -1,8 +1,8 @@
 # srctrek for Neovim
 
 Steps through a srctrek tour in Neovim: the narration above each stop's code, the call stack in
-the winbar, and step over, into, and out, as in a debugger. Requires Neovim 0.10 or later and
-`trek` (see the [main README](../../README.md)).
+the winbar, and step over, into, and out, as in a debugger. Requires `trek` (see the
+[main README](../../README.md)).
 
 ## Opening a tour
 
