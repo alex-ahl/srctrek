@@ -10,21 +10,24 @@ its outcome in execution order, moving your editor to each step: step over, step
 step out, with a call stack.
 
 Reads code from git, local or remote, and runs nothing. Works with any agent; steps through
-tours in Neovim, and later in VS Code and its forks.
+tours in Neovim, and in VS Code and its forks.
 
 > **Status:** pre-release, running from a checkout. Your agent builds tours of a change or of
 > code as it is through `trek mcp`; `trek` lists them, builds the missing one, and opens a
-> tour in Neovim to step through. See `docs/HANDOFF.md`.
+> tour in Neovim; the VS Code extension lists and steps them too. See `docs/HANDOFF.md`.
 
 ## Try it today
 
-Requires Bun 1.3.14 or later and Neovim 0.10 or later.
+Requires Bun 1.3.14 or later, and Neovim 0.10 or later or VS Code 1.99 or later.
 
 ```sh
 bun install                     # in this checkout
 bun run build                   # builds dist/trek
-<srctrek>/dist/trek          # then, in the repo whose change you want to tour
+<srctrek>/dist/trek             # then, in the repo whose change you want to tour
 ```
+
+To see a tour before building one of your own, `bun scripts/showcase-repo.ts` makes a small repo
+with a saved tour, "pay", that uses everything an editor shows, and prints its path to open.
 
 Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set). Arguments are
 read as in `trek main...HEAD ../gateway`; a problem with them stops `trek` with a message.
@@ -135,22 +138,21 @@ code --install-extension editors/vscode/dist/srctrek.vsix
   the code mean.
 - Step with `F8` and `Shift+F8`; `F10`, `F11`, and `Shift+F11` step over, into the call on the
   cursor's line, and out.
-- Each stop's narration, flag, and where next goes head the sidebar's Stop view. The line above the
-  step holds its actions: the stop and its flag open the Stop view, "context" opens the context
-  code, and "next" steps on.
-- Lines the change adds or edits carry a green or blue bar in the gutter, beside the line numbers.
-- Predicted values show at the ends of their lines as `name ≈ value`; "Srctrek: Show or Hide
-  Values" turns them off.
-- The sidebar's Stop view shows the stop's call stack, where it came from with the code
-  each piece of evidence cites, its flag, values, context, details, and questions.
-- "Srctrek: Show Context", or `context` above the step, scrolls the Stop view to the context:
-  each piece's reason, where it is, and its code. "Srctrek: Show Current Stop" goes back to the
-  stop.
+- The sidebar's Stop view starts with the stop's narration, its details, its flag, and where
+  `F8` goes next; below come the call stack, where it came from with the code each piece of
+  evidence cites, its context code, and questions.
+- The line above the step holds its actions: the stop and its flag open the Stop view,
+  "context" scrolls it to the context code, and "next" steps on.
+- In the code: a green or blue bar in the gutter beside each line the change adds or edits,
+  predicted values at the ends of their lines (`name ≈ value`; "Srctrek: Show or Hide Values"
+  turns them off), and `→` on each line that makes a call the tour follows (`→?` when guessed).
+- "Srctrek: Show Current Stop" goes back to the stop after you've moved off it.
 - The end of the tour lists every flag, each a link to its stop. `Escape` there, or "Srctrek: End
   the Tour", ends it.
 
 The extension starts `trek serve` in the workspace folder, so `trek` must be on your `PATH`, or
-set `srctrek.serveCommand` to `["<srctrek>/dist/trek", "serve"]`.
+set `srctrek.serveCommand` to `["<srctrek>/dist/trek", "serve"]`. VS Code started from the Dock
+or Finder doesn't see your shell's `PATH`; there, set the full path.
 
 ## Where it's going
 
