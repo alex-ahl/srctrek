@@ -66,13 +66,13 @@ describe("proposed repos", () => {
   test("once added, are on the repos list under their name and no longer proposed", async () => {
     const dir = await makeBranchRepo()
     // written by hand, without a final newline
-    await mkdir(join(dir, ".codetrail"))
-    await writeFile(join(dir, ".codetrail/repos"), "../web")
+    await mkdir(join(dir, ".srctrek"))
+    await writeFile(join(dir, ".srctrek/repos"), "../web")
     await saveProposal(dir, payments("app", 1))
 
     await acceptProposal(dir, "payments")
 
-    expect(await readFile(join(dir, ".codetrail/repos"), "utf8")).toBe(
+    expect(await readFile(join(dir, ".srctrek/repos"), "utf8")).toBe(
       "../web\npayments = git@example.test:shop/payments.git\n",
     )
     expect(await readReposList(dir)).toContainEqual({

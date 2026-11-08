@@ -9,7 +9,7 @@ describe("the editor protocol's requests", () => {
     expect(isMethod("toString")).toBe(false)
   })
 
-  test("takes a tour by name, with trail's arguments for the change as it is now", () => {
+  test("takes a tour by name, with trek's arguments for the change as it is now", () => {
     expect(RequestParams.open.safeParse({ tour: "feature-refunds" }).success).toBe(true)
     expect(RequestParams.open.safeParse({ tour: "pr-12", args: ["main...feature"] }).success).toBe(
       true,
@@ -27,6 +27,6 @@ describe("the editor protocol's requests", () => {
 
   test("says which side to update when the versions differ", () => {
     expect(versionMismatch(PROTOCOL_VERSION - 1)).toContain("update the editor plugin")
-    expect(versionMismatch(PROTOCOL_VERSION + 1)).toContain("update trail")
+    expect(versionMismatch(PROTOCOL_VERSION + 1)).toContain("update trek")
   })
 })

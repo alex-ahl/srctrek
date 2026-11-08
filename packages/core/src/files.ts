@@ -9,7 +9,7 @@ export async function pathExists(path: string): Promise<boolean> {
   )
 }
 
-/** Whether a path, relative to `cwd`, is a folder: what trail's arguments are read with. */
+/** Whether a path, relative to `cwd`, is a folder: what trek's arguments are read with. */
 export function directoryIn(cwd: string): (path: string) => boolean {
   return (path) => statSync(resolve(cwd, path), { throwIfNoEntry: false })?.isDirectory() ?? false
 }

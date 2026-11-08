@@ -227,7 +227,7 @@ describe("saving and loading", () => {
   test("skips files that aren't named like tours", async () => {
     const root = await tempDir("tours-")
     await saveTour(root, "refund", refundTour())
-    await writeFile(join(root, ".codetrail/tours/refund.changed.json"), "{}")
+    await writeFile(join(root, ".srctrek/tours/refund.changed.json"), "{}")
     expect(await listTours(root)).toEqual(["refund"])
   })
 

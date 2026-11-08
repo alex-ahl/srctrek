@@ -1,12 +1,12 @@
 {
-  "name": "@codetrail/mcp",
+  "name": "@srctrek/mcp",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@codetrail/core": "workspace:*",
+    "@srctrek/core": "workspace:*",
     "@modelcontextprotocol/server": "2.4.0",
     "zod": "4.6.7"
   }

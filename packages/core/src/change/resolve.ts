@@ -35,7 +35,7 @@ export function hasRange(repo: ResolvedRepo): repo is RepoWithRange {
 }
 
 /**
- * Every repo the trail may pass through, changed ones first; for a tour of code as it is,
+ * Every repo the trek may pass through, changed ones first; for a tour of code as it is,
  * no repo has a range, and `code` holds its trigger.
  */
 export type ResolvedChange = { repos: ResolvedRepo[]; code?: CodeTour | undefined }
@@ -65,7 +65,7 @@ function atHead(repo: ChangedRepo): ResolvedRepo {
 }
 
 /**
- * The top of the repo trail runs in, which repo paths in the repos list and in proposals are
+ * The top of the repo trek runs in, which repo paths in the repos list and in proposals are
  * relative to; none when it runs outside one, as with a pull request given from anywhere.
  */
 export async function currentRepoTop(cwd: string): Promise<string | undefined> {
@@ -80,7 +80,7 @@ export async function currentRepoTop(cwd: string): Promise<string | undefined> {
   }
 }
 
-// The current repo's .codetrail/repos, its paths relative to that repo's top.
+// The current repo's .srctrek/repos, its paths relative to that repo's top.
 async function resolveListedRepos(cwd: string, cacheDir: string): Promise<ResolvedRepo[]> {
   const top = await currentRepoTop(cwd)
   if (top === undefined) {
@@ -109,7 +109,7 @@ function assertUniqueNames(repos: ResolvedRepo[]): void {
     if (clash !== undefined) {
       throw new Error(
         `two repos named ${repo.name}: ${clash.source} and ${repo.source}; ` +
-          `name one in .codetrail/repos (name = path)`,
+          `name one in .srctrek/repos (name = path)`,
       )
     }
 
@@ -138,8 +138,8 @@ async function resolveCodeRepo(
 }
 
 /**
- * Resolves trail's arguments, read in `cwd`, to every repo at an exact commit: the changes,
- * the repos given without a range, and those in the current repo's .codetrail/repos.
+ * Resolves trek's arguments, read in `cwd`, to every repo at an exact commit: the changes,
+ * the repos given without a range, and those in the current repo's .srctrek/repos.
  */
 export async function resolveChange(
   cwd: string,
@@ -181,7 +181,7 @@ export type ReadAt =
   | { kind: "pinned"; revision: string }
   | { kind: "default"; why: string }
 
-// How far a local branch trails the branch it tracks, as of the last fetch; none when it
+// How far a local branch treks the branch it tracks, as of the last fetch; none when it
 // tracks nothing or is level with it. Nothing is fetched: the user's repo is left as it is.
 async function behindUpstream(dir: string, branch: string): Promise<Behind | undefined> {
   try {
@@ -252,7 +252,7 @@ async function routeRepo(
     const found = await onWorkBranch(top, entry, branch, cacheDir)
     if (found !== undefined) {
       const { repo, ref, shown } = found
-      // only a local branch has an upstream to trail; a remote-tracking one is the upstream
+      // only a local branch has an upstream to trek; a remote-tracking one is the upstream
       const behind = ref.startsWith("refs/heads/")
         ? await behindUpstream(repo.dir, branch)
         : undefined

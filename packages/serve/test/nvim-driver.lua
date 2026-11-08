@@ -6,15 +6,15 @@
 -- "goto:<step>" jumps the tour to a step by id, "columns:<n>" sets the screen's width),
 -- waits
 -- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
-local codetrail = require("codetrail")
-local state = require("codetrail.state")
+local srctrek = require("srctrek")
+local state = require("srctrek.state")
 
-vim.g.codetrail = { cmd = vim.json.decode(vim.env.DRIVE_CMD) }
+vim.g.srctrek = { cmd = vim.json.decode(vim.env.DRIVE_CMD) }
 
 -- what the last step told anything listening, as a file tree would hear it
 local last_event = vim.NIL
 vim.api.nvim_create_autocmd("User", {
-  pattern = "CodetrailStep",
+  pattern = "SrctrekStep",
   callback = function(event)
     last_event = event.data
   end,
@@ -96,7 +96,7 @@ local function screen()
     event = last_event,
     -- Neovim maps ]t itself, to :tnext
     message = vim.trim(last_message()),
-    next_key_ours = (vim.fn.maparg("]t", "n", false, true).desc or ""):find("^codetrail") ~= nil,
+    next_key_ours = (vim.fn.maparg("]t", "n", false, true).desc or ""):find("^srctrek") ~= nil,
     -- as the reader sees it, without its highlight codes
     winbar = (vim.wo[win].winbar:gsub("%%#[^#]*#", ""):gsub("%%[%*<=]", "")),
     float = floating and vim.api.nvim_buf_get_lines(vim.api.nvim_win_get_buf(current), 0, -1, false) or vim.NIL,
@@ -134,7 +134,7 @@ local function run(action)
     vim.o.columns = tonumber(columns)
     return
   elseif step then
-    require("codetrail.server").request("goto", { step = step }, require("codetrail.navigation").show)
+    require("srctrek.server").request("goto", { step = step }, require("srctrek.navigation").show)
   elseif entered then
     for i, popup_line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do
       if popup_line:find(entered, 1, true) then
@@ -156,9 +156,9 @@ local function run(action)
     open_user_float()
     return
   elseif tour then
-    codetrail.start(tour)
+    srctrek.start(tour)
   else
-    codetrail[action]()
+    srctrek[action]()
   end
   -- these answer at once, without the server
   local local_only = { quit = true, details = true, values = true, current = true, context = true }

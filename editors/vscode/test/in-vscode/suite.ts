@@ -28,28 +28,28 @@ const checks: Check[] = [
   {
     name: "opens a tour by name at its overview",
     run: async () => {
-      await vscode.commands.executeCommand("codetrail.openTour", "pay")
+      await vscode.commands.executeCommand("srctrek.openTour", "pay")
       assert.equal(vscode.window.activeTextEditor, undefined)
     },
   },
   {
     name: "next opens the first stop's file at its first line",
     run: async () => {
-      await vscode.commands.executeCommand("codetrail.next")
+      await vscode.commands.executeCommand("srctrek.next")
       assert.deepEqual(editorAt(), { file: "main.ts", line: 1 })
     },
   },
   {
     name: "next follows the call into pay",
     run: async () => {
-      await vscode.commands.executeCommand("codetrail.next")
+      await vscode.commands.executeCommand("srctrek.next")
       assert.deepEqual(editorAt(), { file: "pay.ts", line: 1 })
     },
   },
   {
     name: "previous goes back to main",
     run: async () => {
-      await vscode.commands.executeCommand("codetrail.previous")
+      await vscode.commands.executeCommand("srctrek.previous")
       assert.deepEqual(editorAt(), { file: "main.ts", line: 1 })
     },
   },
@@ -57,7 +57,7 @@ const checks: Check[] = [
     name: "into steps into the call on the cursor's line",
     run: async () => {
       await putCursorOn(2)
-      await vscode.commands.executeCommand("codetrail.into")
+      await vscode.commands.executeCommand("srctrek.into")
       assert.deepEqual(editorAt(), { file: "send.ts", line: 1 })
     },
   },
@@ -65,7 +65,7 @@ const checks: Check[] = [
     name: "show current stop brings the cursor back to the stop",
     run: async () => {
       await putCursorOn(3)
-      await vscode.commands.executeCommand("codetrail.current")
+      await vscode.commands.executeCommand("srctrek.current")
       assert.deepEqual(editorAt(), { file: "send.ts", line: 1 })
     },
   },
@@ -73,7 +73,7 @@ const checks: Check[] = [
     name: "into with nothing to step into leaves the cursor where it is",
     run: async () => {
       await putCursorOn(2)
-      await vscode.commands.executeCommand("codetrail.into")
+      await vscode.commands.executeCommand("srctrek.into")
       assert.deepEqual(editorAt(), { file: "send.ts", line: 2 })
     },
   },
@@ -91,7 +91,7 @@ export async function run(): Promise<void> {
       console.log(`FAIL  ${check.name}: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
-  await vscode.commands.executeCommand("codetrail.quit")
+  await vscode.commands.executeCommand("srctrek.quit")
   if (failed.length > 0) {
     throw new Error(`${String(failed.length)} of ${String(checks.length)} checks failed`)
   }

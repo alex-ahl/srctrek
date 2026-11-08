@@ -75,7 +75,7 @@ describe("tourStatus", () => {
       dir,
       [],
       "feature-refunds",
-      "echo 'trail: saved .codetrail/tours/feature-refunds.json'; true",
+      "echo 'trek: saved .srctrek/tours/feature-refunds.json'; true",
     )
     await untilEnded(dir, "feature-refunds")
 

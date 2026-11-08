@@ -33,7 +33,7 @@
           {
             "patterns": [
               {
-                "group": ["@codetrail/tui", "**/tui/**"],
+                "group": ["@srctrek/tui", "**/tui/**"],
                 "message": "core never imports UI code."
               },
               {
@@ -53,8 +53,8 @@
           {
             "patterns": [
               {
-                "group": ["**/core/src/**", "@codetrail/core/*"],
-                "message": "Front-ends import only from @codetrail/core."
+                "group": ["**/core/src/**", "@srctrek/core/*"],
+                "message": "Front-ends import only from @srctrek/core."
               }
             ]
           }
@@ -69,8 +69,8 @@
           {
             "patterns": [
               {
-                "group": ["**/core/src/**", "@codetrail/core/*", "@codetrail/tui", "**/tui/**"],
-                "message": "The MCP server imports only @codetrail/core, and no front-end."
+                "group": ["**/core/src/**", "@srctrek/core/*", "@srctrek/tui", "**/tui/**"],
+                "message": "The MCP server imports only @srctrek/core, and no front-end."
               }
             ]
           }
@@ -87,13 +87,13 @@
               {
                 "group": [
                   "**/core/src/**",
-                  "@codetrail/core/*",
-                  "@codetrail/tui",
+                  "@srctrek/core/*",
+                  "@srctrek/tui",
                   "**/tui/**",
-                  "@codetrail/mcp",
+                  "@srctrek/mcp",
                   "**/mcp/**"
                 ],
-                "message": "The editor protocol's server imports only @codetrail/core, and no front-end or other server."
+                "message": "The editor protocol's server imports only @srctrek/core, and no front-end or other server."
               }
             ]
           }
@@ -110,14 +110,14 @@
               {
                 "group": [
                   "**/core/src/**",
-                  "@codetrail/core/*",
-                  "@codetrail/tui",
+                  "@srctrek/core/*",
+                  "@srctrek/tui",
                   "**/tui/**",
-                  "@codetrail/mcp",
-                  "@codetrail/serve",
-                  "@codetrail/cli"
+                  "@srctrek/mcp",
+                  "@srctrek/serve",
+                  "@srctrek/cli"
                 ],
-                "message": "The VS Code extension imports only @codetrail/core's types, and talks to trail serve over its protocol."
+                "message": "The VS Code extension imports only @srctrek/core's types, and talks to trek serve over its protocol."
               }
             ]
           }
@@ -134,11 +134,11 @@
               {
                 "group": [
                   "**/core/src/**",
-                  "@codetrail/core/*",
+                  "@srctrek/core/*",
                   "**/mcp/src/**",
-                  "@codetrail/mcp/*",
+                  "@srctrek/mcp/*",
                   "**/tui/src/**",
-                  "@codetrail/tui/*"
+                  "@srctrek/tui/*"
                 ],
                 "message": "The cli imports only the packages' entry points."
               }

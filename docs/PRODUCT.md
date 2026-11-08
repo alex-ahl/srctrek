@@ -14,17 +14,17 @@ big features in codebases they don't know.
 
 ## What it is
 
-A debugger session for code you haven't run. `trail` takes a change — a git range or pull
+A debugger session for code you haven't run. `trek` takes a change — a git range or pull
 requests, across one or more repos — picks one concrete example scenario, and follows it
 from its trigger (a request, an event, a cron job, a command) to its outcome (a response,
 a write, an emitted event) in execution order.
 
-- **In your editor.** You step through the trail in your editor: step over, into, out, with
+- **In your editor.** You step through the trek in your editor: step over, into, out, with
   a call stack. The terminal is for everything around it: choosing a change, watching a
-  trail being built, and seeing the whole route at once.
+  trek being built, and seeing the whole route at once.
 - **Whole flow, change highlighted.** Unchanged code on the path is included and collapsed
   by default; changed code is where attention goes.
-- **Across repos.** One trail crosses repos and async boundaries (HTTP calls, queues,
+- **Across repos.** One trek crosses repos and async boundaries (HTTP calls, queues,
   events), and each step names its repo.
 - **No setup.** Reads code and history from git, local or remote; runs nothing.
 - **Checkable.** Every link from one step to the next cites the line that causes it.

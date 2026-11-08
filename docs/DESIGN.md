@@ -5,7 +5,7 @@ terminal. Status: Milestone 5, in progress.
 
 ## Surfaces
 
-- **Terminal** (`trail`): choosing a change, watching its tour being built, the whole route at
+- **Terminal** (`trek`): choosing a change, watching its tour being built, the whole route at
   once, and stepping for editors without a plugin.
 - **Editor** (the Neovim plugin, the VS Code extension): stepping through a tour.
 - **The agent's chat:** building a tour by asking for one.
@@ -15,8 +15,8 @@ terminal. Status: Milestone 5, in progress.
 
 ### 1. Review a pull request
 
-1. In a repo of the change, run `trail <pull request URL>…`, or `trail` on the branch.
-2. `trail` resolves the change, fetching what's remote, and opens the home screen. With no tour
+1. In a repo of the change, run `trek <pull request URL>…`, or `trek` on the branch.
+2. `trek` resolves the change, fetching what's remote, and opens the home screen. With no tour
    yet and an agent configured, the build starts at once, and the home screen follows it: the
    overview, then steps as they arrive.
 3. A repo the agent proposes appears as a row: add it to the repos list, or dismiss it. The tour
@@ -27,14 +27,14 @@ terminal. Status: Milestone 5, in progress.
 
 ### 2. Review work in progress
 
-`trail --uncommitted`: as in flow 1, on a snapshot of the working tree, for one's own work or an
+`trek --uncommitted`: as in flow 1, on a snapshot of the working tree, for one's own work or an
 agent's.
 
 ### 3. Learn unfamiliar code
 
-1. `trail --code` lists the code's triggers (routes, commands, jobs, handlers), each with the line
+1. `trek --code` lists the code's triggers (routes, commands, jobs, handlers), each with the line
    that proves it.
-2. Picking one builds its tour, which opens as in flow 1. `trail --code="<trigger>"` skips the
+2. Picking one builds its tour, which opens as in flow 1. `trek --code="<trigger>"` skips the
    list.
 
 ### 4. Come back after the change moved on
@@ -44,8 +44,8 @@ then the editor marks the stale steps.
 
 ### 5. Build from the agent's chat
 
-The user asks their agent for a tour in plain words; the agent builds it through `trail mcp`, and
-`trail` finds it on the home screen.
+The user asks their agent for a tour in plain words; the agent builds it through `trek mcp`, and
+`trek` finds it on the home screen.
 
 ### 6. Ask about a step (Milestone 6)
 
@@ -59,7 +59,7 @@ at its line.
 
 ### 8. When it doesn't work
 
-- No agent configured: the home screen says how to set `CODETRAIL_AGENT`.
+- No agent configured: the home screen says how to set `SRCTREK_AGENT`.
 - A build failed: the end of its log, `b` to build again, `l` for the whole log.
 - A repo isn't reachable: its name and where it was expected.
 - A tour from another format version: says so, with a rebuild.
@@ -68,7 +68,7 @@ at its line.
 ### Where a session starts
 
 - **From the terminal:** enter on the home screen opens the tour in the editor that
-  `CODETRAIL_EDITOR` names (`nvim`, `code`, …); nothing is detected. Without it, `$EDITOR` opens
+  `SRCTREK_EDITOR` names (`nvim`, `code`, …); nothing is detected. Without it, `$EDITOR` opens
   the step at its line.
 - **From the editor:** the plugin or extension lists the saved tours with their status (ready,
   stale, building, failed), opens one, and starts a build. The protocol gains the requests for
@@ -85,8 +85,8 @@ The vocabulary every surface shares, shown in place on a step in the review page
 
 ### Principles
 
-- **The editor's theme wins.** Each role is named (`CodetrailFlagHigh` in Neovim,
-  `codetrail.flagHigh` in VS Code) and defaults to a colour the theme already defines; users
+- **The editor's theme wins.** Each role is named (`SrctrekFlagHigh` in Neovim,
+  `srctrek.flagHigh` in VS Code) and defaults to a colour the theme already defines; users
   override a role without changing their theme. Text at a line's end or in the gutter takes
   only the theme colour's foreground. No theme group is distinct from the background in every
   theme, so the step's tint, the narration's band, and the badge are mixed from the theme's
@@ -120,7 +120,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 
 | Role            | Looks like                                                                                                                                                                                                                                              | Wording                                                                                  | Neovim default    | VS Code default                   |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------- | --------------------------------- |
-| Badge           | `codetrail` at the winbar's start                                                                                                                                                                                                                       |                                                                                          | info colour       | the debug toolbar                 |
+| Badge           | `srctrek` at the winbar's start                                                                                                                                                                                                                         |                                                                                          | info colour       | the debug toolbar                 |
 | The step        | tinted lines from the window's left edge, under the signs and line numbers too, with a bar in the gutter                                                                                                                                                |                                                                                          | mixed: text 8%    | `editor.rangeHighlightBackground` |
 | Current line    | `▶` in the gutter on the step's first line                                                                                                                                                                                                              |                                                                                          | `DiagnosticWarn`  | the debugger's current line       |
 | Narration       | a band across the window above the step, half a row of padding above and below, the lower half of the bottom row already the step's tint so the two read as one block; its text in the code's column, wrapped at about 90 characters, six lines at most | the step's summary                                                                       | mixed: info 22%   | the sidebar's own                 |
@@ -183,20 +183,20 @@ closing the float is the way back; enter on a piece opens it as a step. Details 
 Neovim and VS Code side by side, in the review page for Step 5c. Neovim draws the tour in the
 user's own windows, with virtual lines, the winbar, and floats, and no sidebar; quitting puts back
 what each window showed. VS Code gives an extension no styled room between lines of code, so its
-narration, flag, and where next goes open the codetrail sidebar's Stop view, above the call stack
+narration, flag, and where next goes open the srctrek sidebar's Stop view, above the call stack
 and details; the line above the step holds a row of actions (the stop, its flag, its context, and
 next), and the sidebar also lists the tours.
 
-| Screen           | Neovim                                                              | VS Code                                                                      |
-| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status                                  |
-| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys    | a tour tab                                                                   |
-| A step           | narration and high flag as virtual lines; values at the             | narration and flag atop the Stop view, actions above the step; values inline |
-|                  | ends of their lines; position and stack in the winbar               | decorations; the call stack in the Stop view                                 |
-| Details          | a float: came from, flags, values, context, notes                   | the rest of the Stop view                                                    |
-| Into, of several | the call on the cursor's line, else the first not visited           | the same                                                                     |
-| The end          | a float: the outcome, every flag to jump to                         | the tour tab: the outcome, every flag to jump to                             |
-| Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes                              |
+| Screen           | Neovim                                                            | VS Code                                                                      |
+| ---------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Choosing a tour  | in the terminal: `trek` opens the chosen tour with `:Trek <name>` | the srctrek view: tours with their status                                    |
+| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys  | a tour tab                                                                   |
+| A step           | narration and high flag as virtual lines; values at the           | narration and flag atop the Stop view, actions above the step; values inline |
+|                  | ends of their lines; position and stack in the winbar             | decorations; the call stack in the Stop view                                 |
+| Details          | a float: came from, flags, values, context, notes                 | the rest of the Stop view                                                    |
+| Into, of several | the call on the cursor's line, else the first not visited         | the same                                                                     |
+| The end          | a float: the outcome, every flag to jump to                       | the tour tab: the outcome, every flag to jump to                             |
+| Asking           | a prompt; the answer in a float with its citations                | an input box; the answer in the sidebar's Notes                              |
 
 Answers to questions are saved
 on the step as notes, which details show from then on.
@@ -204,19 +204,19 @@ on the step as notes, which details show from then on.
 ### Keys
 
 While a tour is open; every key can be changed or turned off, and in Neovim each action is also a
-command (`:TrailNext`) and a Lua function.
+command (`:TrekNext`) and a Lua function.
 
-| Action              | Neovim                     | VS Code                        |
-| ------------------- | -------------------------- | ------------------------------ |
-| Next, previous      | `]t`, `[t`                 | `F8`, `Shift+F8`               |
-| Over                | `<leader>tn`               | `F10`                          |
-| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`             |
-| Back to the step    | `<leader>tc`               | Codetrail: Show Current Stop   |
-| Context code        | `<leader>tx`               | Codetrail: Show Context        |
-| Details             | `<leader>tt`               | the sidebar's Stop view        |
-| Show or hide values | `<leader>tv`               | Codetrail: Show or Hide Values |
-| Ask (later)         | `<leader>ta`               | Codetrail: Ask                 |
-| Quit the tour       | `<leader>tq`               | `Escape` in the end tab        |
+| Action              | Neovim                     | VS Code                      |
+| ------------------- | -------------------------- | ---------------------------- |
+| Next, previous      | `]t`, `[t`                 | `F8`, `Shift+F8`             |
+| Over                | `<leader>tn`               | `F10`                        |
+| Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`           |
+| Back to the step    | `<leader>tc`               | Srctrek: Show Current Stop   |
+| Context code        | `<leader>tx`               | Srctrek: Show Context        |
+| Details             | `<leader>tt`               | the sidebar's Stop view      |
+| Show or hide values | `<leader>tv`               | Srctrek: Show or Hide Values |
+| Ask (later)         | `<leader>ta`               | Srctrek: Ask                 |
+| Quit the tour       | `<leader>tq`               | `Escape` in the end tab      |
 
 In VS Code the keys step a tour only while no debug session runs.
 
@@ -227,11 +227,11 @@ dim, in the roles of the visual language.
 
 - **Home:** the change at the top, then the change's tour with where it stands, repos the agent
   proposed (they wait on the user), and every other tour with its state. Enter opens the selected
-  tour in the editor `CODETRAIL_EDITOR` names.
+  tour in the editor `SRCTREK_EDITOR` names.
 - **The change's tour, by state:** building (enter watches it), ready, stale (with how many steps
   changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
   repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
-  (how to set `CODETRAIL_AGENT`), nothing to tour. With `--code`, the code's triggers, each with
+  (how to set `SRCTREK_AGENT`), nothing to tour. With `--code`, the code's triggers, each with
   its tour's state.
 - **Build view,** a screen of its own opened from a building tour: the overview as soon as the
   agent starts, steps as they arrive grouped by repo with hops between, what the agent is reading,

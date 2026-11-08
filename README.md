@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/codetrail-icon.svg" width="128" alt="codetrail icon">
+  <img src="docs/assets/srctrek-icon.svg" width="128" alt="srctrek icon">
 </p>
 
-<h1 align="center">codetrail</h1>
+<h1 align="center">srctrek</h1>
 
-A debugger session for code you haven't run. `trail` takes a change — a git range or pull
+A debugger session for code you haven't run. `trek` takes a change — a git range or pull
 requests, across one or more repos — and follows one example scenario from its trigger to
 its outcome in execution order, moving your editor to each step: step over, step into,
 step out, with a call stack.
@@ -13,7 +13,7 @@ Reads code from git, local or remote, and runs nothing. Works with any agent; st
 tours in Neovim, and later in VS Code and its forks.
 
 > **Status:** pre-release, running from a checkout. Your agent builds tours of a change or of
-> code as it is through `trail mcp`; `trail` lists them, builds the missing one, and opens a
+> code as it is through `trek mcp`; `trek` lists them, builds the missing one, and opens a
 > tour in Neovim to step through. See `docs/HANDOFF.md`.
 
 ## Try it today
@@ -22,20 +22,20 @@ Requires Bun 1.3.14 or later and Neovim 0.10 or later.
 
 ```sh
 bun install                     # in this checkout
-bun run build                   # builds dist/trail
-<codetrail>/dist/trail          # then, in the repo whose change you want to tour
+bun run build                   # builds dist/trek
+<srctrek>/dist/trek          # then, in the repo whose change you want to tour
 ```
 
 Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set). Arguments are
-read as in `trail main...HEAD ../gateway`; a problem with them stops `trail` with a message.
+read as in `trek main...HEAD ../gateway`; a problem with them stops `trek` with a message.
 `--uncommitted` includes work not yet committed. `--code` tours code as it is, to learn how it
-works: `trail --code="a refund request"` follows that trigger, and plain `trail --code` has your
+works: `trek --code="a refund request"` follows that trigger, and plain `trek --code` has your
 agent find the code's triggers (routes, commands, handlers, jobs) and lists them on the home
 screen: pick one and press `enter` to build its tour, or open it once it's built.
 
-The home screen lists the tours in the .codetrail/tours folder, with their stop counts and
+The home screen lists the tours in the .srctrek/tours folder, with their stop counts and
 likely-wrong flags; invalid tours are listed with the reason. Above them, it says where the tour
-of your change stands. When there is none, `trail` has your agent build it in the background
+of your change stands. When there is none, `trek` has your agent build it in the background
 (see Building a tour from your agent), and the tour appears when it's saved. While it builds,
 the end of its log shows what the agent has done so far, `l` opens the whole log, and after a
 failed build `b` builds again.
@@ -46,7 +46,7 @@ failed build `b` builds again.
 | `enter`   | Open it in Neovim            |
 | `q`       | Quit                         |
 
-`enter` opens the tour with this checkout's plugin and its own `trail serve`.
+`enter` opens the tour with this checkout's plugin and its own `trek serve`.
 
 ## Stepping in Neovim
 
@@ -67,17 +67,17 @@ flags, and the keys. Then `]t` steps through it in execution order, and each sto
   fresh stack and names what started it. The winbar says "tour's version" when the file is the
   tour's copy, and "away" once you've moved off the step.
 
-| Key          | Command                     | Action                                           |
-| ------------ | --------------------------- | ------------------------------------------------ |
-| `]t` / `[t`  | `:TrailNext` / `:TrailPrev` | Next / previous stop                             |
-| `<leader>tn` | `:TrailOver`                | Step over                                        |
-| `<leader>ti` | `:TrailInto`                | Step into the call on the cursor's line          |
-| `<leader>to` | `:TrailOut`                 | Step out                                         |
-| `<leader>tc` | `:TrailCurrent`             | Back to the current stop                         |
-| `<leader>tx` | `:TrailContext`             | Context code (contracts, types), when available  |
-| `<leader>tt` | `:TrailDetails`             | Details: where it came from, its evidence, flags |
-| `<leader>tv` | `:TrailValues`              | Show or hide predicted values                    |
-| `<leader>tq` | `:TrailQuit`                | End the tour                                     |
+| Key          | Command                   | Action                                           |
+| ------------ | ------------------------- | ------------------------------------------------ |
+| `]t` / `[t`  | `:TrekNext` / `:TrekPrev` | Next / previous stop                             |
+| `<leader>tn` | `:TrekOver`               | Step over                                        |
+| `<leader>ti` | `:TrekInto`               | Step into the call on the cursor's line          |
+| `<leader>to` | `:TrekOut`                | Step out                                         |
+| `<leader>tc` | `:TrekCurrent`            | Back to the current stop                         |
+| `<leader>tx` | `:TrekContext`            | Context code (contracts, types), when available  |
+| `<leader>tt` | `:TrekDetails`            | Details: where it came from, its evidence, flags |
+| `<leader>tv` | `:TrekValues`             | Show or hide predicted values                    |
+| `<leader>tq` | `:TrekQuit`               | End the tour                                     |
 
 Details say which stop this one was reached from and show each line of evidence with its code;
 enter on one opens it. The end of the tour lists every flag, most severe first; enter on one
@@ -90,31 +90,31 @@ Keys exist only while a tour is open; the mappings you had on them come back whe
 each window the tour used goes back to the file and place you had. Change or turn off any key:
 
 ```lua
-vim.g.codetrail = { keys = { next = "]w", previous = "[w", values = false } }
+vim.g.srctrek = { keys = { next = "]w", previous = "[w", values = false } }
 ```
 
-`keys = false` turns them all off, for mapping the commands yourself. `:Trail <name>` opens a
-saved tour directly; it starts `trail serve` in Neovim's working directory, so `trail` must be
-on your `PATH`, or set `vim.g.codetrail = { cmd = { "/path/to/trail", "serve" } }`.
+`keys = false` turns them all off, for mapping the commands yourself. `:Trek <name>` opens a
+saved tour directly; it starts `trek serve` in Neovim's working directory, so `trek` must be
+on your `PATH`, or set `vim.g.srctrek = { cmd = { "/path/to/trek", "serve" } }`.
 
-Each step fires `User CodetrailStep` with `{ path, shown, line, repo }`, for a file tree or your
+Each step fires `User SrctrekStep` with `{ path, shown, line, repo }`, for a file tree or your
 own config to follow: `path` is the file in your project, `shown` the file the step opened.
 
 ## Building a tour from your agent
 
-Register `trail mcp` with your agent as a stdio MCP server, with the command
-`bun <codetrail>/packages/cli/src/main.ts mcp`, run in the repo you work in. Then ask in plain
+Register `trek mcp` with your agent as a stdio MCP server, with the command
+`bun <srctrek>/packages/cli/src/main.ts mcp`, run in the repo you work in. Then ask in plain
 words:
 
-> Build a codetrail tour of this branch.
+> Build a srctrek tour of this branch.
 
-Name a different change the way you'd give it to `trail`: `main...feature`,
+Name a different change the way you'd give it to `trek`: `main...feature`,
 `../api main...feature`, a pull request URL, or `--uncommitted` for work not yet committed. The
 agent reads the change at its exact revisions, builds the tour, and saves it to the
-.codetrail/tours folder, where the home screen lists it.
+.srctrek/tours folder, where the home screen lists it.
 
-To have `trail` start the build itself, set `CODETRAIL_AGENT` to your agent's headless command
-line, including whatever it needs to use the codetrail server's
+To have `trek` start the build itself, set `SRCTREK_AGENT` to your agent's headless command
+line, including whatever it needs to use the srctrek server's
 tools without asking. The instruction is appended as the last argument, so an option that takes
 a list of values goes before the one that reads the prompt. A change with no commits has nothing
 to tour, and the home screen says so instead of building. Agents that show MCP prompts as
@@ -127,10 +127,10 @@ it from this checkout:
 
 ```sh
 bun run --cwd editors/vscode package
-code --install-extension editors/vscode/dist/codetrail.vsix
+code --install-extension editors/vscode/dist/srctrek.vsix
 ```
 
-- Open a tour with "Codetrail: Open Tour…", or click one under Tours in the codetrail sidebar (its
+- Open a tour with "Srctrek: Open Tour…", or click one under Tours in the srctrek sidebar (its
   icon is in the activity bar); its overview opens in a tab, with the keys and what the marks in
   the code mean.
 - Step with `F8` and `Shift+F8`; `F10`, `F11`, and `Shift+F11` step over, into the call on the
@@ -139,22 +139,22 @@ code --install-extension editors/vscode/dist/codetrail.vsix
   step holds its actions: the stop and its flag open the Stop view, "context" opens the context
   code, and "next" steps on.
 - Lines the change adds or edits carry a green or blue bar in the gutter, beside the line numbers.
-- Predicted values show at the ends of their lines as `name ≈ value`; "Codetrail: Show or Hide
+- Predicted values show at the ends of their lines as `name ≈ value`; "Srctrek: Show or Hide
   Values" turns them off.
 - The sidebar's Stop view shows the stop's call stack, where it came from with the code
   each piece of evidence cites, its flag, values, context, details, and questions.
-- "Codetrail: Show Context", or `context` above the step, scrolls the Stop view to the context:
-  each piece's reason, where it is, and its code. "Codetrail: Show Current Stop" goes back to the
+- "Srctrek: Show Context", or `context` above the step, scrolls the Stop view to the context:
+  each piece's reason, where it is, and its code. "Srctrek: Show Current Stop" goes back to the
   stop.
-- The end of the tour lists every flag, each a link to its stop. `Escape` there, or "Codetrail: End
+- The end of the tour lists every flag, each a link to its stop. `Escape` there, or "Srctrek: End
   the Tour", ends it.
 
-The extension starts `trail serve` in the workspace folder, so `trail` must be on your `PATH`, or
-set `codetrail.serveCommand` to `["<codetrail>/dist/trail", "serve"]`.
+The extension starts `trek serve` in the workspace folder, so `trek` must be on your `PATH`, or
+set `srctrek.serveCommand` to `["<srctrek>/dist/trek", "serve"]`.
 
 ## Where it's going
 
-- Asking through `trail serve`, with answers saved on the step.
+- Asking through `trek serve`, with answers saved on the step.
 - The terminal's own screens: a route map of the whole tour, a live build view, and stepping
   without an editor.
 

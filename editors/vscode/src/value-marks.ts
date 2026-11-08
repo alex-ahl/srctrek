@@ -1,4 +1,4 @@
-import type { StepView } from "@codetrail/core"
+import type { StepView } from "@srctrek/core"
 
 // Predicted values at the end of the lines they belong to, like a debugger's inline values:
 // `name ≈ value`, as nothing runs, and `name ≈? value` when the tour doubts it. Long values are

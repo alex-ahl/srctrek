@@ -1,7 +1,7 @@
 import { basename } from "node:path"
 
 /**
- * A repo as written in .codetrail/repos or on the command line: where it is, maybe pinned to a
+ * A repo as written in .srctrek/repos or on the command line: where it is, maybe pinned to a
  * revision, maybe named after the service the code calls.
  */
 export type RepoEntry = { name?: string; source: string; revision?: string }

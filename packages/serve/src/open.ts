@@ -8,7 +8,7 @@ import {
   openSession,
   tourPath,
   viewContext,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { existsSync } from "node:fs"
 import { changeNow } from "./change"
 import { RequestError } from "./errors"
@@ -34,7 +34,7 @@ async function loadNamed(cwd: string, name: string) {
 }
 
 /**
- * The tour saved under `name` in `cwd`, open at its overview; with trail's `args`, the change
+ * The tour saved under `name` in `cwd`, open at its overview; with trek's `args`, the change
  * as it is now marks the steps whose file has moved on.
  */
 export async function openTour(cwd: string, name: string, args?: string[]): Promise<OpenTour> {

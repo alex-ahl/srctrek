@@ -1,4 +1,4 @@
-import { type TourStep, callStacks } from "@codetrail/core"
+import { type TourStep, callStacks } from "@srctrek/core"
 import type { Expected, ExpectedPlace } from "./expected"
 import { covers, inFile } from "./places"
 

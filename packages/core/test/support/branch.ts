@@ -20,7 +20,7 @@ export async function makeBranchRepo(): Promise<string> {
   return dir
 }
 
-/** The change `range` names in the repo at `dir`, as trail would resolve it. */
+/** The change `range` names in the repo at `dir`, as trek would resolve it. */
 export async function changeOf(
   dir: string,
   range = "",
@@ -35,7 +35,7 @@ export async function changeOf(
   return resolveChange(dir, args, await makeCacheDir())
 }
 
-/** Saves a one-step tour of the change as `name`, as an agent would through trail mcp. */
+/** Saves a one-step tour of the change as `name`, as an agent would through trek mcp. */
 export async function saveTourOf(dir: string, change: ResolvedChange, name: string): Promise<void> {
   const header = {
     title: "t",

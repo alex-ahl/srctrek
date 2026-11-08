@@ -1,12 +1,12 @@
 {
-  "name": "@codetrail/serve",
+  "name": "@srctrek/serve",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@codetrail/core": "workspace:*",
+    "@srctrek/core": "workspace:*",
     "vscode-jsonrpc": "10.0.0"
   }
 }

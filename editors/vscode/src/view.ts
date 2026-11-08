@@ -1,4 +1,4 @@
-import type { Call, SessionView, StepView, TourEntry } from "@codetrail/core"
+import type { Call, SessionView, StepView, TourEntry } from "@srctrek/core"
 import type { Move } from "./client"
 
 /** Where a step opens: its file, and its lines numbered from 0, as VS Code counts them. */
@@ -19,12 +19,12 @@ export function lineAbove(place: StepPlace): number {
 /** The status bar's text for wherever the tour is; at a stop, its tags follow its number. */
 export function statusText(view: SessionView, tags: readonly string[] = []): string {
   if (view.kind === "overview") {
-    return `codetrail · ${view.title}`
+    return `srctrek · ${view.title}`
   }
   if (view.kind === "end") {
-    return `codetrail · end of the tour`
+    return `srctrek · end of the tour`
   }
-  return [`codetrail ${String(view.number)}/${String(view.count)}`, ...tags].join(" · ")
+  return [`srctrek ${String(view.number)}/${String(view.count)}`, ...tags].join(" · ")
 }
 
 /** An arrow at the end of a line that leads into another step, its line numbered from 0. */

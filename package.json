@@ -1,5 +1,5 @@
 {
-  "name": "codetrail",
+  "name": "srctrek",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -17,8 +17,8 @@
     "format:check": "prettier --check .",
     "test": "bun test",
     "check:docs": "bun scripts/check-docs.ts",
-    "build": "bun build --compile packages/cli/src/main.ts --outfile dist/trail",
-    "build:smoke": "bun build --compile packages/tui/src/smoke.tsx --outfile dist/trail-smoke"
+    "build": "bun build --compile packages/cli/src/main.ts --outfile dist/trek",
+    "build:smoke": "bun build --compile packages/tui/src/smoke.tsx --outfile dist/trek-smoke"
   },
   "devDependencies": {
     "@types/bun": "1.4.4",

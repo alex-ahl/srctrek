@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { NextStop } from "@codetrail/core"
+import type { NextStop } from "@srctrek/core"
 import { callAt, callMarks, changedLinesShown, lineAbove, sameView } from "../src/view"
 import { call, stepWith } from "./support/views"
 

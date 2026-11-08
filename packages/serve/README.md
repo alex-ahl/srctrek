@@ -1,8 +1,8 @@
-# @codetrail/serve
+# @srctrek/serve
 
 ## What it is
 
-`trail serve`, the editor protocol (`docs/PROTOCOL.md`) over stdin and stdout, for one editor
+`trek serve`, the editor protocol (`docs/PROTOCOL.md`) over stdin and stdout, for one editor
 stepping through the tours saved in the folder it runs in.
 
 ## What it does, and does not
@@ -18,8 +18,8 @@ anything. Core steps and renders the view; this package only speaks the protocol
 
 ## Where it fits
 
-Depends on `@codetrail/core` and `vscode-jsonrpc`, which frames messages and matches replies
-to requests; it needs no editor. Started by the cli (`packages/cli/`) as `trail serve`,
+Depends on `@srctrek/core` and `vscode-jsonrpc`, which frames messages and matches replies
+to requests; it needs no editor. Started by the cli (`packages/cli/`) as `trek serve`,
 which an editor's plugin runs as a child process.
 
 ## Why a package of its own

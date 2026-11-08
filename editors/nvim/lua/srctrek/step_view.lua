@@ -1,16 +1,16 @@
 -- Draws one step in the editor: its lines tinted with a bar at the left edge, change signs, the
 -- narration above it, and an arrow at each line that leads to another step.
-local inline_values = require("codetrail.inline_values")
-local origin = require("codetrail.origin")
-local state = require("codetrail.state")
-local text = require("codetrail.text")
+local inline_values = require("srctrek.inline_values")
+local origin = require("srctrek.origin")
+local state = require("srctrek.state")
+local text = require("srctrek.text")
 
 local M = {}
 
 -- The tour's copies whose diagnostics are hidden, to show again when the tour ends.
 local quieted = {}
 
--- A copy in trail's cache has no dependencies installed, so a language server flags every import;
+-- A copy in trek's cache has no dependencies installed, so a language server flags every import;
 -- the errors can't be acted on in a read-only copy. The user's own files keep theirs.
 local function quiet_diagnostics(buf)
   if not quieted[buf] then
@@ -53,8 +53,8 @@ local function editor_window()
 end
 
 local CHANGE_SIGNS = {
-  added = { text = "+", group = "CodetrailAdded" },
-  changed = { text = "~", group = "CodetrailChanged" },
+  added = { text = "+", group = "SrctrekAdded" },
+  changed = { text = "~", group = "SrctrekChanged" },
 }
 
 -- One sign per line, as the sign column shows one: the change's own lines carry theirs, the
@@ -63,13 +63,13 @@ local CHANGE_SIGNS = {
 local function signs(view, first, last, new_file)
   local by_line = {}
   for l = first, last do
-    by_line[l] = { text = "▎", group = "CodetrailStepBar" }
+    by_line[l] = { text = "▎", group = "SrctrekStepBar" }
   end
   for _, changed in ipairs(new_file and {} or view.changed_lines) do
     by_line[changed.line] = CHANGE_SIGNS[changed.change]
   end
-  local first_change = by_line[first].group == "CodetrailStepBar" and "" or by_line[first].text
-  by_line[first] = { text = "▶" .. first_change, group = "CodetrailCurrent" }
+  local first_change = by_line[first].group == "SrctrekStepBar" and "" or by_line[first].text
+  by_line[first] = { text = "▶" .. first_change, group = "SrctrekCurrent" }
   return by_line
 end
 
@@ -82,8 +82,8 @@ local function mark_lines(buf, view, first, last, new_file)
       vim.api.nvim_buf_set_extmark(buf, state.ns, l - 1, 0, {
         sign_text = sign.text,
         sign_hl_group = in_step and (sign.group .. "InStep") or sign.group,
-        line_hl_group = in_step and "CodetrailStep" or nil,
-        number_hl_group = in_step and "CodetrailStepNumber" or nil,
+        line_hl_group = in_step and "SrctrekStep" or nil,
+        number_hl_group = in_step and "SrctrekStepNumber" or nil,
       })
     end
   end
@@ -102,12 +102,12 @@ local function band_line(chunks, layout)
   for _, chunk in ipairs(chunks) do
     used = used + vim.fn.strdisplaywidth(chunk[1])
   end
-  table.insert(chunks, { string.rep(" ", math.max(layout.width - used, 0)), "CodetrailNarration" })
+  table.insert(chunks, { string.rep(" ", math.max(layout.width - used, 0)), "SrctrekNarration" })
   return chunks
 end
 
 local function on_band(text_line, group)
-  return { text_line, { "CodetrailNarration", group } }
+  return { text_line, { "SrctrekNarration", group } }
 end
 
 -- Each band line starts with an edge in the left margin, as a callout's does, and its text in the
@@ -122,13 +122,13 @@ end
 
 local function wrapped(line, group, layout)
   return vim.tbl_map(function(l)
-    return { edge("▌", "CodetrailBandEdge", layout), on_band(l, group) }
+    return { edge("▌", "SrctrekBandEdge", layout), on_band(l, group) }
   end, text.wrap(line, text_width(layout), MAX_LINES, ""))
 end
 
 local FLAG_HINTS = {
-  medium = { "● risky", "CodetrailFlagMedium" },
-  low = { "● worth knowing", "CodetrailFlagLow" },
+  medium = { "● risky", "SrctrekFlagMedium" },
+  low = { "● worth knowing", "SrctrekFlagLow" },
 }
 
 local function next_label(ref)
@@ -163,7 +163,7 @@ local function hints(view)
     table.insert(found, flag)
   end
   if view.step_kind ~= "context" then
-    table.insert(found, { where_next(view), "CodetrailUnchanged" })
+    table.insert(found, { where_next(view), "SrctrekUnchanged" })
   end
   return found
 end
@@ -183,12 +183,12 @@ local function add_extras(lines, extras, layout)
   end
   local chunks = {}
   for i, extra in ipairs(extras) do
-    table.insert(chunks, on_band(i == 1 and "  " or "  ·  ", "CodetrailUnchanged"))
+    table.insert(chunks, on_band(i == 1 and "  " or "  ·  ", "SrctrekUnchanged"))
     table.insert(chunks, on_band(extra[1], extra[2]))
   end
   local last = lines[#lines]
   if display_width(last) + display_width(chunks) > layout.indent + text_width(layout) then
-    last = { edge("▌", "CodetrailBandEdge", layout) }
+    last = { edge("▌", "SrctrekBandEdge", layout) }
     table.insert(lines, last)
   end
   vim.list_extend(last, chunks)
@@ -201,22 +201,22 @@ end
 local function padded(lines, layout)
   local rest = layout.width - 1
   table.insert(lines, 1, {
-    { "▖", "CodetrailBandPadEdge" },
-    { string.rep("▄", rest), "CodetrailBandPad" },
+    { "▖", "SrctrekBandPadEdge" },
+    { string.rep("▄", rest), "SrctrekBandPad" },
   })
   table.insert(lines, {
-    { "▘", "CodetrailBandPadEdgeStep" },
-    { string.rep("▀", rest), "CodetrailBandPadStep" },
+    { "▘", "SrctrekBandPadEdgeStep" },
+    { string.rep("▀", rest), "SrctrekBandPadStep" },
   })
   return lines
 end
 
 local function narration(view, layout)
-  local lines = wrapped(view.summary, "CodetrailNarration", layout)
+  local lines = wrapped(view.summary, "SrctrekNarration", layout)
   add_extras(lines, hints(view), layout)
   -- only a high flag shows inline; the rest are hinted at, and in details
   if view.flag ~= vim.NIL and view.flag.severity == "high" then
-    vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "CodetrailFlagHigh", layout))
+    vim.list_extend(lines, wrapped("⚠ " .. view.flag.note, "SrctrekFlagHigh", layout))
   end
   return vim.tbl_map(function(chunks)
     return band_line(chunks, layout)
@@ -254,7 +254,7 @@ local function mark_calls(buf, view, line_count)
   local leads_next = next_line(view)
   for line, markers in pairs(calls_by_line(view)) do
     if line <= line_count then
-      local group = line == leads_next and "CodetrailCallNext" or "CodetrailCall"
+      local group = line == leads_next and "SrctrekCallNext" or "SrctrekCall"
       vim.api.nvim_buf_set_extmark(buf, state.ns, line - 1, 0, {
         virt_text = { { "  " .. table.concat(markers, " "), group } },
         virt_text_pos = "eol",
@@ -299,7 +299,7 @@ function M.show(view)
   vim.api.nvim_set_current_win(win)
   vim.cmd("edit " .. vim.fn.fnameescape(view.path))
   local buf = vim.api.nvim_get_current_buf()
-  -- the tour's copy lives in trail's cache, where an edit would be lost
+  -- the tour's copy lives in trek's cache, where an edit would be lost
   if view.tour_copy then
     vim.bo[buf].readonly = true
     vim.bo[buf].modifiable = false

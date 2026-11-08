@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { runGit } from "@codetrail/core"
+import { runGit } from "@srctrek/core"
 import { buildFixture } from "../src/fixture"
 import { runEval } from "../src/main"
 import { tempDir } from "../../core/test/support/temp"
@@ -13,7 +13,7 @@ async function fakeAgent(): Promise<string> {
   const script = join(await tempDir("agent-"), "agent.sh")
   await writeFile(
     script,
-    `mkdir -p .codetrail/tours\ncp '${refundTour}' .codetrail/tours/eval.json\necho 'used 1234 tokens'\n`,
+    `mkdir -p .srctrek/tours\ncp '${refundTour}' .srctrek/tours/eval.json\necho 'used 1234 tokens'\n`,
   )
 
   return `sh '${script}'`
@@ -28,7 +28,7 @@ describe("runEval", () => {
   })
 
   test("says when the agent saved no tour, with its last line", async () => {
-    // The instruction trail appends becomes $0, so the agent prints only its own line.
+    // The instruction trek appends becomes $0, so the agent prints only its own line.
     const failure = await runEval("refund", "sh -c 'echo login expired'").then(
       () => "",
       (error: unknown) => String(error),
@@ -37,10 +37,10 @@ describe("runEval", () => {
     expect(failure).toContain("the agent saved no tour; its last line: login expired")
   })
 
-  test("runs trail in another repo when told to", async () => {
+  test("runs trek in another repo when told to", async () => {
     const report = await runEval("refund", await fakeAgent(), { run: { in: "api", args: [] } })
 
-    expect(report).toMatch(/Tour    .*\/api\/\.codetrail\/tours\/eval\.json/)
+    expect(report).toMatch(/Tour    .*\/api\/\.srctrek\/tours\/eval\.json/)
   })
 
   test("builds the repos as a reviewer has them: the work only on origin's branches", async () => {

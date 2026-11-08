@@ -1,8 +1,8 @@
-# codetrail — agent entry point
+# srctrek — agent entry point
 
-codetrail turns a change — git ranges or pull requests, across repos — into a debugger-style
-walkthrough (a "trail") that drives the user's editor from trigger to outcome.
-Command: `trail`. Product: `docs/PRODUCT.md`. Architecture: `docs/ARCHITECTURE.md`.
+srctrek turns a change — git ranges or pull requests, across repos — into a debugger-style
+walkthrough (a "trek") that drives the user's editor from trigger to outcome.
+Command: `trek`. Product: `docs/PRODUCT.md`. Architecture: `docs/ARCHITECTURE.md`.
 Design: `docs/DESIGN.md`. Current state: `docs/HANDOFF.md`. Decisions: `DECISIONS.md`.
 
 ## Phase
@@ -13,7 +13,7 @@ migration layers. When something changes, change it everywhere at once.
 ## Rules that never relax
 
 - **`core` never imports UI code.** Front-ends only use what `packages/core/src/index.ts` exports.
-- **Never assume a specific editor, agent, or editor plugin.** codetrail ships no integrations
+- **Never assume a specific editor, agent, or editor plugin.** srctrek ships no integrations
   with other plugins (which-key, file explorers); it exposes commands, functions, and events
   for the user to wire up.
 - **Predicted values are always labeled as predicted.** Never present them as real data.
@@ -29,17 +29,17 @@ migration layers. When something changes, change it everywhere at once.
 | `bun install`         | Install dependencies (Bun >= 1.3.14)                    |
 | `bun run check`       | Typecheck, lint, format check, tests, docs check        |
 | `bun run format`      | Format everything with Prettier                         |
-| `bun run build`       | Compile the `trail` binary into dist                    |
+| `bun run build`       | Compile the `trek` binary into dist                     |
 | `bun run build:smoke` | Compile the render smoke binary into dist               |
 | `bun run check:docs`  | Verify paths and links in current docs, package READMEs |
 
 ## Layout
 
 - `packages/core/` — git, schema, prompts, validation, saving and loading tours. No UI.
-- `packages/cli/` — the `trail` entry point: arguments, resolving the change, starting a
+- `packages/cli/` — the `trek` entry point: arguments, resolving the change, starting a
   front-end.
-- `packages/mcp/` — the MCP server, `trail mcp`, for the agent that builds a tour.
-- `packages/serve/` — the editor protocol's server, `trail serve`, for editors stepping a tour.
+- `packages/mcp/` — the MCP server, `trek mcp`, for the agent that builds a tour.
+- `packages/serve/` — the editor protocol's server, `trek serve`, for editors stepping a tour.
 - `packages/tui/` — OpenTUI + React front-end.
 - `packages/evals/` — the eval runner: an agent builds a fixture's tour, scored against
   expected.json.

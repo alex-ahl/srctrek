@@ -15,12 +15,12 @@ import {
   stepOver,
   stepTo,
   versionMismatch,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { buildTour, logOf, toursIn } from "./change"
 import { RequestError } from "./errors"
 import { type OpenTour, openTour } from "./open"
 
-/** What trail serve holds between requests. */
+/** What trek serve holds between requests. */
 export type ServeState = {
   readonly cwd: string
   readonly initialized: boolean

@@ -1,6 +1,6 @@
 -- The winbar over a step: its stop number, its place, and the call stack.
 -- It stands in for the window's own winbar while the step is shown.
-local text = require("codetrail.text")
+local text = require("srctrek.text")
 
 local M = {}
 
@@ -35,7 +35,7 @@ local function started_by_text(view)
   end
   local first = view.stack[1]
   local repo = (first == nil or first.repo ~= cause.repo) and (cause.repo .. ": ") or ""
-  return coloured("CodetrailHop", "started by " .. escape(repo .. label(cause)) .. " ↯ ")
+  return coloured("SrctrekHop", "started by " .. escape(repo .. label(cause)) .. " ↯ ")
 end
 
 -- Outermost first, as a path reads, with ↯ before the frame a hop started. Cut from the left
@@ -44,18 +44,18 @@ local function stack_text(view)
   local parts = {}
   for i, frame in ipairs(view.stack) do
     if i > 1 then
-      table.insert(parts, frame.hop and coloured("CodetrailHop", " ↯ ") or " › ")
+      table.insert(parts, frame.hop and coloured("SrctrekHop", " ↯ ") or " › ")
     end
     -- the first frame of a fresh stack follows its cause; frames below the step's are dimmed
     local previous = view.stack[i - 1] or cause_of(view)
     local shown = frame_text(frame, previous)
-    table.insert(parts, i == #view.stack and shown or coloured("CodetrailStackFrame", shown))
+    table.insert(parts, i == #view.stack and shown or coloured("SrctrekStackFrame", shown))
   end
   return "%<" .. started_by_text(view) .. table.concat(parts)
 end
 
 local function position(view)
-  local number = coloured("CodetrailPosition", string.format("%d/%d", view.number, view.count))
+  local number = coloured("SrctrekPosition", string.format("%d/%d", view.number, view.count))
   if view.step_kind == "context" then
     return number .. " context"
   end
@@ -74,26 +74,26 @@ end
 -- "repo: path", as the context float writes it, so the repo doesn't read as a folder; the full
 -- path is in the status line, so the stack gets the room.
 local function place_text(view)
-  return coloured("CodetrailRepo", escape(view.repo)) .. ": " .. escape(text.place(view))
+  return coloured("SrctrekRepo", escape(view.repo)) .. ": " .. escape(text.place(view))
 end
 
 local function tags(view, new_file)
   local found = {}
   local tag = code_tag(view, new_file)
   if tag then
-    table.insert(found, coloured("CodetrailUnchanged", tag))
+    table.insert(found, coloured("SrctrekUnchanged", tag))
   end
   if view.came_from ~= vim.NIL and view.came_from.guessed then
-    table.insert(found, coloured("CodetrailGuessed", "guessed link"))
+    table.insert(found, coloured("SrctrekGuessed", "guessed link"))
   end
   if #view.context > 0 then
-    table.insert(found, coloured("CodetrailContext", "context available"))
+    table.insert(found, coloured("SrctrekContext", "context available"))
   end
   if view.tour_copy then
-    table.insert(found, coloured("CodetrailTourCopy", "tour's version"))
+    table.insert(found, coloured("SrctrekTourCopy", "tour's version"))
   end
   if view.stale then
-    table.insert(found, coloured("CodetrailStale", "stale: file changed since"))
+    table.insert(found, coloured("SrctrekStale", "stale: file changed since"))
   end
   return found
 end
@@ -106,10 +106,10 @@ local function bar(view, away, new_file)
     table.insert(parts, stack_text(view))
   end
   -- at the right end (%=), so it doesn't shift the rest; the key back is in the overview
-  local away_text = away and ("  %=" .. coloured("CodetrailAway", "away") .. " ") or ""
+  local away_text = away and ("  %=" .. coloured("SrctrekAway", "away") .. " ") or ""
   -- the badge says a tour is on, as -- INSERT -- says a mode is
-  local separator = coloured("CodetrailSeparator", "  │  ")
-  local badge = coloured("CodetrailBadge", " codetrail ")
+  local separator = coloured("SrctrekSeparator", "  │  ")
+  local badge = coloured("SrctrekBadge", " srctrek ")
   return badge .. "  " .. table.concat(parts, separator) .. away_text
 end
 

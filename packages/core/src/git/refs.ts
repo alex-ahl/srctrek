@@ -27,9 +27,9 @@ export async function checkedOutBranch(dir: string): Promise<string | undefined>
   }
 }
 
-/** Whether `commit` is a snapshot codetrail made of uncommitted work. */
+/** Whether `commit` is a snapshot srctrek made of uncommitted work. */
 export function isSnapshot(dir: string, commit: string): Promise<boolean> {
-  return succeeds(dir, ["rev-parse", "--verify", "--quiet", `refs/codetrail/snapshots/${commit}`])
+  return succeeds(dir, ["rev-parse", "--verify", "--quiet", `refs/srctrek/snapshots/${commit}`])
 }
 
 /** Whether the repo has `ref`, written in full: "refs/remotes/origin/feature". */

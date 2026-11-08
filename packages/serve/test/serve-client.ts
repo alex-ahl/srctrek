@@ -1,6 +1,6 @@
 import { type ChildProcess, spawn } from "node:child_process"
 import { join } from "node:path"
-import { PROTOCOL_VERSION } from "@codetrail/core"
+import { PROTOCOL_VERSION } from "@srctrek/core"
 import {
   type MessageConnection,
   ResponseError,
@@ -9,16 +9,16 @@ import {
   createMessageConnection,
 } from "vscode-jsonrpc/node"
 
-const TRAIL = join(import.meta.dir, "../../cli/src/main.ts")
+const TREK = join(import.meta.dir, "../../cli/src/main.ts")
 
-/** An editor's side of the protocol, for tests: the real `trail serve` as a child process. */
+/** An editor's side of the protocol, for tests: the real `trek serve` as a child process. */
 export class ServeTestClient {
   private readonly proc: ChildProcess
   private readonly connection: MessageConnection
   readonly exited: Promise<number | null>
 
   constructor(cwd: string, env: Record<string, string> = {}) {
-    this.proc = spawn("bun", [TRAIL, "serve"], {
+    this.proc = spawn("bun", [TREK, "serve"], {
       cwd,
       env: { ...process.env, ...env },
       stdio: ["pipe", "pipe", "inherit"],
@@ -27,7 +27,7 @@ export class ServeTestClient {
 
     const { stdout, stdin } = this.proc
     if (stdout === null || stdin === null) {
-      throw new Error("trail serve started without pipes")
+      throw new Error("trek serve started without pipes")
     }
     this.connection = createMessageConnection(
       new StreamMessageReader(stdout),
@@ -47,7 +47,7 @@ export class ServeTestClient {
     return this.request("initialize", { protocol_version: protocolVersion, client })
   }
 
-  /** The code `trail serve` answers `method` with, when it refuses. */
+  /** The code `trek serve` answers `method` with, when it refuses. */
   async errorCode(method: string, params?: object): Promise<number> {
     try {
       await this.request(method, params)

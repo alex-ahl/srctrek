@@ -1,16 +1,16 @@
 -- The overview, a step's details, and the end screen, from the server's view.
-local actions = require("codetrail.actions")
-local popup = require("codetrail.popup")
-local server = require("codetrail.server")
-local state = require("codetrail.state")
-local text = require("codetrail.text")
+local actions = require("srctrek.actions")
+local popup = require("srctrek.popup")
+local server = require("srctrek.server")
+local state = require("srctrek.state")
+local text = require("srctrek.text")
 
 local M = {}
 
 local FLAGS = {
-  high = { text = "⚠ likely wrong · ", wording = "likely wrong", group = "CodetrailFlagHigh" },
-  medium = { text = "● risky · ", wording = "risky", group = "CodetrailFlagMedium" },
-  low = { text = "● worth knowing · ", wording = "worth knowing", group = "CodetrailFlagLow" },
+  high = { text = "⚠ likely wrong · ", wording = "likely wrong", group = "SrctrekFlagHigh" },
+  medium = { text = "● risky · ", wording = "risky", group = "SrctrekFlagMedium" },
+  low = { text = "● worth knowing · ", wording = "worth knowing", group = "SrctrekFlagLow" },
 }
 
 -- In full, as the code's line shows it shortened.
@@ -48,7 +48,7 @@ end
 -- navigation draws views and opens this module's popups, so it's required when first used
 local function go_to(id)
   return function()
-    server.request("goto", { step = id }, require("codetrail.navigation").show)
+    server.request("goto", { step = id }, require("srctrek.navigation").show)
   end
 end
 
@@ -90,18 +90,18 @@ local function came_from_lines(view, doc)
   local guessed = link.guessed and "   (guessed: matched by name)" or ""
   local heading = string.format("%s stop %d%s%s", link_wording(view, link), link.number, name, guessed)
   doc.add("")
-  doc.add(heading, go_to(link.id), link.guessed and "CodetrailGuessed" or nil)
+  doc.add(heading, go_to(link.id), link.guessed and "SrctrekGuessed" or nil)
 
   for _, cite in ipairs(link.cites) do
     local open = open_at(cite.path, cite.line)
-    doc.add(string.format("  %s: %s:%d", cite.repo, cite.file, cite.line), open, "CodetrailUnchanged")
+    doc.add(string.format("  %s: %s:%d", cite.repo, cite.file, cite.line), open, "SrctrekUnchanged")
     doc.add("    " .. code_at(cite.path, cite.line), open)
   end
 end
 
 local function step_lines(view)
   local doc = new_doc()
-  doc.add(view.summary, nil, "CodetrailHeading")
+  doc.add(view.summary, nil, "SrctrekHeading")
   doc.add("")
   doc.extend(vim.split(view.details, "\n"))
   came_from_lines(view, doc)
@@ -112,26 +112,26 @@ local function step_lines(view)
   end
   if #view.predicted_values > 0 then
     doc.add("")
-    doc.add("Values", nil, "CodetrailHeading")
+    doc.add("Values", nil, "SrctrekHeading")
     for _, value in ipairs(view.predicted_values) do
-      doc.add(value_line(value), nil, value.uncertain and "CodetrailDoubtful" or "CodetrailPredicted")
+      doc.add(value_line(value), nil, value.uncertain and "SrctrekDoubtful" or "SrctrekPredicted")
     end
   end
   if #view.context > 0 then
     doc.add("")
-    doc.add("Context", nil, "CodetrailHeading")
+    doc.add("Context", nil, "SrctrekHeading")
     for _, ref in ipairs(view.context) do
-      doc.add("  " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id), "CodetrailContext")
+      doc.add("  " .. labelled(ref) .. ": " .. ref.summary, go_to(ref.id), "SrctrekContext")
     end
   end
   local notes = view.notes
   if #notes > 0 then
     doc.add("")
-    doc.add("Questions", nil, "CodetrailHeading")
+    doc.add("Questions", nil, "SrctrekHeading")
     doc.extend(note_lines(notes))
   end
   doc.add("")
-  doc.add("enter on where it came from, a line of evidence, or a context step goes there", nil, "CodetrailUnchanged")
+  doc.add("enter on where it came from, a line of evidence, or a context step goes there", nil, "SrctrekUnchanged")
   return doc
 end
 
@@ -178,26 +178,26 @@ local function overview(view)
   doc.add("Repos     " .. table.concat(view.repos, ", "))
   doc.add("Flags     " .. flag_counts(view.flags))
   doc.add("")
-  doc.add("Keys", nil, "CodetrailHeading")
+  doc.add("Keys", nil, "SrctrekHeading")
   key_lines(doc)
-  local context = state.keys.context or ":TrailContext"
-  doc.add("  \"context available\" in the winbar: " .. context .. " shows it", nil, "CodetrailContext")
+  local context = state.keys.context or ":TrekContext"
+  doc.add("  \"context available\" in the winbar: " .. context .. " shows it", nil, "SrctrekContext")
   doc.add("")
-  local start = state.keys.next and (state.keys.next .. " to start") or ":TrailNext to start"
-  doc.add(view.count .. " stops · " .. start, nil, "CodetrailUnchanged")
+  local start = state.keys.next and (state.keys.next .. " to start") or ":TrekNext to start"
+  doc.add(view.count .. " stops · " .. start, nil, "SrctrekUnchanged")
   popup.document(doc, view.title)
 end
 
 -- The outcome, then every flag in the tour, most severe first; enter on one goes to its step.
 local function finish(view)
   local doc = new_doc()
-  doc.add("End of tour", nil, "CodetrailHeading")
+  doc.add("End of tour", nil, "SrctrekHeading")
   doc.extend(vim.split(view.outcome, "\n"))
   doc.add("")
   if #view.flags == 0 then
-    doc.add("No flags.", nil, "CodetrailUnchanged")
+    doc.add("No flags.", nil, "SrctrekUnchanged")
   else
-    doc.add("Flags", nil, "CodetrailHeading")
+    doc.add("Flags", nil, "SrctrekHeading")
   end
   for _, flag in ipairs(view.flags) do
     local style = FLAGS[flag.severity]
@@ -205,7 +205,7 @@ local function finish(view)
     doc.add("    " .. flag.note, go_to(flag.id))
   end
   doc.add("")
-  doc.add("enter on a flag goes to its step · [t last step · <leader>tq ends the tour", nil, "CodetrailUnchanged")
+  doc.add("enter on a flag goes to its step · [t last step · <leader>tq ends the tour", nil, "SrctrekUnchanged")
   popup.document(doc, view.title)
 end
 

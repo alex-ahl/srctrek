@@ -3,7 +3,7 @@ import { mkdtemp } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-const PREFIX = "codetrail-tests-"
+const PREFIX = "srctrek-tests-"
 const HOUR_MS = 60 * 60 * 1000
 
 // bun test fires no exit event to clean up after a run, so each run clears what earlier runs

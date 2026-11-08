@@ -29,7 +29,7 @@ const FoundTriggersSchema = z.object({
   triggers: z.array(TriggerSchema),
 })
 
-export const TRIGGERS_DIR = join(".codetrail", "triggers")
+export const TRIGGERS_DIR = join(".srctrek", "triggers")
 
 export function triggersPath(root: string, name: string): string {
   return join(root, TRIGGERS_DIR, `${name}.json`)

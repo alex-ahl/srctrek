@@ -15,7 +15,7 @@ export function checkoutPluginDir(): string | null {
 }
 
 /**
- * This trail's own `trail serve`, so the plugin talks to the same version: the binary itself
+ * This trek's own `trek serve`, so the plugin talks to the same version: the binary itself
  * when compiled (its entry point is inside the binary), or bun with the entry point.
  */
 export function serveCommand(): string[] {
@@ -31,11 +31,11 @@ export function neovimArgs(tourName: string, pluginDir: string | null, serve: st
   // -c runs after the user's config, so a plugin manager that resets the runtimepath at
   // startup can't drop the checkout's plugin directory, and the user's settings are kept.
   const loadPlugin = pluginDir
-    ? ["-c", `set rtp^=${pluginDir}`, "-c", "runtime! plugin/codetrail.lua"]
+    ? ["-c", `set rtp^=${pluginDir}`, "-c", "runtime! plugin/srctrek.lua"]
     : []
-  const useServe = `lua vim.g.codetrail = vim.tbl_deep_extend("force", vim.g.codetrail or {}, { cmd = ${luaList(serve)} })`
+  const useServe = `lua vim.g.srctrek = vim.tbl_deep_extend("force", vim.g.srctrek or {}, { cmd = ${luaList(serve)} })`
 
-  return ["nvim", ...loadPlugin, "-c", useServe, "-c", `Trail ${tourName}`]
+  return ["nvim", ...loadPlugin, "-c", useServe, "-c", `Trek ${tourName}`]
 }
 
 /** Hands the terminal to Neovim for the tour, and takes it back when Neovim exits. */

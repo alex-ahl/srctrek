@@ -1,9 +1,9 @@
 {
-  "name": "@codetrail/evals",
+  "name": "@srctrek/evals",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@codetrail/core": "workspace:*",
+    "@srctrek/core": "workspace:*",
     "zod": "4.6.7"
   }
 }

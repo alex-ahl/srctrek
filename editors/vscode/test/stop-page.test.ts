@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { NextStop } from "@codetrail/core"
+import type { NextStop } from "@srctrek/core"
 import { stopPageHtml } from "../src/stop-page"
 import { ref, stepWith } from "./support/views"
 
@@ -113,5 +113,5 @@ test("questions get their own block; values stay in the code", () => {
 })
 
 test("with no stop open the page says how to start", () => {
-  expect(stopPageHtml(null, noCode, "n")).toContain("No stop open. Run Codetrail: Open Tour…")
+  expect(stopPageHtml(null, noCode, "n")).toContain("No stop open. Run Srctrek: Open Tour…")
 })

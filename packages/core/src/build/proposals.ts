@@ -28,7 +28,7 @@ export const ProposedRepoSchema = z.object({
 
 export type ProposedRepo = z.infer<typeof ProposedRepoSchema>
 
-export const PROPOSED_REPOS = join(".codetrail", "proposed-repos.json")
+export const PROPOSED_REPOS = join(".srctrek", "proposed-repos.json")
 
 /** Why `proposal` can't be recorded: its name is taken, or its evidence doesn't hold. */
 export async function proposalProblems(
@@ -58,7 +58,7 @@ export async function loadProposals(root: string): Promise<ProposedRepo[]> {
 }
 
 async function writeProposals(root: string, proposals: ProposedRepo[]): Promise<void> {
-  await mkdir(join(root, ".codetrail"), { recursive: true })
+  await mkdir(join(root, ".srctrek"), { recursive: true })
   await writeFile(join(root, PROPOSED_REPOS), JSON.stringify(proposals, null, 2) + "\n")
 }
 
@@ -99,7 +99,7 @@ export async function acceptProposal(root: string, name: string, source?: string
   }
 
   const list = join(root, REPOS_LIST)
-  await mkdir(join(root, ".codetrail"), { recursive: true })
+  await mkdir(join(root, ".srctrek"), { recursive: true })
   await appendFile(list, `${await lineStart(list)}${proposal.name} = ${location}\n`)
   await dismissProposal(root, name)
 }

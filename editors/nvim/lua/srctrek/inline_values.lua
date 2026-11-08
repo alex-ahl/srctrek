@@ -1,7 +1,7 @@
 -- Predicted values at the end of the lines they belong to, like a debugger's inline values:
 -- `name ≈ value`, as nothing runs, and `name ≈? value` in the warning colour when the tour doubts
 -- it. Long values are cut so the line stays readable; details show them whole.
-local state = require("codetrail.state")
+local state = require("srctrek.state")
 
 local M = {}
 
@@ -34,12 +34,12 @@ local function by_line(values)
 end
 
 local function chunks_of(values)
-  local chunks = { { "  ", "CodetrailPredicted" } }
+  local chunks = { { "  ", "SrctrekPredicted" } }
   for i, value in ipairs(values) do
     if i > 1 then
-      table.insert(chunks, { ", ", "CodetrailPredicted" })
+      table.insert(chunks, { ", ", "SrctrekPredicted" })
     end
-    table.insert(chunks, { describe(value), value.uncertain and "CodetrailDoubtful" or "CodetrailPredicted" })
+    table.insert(chunks, { describe(value), value.uncertain and "SrctrekDoubtful" or "SrctrekPredicted" })
   end
   return chunks
 end

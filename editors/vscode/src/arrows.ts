@@ -1,4 +1,4 @@
-import type { StepView } from "@codetrail/core"
+import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
 import { type CallMark, callMarks } from "./view"
 

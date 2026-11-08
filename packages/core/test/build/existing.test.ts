@@ -11,7 +11,7 @@ describe("existingTourFor", () => {
     const dir = await makeBranchRepo()
     const change = await changeOf(dir)
     await saveTourOf(dir, change, "refunds")
-    await writeFile(join(dir, ".codetrail/tours/broken.json"), "{")
+    await writeFile(join(dir, ".srctrek/tours/broken.json"), "{")
 
     expect(await existingTourFor(dir, change)).toBe("refunds")
 
@@ -21,7 +21,7 @@ describe("existingTourFor", () => {
 
   test("finds none when there are no tours at all", async () => {
     const dir = await makeBranchRepo()
-    await mkdir(join(dir, ".codetrail"))
+    await mkdir(join(dir, ".srctrek"))
 
     expect(await existingTourFor(dir, await changeOf(dir))).toBeUndefined()
   })

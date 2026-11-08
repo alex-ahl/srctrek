@@ -1,5 +1,5 @@
 {
-  "name": "@codetrail/core",
+  "name": "@srctrek/core",
   "private": true,
   "type": "module",
   "exports": {

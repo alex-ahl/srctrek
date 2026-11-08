@@ -13,7 +13,7 @@ import {
 
 const PLUGIN = join(import.meta.dir, "../../../editors/nvim")
 const DRIVER = join(import.meta.dir, "nvim-driver.lua")
-const TRAIL = join(import.meta.dir, "../../cli/src/main.ts")
+const TREK = join(import.meta.dir, "../../cli/src/main.ts")
 
 /** What the editor shows after an action, as nvim-driver.lua records it. */
 type Screen = {
@@ -49,7 +49,7 @@ function isScreens(value: unknown): value is Screen[] {
 const onBand = (lines: string[] = []) => lines.filter((line) => !/^[▖▘][▄▀]*$/.test(line))
 
 // Headless Neovim in `dir` with the checkout's plugin, running `actions` against the real
-// trail serve.
+// trek serve.
 async function drive(dir: string, actions: string[]): Promise<Screen[]> {
   const out = join(await tempDir("nvim-"), "screens.json")
   const nvim = Bun.spawn(
@@ -60,7 +60,7 @@ async function drive(dir: string, actions: string[]): Promise<Screen[]> {
       "--cmd",
       `set rtp^=${PLUGIN}`,
       "-c",
-      "runtime! plugin/codetrail.lua",
+      "runtime! plugin/srctrek.lua",
       "-c",
       `luafile ${DRIVER}`,
     ],
@@ -69,7 +69,7 @@ async function drive(dir: string, actions: string[]): Promise<Screen[]> {
       env: {
         ...process.env,
         XDG_CACHE_HOME: await tempDir("cache-"),
-        DRIVE_CMD: JSON.stringify(["bun", TRAIL, "serve"]),
+        DRIVE_CMD: JSON.stringify(["bun", TREK, "serve"]),
         DRIVE_ACTIONS: actions.join(","),
         DRIVE_OUT: out,
       },
@@ -86,7 +86,7 @@ async function drive(dir: string, actions: string[]): Promise<Screen[]> {
   return screens
 }
 
-describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", () => {
+describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", () => {
   test("opens a saved tour at its overview, then draws the step the server answers with", async () => {
     const [overview, first] = await drive(await repoWithTour(), ["start:pay", "next"])
 
@@ -96,7 +96,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     }
     expect(first).toMatchObject({ view: "step", file: "main.ts", line: 1 })
     // the repo is named after its temporary folder
-    expect(first?.winbar).toStartWith(" codetrail   1/3  │  new file  │  ")
+    expect(first?.winbar).toStartWith(" srctrek   1/3  │  new file  │  ")
     expect(first?.winbar).toEndWith(": main.ts:1  │  main.ts:1")
     // the change adds main.ts whole, so the winbar says so instead of a + on every line
     expect(onBand(first?.virt_lines)).toEqual(["▌ main calls pay  next: into pay, line 1"])
@@ -162,7 +162,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(into).toMatchObject({ file: "pay.ts", line: 1 })
-    expect(into?.winbar).toContain(" codetrail   2/3  │  new file  │  ")
+    expect(into?.winbar).toContain(" srctrek   2/3  │  new file  │  ")
     expect(into?.winbar).toEndWith(": pay.ts:1  │  main.ts:1 › pay")
     expect(onBand(into?.virt_lines)).toEqual([
       "▌ s  next: back to main.ts:2",
@@ -184,7 +184,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
 
     expect(out).toMatchObject({ file: "main.ts", line: 2 })
-    expect(out?.winbar).toContain(" codetrail   3/3  │  new file  │  ")
+    expect(out?.winbar).toContain(" srctrek   3/3  │  new file  │  ")
     expect(end).toMatchObject({ view: "end" })
     expect(end?.float?.slice(0, 2)).toEqual(["End of tour", "paid"])
     expect(end?.float).toContain("⚠ likely wrong · 2 · pay.ts:1 · pay")
@@ -242,7 +242,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     await writeFile(join(dir, "main.ts"), "const total = pay() * 2\nconsole.log(total)\n")
     const [, step] = await drive(dir, ["start:pay", "next"])
 
-    // a copy in trail's cache has no dependencies installed, so its diagnostics are hidden
+    // a copy in trek's cache has no dependencies installed, so its diagnostics are hidden
     expect(step).toMatchObject({ file: "main.ts", read_only: true, diagnostics: false })
     expect(step?.path.startsWith(await realpath(dir))).toBe(false)
     expect(step?.winbar).toContain("tour's version")
@@ -291,7 +291,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     expect(stayed).toMatchObject({
       file: "main.ts",
       line: 1,
-      message: "codetrail: nothing to step into here",
+      message: "srctrek: nothing to step into here",
     })
   }, 30_000)
 
@@ -358,7 +358,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trail serve", 
     ])
     const winbars = screens.map((screen) => screen.winbar)
 
-    expect(winbars[2]).toContain(" codetrail ")
+    expect(winbars[2]).toContain(" srctrek ")
     expect([winbars[1], winbars[3], winbars[5]]).toEqual(["mine", "mine", "mine"])
   }, 30_000)
 

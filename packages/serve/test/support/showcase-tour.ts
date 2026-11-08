@@ -1,4 +1,4 @@
-import type { SubmittedStep } from "@codetrail/core"
+import type { SubmittedStep } from "@srctrek/core"
 import { repoWithSteps } from "./pay-tour"
 
 // A small refund flow whose tour, "pay", uses everything an editor shows: predicted values (an

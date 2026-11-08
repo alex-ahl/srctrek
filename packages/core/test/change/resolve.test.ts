@@ -17,8 +17,8 @@ import { makeCacheDir, makeRemote } from "../support/remote"
 import { tempDir } from "../support/temp"
 
 async function writeReposList(repo: string, text: string): Promise<void> {
-  await mkdir(join(repo, ".codetrail"))
-  await writeFile(join(repo, ".codetrail", "repos"), text)
+  await mkdir(join(repo, ".srctrek"))
+  await writeFile(join(repo, ".srctrek", "repos"), text)
 }
 
 // The current repo, on a feature branch with one commit since it left main.

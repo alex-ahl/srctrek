@@ -1,13 +1,13 @@
 import { expect, test } from "bun:test"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
-import type { TourEntry } from "@codetrail/core"
+import type { TourEntry } from "@srctrek/core"
 
 const noop = () => undefined
 
 test("renders the empty state", async () => {
   const frame = await renderFrame(<App entries={[]} onOpen={noop} onQuit={noop} />)
-  expect(frame).toContain("No tours in .codetrail/tours")
+  expect(frame).toContain("No tours in .srctrek/tours")
 })
 
 test("lists valid and invalid tours", async () => {
@@ -47,7 +47,7 @@ test("says a tour of the change is being built", async () => {
   const status = {
     kind: "building" as const,
     name: "feature-refunds",
-    logTail: ['trail: started "Refund orders"', "trail: added s1, s2; the tour has s1, s2"],
+    logTail: ['trek: started "Refund orders"', "trek: added s1, s2; the tour has s1, s2"],
   }
   const frame = await renderFrame(
     <App
@@ -62,7 +62,7 @@ test("says a tour of the change is being built", async () => {
     12,
   )
   expect(frame).toContain("Building feature-refunds… your agent is on it")
-  expect(frame).toContain("  trail: added s1, s2; the tour has s1, s2")
+  expect(frame).toContain("  trek: added s1, s2; the tour has s1, s2")
   expect(frame).toContain("· l log ·")
   expect(frame).not.toContain("b build")
 })
@@ -79,14 +79,14 @@ test("shows why a build failed, and offers to build again", async () => {
   expect(frame).toContain("· b build ·")
 })
 
-test("says how to have trail build tours when no agent is set", async () => {
+test("says how to have trek build tours when no agent is set", async () => {
   const status = { kind: "missing" as const, name: "feature-refunds" }
   const frame = await renderFrame(
     <App entries={[]} onOpen={noop} onQuit={noop} status={status} />,
     120,
     8,
   )
-  expect(frame).toContain("Set CODETRAIL_AGENT to your agent's headless command")
+  expect(frame).toContain("Set SRCTREK_AGENT to your agent's headless command")
   expect(frame).not.toContain("b build")
 })
 

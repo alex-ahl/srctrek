@@ -5,7 +5,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 
 const EXTENSION = join(import.meta.dir, "..")
-const TRAIL = join(import.meta.dir, "../../../packages/cli/src/main.ts")
+const TREK = join(import.meta.dir, "../../../packages/cli/src/main.ts")
 const VSCODE = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
 // maximized, so a capture shows the editor at full size, and without the chat sidebar, which isn't
 // part of the tour
@@ -31,7 +31,7 @@ export async function build(entry: string, outfile: string): Promise<void> {
 }
 
 async function newProfile(): Promise<string> {
-  const profile = await mkdtemp(join(tmpdir(), "codetrail-vscode-"))
+  const profile = await mkdtemp(join(tmpdir(), "srctrek-vscode-"))
   await mkdir(join(profile, "user/User"), { recursive: true })
   await Bun.write(join(profile, "user/User/settings.json"), JSON.stringify(SETTINGS))
   return profile
@@ -58,7 +58,7 @@ export async function runVsCode(run: Run): Promise<{ code: number; log: string }
     {
       env: {
         ...process.env,
-        CODETRAIL_SERVE: JSON.stringify(["bun", TRAIL, "serve"]),
+        SRCTREK_SERVE: JSON.stringify(["bun", TREK, "serve"]),
         ...run.env,
       },
       stdout: "pipe",

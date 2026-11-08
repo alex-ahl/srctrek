@@ -1,84 +1,84 @@
 {
-  "name": "codetrail-vscode",
-  "displayName": "codetrail",
-  "description": "Step through a codetrail tour of a change, as a debugger session for code you haven't run.",
+  "name": "srctrek-vscode",
+  "displayName": "srctrek",
+  "description": "Step through a srctrek tour of a change, as a debugger session for code you haven't run.",
   "version": "0.0.0",
   "private": true,
-  "publisher": "codetrail",
+  "publisher": "srctrek",
   "engines": {
     "vscode": "^1.99.0"
   },
   "main": "./dist/extension.js",
   "scripts": {
     "build": "bun build src/extension.ts --outdir dist --target node --format cjs --external vscode",
-    "package": "bun run build && vsce package --no-dependencies --skip-license --allow-missing-repository --out dist/codetrail.vsix"
+    "package": "bun run build && vsce package --no-dependencies --skip-license --allow-missing-repository --out dist/srctrek.vsix"
   },
   "contributes": {
     "commands": [
       {
-        "command": "codetrail.openTour",
-        "title": "Codetrail: Open Tour…"
+        "command": "srctrek.openTour",
+        "title": "Srctrek: Open Tour…"
       },
       {
-        "command": "codetrail.next",
-        "title": "Codetrail: Next Stop"
+        "command": "srctrek.next",
+        "title": "Srctrek: Next Stop"
       },
       {
-        "command": "codetrail.previous",
-        "title": "Codetrail: Previous Stop"
+        "command": "srctrek.previous",
+        "title": "Srctrek: Previous Stop"
       },
       {
-        "command": "codetrail.over",
-        "title": "Codetrail: Step Over"
+        "command": "srctrek.over",
+        "title": "Srctrek: Step Over"
       },
       {
-        "command": "codetrail.into",
-        "title": "Codetrail: Step Into"
+        "command": "srctrek.into",
+        "title": "Srctrek: Step Into"
       },
       {
-        "command": "codetrail.out",
-        "title": "Codetrail: Step Out"
+        "command": "srctrek.out",
+        "title": "Srctrek: Step Out"
       },
       {
-        "command": "codetrail.current",
-        "title": "Codetrail: Show Current Stop"
+        "command": "srctrek.current",
+        "title": "Srctrek: Show Current Stop"
       },
       {
-        "command": "codetrail.context",
-        "title": "Codetrail: Show Context"
+        "command": "srctrek.context",
+        "title": "Srctrek: Show Context"
       },
       {
-        "command": "codetrail.toggleValues",
-        "title": "Codetrail: Show or Hide Values"
+        "command": "srctrek.toggleValues",
+        "title": "Srctrek: Show or Hide Values"
       },
       {
-        "command": "codetrail.refreshTours",
-        "title": "Codetrail: Refresh Tours",
+        "command": "srctrek.refreshTours",
+        "title": "Srctrek: Refresh Tours",
         "icon": "$(refresh)"
       },
       {
-        "command": "codetrail.quit",
-        "title": "Codetrail: End the Tour"
+        "command": "srctrek.quit",
+        "title": "Srctrek: End the Tour"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "codetrail",
-          "title": "codetrail",
-          "icon": "media/trail.svg"
+          "id": "srctrek",
+          "title": "srctrek",
+          "icon": "media/trek.svg"
         }
       ]
     },
     "views": {
-      "codetrail": [
+      "srctrek": [
         {
-          "id": "codetrail.tours",
+          "id": "srctrek.tours",
           "name": "Tours",
           "initialSize": 1
         },
         {
-          "id": "codetrail.stop",
+          "id": "srctrek.stop",
           "name": "Stop",
           "type": "webview",
           "initialSize": 3
@@ -88,58 +88,58 @@
     "menus": {
       "view/title": [
         {
-          "command": "codetrail.refreshTours",
-          "when": "view == codetrail.tours",
+          "command": "srctrek.refreshTours",
+          "when": "view == srctrek.tours",
           "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "codetrail",
+      "title": "srctrek",
       "properties": {
-        "codetrail.serveCommand": {
+        "srctrek.serveCommand": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [
-            "trail",
+            "trek",
             "serve"
           ],
-          "description": "How to start trail serve, in the workspace folder."
+          "description": "How to start trek serve, in the workspace folder."
         }
       }
     },
     "keybindings": [
       {
-        "command": "codetrail.next",
+        "command": "srctrek.next",
         "key": "f8",
-        "when": "codetrail.open && !inDebugMode"
+        "when": "srctrek.open && !inDebugMode"
       },
       {
-        "command": "codetrail.previous",
+        "command": "srctrek.previous",
         "key": "shift+f8",
-        "when": "codetrail.open && !inDebugMode"
+        "when": "srctrek.open && !inDebugMode"
       },
       {
-        "command": "codetrail.over",
+        "command": "srctrek.over",
         "key": "f10",
-        "when": "codetrail.open && !inDebugMode"
+        "when": "srctrek.open && !inDebugMode"
       },
       {
-        "command": "codetrail.into",
+        "command": "srctrek.into",
         "key": "f11",
-        "when": "codetrail.open && !inDebugMode"
+        "when": "srctrek.open && !inDebugMode"
       },
       {
-        "command": "codetrail.out",
+        "command": "srctrek.out",
         "key": "shift+f11",
-        "when": "codetrail.open && !inDebugMode"
+        "when": "srctrek.open && !inDebugMode"
       },
       {
-        "command": "codetrail.quit",
+        "command": "srctrek.quit",
         "key": "escape",
-        "when": "activeWebviewPanelId == 'codetrail.tour' && codetrail.atEnd"
+        "when": "activeWebviewPanelId == 'srctrek.tour' && srctrek.atEnd"
       }
     ]
   },
@@ -147,7 +147,7 @@
     "vscode-jsonrpc": "10.0.0"
   },
   "devDependencies": {
-    "@codetrail/core": "workspace:*",
+    "@srctrek/core": "workspace:*",
     "@types/vscode": "1.99.1",
     "@vscode/vsce": "4.1.0"
   }

@@ -1,12 +1,12 @@
-# @codetrail/mcp
+# @srctrek/mcp
 
 ## What it is
 
-The MCP server `trail mcp` runs over stdin and stdout, for the agent that builds a tour.
+The MCP server `trek mcp` runs over stdin and stdout, for the agent that builds a tour.
 
 ## What it does, and does not
 
-Does: open a change (`open_change`, with `trail`'s own arguments), let the agent read it at
+Does: open a change (`open_change`, with `trek`'s own arguments), let the agent read it at
 its exact revisions (`list_files`, `read_file`, `search`, `diff`), and build a tour of it
 (`start_tour`, `add_steps`, `finish_tour`), update a saved tour after the change moves on
 (`update_tour`), and propose repos the route leads into
@@ -20,8 +20,8 @@ this package only speaks MCP.
 
 ## Where it fits
 
-Depends on `@codetrail/core` and `@modelcontextprotocol/server`. Started by the cli
-(`packages/cli/`) as `trail mcp`.
+Depends on `@srctrek/core` and `@modelcontextprotocol/server`. Started by the cli
+(`packages/cli/`) as `trek mcp`.
 
 ## Why a package of its own
 

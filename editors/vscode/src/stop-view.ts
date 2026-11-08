@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto"
-import type { StepView } from "@codetrail/core"
+import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
 import { isPageMessage } from "./page"
 import { type CodeRange, codeRangesOf, stopPageHtml } from "./stop-page"
@@ -42,7 +42,7 @@ async function openAt(path: string, line: number): Promise<void> {
   })
 }
 
-/** The codetrail sidebar's Stop view; a stop clicked there calls `goTo`, a cited line opens. */
+/** The srctrek sidebar's Stop view; a stop clicked there calls `goTo`, a cited line opens. */
 export function createStopView(goTo: (step: string) => void): StopView & vscode.Disposable {
   let webview: vscode.WebviewView | undefined
   let current: StepView | null = null
@@ -67,7 +67,7 @@ export function createStopView(goTo: (step: string) => void): StopView & vscode.
     void openAt(message.open, message.line)
   }
 
-  const registration = vscode.window.registerWebviewViewProvider("codetrail.stop", {
+  const registration = vscode.window.registerWebviewViewProvider("srctrek.stop", {
     resolveWebviewView: (view) => {
       webview = view
       view.webview.options = { enableScripts: true, localResourceRoots: [] }

@@ -1,4 +1,4 @@
-import type { TourStatus } from "@codetrail/core"
+import type { TourStatus } from "@srctrek/core"
 
 type Props = { status: TourStatus; canBuild: boolean }
 
@@ -73,7 +73,7 @@ export function ChangeStatus({ status, canBuild }: Props) {
   if (status.kind === "empty") {
     return (
       <Line
-        text="This change has no commits, so there's nothing to tour. Give trail a range, such as trail HEAD~5..HEAD."
+        text="This change has no commits, so there's nothing to tour. Give trek a range, such as trek HEAD~5..HEAD."
         fg={MUTED}
       />
     )
@@ -85,7 +85,7 @@ export function ChangeStatus({ status, canBuild }: Props) {
 
   return (
     <Line
-      text="No tour of this change yet. Set CODETRAIL_AGENT to your agent's headless command, and trail builds one."
+      text="No tour of this change yet. Set SRCTREK_AGENT to your agent's headless command, and trek builds one."
       fg={MUTED}
     />
   )

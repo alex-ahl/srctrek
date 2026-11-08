@@ -3,12 +3,12 @@ import { type CodeTour, readOptions } from "./options"
 import { type RepoEntry, isRemote, parseRepoEntry } from "../repos/entry"
 import { type PullRequest, parsePullRequestUrl } from "../repos/pull-request"
 
-/** A change trail is asked to follow: a range in a repo, or a pull request. */
+/** A change trek is asked to follow: a range in a repo, or a pull request. */
 export type ChangeSource =
   { kind: "range"; repo: RepoEntry; range: RangeSpec } | { kind: "pull-request"; pr: PullRequest }
 
 /**
- * trail's arguments, read: the changes, the repos on the route without changes, whether
+ * trek's arguments, read: the changes, the repos on the route without changes, whether
  * uncommitted work is included, and, for a tour of code as it is, its trigger.
  */
 export type ChangeArguments = {
@@ -133,7 +133,7 @@ function codeRepos(words: string[], isDirectory: (path: string) => boolean): Rep
 }
 
 /**
- * Reads trail's arguments. With --code, every word is a repo to tour as it is. A range applies to the repo just before it, or to the current repo
+ * Reads trek's arguments. With --code, every word is a repo to tour as it is. A range applies to the repo just before it, or to the current repo
  * when none is; a repo with no range after it is on the route without changes. No change
  * means the current repo's branch since it left the base branch.
  */

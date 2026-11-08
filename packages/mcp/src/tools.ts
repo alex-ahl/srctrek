@@ -14,7 +14,7 @@ import {
   nearbyRepos,
   readLines,
   search,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import {

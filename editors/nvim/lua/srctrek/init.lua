@@ -1,37 +1,37 @@
--- codetrail for Neovim: step through a tour with the editor following.
---   :Trail <tour>   a tour saved in Neovim's working directory, by name
--- Tours are loaded and stepped by `trail serve`, started in Neovim's working directory.
+-- srctrek for Neovim: step through a tour with the editor following.
+--   :Trek <tour>   a tour saved in Neovim's working directory, by name
+-- Tours are loaded and stepped by `trek serve`, started in Neovim's working directory.
 -- Default keys while a tour is open (configurable, see DEFAULT_KEYS below):
 --   ]t / [t next / previous step   <leader>tn step over   <leader>tc back to the current step
 --   <leader>ti step into           <leader>to step out    <leader>tx context code
 --   <leader>tt details (overview before step 1)               <leader>tq quit
 --   <leader>tv show or hide predicted values
--- Every action is also a command (:TrailNext, :TrailPrev, :TrailOver, :TrailInto, :TrailOut,
--- :TrailCurrent, :TrailContext, :TrailDetails, :TrailValues, :TrailQuit) and a function on this
--- module. Each step fires `User CodetrailStep` with { path, shown, line, repo } for file
+-- Every action is also a command (:TrekNext, :TrekPrev, :TrekOver, :TrekInto, :TrekOut,
+-- :TrekCurrent, :TrekContext, :TrekDetails, :TrekValues, :TrekQuit) and a function on this
+-- module. Each step fires `User SrctrekStep` with { path, shown, line, repo } for file
 -- explorers or user config to follow: `path` is the file in the user's project, `shown` the
 -- file opened (the tour's copy when the user's file differs).
-local context_code = require("codetrail.context_code")
-local details = require("codetrail.details")
-local inline_values = require("codetrail.inline_values")
-local navigation = require("codetrail.navigation")
-local origin = require("codetrail.origin")
-local popup = require("codetrail.popup")
-local server = require("codetrail.server")
-local state = require("codetrail.state")
-local step_view = require("codetrail.step_view")
-local winbar = require("codetrail.winbar")
+local context_code = require("srctrek.context_code")
+local details = require("srctrek.details")
+local inline_values = require("srctrek.inline_values")
+local navigation = require("srctrek.navigation")
+local origin = require("srctrek.origin")
+local popup = require("srctrek.popup")
+local server = require("srctrek.server")
+local state = require("srctrek.state")
+local step_view = require("srctrek.step_view")
+local winbar = require("srctrek.winbar")
 
 local M = {}
 
-require("codetrail.highlights").setup()
+require("srctrek.highlights").setup()
 
-local actions = require("codetrail.actions")
+local actions = require("srctrek.actions")
 
--- Keys are active only while a tour is open. Set them with require("codetrail").setup({ keys
--- = { next = "]w" } }) or vim.g.codetrail = { keys = … } (read when a tour starts, so it
+-- Keys are active only while a tour is open. Set them with require("srctrek").setup({ keys
+-- = { next = "]w" } }) or vim.g.srctrek = { keys = … } (read when a tour starts, so it
 -- works whatever the load order); `false` turns one key, or all of them, off. Commands and
--- the functions on this module work regardless. `cmd` is how to start trail serve.
+-- the functions on this module work regardless. `cmd` is how to start trek serve.
 local DEFAULT_KEYS = {
   next = "]t",
   previous = "[t",
@@ -52,12 +52,12 @@ function M.setup(opts)
 end
 
 local function settings()
-  local defaults = { keys = DEFAULT_KEYS, cmd = { "trail", "serve" } }
-  return vim.tbl_deep_extend("force", defaults, vim.g.codetrail or {}, setup_opts)
+  local defaults = { keys = DEFAULT_KEYS, cmd = { "trek", "serve" } }
+  return vim.tbl_deep_extend("force", defaults, vim.g.srctrek or {}, setup_opts)
 end
 
--- Global mappings for the open trail. Whatever the user had on those keys is saved and put
--- back when the trail ends; buffer-local mappings, theirs or other plugins', are left alone.
+-- Global mappings for the open trek. Whatever the user had on those keys is saved and put
+-- back when the trek ends; buffer-local mappings, theirs or other plugins', are left alone.
 local function bind_keys(keys)
   state.saved_maps = {}
   for _, a in ipairs(actions) do
@@ -67,7 +67,7 @@ local function bind_keys(keys)
       if next(existing) ~= nil and existing.buffer == 0 then
         table.insert(state.saved_maps, existing)
       end
-      vim.keymap.set("n", lhs, M[a.name], { desc = "codetrail: " .. a.desc })
+      vim.keymap.set("n", lhs, M[a.name], { desc = "srctrek: " .. a.desc })
     end
   end
 end
@@ -99,13 +99,13 @@ function M.quit()
   winbar.restore()
   unbind_keys(active_keys)
   active_keys = {}
-  vim.api.nvim_create_augroup("codetrail_tour", { clear = true })
+  vim.api.nvim_create_augroup("srctrek_tour", { clear = true })
   state.view = nil
   server.stop()
 end
 
 local function say(message)
-  vim.api.nvim_echo({ { "codetrail: " .. message } }, false, {})
+  vim.api.nvim_echo({ { "srctrek: " .. message } }, false, {})
 end
 
 -- The actions, callable from keys, commands, or the user's own mappings at any time.
@@ -116,7 +116,7 @@ local function when_open(fn)
     elseif state.opening then
       say("still opening " .. state.opening .. "…")
     else
-      vim.notify("codetrail: no tour is open; start one with :Trail <tour>", vim.log.levels.WARN)
+      vim.notify("srctrek: no tour is open; start one with :Trek <tour>", vim.log.levels.WARN)
     end
   end
 end
@@ -133,7 +133,7 @@ M.values = when_open(inline_values.toggle)
 
 local function watch_cursor()
   vim.api.nvim_create_autocmd({ "CursorMoved", "BufWinEnter" }, {
-    group = vim.api.nvim_create_augroup("codetrail_tour", { clear = true }),
+    group = vim.api.nvim_create_augroup("srctrek_tour", { clear = true }),
     callback = winbar.follow_cursor,
   })
 end
@@ -165,7 +165,7 @@ local function not_opened()
   end
 end
 
--- The tour's keys are bound at once, so keys pressed while it opens reach codetrail rather than
+-- The tour's keys are bound at once, so keys pressed while it opens reach srctrek rather than
 -- Neovim's own commands.
 function M.start(name)
   state.opening = name

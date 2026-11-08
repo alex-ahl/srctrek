@@ -3,7 +3,7 @@ import { join } from "node:path"
 import type { z } from "zod"
 import { type Tour, TourSchema } from "./schema/tour"
 
-export const TOURS_DIR = join(".codetrail", "tours")
+export const TOURS_DIR = join(".srctrek", "tours")
 
 export class TourValidationError extends Error {
   constructor(

@@ -7,12 +7,12 @@ import {
   resolveChange,
   startBuild,
   tourStatus,
-} from "@codetrail/core"
-import { startMcpServer } from "@codetrail/mcp"
-import { startServe } from "@codetrail/serve"
-import { startHome } from "@codetrail/tui"
+} from "@srctrek/core"
+import { startMcpServer } from "@srctrek/mcp"
+import { startServe } from "@srctrek/serve"
+import { startHome } from "@srctrek/tui"
 
-// The same repos as trail's args, toured from one trigger: --code="<trigger>" for --code.
+// The same repos as trek's args, toured from one trigger: --code="<trigger>" for --code.
 function argsForTrigger(args: string[], trigger: string): string[] {
   return [...args.filter((arg) => !arg.startsWith("--code")), `--code=${trigger}`]
 }
@@ -29,7 +29,7 @@ async function buildTriggerTour(
   await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
 }
 
-async function trail(args: string[]): Promise<void> {
+async function trek(args: string[]): Promise<void> {
   const cwd = process.cwd()
   const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
   const agent = agentCommand()
@@ -54,7 +54,7 @@ async function trail(args: string[]): Promise<void> {
 async function run(args: string[]): Promise<void> {
   if (args[0] === "serve") {
     if (process.stdin.isTTY) {
-      console.error("trail serve: waiting for an editor on stdin; your editor's plugin starts it")
+      console.error("trek serve: waiting for an editor on stdin; your editor's plugin starts it")
     }
 
     return startServe(process.cwd())
@@ -64,18 +64,18 @@ async function run(args: string[]): Promise<void> {
     // Started by hand, the server would sit silent waiting for a client; stderr leaves the
     // protocol on stdout alone.
     if (process.stdin.isTTY) {
-      console.error("trail mcp: waiting for an MCP client on stdin; register it with your agent")
+      console.error("trek mcp: waiting for an MCP client on stdin; register it with your agent")
     }
 
     return startMcpServer(process.cwd())
   }
 
-  return trail(args)
+  return trek(args)
 }
 
 try {
   await run(process.argv.slice(2))
 } catch (error) {
-  console.error(`trail: ${error instanceof Error ? error.message : String(error)}`)
+  console.error(`trek: ${error instanceof Error ? error.message : String(error)}`)
   process.exit(1)
 }

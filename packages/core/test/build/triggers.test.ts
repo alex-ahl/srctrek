@@ -72,7 +72,7 @@ describe("triggers", () => {
     const dir = await makeBranchRepo()
     const change = await codeOf(dir)
     await saveTriggers(dir, "found", change, [])
-    await writeFile(join(dir, ".codetrail/triggers/found.json"), "{ not json")
+    await writeFile(join(dir, ".srctrek/triggers/found.json"), "{ not json")
 
     expect(await loadTriggers(dir, "found", change)).toBeUndefined()
   })

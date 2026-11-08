@@ -11,8 +11,8 @@ export function createTourTab(goTo: (step: string) => void): TourTab & vscode.Di
 
   const open = (): vscode.WebviewPanel => {
     const opened = vscode.window.createWebviewPanel(
-      "codetrail.tour",
-      "codetrail",
+      "srctrek.tour",
+      "srctrek",
       {
         viewColumn: vscode.ViewColumn.Active,
         preserveFocus: false,

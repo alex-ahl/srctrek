@@ -1,4 +1,4 @@
-import type { CameFrom, Cite, Frame, StepRef, StepView } from "@codetrail/core"
+import type { CameFrom, Cite, Frame, StepRef, StepView } from "@srctrek/core"
 import { escapeHtml, gotoLink, openLink, pageHtml } from "./page"
 import { FLAG_WORDING, whereNext } from "./step-text"
 
@@ -176,7 +176,7 @@ const STYLE = `
 /** The page for a stop, or a line saying how to start when the tour isn't on one. */
 export function stopPageHtml(view: StepView | null, codeAt: CodeAt, nonce: string): string {
   if (view === null) {
-    return pageHtml(`<p class="muted">No stop open. Run Codetrail: Open Tour…</p>`, nonce, STYLE)
+    return pageHtml(`<p class="muted">No stop open. Run Srctrek: Open Tour…</p>`, nonce, STYLE)
   }
   const body = [
     leadSection(view),

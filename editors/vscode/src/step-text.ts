@@ -1,4 +1,4 @@
-import type { StepRef, StepView } from "@codetrail/core"
+import type { StepRef, StepView } from "@srctrek/core"
 
 // What a stop says besides its narration, apart from VS Code: where next goes, its tags, and the
 // actions on the line above it.
@@ -64,14 +64,14 @@ export type Lens = { title: string; command: string }
 export function stepLenses(view: StepView): Lens[] {
   const lenses = [
     {
-      title: `codetrail ${String(view.number)}/${String(view.count)}`,
-      command: "codetrail.stop.focus",
+      title: `srctrek ${String(view.number)}/${String(view.count)}`,
+      command: "srctrek.stop.focus",
     },
-    view.flag ? { title: FLAG_WORDING[view.flag.severity], command: "codetrail.stop.focus" } : null,
-    view.context.length > 0 ? { title: "context", command: "codetrail.context" } : null,
+    view.flag ? { title: FLAG_WORDING[view.flag.severity], command: "srctrek.stop.focus" } : null,
+    view.context.length > 0 ? { title: "context", command: "srctrek.context" } : null,
     view.step_kind === "context"
       ? null
-      : { title: `${whereNext(view)} ▸`, command: "codetrail.next" },
+      : { title: `${whereNext(view)} ▸`, command: "srctrek.next" },
   ]
   return lenses.filter((lens) => lens !== null)
 }

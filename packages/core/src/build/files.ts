@@ -1,7 +1,7 @@
 import { join, resolve } from "node:path"
 import { runGit } from "../git/run"
 
-/** Where a build's files live: its log (the agent's output, and trail mcp's lines) and exit code. */
+/** Where a build's files live: its log (the agent's output, and trek mcp's lines) and exit code. */
 export type BuildFiles = Readonly<{ dir: string; log: string; exit: string }>
 
 /**
@@ -10,7 +10,7 @@ export type BuildFiles = Readonly<{ dir: string; log: string; exit: string }>
  */
 export async function buildFiles(root: string, name: string): Promise<BuildFiles> {
   const gitDir = resolve(root, await runGit(root, ["rev-parse", "--git-common-dir"]))
-  const dir = join(gitDir, "codetrail", "builds")
+  const dir = join(gitDir, "srctrek", "builds")
 
   return {
     dir,

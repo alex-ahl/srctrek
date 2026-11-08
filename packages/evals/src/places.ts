@@ -1,4 +1,4 @@
-import type { TourStep } from "@codetrail/core"
+import type { TourStep } from "@srctrek/core"
 import type { ExpectedLine, ExpectedPlace } from "./expected"
 
 export function inFile(at: ExpectedPlace, place: ExpectedPlace): boolean {

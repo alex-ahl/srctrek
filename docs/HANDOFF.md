@@ -15,17 +15,17 @@
   opens it from; the expire tour that flagged `daysAgo` for `DAY_MS` now scores the bug found.
 - Step 6c: what the editors will need from the terminal's code, moved into core: the saved tours
   with their summaries (`loadTourEntries`), building or updating the change's tour
-  (`buildChangeTour`), and reading `CODETRAIL_AGENT` (`agentCommand`). Behaviour unchanged.
-- Step 6d: `trail serve` answers `tours` (the saved tours and the change's status), `build`
+  (`buildChangeTour`), and reading `SRCTREK_AGENT` (`agentCommand`). Behaviour unchanged.
+- Step 6d: `trek serve` answers `tours` (the saved tours and the change's status), `build`
   (builds or updates the change's tour; error 7 without an agent), and `log`; an unreadable
   change is error 8. The tour list counts stops, as stepping does.
-- Step 6e: the Neovim plugin on `trail serve`: `:Trail <name>` starts it and opens the tour,
+- Step 6e: the Neovim plugin on `trek serve`: `:Trek <name>` starts it and opens the tour,
   every move is a request, and the plugin draws the view it gets to the visual language (stop
   number and call stack in the winbar, `≈` values, the high flag under the narration, stale
   steps, a count of context steps). Step over is on `<leader>tn`. Its stepping logic and tour
   reading are gone. Headless Neovim tests drive it against the real server; they're skipped
   where `nvim` isn't installed, as in CI. The terminal opens a tour in Neovim by name, with its
-  own `trail serve`.
+  own `trek serve`.
 - Step 6f: a line that makes a call the tour follows ends in `→` (`↯ api` for a hop into another
   repo), from the line the entered step's evidence cites, and step into takes the call on the
   cursor's line, else the first not yet visited. This replaces the into picker. A call citing
@@ -34,8 +34,8 @@
   and on quit, and a move closes only the plugin's own popups, not another plugin's float.
 - Knowing where the tour is, in Neovim: the step has a tint of its own (`ColorColumn`, not the
   cursor line's), `▶` on its first line, the winbar says `away` once the
-  cursor leaves the step, and `<leader>tc` (`:TrailCurrent`) goes back without moving the tour.
-- Knowing you're in a tour, in Neovim: a `codetrail` badge starts the winbar; the narration sits on a band across the window. The step's tint, the band, and
+  cursor leaves the step, and `<leader>tc` (`:TrekCurrent`) goes back without moving the tour.
+- Knowing you're in a tour, in Neovim: a `srctrek` badge starts the winbar; the narration sits on a band across the window. The step's tint, the band, and
   the badge are mixed from the theme's text, background, and info colours, checked across
   Neovim's built-in themes, dark and light: no theme group is distinct in all of them.
 - Reading a step, in Neovim: the stop number is the winbar's strongest text; a file the change
@@ -85,15 +85,15 @@
 - A tour's read-only copy opens with its diagnostics hidden until the tour ends; the user's own
   files keep theirs.
 - Step 6g: the VS Code extension's skeleton, in `editors/vscode` (in the workspaces, under `bun run
-check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and `Alt+[` step, each
+check`): "Srctrek: Open Tour…" lists the tours in a quick pick, `Alt+]` and `Alt+[` step, each
   step opens its file with its lines tinted, and the status bar shows the stop. Its client for
-  `trail serve` has no VS Code API in it and is tested against the real server; the extension
+  `trek serve` has no VS Code API in it and is tested against the real server; the extension
   bundles none of core's code. The VS Code layer's checks run inside the installed VS Code, with a
   profile of their own, through `bun editors/vscode/test/run-in-vscode.ts`, run by hand on a
   machine with a desktop session.
 - The VS Code extension shows each stop's narration in full, wrapped, in a read-only comment
   thread above the step (the line before it; below the first line on a file's first line), with
-  "codetrail" and "stop N of M" in its header. Next and previous moved to `F8` and `Shift+F8`, only
+  "srctrek" and "stop N of M" in its header. Next and previous moved to `F8` and `Shift+F8`, only
   while no debug session runs.
 - VS Code steps over, into, and out on `F10`, `F11`, and `Shift+F11`; into takes the call on the
   cursor's line, else the first not visited. Each line making a call ends in `→` (`→?` guessed,
@@ -109,30 +109,30 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   or new file, guessed link, context available, tour's version, stale). A tour's copy of a file
   opens read-only for the session.
 - VS Code shows predicted values at the ends of their lines, `name ≈ value` in the inlay-hint colour
-  and `≈?` in the warning colour, cut at 40 characters; "Codetrail: Show or Hide Values" toggles
+  and `≈?` in the warning colour, cut at 40 characters; "Srctrek: Show or Hide Values" toggles
   them.
 - VS Code's overview and end open in a tour tab (a webview in the theme's colours, its own script
   only): the overview has the story, trigger, outcome, repos, flag counts, and the keys; the end has
   the outcome and every flag, each a link that goes to its stop through `goto`. Stepping onto a
   stop closes the tab.
-- VS Code's sidebar, in the Explorer: Codetrail Tours lists the saved tours (from a `trail serve`
-  started for the listing; refresh in its title bar), each opening on a click; Codetrail Stop, a
+- VS Code's sidebar, in the Explorer: srctrek Tours lists the saved tours (from a `trek serve`
+  started for the listing; refresh in its title bar), each opening on a click; srctrek Stop, a
   webview, shows the stop's call stack newest first (hops `↯`, "started by"), where it came from
   with each cited line's code (a link opens it; "guessed" when it is), the flag, values, details,
   context steps, and questions, each stop a link. The route (every stop in order) isn't in the
   protocol's views, so the sidebar doesn't list it.
-- The two views moved from the Explorer, where they sat collapsed under the files, to codetrail's own
-  sidebar in the activity bar (`editors/vscode/media/trail.svg`), Tours above a taller Stop; opening a tour opens
+- The two views moved from the Explorer, where they sat collapsed under the files, to srctrek's own
+  sidebar in the activity bar (`editors/vscode/media/trek.svg`), Tours above a taller Stop; opening a tour opens
   the sidebar on the stop.
-- VS Code: "Codetrail: Show Context" opens the stop's context code in VS Code's peek view over the
-  step; "Codetrail: Show Current Stop" goes back to the stop; `Escape` in the end tab ends the tour.
-- `bun run --cwd editors/vscode package` builds codetrail.vsix in the extension's dist with
+- VS Code: "Srctrek: Show Context" opens the stop's context code in VS Code's peek view over the
+  step; "Srctrek: Show Current Stop" goes back to the stop; `Escape` in the end tab ends the tour.
+- `bun run --cwd editors/vscode package` builds srctrek.vsix in the extension's dist with
   `@vscode/vsce`: the bundled extension, its manifest, and its icon, nothing else
   (`.vscodeignore`). It's packaged without a license or repository field, as the repo has neither
   yet; `@vscode/vsce-sign`'s postinstall, for signing a published extension, stays blocked.
 - VS Code's narration moved from the comment-thread panel above the step, whose frame VS Code fixes,
   to the top of the Stop view, with the flag and where next goes; the Comments view no longer opens.
-  The line above the step holds a CodeLens row: `codetrail 2/5` and the flag open the Stop view,
+  The line above the step holds a CodeLens row: `srctrek 2/5` and the flag open the Stop view,
   `context` opens the context code, `next: … ▸` steps on. The step's tags moved to the status bar.
   The Stop view is blocks split by a rule: the narration with its details, flag, and where next
   goes; then the call stack (only with two frames or a "started by"), came from with each cited
@@ -154,7 +154,7 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   the rest ("… 37 more lines"), so a large contract stays small. Show Context and `context` above
   the step scroll the Stop view there.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
-  `packages/core/prompts/`. Asking comes back later through `trail serve`.
+  `packages/core/prompts/`. Asking comes back later through `trek serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`
   on the line it was guessed from.
 - The winbar: the stop number and its tags, then the place as `repo: path`, the repo in its own
@@ -174,7 +174,7 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
 - Step 5a: the flows, in `docs/DESIGN.md`: reviewing a pull request or work in progress, learning
   unfamiliar code, coming back to a stale tour, building from the agent's chat, asking, stepping
   without a plugin, and what happens when it doesn't work. A session starts from the terminal
-  (enter opens the editor `CODETRAIL_EDITOR` names) or from the editor (which lists, opens, and
+  (enter opens the editor `SRCTREK_EDITOR` names) or from the editor (which lists, opens, and
   builds tours).
 - Step 5b: the visual language, in `docs/DESIGN.md` and a review page: each role's look, wording,
   and the theme colour it follows in Neovim and VS Code; the call stack newest frame first; context
@@ -259,15 +259,15 @@ The screen:
 - 6: the editors on the protocol, side by side, to `docs/DESIGN.md`: a VS Code extension (also
   for its forks), shipped as a .vsix package to beta testers, and the Neovim plugin; each with
   stepping, narration, change signs, details, stale steps marked, configurable keys, the list of
-  tours, and asking (`trail ask`, answers through MCP, notes on steps, branch trails for what-if
+  tours, and asking (`trek ask`, answers through MCP, notes on steps, branch treks for what-if
   questions).
 - 7: the TUI to `docs/DESIGN.md`: home screen (with version, stale, and unreachable states, and
   tours built with an older guide, whose prompt hash differs from the current one), build
-  view, route map, and stepping view. `trail` and `trail mcp` report the commit
+  view, route map, and stepping view. `trek` and `trek mcp` report the commit
   they were built from instead of version 0.0.0, and tours record it.
 - 8: a GUI sharing screens with the VS Code extension, if beta testers want it.
 
-The beta release follows milestone 6: the `trail` binary and the .vsix package.
+The beta release follows milestone 6: the `trek` binary and the .vsix package.
 
 **Version 1 scope:** see `DECISIONS.md`; deferred work in `docs/ROADMAP.md`.
 
@@ -278,7 +278,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   (`]t next · [t back · <leader>tt details · ? keys`) with the full list behind `?`. Check how
   long the agent's overviews run in the evals, and whether the prompt needs a limit.
 - Check the name before going public.
-- Stop ignoring the .codetrail folder once tours are written with portable sources; clear
+- Stop ignoring the .srctrek folder once tours are written with portable sources; clear
   out local-only files (demo tours, changed-lines files) first.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
@@ -289,7 +289,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   no step to step into.
 - The refund tour's s3 (web's `renderOrder`) comes from the api's handler (s2), so its stack
   says the api calls it.
-- Progress from trail serve: a first open of a remote tour (clone, fetch, worktree) and asking
+- Progress from trek serve: a first open of a remote tour (clone, fetch, worktree) and asking
   take seconds to a minute in silence. Add a progress notification with asking in Milestone 6.
 - Large repos: editor worktrees should check out only the files a tour visits (sparse
   checkout), with the editors in Milestone 6.
@@ -299,7 +299,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - Proposed repos: a sibling is read on the work's branch only when it has one of the same name
   (locally or remote-tracking); otherwise at its default branch, with the hop flagged.
 - Headless builds search the code host or read pull request descriptions only when the
-  agent command in `CODETRAIL_AGENT` allows read-only host tools.
+  agent command in `SRCTREK_AGENT` allows read-only host tools.
 - Nearby repos: only the folder around the current repo is scanned, not nested layouts such
   as `~/git/org/repo` across organisations.
 - An updated tour keeps a step whose own files are unchanged, which can still be wrong when
@@ -310,7 +310,7 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
 - `tsconfig.json` covers only `packages/*/src`, `packages/*/test`, and `scripts`; code under
   `evals/` is not typechecked or type-aware linted.
 
-## 2026-10-30 — Milestone 4: `trail serve`
+## 2026-10-30 — Milestone 4: `trek serve`
 
 **Done**
 
@@ -338,15 +338,15 @@ The beta release follows milestone 6: the `trail` binary and the .vsix package.
   commit is an `UnreachableRepoError` naming it.
 - Step 4g: the protocol's messages in core (`RequestParams`, `ErrorCode`, `PROTOCOL_VERSION`,
   `TRAIL_VERSION`): requests answer with the view; open takes a tour by name and, for stale
-  steps, trail's arguments. `docs/PROTOCOL.md` describes version 1: stepping.
-- Step 4h: `trail serve` (`packages/serve/`): JSON-RPC over stdio through `vscode-jsonrpc`, the
+  steps, trek's arguments. `docs/PROTOCOL.md` describes version 1: stepping.
+- Step 4h: `trek serve` (`packages/serve/`): JSON-RPC over stdio through `vscode-jsonrpc`, the
   handshake, and each request carried out on the stepping session in order, answered with its
   view; failed requests leave the state as it was.
-- Step 4i: contract tests for `trail serve`: a JSON-RPC client drives the real process through
+- Step 4i: contract tests for `trek serve`: a JSON-RPC client drives the real process through
   the handshake, a whole tour, into, over, out, errors, stale steps, and requests sent together
   behind a slow open, answered in order.
 
-**Closed 2026-11-03.** Editors step through a tour by talking to `trail serve`: core holds the
+**Closed 2026-11-03.** Editors step through a tour by talking to `trek serve`: core holds the
 stepping session (next, prev, into, over, out, goto) over call stacks worked out from the
 tour's links, and answers each request with a view ready to render. Evals score the stacks
 agents build.
@@ -370,10 +370,10 @@ runs not repeated)
   resolved change at its revision, through git objects only: listing files, reading
   numbered lines, searching with a regular expression (capped at 200 matches), and the
   change's files and a file's patch.
-- Step 3b: `trail mcp`, an MCP server over stdio (`packages/mcp/`, on
-  `@modelcontextprotocol/server`): `open_change` with `trail`'s arguments, then
+- Step 3b: `trek mcp`, an MCP server over stdio (`packages/mcp/`, on
+  `@modelcontextprotocol/server`): `open_change` with `trek`'s arguments, then
   `list_files`, `read_file`, `search`, and `diff`. Tool descriptions are prompt files in
-  `packages/core/prompts/tools/`. "mcp" as `trail`'s first word is the command: a
+  `packages/core/prompts/tools/`. "mcp" as `trek`'s first word is the command: a
   folder by that name is given as `./mcp`, a branch as part of a range (`main...mcp`).
 - Step 3c: predicted values on their lines in the tour format (`{ name, value, line, role,
 uncertain? }`, each inside its step's lines), the refund fixture's values placed on their
@@ -382,48 +382,48 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
 - Step 3d: a submitted step completed and checked (`packages/core/src/build/`): core adds the
   file's blob and whether the change touches the step's lines, and lists every line the step
   relies on (its range, each citation) that doesn't exist at its repo's revision.
-- Step 3e: building a tour over `trail mcp`: `start_tour`, `add_steps` (checked, all or none;
+- Step 3e: building a tour over `trek mcp`: `start_tour`, `add_steps` (checked, all or none;
   a step sent again by id replaces it), and `finish_tour` (the whole-tour rules, then saved to
-  .codetrail/tours with its changed-lines file). The tool prompts carry the step fields and
+  .srctrek/tours with its changed-lines file). The tool prompts carry the step fields and
   the rules for predicted values.
-- Step 3f: `--uncommitted`, for `trail` and `open_change`: each local range ending at HEAD
-  ends at a snapshot of the working tree (a commit on top of HEAD under refs/codetrail,
+- Step 3f: `--uncommitted`, for `trek` and `open_change`: each local range ending at HEAD
+  ends at a snapshot of the working tree (a commit on top of HEAD under refs/srctrek,
   made with a temporary index), so tours of work in progress cite exact commits too.
 - Step 3g: the `build_tour` MCP prompt (`packages/core/prompts/build_tour/`): how to choose
   a scenario, follow it in execution order, link steps with evidence, show its values, and
   flag only what matters; its `change` argument fills in `open_change`'s args. The same
   guide is the `tour_guide` tool, and the server's instructions say to read it first, so
-  asking for a tour in plain words works. `trail mcp` started from a terminal says it's
+  asking for a tour in plain words works. `trek mcp` started from a terminal says it's
   waiting for a client.
 - Step 3h: whether a change already has a tour (a saved tour with every changed repo at the
   same commits), and a name for a new one from its heads: the branch (`feature-refunds`), a
   pull request (`pr-12`), or the branch with `-uncommitted` for a snapshot.
-- Step 3i: background builds (`startBuild`, `buildState`): `$CODETRAIL_AGENT` runs detached
+- Step 3i: background builds (`startBuild`, `buildState`): `$SRCTREK_AGENT` runs detached
   with the headless instruction as its last argument; its log and exit code go to the git
-  folder (.git/codetrail/builds). `trail mcp` stops a build at its third rejected round.
+  folder (.git/srctrek/builds). `trek mcp` stops a build at its third rejected round.
 - Step 3j: a change's tour status (`tourStatus`): ready, building, failed (with the end of
   the build's log), or missing. Snapshots became stable: dated with HEAD's date and leaving
-  .codetrail as HEAD has it, so a tour of uncommitted work is found again.
-- Step 3k: `trail` builds the change's tour when it has none and `CODETRAIL_AGENT` is set;
+  .srctrek as HEAD has it, so a tour of uncommitted work is found again.
+- Step 3k: `trek` builds the change's tour when it has none and `SRCTREK_AGENT` is set;
   the home screen shows where it stands (building, failed with the end of its log and `b` to
-  build again, how to set `CODETRAIL_AGENT`, or nothing to tour when the change has no
+  build again, how to set `SRCTREK_AGENT`, or nothing to tour when the change has no
   commits) and picks out the tour once it's saved.
 - Step 3l: citation checks catch lines off by one: a step's first and last line, each
   citation, and each predicted value's line must not be blank.
 - Step 3m: `--code[="trigger"]` for tours of code as it is: repos only, local ones at HEAD
   (or a snapshot with `--uncommitted`) unless pinned, the trigger kept on the resolved
   change. Status, naming, and building for them come next.
-- Step 3n: `trail --code` builds tours of code as it is: the guide opens for code (with the
+- Step 3n: `trek --code` builds tours of code as it is: the guide opens for code (with the
   trigger the user named, or one the agent picks) and shares its method with change tours;
   code tours are named after the trigger or `<repo>-code` and found again only while their
   repos are at the same revisions.
-- Step 3o: watching a build: `trail mcp` appends each answer it gives the agent to the
-  build's log as a `trail:` line; the home screen shows the log's end while building and `l`
+- Step 3o: watching a build: `trek mcp` appends each answer it gives the agent to the
+  build's log as a `trek:` line; the home screen shows the log's end while building and `l`
   opens it all. Reading a build's state no longer creates its folder. A build that saved its
   tour, whose tour was then removed, reads as missing, so the tour is built again.
 - Step 3p: plain `--code` finds triggers instead of building a tour: the agent records them
   with `record_triggers` (kind, a name in the user's words, a cited line, checked like any
-  citation), they're saved in .codetrail/triggers tied to the revisions, and the home screen
+  citation), they're saved in .srctrek/triggers tied to the revisions, and the home screen
   lists them with the command that tours each.
 - Step 3q: the found triggers are rows on the home screen: each says whether its tour is
   built, building, or failed; enter builds it, or opens it once built, and `l` shows the
@@ -437,7 +437,7 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   so only changed files are re-read; the cache fetches only the default branch, a pull
   request's ref, and revisions or range ends named by the user.
 - Step 3t: the eval runner (`packages/evals/`, `bun packages/evals/src/main.ts <fixture>`):
-  builds a fixture's repos, has `CODETRAIL_AGENT` build the tour of the change in
+  builds a fixture's repos, has `SRCTREK_AGENT` build the tour of the change in
   expected.json's `run`, and reports route reached and in order, each expected link cited,
   guessed, both, or without evidence, bug lines inside steps, time taken, and the numbers in
   the agent's last line when it is JSON. First runs on refund: 10–11 of 11 route entries,
@@ -460,7 +460,7 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   lists every line where its bug can fairly be flagged, and can mark a route entry optional
   (plumbing, or evidence the links check already scores); skipping one isn't a miss.
 - Step 3y: `propose_repo`: the agent proposes a repo the route leads into, with a name, a
-  source, a reason, and cited evidence; it's recorded in proposed-repos.json under .codetrail,
+  source, a reason, and cited evidence; it's recorded in proposed-repos.json under .srctrek,
   and only the user adds it to the repos list (`acceptProposal`) or dismisses it. The guide
   ends a hop at the boundary and proposes the repo.
 - Step 3z: proposed repos are the first rows on the home screen, with source and reason;
@@ -495,7 +495,7 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   Repos are scored by the folder they were read from, and decoys stepped into are reported.
 - Step 3ah: stale tours: a tour saved under the change's name at commits the change has moved
   on from is `stale`, counting the steps whose files changed since; the home screen says so,
-  and `trail` no longer rebuilds it on its own.
+  and `trek` no longer rebuilds it on its own.
 - Step 3ai: updating a stale tour: `b` starts a build told to update it. `update_tour` carries
   over the steps whose files and cited files are unchanged, at the new commits, and lists the
   rest with why; redone steps go back to their places, and `finish_tour` takes a revised title,
@@ -506,14 +506,14 @@ uncertain? }`, each inside its step's lines), the refund fixture's values placed
   First run: the update took about 385k input tokens and 45 s against the build's 433k and 98 s,
   14 steps carried over and 3 redone, the tour still fully correct.
 - Step 3ak: the build log gets a line for every read and for the guide, with the answer's size:
-  `trail: read_file api src/pay.ts 1–40 → 1210 chars`.
+  `trek: read_file api src/pay.ts 1–40 → 1210 chars`.
 - Step 3al: `update_tour` answers with the whole tour, one line per step marked keep or redo
   (with why and what it said before), and asks the agent to read only what the redone steps
   need. The logs had shown an update re-reading every file of all three repos to redo three
   steps. On refund: about 256k input and 3k output tokens in 37 s, against the build's 610k and
   14k in 135 s; updates before took 370–385k input tokens.
 
-**Closed 2026-10-29.** Tours are built through `trail mcp` by the user's agent, in chat or
+**Closed 2026-10-29.** Tours are built through `trek mcp` by the user's agent, in chat or
 headless; the agent proposes repos the route leads into and the tour goes on into them; stale
 tours are marked and updated; evals score quality and measure token use.
 
@@ -530,7 +530,7 @@ tours are marked and updated; evals score quality and measure token use.
 | checkout (misnamed service, decoy)           | full, decoy avoided | 26    | 440–480k / 12k        |
 | refund `--update` after a one-line follow-up | full                | 15    | 256k / 3k             |
 
-## 2026-10-26 — Milestone 2: git, repos, and the `trail` command
+## 2026-10-26 — Milestone 2: git, repos, and the `trek` command
 
 **Done**
 
@@ -543,7 +543,7 @@ tours are marked and updated; evals score quality and measure token use.
   commits, and a file's changed lines numbered as in the new version.
 - Step 2d: eval fixtures built into real git repos (`main` and `feature` branches) for tests;
   the refund tour is checked against them: blob ids match and every cited line exists.
-- Step 2e: repos without changes, read from `.codetrail/repos` (one `path[@revision]` per
+- Step 2e: repos without changes, read from `.srctrek/repos` (one `path[@revision]` per
   line, `#` comments allowed) and resolved to an exact commit at the default branch or the
   pinned revision (`packages/core/src/repos/`).
 - Step 2f: a repos-list line can name its repo (`payments = ../payments-service`), and a
@@ -552,21 +552,21 @@ tours are marked and updated; evals score quality and measure token use.
 - Step 2g: a pull request URL read as a clone URL plus the ref its head is fetched from, by
   the URL's shape (GitHub's `/pull/<n>`, GitLab's `/-/merge_requests/<n>`), so
   self-hosted instances work too.
-- Step 2h: remote repos cached as partial bare clones under `$XDG_CACHE_HOME/codetrail`
-  (else `~/.cache/codetrail`), one per host and path; fetching updates branches and pull
+- Step 2h: remote repos cached as partial bare clones under `$XDG_CACHE_HOME/srctrek`
+  (else `~/.cache/srctrek`), one per host and path; fetching updates branches and pull
   request refs. Git never prompts for a password; logins come from the user's git setup.
 - Step 2i: a pull request resolves through the cache to its repo and range (branch point on
   the host's default branch to the pull request's head); repos-list URLs resolve through the
   cache too, at the default branch or a pinned revision.
 - Step 2j: the folder the editor opens for a repo at a commit: the user's own checkout when
   it's there unedited, else a worktree under the cache, detached at the commit.
-- Step 2k: `trail`'s arguments read into changes (ranges, pull requests) and repos on the
+- Step 2k: `trek`'s arguments read into changes (ranges, pull requests) and repos on the
   route (`packages/core/src/change/`), with errors for paths that aren't there, ranges
   without a repo, and pull requests git can't fetch.
 - Step 2l: a whole change resolved to every repo at an exact commit: the changes (local or
   remote ranges, pull requests), then repos given without a range, then the current repo's
   repos list; each repo kept once, names unique.
-- Step 2m: the `cli` package, `trail`'s entry point (`packages/cli/src/main.ts`): reads the
+- Step 2m: the `cli` package, `trek`'s entry point (`packages/cli/src/main.ts`): reads the
   arguments, resolves the change, says what's wrong with arguments it can't use, then opens
   the home screen. Nothing uses the resolved change until Milestone 3.
 
@@ -577,8 +577,8 @@ tours are marked and updated; evals score quality and measure token use.
 - Milestone 2, step 1: the tour schema (`packages/core/src/schema/tour.ts`) and saving,
   loading, and listing tours (`packages/core/src/tours.ts`).
 - The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
-- An interim TUI home screen, listing the .codetrail/tours folder and opening a tour in
-  Neovim; started by `trail` since step 2m.
+- An interim TUI home screen, listing the .srctrek/tours folder and opening a tour in
+  Neovim; started by `trek` since step 2m.
 
 ## 2026-10-22 — Quality spike
 

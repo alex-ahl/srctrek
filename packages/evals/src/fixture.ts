@@ -1,4 +1,4 @@
-import { runGit } from "@codetrail/core"
+import { runGit } from "@srctrek/core"
 import { cp, mkdtemp, readdir } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -48,7 +48,7 @@ async function buildReviewerRepo(source: string, root: string, repo: string): Pr
  */
 export async function buildFixture(name: string, { asReviewer = false } = {}): Promise<Fixture> {
   const dir = join(FIXTURES, name)
-  const root = await mkdtemp(join(tmpdir(), `codetrail-${name}-`))
+  const root = await mkdtemp(join(tmpdir(), `srctrek-${name}-`))
 
   const entries = await readdir(dir, { withFileTypes: true })
   const repoNames = entries.filter((e) => e.isDirectory()).map((e) => e.name)

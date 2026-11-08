@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test"
 import { realpath } from "node:fs/promises"
 import { join } from "node:path"
-import { ErrorCode, PROTOCOL_VERSION } from "@codetrail/core"
+import { ErrorCode, PROTOCOL_VERSION } from "@srctrek/core"
 import { changeOf, makeBranchRepo, saveTourOf } from "../../core/test/support/branch"
 import { type ServeState, answerRequest, newServeState } from "../src/requests"
 
 const client = { name: "test", version: "0" }
 
-// A repo on a feature branch with its one-step tour saved as "refunds", and trail serve's
+// A repo on a feature branch with its one-step tour saved as "refunds", and trek serve's
 // state there once initialized.
 async function initialized(): Promise<{ dir: string; state: ServeState }> {
   const dir = await makeBranchRepo()

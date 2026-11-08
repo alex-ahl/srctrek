@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { type Tour, type TourStep, parseTour } from "@codetrail/core"
+import { type Tour, type TourStep, parseTour } from "@srctrek/core"
 import { join } from "node:path"
 import { readExpected } from "../src/expected"
 import { scoreTour } from "../src/score"

@@ -708,8 +708,8 @@
       "blob": "5e058f209aea1d5c254c5a8eec694a1693266251",
       "kind": "call",
       "changed": false,
-      "summary": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trail.",
-      "details": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trail.",
+      "summary": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trek.",
+      "details": "Appends the refund.completed message to QUEUE_DIR/refund.completed.jsonl; this is the end of the trek.",
       "from": "s19",
       "via": {
         "cites": [

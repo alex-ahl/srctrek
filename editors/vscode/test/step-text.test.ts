@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { NextStop } from "@codetrail/core"
+import type { NextStop } from "@srctrek/core"
 import { isNewFile, stepLenses, stepTags, whereNext } from "../src/step-text"
 import { statusText } from "../src/view"
 import { ref, stepWith } from "./support/views"
@@ -15,17 +15,17 @@ test("the actions above a stop: its number, its flag, its context, and where nex
   })
 
   expect(stepLenses(view)).toEqual([
-    { title: "codetrail 2/5", command: "codetrail.stop.focus" },
-    { title: "⚠ likely wrong", command: "codetrail.stop.focus" },
-    { title: "context", command: "codetrail.context" },
-    { title: "next: into refund, line 11 ▸", command: "codetrail.next" },
+    { title: "srctrek 2/5", command: "srctrek.stop.focus" },
+    { title: "⚠ likely wrong", command: "srctrek.stop.focus" },
+    { title: "context", command: "srctrek.context" },
+    { title: "next: into refund, line 11 ▸", command: "srctrek.next" },
   ])
 })
 
 test("a context step leaves out where next goes, as it isn't on the way", () => {
   const view = stepWith([], toRefund, { step_kind: "context" })
 
-  expect(stepLenses(view).map((lens) => lens.title)).toEqual(["codetrail 1/4"])
+  expect(stepLenses(view).map((lens) => lens.title)).toEqual(["srctrek 1/4"])
 })
 
 test("next names where it goes: a hop into another repo names the repo", () => {
@@ -41,7 +41,7 @@ test("the status bar carries the stop and the tags a reader should know", () => 
   const view = stepWith([], toRefund, { changed: false, tour_copy: true, number: 2, count: 5 })
 
   expect(statusText(view, stepTags(view, false))).toBe(
-    "codetrail 2/5 · existing code · tour's version",
+    "srctrek 2/5 · existing code · tour's version",
   )
   expect(stepTags({ ...view, changed: true }, true)).toEqual(["new file", "tour's version"])
 })

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { EndView, OverviewView } from "@codetrail/core"
+import type { EndView, OverviewView } from "@srctrek/core"
 import { escapeHtml } from "../src/page"
 import { tourPageHtml } from "../src/tour-page"
 import { ref } from "./support/views"

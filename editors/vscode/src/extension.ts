@@ -1,8 +1,8 @@
-import type { SessionView, StepView, TourEntry } from "@codetrail/core"
+import type { SessionView, StepView, TourEntry } from "@srctrek/core"
 import * as vscode from "vscode"
 import { type Arrows, createArrows } from "./arrows"
 import { type ChangeMarks, createChangeMarks } from "./change-marks"
-import { type Move, TrailClient } from "./client"
+import { type Move, TrekClient } from "./client"
 import { type InlineValues, createInlineValues } from "./inline-values"
 import { type StepLens, createStepLens } from "./step-lens"
 import { isNewFile, stepTags } from "./step-text"
@@ -13,7 +13,7 @@ import { NOWHERE, callAt, lineAbove, placeOf, sameView, statusText, tourSummary 
 
 // The open tour's connection and where it is, at the edge as a server's current state is; one
 // tour at a time.
-let client: TrailClient | undefined
+let client: TrekClient | undefined
 let current: SessionView | undefined
 let stepTint: vscode.TextEditorDecorationType | undefined
 let arrows: Arrows | undefined
@@ -27,16 +27,13 @@ let stopView: StopView | undefined
 
 function serveCommand(): string[] {
   return (
-    vscode.workspace.getConfiguration("codetrail").get<string[]>("serveCommand") ?? [
-      "trail",
-      "serve",
-    ]
+    vscode.workspace.getConfiguration("srctrek").get<string[]>("serveCommand") ?? ["trek", "serve"]
   )
 }
 
 function reportFailure(error: unknown): void {
   void vscode.window.showErrorMessage(
-    `codetrail: ${error instanceof Error ? error.message : String(error)}`,
+    `srctrek: ${error instanceof Error ? error.message : String(error)}`,
   )
 }
 
@@ -74,7 +71,7 @@ async function showStep(view: StepView): Promise<void> {
   values?.show(editor, view)
   changeMarks?.show(editor, view, newFile)
   if (view.tour_copy) {
-    // the tour's version of a file, kept in trail's cache, isn't for editing
+    // the tour's version of a file, kept in trek's cache, isn't for editing
     await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
   }
 
@@ -87,7 +84,7 @@ async function showStep(view: StepView): Promise<void> {
 async function show(view: SessionView): Promise<void> {
   current = view
   // Escape in the tour tab ends the tour only at its end, not on the overview
-  await vscode.commands.executeCommand("setContext", "codetrail.atEnd", view.kind === "end")
+  await vscode.commands.executeCommand("setContext", "srctrek.atEnd", view.kind === "end")
   await stopView?.show(view.kind === "step" ? view : null)
   if (status !== undefined) {
     status.text = statusText(view)
@@ -111,15 +108,15 @@ function pickItem(entry: TourEntry): vscode.QuickPickItem {
   return { label: entry.name, description: entry.title, detail: tourSummary(entry) }
 }
 
-function startClient(): TrailClient {
+function startClient(): TrekClient {
   const folder = vscode.workspace.workspaceFolders?.[0]
   if (folder === undefined) {
     throw new Error("open the folder the tours were built in first")
   }
-  return new TrailClient(serveCommand(), folder.uri.fsPath)
+  return new TrekClient(serveCommand(), folder.uri.fsPath)
 }
 
-// The saved tours, from a trail serve started for the asking, so the list works with no tour open.
+// The saved tours, from a trek serve started for the asking, so the list works with no tour open.
 async function listTours(): Promise<readonly TourEntry[]> {
   const listing = startClient()
   try {
@@ -130,7 +127,7 @@ async function listTours(): Promise<readonly TourEntry[]> {
   }
 }
 
-async function pickTour(running: TrailClient): Promise<string | undefined> {
+async function pickTour(running: TrekClient): Promise<string | undefined> {
   const { tours } = await running.tours()
   const picked = await vscode.window.showQuickPick(tours.map(pickItem), {
     placeHolder: "Tour to open",
@@ -148,9 +145,9 @@ async function openTour(name?: unknown): Promise<SessionView | undefined> {
     return undefined
   }
 
-  await vscode.commands.executeCommand("setContext", "codetrail.open", true)
-  // opens codetrail's sidebar on the stop, as starting a debug session opens Run and Debug
-  await vscode.commands.executeCommand("codetrail.stop.focus")
+  await vscode.commands.executeCommand("setContext", "srctrek.open", true)
+  // opens srctrek's sidebar on the stop, as starting a debug session opens Run and Debug
+  await vscode.commands.executeCommand("srctrek.stop.focus")
   const view = await client.open(tour)
   await show(view)
   return view
@@ -158,7 +155,7 @@ async function openTour(name?: unknown): Promise<SessionView | undefined> {
 
 async function move(to: Move, params?: object): Promise<SessionView | undefined> {
   if (client === undefined) {
-    void vscode.window.showWarningMessage("codetrail: no tour is open; run Codetrail: Open Tour…")
+    void vscode.window.showWarningMessage("srctrek: no tour is open; run Srctrek: Open Tour…")
     return undefined
   }
 
@@ -166,7 +163,7 @@ async function move(to: Move, params?: object): Promise<SessionView | undefined>
   const after = await client.move(to, params)
   // redrawing the same view would snap the cursor back to the step's first line
   if (before !== undefined && sameView(before, after)) {
-    vscode.window.setStatusBarMessage(`codetrail: ${NOWHERE[to]}`, 4000)
+    vscode.window.setStatusBarMessage(`srctrek: ${NOWHERE[to]}`, 4000)
     return after
   }
   await show(after)
@@ -191,7 +188,7 @@ function into(): Promise<SessionView | undefined> {
 // Back to the stop the tour is on, without moving the tour.
 async function showCurrent(): Promise<SessionView | undefined> {
   if (current === undefined) {
-    void vscode.window.showWarningMessage("codetrail: no tour is open; run Codetrail: Open Tour…")
+    void vscode.window.showWarningMessage("srctrek: no tour is open; run Srctrek: Open Tour…")
     return undefined
   }
   await show(current)
@@ -202,21 +199,21 @@ async function showCurrent(): Promise<SessionView | undefined> {
 // is.
 async function showContext(): Promise<void> {
   if (current?.kind !== "step") {
-    vscode.window.setStatusBarMessage("codetrail: context is shown at a stop", 3000)
+    vscode.window.setStatusBarMessage("srctrek: context is shown at a stop", 3000)
     return
   }
   if (current.context.length === 0) {
-    vscode.window.setStatusBarMessage("codetrail: this stop has no context", 3000)
+    vscode.window.setStatusBarMessage("srctrek: this stop has no context", 3000)
     return
   }
 
-  await vscode.commands.executeCommand("codetrail.stop.focus")
+  await vscode.commands.executeCommand("srctrek.stop.focus")
   stopView?.reveal("context")
 }
 
 function toggleValues(): Promise<void> {
   const shown = values?.toggle() ?? false
-  vscode.window.setStatusBarMessage(`codetrail: values ${shown ? "shown" : "hidden"}`, 3000)
+  vscode.window.setStatusBarMessage(`srctrek: values ${shown ? "shown" : "hidden"}`, 3000)
   return Promise.resolve()
 }
 
@@ -229,7 +226,7 @@ async function quit(): Promise<void> {
   tourTab?.hide()
   await stopView?.show(null)
   clearDecorations()
-  await vscode.commands.executeCommand("setContext", "codetrail.open", false)
+  await vscode.commands.executeCommand("setContext", "srctrek.open", false)
 }
 
 // A command that reports a failure instead of throwing it into VS Code's log. A move or an open
@@ -270,20 +267,20 @@ export function activate(context: vscode.ExtensionContext): void {
     tab,
     stop,
     tours,
-    command("codetrail.refreshTours", () => {
+    command("srctrek.refreshTours", () => {
       tours.refresh()
       return Promise.resolve()
     }),
-    command("codetrail.openTour", openTour),
-    command("codetrail.next", () => move("next")),
-    command("codetrail.previous", () => move("prev")),
-    command("codetrail.over", () => move("over")),
-    command("codetrail.into", into),
-    command("codetrail.out", () => move("out")),
-    command("codetrail.toggleValues", toggleValues),
-    command("codetrail.current", showCurrent),
-    command("codetrail.context", showContext),
-    command("codetrail.quit", quit),
+    command("srctrek.openTour", openTour),
+    command("srctrek.next", () => move("next")),
+    command("srctrek.previous", () => move("prev")),
+    command("srctrek.over", () => move("over")),
+    command("srctrek.into", into),
+    command("srctrek.out", () => move("out")),
+    command("srctrek.toggleValues", toggleValues),
+    command("srctrek.current", showCurrent),
+    command("srctrek.context", showContext),
+    command("srctrek.quit", quit),
   )
 }
 

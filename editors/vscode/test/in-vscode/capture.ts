@@ -1,10 +1,10 @@
-// Runs inside VS Code, loaded by capture-vscode.ts: opens the tour CODETRAIL_TOUR names and
-// captures VS Code's window into CODETRAIL_SCREENS at the overview, each stop, and the end.
+// Runs inside VS Code, loaded by capture-vscode.ts: opens the tour SRCTREK_TOUR names and
+// captures VS Code's window into SRCTREK_SCREENS at the overview, each stop, and the end.
 import { strict as assert } from "node:assert"
 import { execFile } from "node:child_process"
 import { join } from "node:path"
 import { promisify } from "node:util"
-import type { SessionView } from "@codetrail/core"
+import type { SessionView } from "@srctrek/core"
 import * as vscode from "vscode"
 import { useTestServe } from "./serve"
 
@@ -59,19 +59,19 @@ async function step(command: string, argument?: string): Promise<SessionView> {
 }
 
 export async function run(): Promise<void> {
-  const tour = process.env["CODETRAIL_TOUR"]
-  const dir = process.env["CODETRAIL_SCREENS"]
-  assert.ok(tour && dir, "CODETRAIL_TOUR and CODETRAIL_SCREENS name the tour and where to save")
+  const tour = process.env["SRCTREK_TOUR"]
+  const dir = process.env["SRCTREK_SCREENS"]
+  assert.ok(tour && dir, "SRCTREK_TOUR and SRCTREK_SCREENS name the tour and where to save")
   await useTestServe()
   // VS Code's own notice that the user's extensions are off for this run
   await vscode.commands.executeCommand("notifications.clearAll")
 
-  let view = await step("codetrail.openTour", tour)
+  let view = await step("srctrek.openTour", tour)
   await capture(dir, 0, view)
   for (let index = 1; view.kind !== "end" && index <= MOST_STOPS; index++) {
-    view = await step("codetrail.next")
+    view = await step("srctrek.next")
     await capture(dir, index, view)
   }
 
-  await vscode.commands.executeCommand("codetrail.quit")
+  await vscode.commands.executeCommand("srctrek.quit")
 }

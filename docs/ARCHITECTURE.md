@@ -3,10 +3,10 @@
 ## Shape
 
 ```
-local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──► user's agent
+local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──► user's agent
                            │        ▲
-                           ▼        │ JSON-RPC over stdio (trail serve)
-        tour (.codetrail/tours/<name>.json)   ├── Neovim plugin (stepping, in the editor)
+                           ▼        │ JSON-RPC over stdio (trek serve)
+        tour (.srctrek/tours/<name>.json)   ├── Neovim plugin (stepping, in the editor)
                                               └── tui (home, build view, route map, fallback)
 ```
 
@@ -15,39 +15,39 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
   checkouts, prompts, the tour schema, validation, saving and loading tours, and the
   stepping session (current step, next, into, over, out, call stack) that every front-end and
   editor adapter renders. Exposes its API only
-  through `packages/core/src/index.ts`. Runs as a long-lived `trail` process that editor
+  through `packages/core/src/index.ts`. Runs as a long-lived `trek` process that editor
   plugins talk to over JSON on stdio, the way language servers do.
 - **`editors/nvim/`** — the Neovim plugin (Lua), the main place a tour is followed:
   highlights, narration, change signs, details, context code. Depends on no file
-  explorer; each step fires a `User CodetrailStep` event that explorers or user config can
-  follow. Every action is a command (`:TrailNext` and so on) and a Lua function; keys exist
-  only while a trail is active and are set through `setup({ keys = … })` or
-  `vim.g.codetrail`, where any can be changed or turned off. No integrations with other
+  explorer; each step fires a `User SrctrekStep` event that explorers or user config can
+  follow. Every action is a command (`:TrekNext` and so on) and a Lua function; keys exist
+  only while a trek is active and are set through `setup({ keys = … })` or
+  `vim.g.srctrek`, where any can be changed or turned off. No integrations with other
   plugins: users wire which-key, explorers, and the like to the commands, functions, and
-  the step event themselves. It starts `trail serve` and draws the views it answers with
+  the step event themselves. It starts `trek serve` and draws the views it answers with
   (`docs/PROTOCOL.md`), holding no stepping logic of its own.
 - **`editors/vscode/`** — the VS Code extension, for VS Code and its forks, on the same protocol:
-  it starts `trail serve` in the workspace folder and draws the views it answers with. It imports
+  it starts `trek serve` in the workspace folder and draws the views it answers with. It imports
   only core's types, so its bundle holds none of core's code.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
   stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
-  live view while a tour is built; a route map of the whole trail across repos; and a
+  live view while a tour is built; a route map of the whole trek across repos; and a
   stepping view with a code panel, for a quick look and for editors without a plugin. Holds
   no tour-building logic.
-- **mcp** — the MCP server (`trail mcp`, stdio, `packages/mcp/`) that the user's agent talks
+- **mcp** — the MCP server (`trek mcp`, stdio, `packages/mcp/`) that the user's agent talks
   to. Exposes core's capabilities as MCP tools and prompts. Holds no tour logic of its own.
-- **serve** — the editor protocol's server (`trail serve`, stdio, `packages/serve/`), started
+- **serve** — the editor protocol's server (`trek serve`, stdio, `packages/serve/`), started
   by an editor's plugin: carries out each request on core's stepping session and answers with
   its view. Holds no stepping logic of its own.
-- **cli** — the `trail` binary's entry point (`packages/cli/`): parses arguments, resolves
+- **cli** — the `trek` binary's entry point (`packages/cli/`): parses arguments, resolves
   repos and ranges through core, and starts a front-end. Front-ends never import each other.
-- **GUI (later)** — a local web front-end served by the same binary (`trail --gui`), using
+- **GUI (later)** — a local web front-end served by the same binary (`trek --gui`), using
   the same core API and tour format.
 
 ## Boundaries
 
 - core imports no UI code; oxlint enforces this (`no-restricted-imports` in `.oxlintrc.json`).
-- Front-ends import only `@codetrail/core`; oxlint rejects deep and relative imports into it.
+- Front-ends import only `@srctrek/core`; oxlint rejects deep and relative imports into it.
 - The tour schema is the contract between core and every front-end.
 - Prompts are files under `packages/core/prompts/`, imported as text
   (`import x from "./x.md" with { type: "text" }`) so the compiled binary embeds them.
@@ -59,19 +59,19 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 
 - A repo is a local path or a remote URL; a pull request URL resolves to a repo plus a range
   through its fetchable ref (`refs/pull/<n>/head` on GitHub, equivalents elsewhere).
-- `trail`'s arguments are pull request URLs, repos (a folder or URL, optionally
+- `trek`'s arguments are pull request URLs, repos (a folder or URL, optionally
   `@revision`), and ranges. A range applies to the repo just before it, or to the current
   repo when none is; a repo with no range after it is on the route without changes. With no
   arguments, the change is the current branch since it left the base branch:
-  `trail ../api main...feature ../web main...feature ../gateway`.
+  `trek ../api main...feature ../web main...feature ../gateway`.
 - `--code` tours code as it is, with no change: every argument is a repo (the current one
   when none is given), local repos are read at what's checked out unless pinned, and
   `--code="a refund request"` names the trigger to follow. Plain `--code` builds no tour: the
   agent records the code's triggers (`record_triggers`, each with a cited line as evidence),
-  saved in .codetrail/triggers while the code is at the same revisions, and the user picks.
+  saved in .srctrek/triggers while the code is at the same revisions, and the user picks.
 - Repos on the route without changes have no range. They come from the command (a repo
-  given without a range, e.g. `trail main...HEAD ../gateway`) or from the repos list
-  (`.codetrail/repos`, one path or URL per line, optionally `@revision`), read
+  given without a range, e.g. `trek main...HEAD ../gateway`) or from the repos list
+  (`.srctrek/repos`, one path or URL per line, optionally `@revision`), read
   automatically; their revision is the default branch unless pinned, recorded as an exact
   commit.
 - A line in the repos list can name its repo: `payments = ../payments@v2.3`. The name is what
@@ -80,7 +80,7 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - While building, the agent proposes repos it finds on the route with `propose_repo`, citing
   the evidence (a client, a config value, a contract file, a dependency), with the source
   when it finds it: `open_change` names git repos next to the current one as candidates, and
-  the agent can search the user's code host with its own tools; codetrail doesn't search hosts
+  the agent can search the user's code host with its own tools; srctrek doesn't search hosts
   itself. A proposal with a source is opened at once, so the tour goes on into it and records
   it: on the branch the work is on, as part of the change, when the repo has it, locally or
   as a remote-tracking branch as of the last fetch; else at its default branch, and the tour
@@ -94,7 +94,7 @@ local repos / PR URLs ──► core (trail process) ◄──► mcp ◄──�
 - Uncommitted work is left out unless asked for (`--uncommitted`): then each
   local range ending at HEAD ends instead at a snapshot of the working tree, a commit on top
   of HEAD (edits staged or not, new files git doesn't ignore), made without touching the
-  branch, the index, or any file, and kept by a ref under refs/codetrail. The .codetrail
+  branch, the index, or any file, and kept by a ref under refs/srctrek. The .srctrek
   folder stays as HEAD has it, and the snapshot is dated with HEAD's date, so the same work
   always gives the same commit and its tour is found again.
 - For the editor, each repo is checked out at the tour's revision into a cached worktree
@@ -116,7 +116,7 @@ code disagree, the step is flagged `uncertain`.
 
 ## Tour format
 
-Defined in code in `packages/core/src/schema/tour.ts`. Saved as `.codetrail/tours/<name>.json`.
+Defined in code in `packages/core/src/schema/tour.ts`. Saved as `.srctrek/tours/<name>.json`.
 
 A step's narration (summary and details) is about the step's own lines. Any other code it
 mentions is a citation, `<repo>/<path>:<line>`, which the editor can jump to and validation
@@ -167,7 +167,7 @@ comes back to no frame.
 
 ## Building a tour
 
-The user's agent builds the tour through `trail mcp`:
+The user's agent builds the tour through `trek mcp`:
 
 1. `open_change`: the agent names local paths, ranges, or PR URLs; core resolves repos,
    revisions, and ranges, fetches what's remote, and returns the change.
@@ -182,16 +182,16 @@ The user's agent builds the tour through `trail mcp`:
 
 The agent is started one of two ways:
 
-- From the agent's own chat, with `trail mcp` registered.
-- By `trail` itself, when there is no tour for the change: it runs the command in
-  `CODETRAIL_AGENT` in the background, as for Asking, with the instruction (the guide, the
-  change's args, and the tour's name) as its last argument. The agent reaches `trail mcp`
-  through the user's own registration. The build goes on if `trail` quits; its log and exit
+- From the agent's own chat, with `trek mcp` registered.
+- By `trek` itself, when there is no tour for the change: it runs the command in
+  `SRCTREK_AGENT` in the background, as for Asking, with the instruction (the guide, the
+  change's args, and the tour's name) as its last argument. The agent reaches `trek mcp`
+  through the user's own registration. The build goes on if `trek` quits; its log and exit
   code are kept in the repo's git folder, and the build view shows the tour when it arrives.
-  `trail mcp` appends a `trail:` line to that log for each answer it gives the agent, so the
+  `trek mcp` appends a `trek:` line to that log for each answer it gives the agent, so the
   log shows the build's progress next to the agent's own output.
 
-Without a change (a repo the user doesn't know), `trail` builds a tour of existing code: the
+Without a change (a repo the user doesn't know), `trek` builds a tour of existing code: the
 agent proposes candidate triggers (CLI commands, HTTP routes, event handlers, scheduled
 jobs), the user picks one or types their own, and the tour follows it with every step
 unchanged and no range.
@@ -213,9 +213,9 @@ cross-repo link share a distinctive string such as a route or topic) downgrade a
 
 A saved tour has passed every rule. When one doesn't load:
 
-- **Other format version** (a teammate's tour from another codetrail): one plain message
+- **Other format version** (a teammate's tour from another srctrek): one plain message
   naming the version, and an action to rebuild it.
-- **Otherwise invalid:** reported as a codetrail bug, since saving and building never let one
+- **Otherwise invalid:** reported as a srctrek bug, since saving and building never let one
   through.
 - **Stale** (a cited file's blob changed since): the tour opens with stale steps marked, and
   an action asks the agent to update them.
@@ -253,22 +253,22 @@ commit, is reported by name.
 
 ## Asking
 
-The user asks a question about the current step from the editor; codetrail runs the user's
+The user asks a question about the current step from the editor; srctrek runs the user's
 agent to answer it.
 
 1. The editor sends the question, the current step, the call stack, and any selected lines
-   to `trail ask`.
-2. `trail ask` builds the prompt from `packages/core/prompts/` and runs the user's agent CLI
-   headless, with `trail mcp` attached for reading code at the tour's revisions.
+   to `trek ask`.
+2. `trek ask` builds the prompt from `packages/core/prompts/` and runs the user's agent CLI
+   headless, with `trek mcp` attached for reading code at the tour's revisions.
 3. The agent answers through an MCP tool. Core validates the answer like a tour: cited lines
    exist, values are labeled predicted.
 4. The editor shows the answer beside the code with jumpable citations, and core saves it on
    the step as a note.
 
 Answers by kind: explain (text with citations), navigate (locations), what-if (a branch
-trail from the current step), verify (a flag raised, lowered, or cleared, with the reason).
+trek from the current step), verify (a flag raised, lowered, or cleared, with the reason).
 
-The agent is the command in `CODETRAIL_AGENT`; nothing is detected.
+The agent is the command in `SRCTREK_AGENT`; nothing is detected.
 
 ## Modes
 
@@ -279,9 +279,9 @@ or a test) serve only as ground truth in evals.
 ## Evals
 
 Each fixture under `evals/fixtures/` is a base tree plus a patch per repo, and an
-expected.json: where to run `trail` and with which arguments, the route, the links and their
+expected.json: where to run `trek` and with which arguments, the route, the links and their
 evidence, the planted bugs, and the call stack expected at a few lines. The eval runner
-(`packages/evals/`) builds temporary git repos from them, runs the agent in `CODETRAIL_AGENT` as
+(`packages/evals/`) builds temporary git repos from them, runs the agent in `SRCTREK_AGENT` as
 a background build, and scores the saved tour: route entries reached and their order, links
 cited or guessed, bugs found (a bug line inside a step flagged high, or inside a context step
 whose step is), stacks as expected (every step showing the line under the expected frames, by

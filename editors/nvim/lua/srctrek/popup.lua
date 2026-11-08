@@ -1,5 +1,5 @@
 -- Centred popups for the overview, details, context code, and the end screen.
-local state = require("codetrail.state")
+local state = require("srctrek.state")
 
 local M = {}
 
@@ -45,7 +45,7 @@ function M.float(lines, title, width_share)
     row = 0,
     col = math.floor((vim.o.columns - width) / 2),
     border = "rounded",
-    title = " " .. (title or "codetrail") .. " ",
+    title = " " .. (title or "srctrek") .. " ",
   })
   table.insert(open, win)
   vim.wo.wrap = true

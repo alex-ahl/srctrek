@@ -1,19 +1,19 @@
 -- Moving through the tour: each move asks the server, and its answer is drawn.
-local details = require("codetrail.details")
-local popup = require("codetrail.popup")
-local server = require("codetrail.server")
-local state = require("codetrail.state")
-local step_view = require("codetrail.step_view")
-local winbar = require("codetrail.winbar")
+local details = require("srctrek.details")
+local popup = require("srctrek.popup")
+local server = require("srctrek.server")
+local state = require("srctrek.state")
+local step_view = require("srctrek.step_view")
+local winbar = require("srctrek.winbar")
 
 local M = {}
 
--- Each step fires `User CodetrailStep` with { path, shown, line, repo }; anything may listen.
+-- Each step fires `User SrctrekStep` with { path, shown, line, repo }; anything may listen.
 -- `path` is where the file lives in the user's project, for a file tree to reveal; `shown` is
 -- the file opened, the tour's copy when the user's file differs.
 local function announce(view)
   vim.api.nvim_exec_autocmds("User", {
-    pattern = "CodetrailStep",
+    pattern = "SrctrekStep",
     data = {
       path = view.own_path ~= vim.NIL and view.own_path or view.path,
       shown = view.path,
@@ -56,7 +56,7 @@ local function answer(method)
   return function(view)
     local before = state.view
     if before and before.kind == view.kind and before.id == view.id then
-      vim.api.nvim_echo({ { "codetrail: " .. NOWHERE[method] } }, true, {})
+      vim.api.nvim_echo({ { "srctrek: " .. NOWHERE[method] } }, true, {})
       return
     end
     M.show(view)

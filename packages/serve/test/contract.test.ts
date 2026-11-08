@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { realpath } from "node:fs/promises"
 import { join } from "node:path"
-import { ErrorCode, PROTOCOL_VERSION, runGit } from "@codetrail/core"
+import { ErrorCode, PROTOCOL_VERSION, runGit } from "@srctrek/core"
 import { commit, makeRepo } from "../../core/test/support/repo"
 import { tempDir } from "../../core/test/support/temp"
 import { ServeTestClient } from "./serve-client"
@@ -11,14 +11,14 @@ let client: ServeTestClient | undefined
 
 afterEach(() => client?.close())
 
-// trail serve in `dir`, its checkouts cached in a folder of its own, initialized.
+// trek serve in `dir`, its checkouts cached in a folder of its own, initialized.
 async function serving(dir: string): Promise<ServeTestClient> {
   client = new ServeTestClient(dir, { XDG_CACHE_HOME: await tempDir("cache-") })
   await client.initialize()
   return client
 }
 
-describe("trail serve, as an editor sees it", () => {
+describe("trek serve, as an editor sees it", () => {
   test("answers the handshake with both versions, and refuses another protocol version", async () => {
     client = new ServeTestClient(await tempDir("serve-"))
 
@@ -97,7 +97,7 @@ describe("trail serve, as an editor sees it", () => {
     expect(await client.errorCode("open", { tour: "pay" })).toBe(ErrorCode.notInitialized)
   })
 
-  test("marks steps stale against the change as it is now, from trail's arguments", async () => {
+  test("marks steps stale against the change as it is now, from trek's arguments", async () => {
     const dir = await repoWithTour()
     await commit(dir, "pay.ts", "export function pay() {\n  return 300\n}\n")
     const serve = await serving(dir)
@@ -133,15 +133,15 @@ async function repoWithoutTour(): Promise<string> {
   return dir
 }
 
-// trail serve in `dir` with `agent` as CODETRAIL_AGENT ("" for none), initialized.
+// trek serve in `dir` with `agent` as SRCTREK_AGENT ("" for none), initialized.
 async function servingWithAgent(dir: string, agent: string): Promise<ServeTestClient> {
   const cache = await tempDir("cache-")
-  client = new ServeTestClient(dir, { XDG_CACHE_HOME: cache, CODETRAIL_AGENT: agent })
+  client = new ServeTestClient(dir, { XDG_CACHE_HOME: cache, SRCTREK_AGENT: agent })
   await client.initialize()
   return client
 }
 
-describe("trail serve, for the editor's list of tours", () => {
+describe("trek serve, for the editor's list of tours", () => {
   test("lists the saved tours, and where the change's tour stands", async () => {
     const serve = await serving(await repoWithTour())
 
@@ -170,7 +170,7 @@ describe("trail serve, for the editor's list of tours", () => {
     expect(linesOf(log).join("\n")).toContain("working on")
   })
 
-  test("refuses trail arguments it can't read", async () => {
+  test("refuses trek arguments it can't read", async () => {
     const serve = await serving(await repoWithTour())
 
     expect(await serve.errorCode("tours", { args: ["../nowhere"] })).toBe(

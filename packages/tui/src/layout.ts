@@ -1,4 +1,4 @@
-import type { TourStatus } from "@codetrail/core"
+import type { TourStatus } from "@srctrek/core"
 
 // A row takes three lines: its title, a line about it, and a gap.
 const ROW_LINES = 3

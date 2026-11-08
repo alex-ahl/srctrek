@@ -1,10 +1,10 @@
 -- The step's context code (contracts, types, where its data came from) in a float over the
 -- step, each piece under its reason. The tour stays where it is, so q is the way back; enter on
 -- a piece opens it as a step of its own.
-local popup = require("codetrail.popup")
-local server = require("codetrail.server")
-local state = require("codetrail.state")
-local text = require("codetrail.text")
+local popup = require("srctrek.popup")
+local server = require("srctrek.server")
+local state = require("srctrek.state")
+local text = require("srctrek.text")
 
 local M = {}
 
@@ -43,9 +43,9 @@ end
 local function reason_lines(ref, width)
   local lines = { { { "" } } }
   vim.list_extend(lines, vim.tbl_map(function(line)
-    return { { "▌ ", "CodetrailBandEdge" }, { line, "CodetrailNarration" } }
+    return { { "▌ ", "SrctrekBandEdge" }, { line, "SrctrekNarration" } }
   end, text.wrap(ref.summary, width - 2, 6, "")))
-  table.insert(lines, { { "  " .. label(ref), "CodetrailUnchanged" } })
+  table.insert(lines, { { "  " .. label(ref), "SrctrekUnchanged" } })
   table.insert(lines, { { "" } })
   return lines
 end
@@ -72,13 +72,13 @@ end
 
 -- navigation draws views, so it's required when first used
 local function open_as_step(ref)
-  server.request("goto", { step = ref.id }, require("codetrail.navigation").show)
+  server.request("goto", { step = ref.id }, require("srctrek.navigation").show)
 end
 
 function M.show()
   local view = state.view
   if view.kind ~= "step" or #view.context == 0 then
-    vim.api.nvim_echo({ { "codetrail: no context code for this step" } }, true, {})
+    vim.api.nvim_echo({ { "srctrek: no context code for this step" } }, true, {})
     return
   end
 

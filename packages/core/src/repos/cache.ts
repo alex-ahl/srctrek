@@ -4,10 +4,10 @@ import { dirname, join } from "node:path"
 import { pathExists } from "../files"
 import { NO_PROMPT, runGit } from "../git/run"
 
-/** Where remote repos are kept: $XDG_CACHE_HOME/codetrail, else ~/.cache/codetrail. */
+/** Where remote repos are kept: $XDG_CACHE_HOME/srctrek, else ~/.cache/srctrek. */
 export function defaultCacheDir(): string {
   const cacheHome = process.env["XDG_CACHE_HOME"] ?? join(homedir(), ".cache")
-  return join(cacheHome, "codetrail")
+  return join(cacheHome, "srctrek")
 }
 
 // "https://github.com/acme/pay" -> "github.com/acme/pay"; "git@github.com:acme/pay.git" ->

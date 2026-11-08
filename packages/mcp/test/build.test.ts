@@ -9,7 +9,7 @@ import {
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
   runGit,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
 import { tempDir } from "../../core/test/support/temp"
@@ -73,7 +73,7 @@ let client: McpTestClient | undefined
 
 afterEach(() => client?.close())
 
-describe("building a tour over trail mcp", () => {
+describe("building a tour over trek mcp", () => {
   test("checks steps on the way in, the tour as a whole at the end, then saves it", async () => {
     const dir = await makeFeatureRepo()
     const repo = basename(dir)
@@ -100,16 +100,16 @@ describe("building a tour over trail mcp", () => {
       "added s2; the tour has s1, s2",
     )
     const saved = await client.call("finish_tour", { name: "total" })
-    // trail runs in the folder's real path; tmp is a symlink on macOS
-    expect(saved.text).toBe(`saved ${join(await realpath(dir), ".codetrail/tours/total.json")}`)
+    // trek runs in the folder's real path; tmp is a symlink on macOS
+    expect(saved.text).toBe(`saved ${join(await realpath(dir), ".srctrek/tours/total.json")}`)
 
-    const tour = await loadTour(join(dir, ".codetrail/tours/total.json"))
+    const tour = await loadTour(join(dir, ".srctrek/tours/total.json"))
     expect(tour.steps.map((step) => [step.id, step.changed])).toEqual([
       ["s1", true],
       ["s2", false],
     ])
     expect(tour.repos[0]?.range).toMatch(/^[0-9a-f]{40}\.\.[0-9a-f]{40}$/)
-    expect(await Bun.file(join(dir, ".codetrail/tours/total.changed.json")).json()).toEqual({
+    expect(await Bun.file(join(dir, ".srctrek/tours/total.changed.json")).json()).toEqual({
       [repo]: { "src/app.ts": { "1": "changed" } },
     })
   })
@@ -134,7 +134,7 @@ describe("building a tour over trail mcp", () => {
     )
   })
 
-  test("writes what it tells the agent into the build's log, when trail started the agent", async () => {
+  test("writes what it tells the agent into the build's log, when trek started the agent", async () => {
     const dir = await makeFeatureRepo()
     const { s1 } = stepsFor(basename(dir))
     const log = join(dir, "build.log")
@@ -151,12 +151,12 @@ describe("building a tour over trail mcp", () => {
     await client.call("add_steps", { steps: [s1] })
 
     expect((await Bun.file(log).text()).split("\n")).toEqual([
-      `trail: opened ${repo}`,
-      `trail: tour_guide → ${guide.text.length} chars`,
-      `trail: read_file ${repo} src/app.ts 1–1 → ${read.text.length} chars`,
-      `trail: search ${repo} "total" in src → ${found.text.length} chars`,
-      'trail: started "Total": add steps with add_steps',
-      "trail: added s1; the tour has s1",
+      `trek: opened ${repo}`,
+      `trek: tour_guide → ${guide.text.length} chars`,
+      `trek: read_file ${repo} src/app.ts 1–1 → ${read.text.length} chars`,
+      `trek: search ${repo} "total" in src → ${found.text.length} chars`,
+      'trek: started "Total": add steps with add_steps',
+      "trek: added s1; the tour has s1",
       "",
     ])
   })
@@ -181,7 +181,7 @@ describe("building a tour over trail mcp", () => {
     })
 
     const recorded = await client.call("record_triggers", { triggers: [trigger(1)] })
-    expect(recorded.text).toMatch(/^saved 1 triggers to .*\/\.codetrail\/triggers\/.*-code\.json$/)
+    expect(recorded.text).toMatch(/^saved 1 triggers to .*\/\.srctrek\/triggers\/.*-code\.json$/)
   })
 
   test("records a repo the route leads into, checking its evidence, and says when it can't open it", async () => {
@@ -339,7 +339,7 @@ describe("building a tour over trail mcp", () => {
     const finished = await client.call("finish_tour", { name: "total", overview })
     expect(finished.text).toStartWith("saved ")
 
-    const tour = await loadTour(join(dir, ".codetrail/tours/total.json"))
+    const tour = await loadTour(join(dir, ".srctrek/tours/total.json"))
     const head = await runGit(dir, ["rev-parse", "HEAD"])
     expect(tour.overview).toBe(overview)
     expect(tour.title).toBe(header.title)

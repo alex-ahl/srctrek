@@ -1,4 +1,4 @@
-import type { ProposedRepo, TourEntry, TourStatus } from "@codetrail/core"
+import type { ProposedRepo, TourEntry, TourStatus } from "@srctrek/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { useState } from "react"
 import { ChangeStatus } from "./change-status"
@@ -13,7 +13,7 @@ type Props = {
   entries: TourEntry[]
   onOpen: (entry: TourEntry) => void
   onQuit: () => void
-  // where the change trail was started for stands; absent when there's none to show
+  // where the change trek was started for stands; absent when there's none to show
   status?: TourStatus | undefined
   // starts building the change's tour; absent when no agent is set
   onBuild?: (() => void) | undefined
@@ -178,7 +178,7 @@ export function App(props: Props) {
   })
 
   return (
-    <box flexDirection="column" style={{ border: true, padding: 1 }} title="codetrail">
+    <box flexDirection="column" style={{ border: true, padding: 1 }} title="srctrek">
       {status !== undefined && (
         <box style={{ marginBottom: 1, flexShrink: 0 }}>
           <ChangeStatus status={status} canBuild={onBuild !== undefined} />
@@ -186,7 +186,7 @@ export function App(props: Props) {
       )}
       <box flexDirection="column" style={{ flexGrow: 1, overflow: "hidden" }}>
         {rows.length === 0 ? (
-          <text>No tours in .codetrail/tours. Press q to quit.</text>
+          <text>No tours in .srctrek/tours. Press q to quit.</text>
         ) : (
           rows
             .slice(start, end)

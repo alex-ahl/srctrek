@@ -97,12 +97,12 @@ describe("resolvePullRequest", () => {
 })
 
 describe("readReposList", () => {
-  test("reads .codetrail/repos, or nothing when there is none", async () => {
+  test("reads .srctrek/repos, or nothing when there is none", async () => {
     const root = await tempDir("list-")
     expect(await readReposList(root)).toEqual([])
 
-    await mkdir(join(root, ".codetrail"))
-    await writeFile(join(root, ".codetrail", "repos"), "../gateway\n")
+    await mkdir(join(root, ".srctrek"))
+    await writeFile(join(root, ".srctrek", "repos"), "../gateway\n")
     expect(await readReposList(root)).toEqual([{ source: "../gateway" }])
   })
 })

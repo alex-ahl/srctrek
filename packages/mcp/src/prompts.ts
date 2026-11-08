@@ -1,4 +1,4 @@
-import { buildTourPrompt } from "@codetrail/core"
+import { buildTourPrompt } from "@srctrek/core"
 import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import { wordsOf } from "./words"
@@ -8,13 +8,13 @@ export function registerPrompts(server: McpServer): void {
   server.registerPrompt(
     "build_tour",
     {
-      title: "Build a codetrail tour",
-      description: "Build a tour of a change: the current branch, or the words you'd give trail",
+      title: "Build a srctrek tour",
+      description: "Build a tour of a change: the current branch, or the words you'd give trek",
       argsSchema: z.object({
         change: z
           .string()
           .optional()
-          .describe("as for trail: main...feature, ../api main...feature, a pull request URL"),
+          .describe("as for trek: main...feature, ../api main...feature, a pull request URL"),
       }),
     },
     ({ change }) => {

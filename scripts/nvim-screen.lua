@@ -153,14 +153,14 @@ local function save(n)
   vim.fn.delete(prefix .. ".mvg")
 end
 
--- Neovim to capture, with the plugin talking to this checkout's trail.
+-- Neovim to capture, with the plugin talking to this checkout's trek.
 local function start_neovim()
   local stdin, stdout = vim.uv.new_pipe(), vim.uv.new_pipe()
-  local serve = string.format('lua vim.g.codetrail = { cmd = { "%s/dist/trail", "serve" } }', repo)
+  local serve = string.format('lua vim.g.srctrek = { cmd = { "%s/dist/trek", "serve" } }', repo)
   vim.uv.spawn("nvim", {
     args = {
       "--embed", "--clean", "--cmd", "set rtp^=" .. repo .. "/editors/nvim",
-      "-c", "set termguicolors", "-c", setup, "-c", "runtime! plugin/codetrail.lua", "-c", serve,
+      "-c", "set termguicolors", "-c", setup, "-c", "runtime! plugin/srctrek.lua", "-c", serve,
     },
     stdio = { stdin, stdout, nil },
     cwd = repo,
@@ -193,7 +193,7 @@ clear_cells()
 local request = start_neovim()
 request("nvim_ui_attach", { W, H, { ext_linegrid = true, rgb = true } })
 vim.wait(800)
-request("nvim_command", { "Trail " .. tour })
+request("nvim_command", { "Trek " .. tour })
 vim.wait(1500)
 save(0)
 for n, keys in ipairs(key_groups) do

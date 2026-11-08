@@ -11,7 +11,7 @@ import {
   resolveChange,
   startBuild,
   tourPath,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { type Expected, readExpected } from "./expected"
 import { type Fixture, applyFollowups, buildFixture } from "./fixture"
 import { type RunFacts, type UpdateFacts, formatReport } from "./report"
@@ -21,9 +21,9 @@ const TOUR_NAME = "eval"
 const POLL_MS = 2000
 
 function agentCommand(): string {
-  const command = process.env["CODETRAIL_AGENT"]?.trim()
+  const command = process.env["SRCTREK_AGENT"]?.trim()
   if (command === undefined || command === "") {
-    throw new Error("set CODETRAIL_AGENT to the agent's headless command line")
+    throw new Error("set SRCTREK_AGENT to the agent's headless command line")
   }
 
   return command
@@ -35,7 +35,7 @@ async function untilBuilt(root: string): Promise<void> {
   }
 }
 
-// The agent's own last word, where an agent prints its usage and cost; trail mcp's lines
+// The agent's own last word, where an agent prints its usage and cost; trek mcp's lines
 // are left out.
 async function agentSummary(root: string): Promise<string> {
   const tail = await buildLogTail(root, TOUR_NAME, 50)
@@ -45,7 +45,7 @@ async function agentSummary(root: string): Promise<string> {
 
 type Run = Expected["run"]
 
-// The fixture repo trail runs in.
+// The fixture repo trek runs in.
 function runsIn(fixture: Fixture, run: Run): string {
   const root = fixture.repos[run.in]
   if (root === undefined) {
@@ -70,14 +70,14 @@ async function buildTour(root: string, args: string[], agent: string, mode: Buil
 }
 
 /**
- * How to run an eval other than as expected.json says: `run` starts trail elsewhere, such as
+ * How to run an eval other than as expected.json says: `run` starts trek elsewhere, such as
  * in one repo with the others left for the agent to find; `asReviewer` builds the repos as a
  * reviewer has them, the work only on origin's branches; `update` then commits the fixture's
  * follow-ups and has the agent update the tour, to compare its cost with the first build.
  */
 export type EvalOptions = { run?: Run | undefined; asReviewer?: boolean; update?: boolean }
 
-// What the change looks like to trail started with `args` in `root`, as it is now.
+// What the change looks like to trek started with `args` in `root`, as it is now.
 async function changeAt(root: string, args: string[]) {
   return resolveChange(root, readChangeArguments(args, directoryIn(root)))
 }
@@ -137,7 +137,7 @@ export async function runEval(
   return formatReport(name, scoreTour(tour, expected, repo), { ...facts, update: updated })
 }
 
-// "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trail in that repo;
+// "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trek in that repo;
 // --reviewer, anywhere, builds the repos as a reviewer has them; --update updates the tour
 // after the fixture's follow-up commits.
 function optionsFromArgs(words: string[]): EvalOptions {
@@ -152,7 +152,7 @@ if (import.meta.main) {
   const [name, ...rest] = process.argv.slice(2)
   if (name === undefined) {
     console.error(
-      "usage: bun packages/evals/src/main.ts <fixture> [--reviewer] [--update] [<repo> <trail args>…]",
+      "usage: bun packages/evals/src/main.ts <fixture> [--reviewer] [--update] [<repo> <trek args>…]",
     )
     process.exit(2)
   }

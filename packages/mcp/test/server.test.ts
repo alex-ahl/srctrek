@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt, runGit } from "@codetrail/core"
+import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt, runGit } from "@srctrek/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { z } from "zod"
 import { McpTestClient } from "./mcp-client"
@@ -38,13 +38,13 @@ let client: McpTestClient | undefined
 
 afterEach(() => client?.close())
 
-describe("trail mcp", () => {
+describe("trek mcp", () => {
   test("introduces itself and lists its tools with their descriptions", async () => {
     client = new McpTestClient(await makeFeatureRepo())
 
     const init = await client.initialize()
     expect(init.result).toMatchObject({
-      serverInfo: { name: "codetrail" },
+      serverInfo: { name: "srctrek" },
       instructions: SERVER_INSTRUCTIONS,
     })
 

@@ -33,7 +33,7 @@ import {
   withRouteRepo,
   workBranches,
   triggerProblems,
-} from "@codetrail/core"
+} from "@srctrek/core"
 
 // Rejected rounds a draft may take before its build stops, so an agent can't loop on it.
 const MAX_REJECTED_ROUNDS = 3
@@ -150,7 +150,7 @@ function revisedDraft(draft: Draft, revised: Revised): Draft {
 }
 
 /**
- * Saves the tour under `.codetrail/tours`, with its changed lines beside it, and any revised
+ * Saves the tour under `.srctrek/tours`, with its changed lines beside it, and any revised
  * title, overview, or outcome. A tour that fails the whole-tour rules is a rejected round, like
  * steps that fail theirs.
  */

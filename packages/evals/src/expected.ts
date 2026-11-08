@@ -5,7 +5,7 @@ const Place = z.object({ repo: z.string(), file: z.string() })
 const Line = Place.extend({ line: z.number().int().positive() })
 
 const ExpectedSchema = z.object({
-  // where trail runs, as one of the fixture's repos, and its arguments there
+  // where trek runs, as one of the fixture's repos, and its arguments there
   run: z.object({ in: z.string(), args: z.array(z.string()) }),
   scenario: z.string(),
   route: z.array(

@@ -7,7 +7,7 @@ import { readOptions } from "./change/options"
 /** Every part the guide is made from, for the prompt hash. */
 export const GUIDE_PARTS = { changeOpening, codeOpening, method, findTriggers }
 
-/** Whether `trail`'s `args` ask for the code's triggers (plain --code) rather than a tour. */
+/** Whether `trek`'s `args` ask for the code's triggers (plain --code) rather than a tour. */
 export function findsTriggers(args: string[]): boolean {
   const { code } = readOptions(args)
 
@@ -15,7 +15,7 @@ export function findsTriggers(args: string[]): boolean {
 }
 
 /**
- * The guide for what `trail`'s `args` ask for: a tour of a change (none means the branch), a
+ * The guide for what `trek`'s `args` ask for: a tour of a change (none means the branch), a
  * tour of code as it is from the user's trigger, or, with plain --code, finding the triggers
  * the user can choose from.
  */

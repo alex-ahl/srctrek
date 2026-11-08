@@ -1,4 +1,4 @@
-import type { StepView } from "@codetrail/core"
+import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
 import { stepLenses } from "./step-text"
 import { placeOf } from "./view"

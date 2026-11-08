@@ -3,34 +3,34 @@
 local M = {}
 
 local LINKED = {
-  CodetrailStale = "DiagnosticWarn",
-  CodetrailHop = "Comment",
-  CodetrailAway = "Comment",
-  CodetrailCitation = "Underlined",
+  SrctrekStale = "DiagnosticWarn",
+  SrctrekHop = "Comment",
+  SrctrekAway = "Comment",
+  SrctrekCitation = "Underlined",
 }
 
 -- Text at the end of a line, in the gutter, or on the narration's band takes only its group's
 -- foreground: themes often give these groups a background (inlay hints, diff lines), which
 -- draws a box there.
 local FOREGROUND = {
-  CodetrailCurrent = { group = "DiagnosticWarn" },
-  CodetrailAdded = { group = "Added" },
-  CodetrailChanged = { group = "Changed" },
-  CodetrailPredicted = { group = "LspInlayHint", italic = true },
-  CodetrailDoubtful = { group = "DiagnosticWarn", italic = true },
-  CodetrailCall = { group = "Special" },
-  CodetrailCallNext = { group = "Special", bold = true },
-  CodetrailUnchanged = { group = "Comment" },
-  CodetrailFlagHigh = { group = "DiagnosticError" },
-  CodetrailPosition = { group = "Normal", bold = true },
-  CodetrailTourCopy = { group = "DiagnosticHint" },
-  CodetrailRepo = { group = "Directory" },
-  CodetrailSeparator = { group = "NonText" },
-  CodetrailStackFrame = { group = "Comment" },
-  CodetrailFlagMedium = { group = "DiagnosticWarn" },
-  CodetrailFlagLow = { group = "DiagnosticInfo" },
-  CodetrailGuessed = { group = "DiagnosticHint" },
-  CodetrailHeading = { group = "Normal", bold = true },
+  SrctrekCurrent = { group = "DiagnosticWarn" },
+  SrctrekAdded = { group = "Added" },
+  SrctrekChanged = { group = "Changed" },
+  SrctrekPredicted = { group = "LspInlayHint", italic = true },
+  SrctrekDoubtful = { group = "DiagnosticWarn", italic = true },
+  SrctrekCall = { group = "Special" },
+  SrctrekCallNext = { group = "Special", bold = true },
+  SrctrekUnchanged = { group = "Comment" },
+  SrctrekFlagHigh = { group = "DiagnosticError" },
+  SrctrekPosition = { group = "Normal", bold = true },
+  SrctrekTourCopy = { group = "DiagnosticHint" },
+  SrctrekRepo = { group = "Directory" },
+  SrctrekSeparator = { group = "NonText" },
+  SrctrekStackFrame = { group = "Comment" },
+  SrctrekFlagMedium = { group = "DiagnosticWarn" },
+  SrctrekFlagLow = { group = "DiagnosticInfo" },
+  SrctrekGuessed = { group = "DiagnosticHint" },
+  SrctrekHeading = { group = "Normal", bold = true },
 }
 
 local function colour(group, attribute)
@@ -77,13 +77,13 @@ end
 -- and the badge are mixed from the theme's text, background, and info colours. Without GUI
 -- colours they fall back to theme groups.
 -- The gutter's signs and line numbers on a step's lines: their own colours on the step's tint.
-local IN_STEP = { "CodetrailStepBar", "CodetrailAdded", "CodetrailChanged", "CodetrailCurrent" }
+local IN_STEP = { "SrctrekStepBar", "SrctrekAdded", "SrctrekChanged", "SrctrekCurrent" }
 
 local function define_in_step(tint)
   for _, group in ipairs(IN_STEP) do
     vim.api.nvim_set_hl(0, group .. "InStep", { fg = colour(group, "fg"), bg = tint, default = true })
   end
-  vim.api.nvim_set_hl(0, "CodetrailStepNumber", { fg = colour("LineNr", "fg"), bg = tint, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekStepNumber", { fg = colour("LineNr", "fg"), bg = tint, default = true })
 end
 
 local function define_mixed()
@@ -91,34 +91,34 @@ local function define_mixed()
   -- a transparent theme leaves the background to the terminal
   local bg = colour("Normal", "bg") or (vim.o.background == "light" and 0xffffff or 0x000000)
   if not (vim.o.termguicolors and fg and accent) then
-    vim.api.nvim_set_hl(0, "CodetrailStep", { link = "CursorLine", default = true })
-    vim.api.nvim_set_hl(0, "CodetrailStepBar", { link = "LineNr", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekStep", { link = "CursorLine", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekStepBar", { link = "LineNr", default = true })
     define_in_step(colour("CursorLine", "bg"))
-    vim.api.nvim_set_hl(0, "CodetrailNarration", { link = "Pmenu", default = true })
-    vim.api.nvim_set_hl(0, "CodetrailBandPad", { fg = colour("Pmenu", "bg"), default = true })
-    vim.api.nvim_set_hl(0, "CodetrailBandPadStep", { fg = colour("Pmenu", "bg"), bg = colour("CursorLine", "bg"), default = true })
-    vim.api.nvim_set_hl(0, "CodetrailBandEdge", { link = "Special", default = true })
-    vim.api.nvim_set_hl(0, "CodetrailBandPadEdge", { link = "Special", default = true })
-    vim.api.nvim_set_hl(0, "CodetrailBandPadEdgeStep", { link = "Special", default = true })
-    vim.api.nvim_set_hl(0, "CodetrailContext", { link = "DiagnosticInfo", default = true })
-    vim.api.nvim_set_hl(0, "CodetrailBadge", { link = "PmenuSel", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekNarration", { link = "Pmenu", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekBandPad", { fg = colour("Pmenu", "bg"), default = true })
+    vim.api.nvim_set_hl(0, "SrctrekBandPadStep", { fg = colour("Pmenu", "bg"), bg = colour("CursorLine", "bg"), default = true })
+    vim.api.nvim_set_hl(0, "SrctrekBandEdge", { link = "Special", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekBandPadEdge", { link = "Special", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekBandPadEdgeStep", { link = "Special", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekContext", { link = "DiagnosticInfo", default = true })
+    vim.api.nvim_set_hl(0, "SrctrekBadge", { link = "PmenuSel", default = true })
     return
   end
 
   local tint = mix(bg, fg, 0.08)
-  vim.api.nvim_set_hl(0, "CodetrailStep", { bg = tint, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailStepBar", { fg = mix(bg, fg, 0.3), default = true })
+  vim.api.nvim_set_hl(0, "SrctrekStep", { bg = tint, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekStepBar", { fg = mix(bg, fg, 0.3), default = true })
   define_in_step(tint)
   local band = band_colour(bg, fg, accent)
-  vim.api.nvim_set_hl(0, "CodetrailNarration", { fg = fg, bg = band, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailBandPad", { fg = band, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailBandPadStep", { fg = band, bg = tint, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailBandEdge", { fg = accent, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailBandPadEdge", { fg = accent, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailBandPadEdgeStep", { fg = accent, bg = tint, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekNarration", { fg = fg, bg = band, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekBandPad", { fg = band, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekBandPadStep", { fg = band, bg = tint, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekBandEdge", { fg = accent, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekBandPadEdge", { fg = accent, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekBandPadEdgeStep", { fg = accent, bg = tint, default = true })
   -- context steps are the tour's commentary, as the band is
-  vim.api.nvim_set_hl(0, "CodetrailContext", { fg = accent, default = true })
-  vim.api.nvim_set_hl(0, "CodetrailBadge", { fg = readable_on(accent, bg, fg), bg = accent, bold = true, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekContext", { fg = accent, default = true })
+  vim.api.nvim_set_hl(0, "SrctrekBadge", { fg = readable_on(accent, bg, fg), bg = accent, bold = true, default = true })
 end
 
 local function define()
@@ -142,7 +142,7 @@ end
 function M.setup()
   define()
   vim.api.nvim_create_autocmd("ColorScheme", {
-    group = vim.api.nvim_create_augroup("codetrail_highlights", { clear = true }),
+    group = vim.api.nvim_create_augroup("srctrek_highlights", { clear = true }),
     callback = define,
   })
 end

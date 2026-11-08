@@ -6,7 +6,7 @@ import {
   newDraft,
   runGit,
   saveTour,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { changeOf } from "../../../core/test/support/branch"
 import { commit, makeRepo } from "../../../core/test/support/repo"
 

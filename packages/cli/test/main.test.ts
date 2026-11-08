@@ -11,13 +11,13 @@ async function runTrail(cwd: string, args: string[]): Promise<{ code: number; st
   return { code, stderr }
 }
 
-describe("trail", () => {
+describe("trek", () => {
   test("says what's wrong with its arguments, and exits 1", async () => {
     const repo = await makeRepo()
 
-    expect(await runTrail(repo, ["../nowhere-codetrail"])).toEqual({
+    expect(await runTrail(repo, ["../nowhere-srctrek"])).toEqual({
       code: 1,
-      stderr: "trail: no repo at ../nowhere-codetrail\n",
+      stderr: "trek: no repo at ../nowhere-srctrek\n",
     })
   })
 })

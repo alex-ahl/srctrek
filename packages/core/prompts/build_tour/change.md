@@ -1,4 +1,4 @@
-Build a codetrail tour of a change: a debugger-style walkthrough that follows one example scenario through the code, in execution order, from what triggers it to how it ends. The reader steps through it in their editor, so every step is a place in the code and every link between steps is backed by evidence.
+Build a srctrek tour of a change: a debugger-style walkthrough that follows one example scenario through the code, in execution order, from what triggers it to how it ends. The reader steps through it in their editor, so every step is a place in the code and every link between steps is backed by evidence.
 
 ## 1. Open and read the change
 

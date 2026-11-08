@@ -7,7 +7,7 @@ view they answer with in `packages/core/src/session/view.ts`.
 
 - JSON-RPC 2.0 over stdio, each message framed with a `Content-Length` header, as in the
   Language Server Protocol.
-- The client starts `trail serve` in the repo the tours were built in; one client per process.
+- The client starts `trek serve` in the repo the tours were built in; one client per process.
 
 ## Handshake
 
@@ -16,32 +16,32 @@ The client's first request is `initialize`:
 - Client sends: `protocol_version` (integer) and `client: { name, version }`.
 - Core replies: `protocol_version` and `trail_version`.
 - On a version mismatch core answers with an error saying which to update: the plugin or
-  `trail`.
+  `trek`.
 
 ## Requests (client → core)
 
 `open` and the moves answer with the session's view.
 
-| Method              | Does                                                                |
-| ------------------- | ------------------------------------------------------------------- |
-| `open(tour, args?)` | Load a saved tour by name and start at its overview; with `trail`'s |
-|                     | arguments for the change as it is now, stale steps are marked       |
-| `next`, `prev`      | Move one step in tour order, passing over context steps             |
-| `into(target?)`     | Step into a call or a hop, the first not yet visited unless named   |
-| `over`              | Step to the next step not inside the current step's calls           |
-| `out`               | Step to the next step outside the current step's function           |
-| `goto(step)`        | Jump to a step                                                      |
+| Method              | Does                                                               |
+| ------------------- | ------------------------------------------------------------------ |
+| `open(tour, args?)` | Load a saved tour by name and start at its overview; with `trek`'s |
+|                     | arguments for the change as it is now, stale steps are marked      |
+| `next`, `prev`      | Move one step in tour order, passing over context steps            |
+| `into(target?)`     | Step into a call or a hop, the first not yet visited unless named  |
+| `over`              | Step to the next step not inside the current step's calls          |
+| `out`               | Step to the next step outside the current step's function          |
+| `goto(step)`        | Jump to a step                                                     |
 
 A move with nowhere to go answers with the view unchanged.
 
-For the list of tours, each taking `trail`'s arguments for the change (none: the current
+For the list of tours, each taking `trek`'s arguments for the change (none: the current
 branch's):
 
 | Method              | Answers                                                             |
 | ------------------- | ------------------------------------------------------------------- |
 | `tours(args?)`      | Every saved tour (name, title, stops, likely-wrong flags) and where |
 |                     | the change's tour stands: ready, stale, building, failed, missing   |
-| `build(args?)`      | Starts the agent in `CODETRAIL_AGENT` on the change's tour, or      |
+| `build(args?)`      | Starts the agent in `SRCTREK_AGENT` on the change's tour, or        |
 |                     | updates it when stale; answers where it stands once started         |
 | `log(tour, lines?)` | The end of a tour's build log                                       |
 
@@ -78,12 +78,12 @@ JSON-RPC's own codes for malformed requests, unknown methods, and invalid params
 | 4    | The tour doesn't load: another format, or invalid      |
 | 5    | A repo the tour names isn't there, or lacks its commit |
 | 6    | `goto` named a step the tour doesn't have              |
-| 7    | `build` with no `CODETRAIL_AGENT` set                  |
-| 8    | `trail`'s arguments don't name a change trail can read |
+| 7    | `build` with no `SRCTREK_AGENT` set                    |
+| 8    | `trek`'s arguments don't name a change trek can read   |
 
 ## Definitions and tests
 
 - Requests are validated in core against their definitions.
-- Contract tests (`packages/serve/test/contract.test.ts`) drive a real `trail serve` over its
+- Contract tests (`packages/serve/test/contract.test.ts`) drive a real `trek serve` over its
   pipes with a JSON-RPC client, as an editor does. Each editor's own client joins them,
   headless: `packages/serve/test/nvim.test.ts` drives the Neovim plugin against it.

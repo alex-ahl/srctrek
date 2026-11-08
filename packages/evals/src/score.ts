@@ -1,4 +1,4 @@
-import { type Tour, type TourStep, folderName, parseRepoEntry } from "@codetrail/core"
+import { type Tour, type TourStep, folderName, parseRepoEntry } from "@srctrek/core"
 import type { Expected, ExpectedLine } from "./expected"
 import { covers, inFile } from "./places"
 import { type StackCheck, checkStacks } from "./stacks"
@@ -130,7 +130,7 @@ function countFlags(steps: TourStep[]): Score["flags"] {
   }
 }
 
-// The fixture folder a tour's repo was read from: the one trail ran in for ".", else the last
+// The fixture folder a tour's repo was read from: the one trek ran in for ".", else the last
 // part of its source, so a repo the agent named "payments" is scored as "pay-backend".
 function folderOf(source: string, ranIn: string): string {
   return source === "." ? ranIn : folderName(parseRepoEntry(source).source)

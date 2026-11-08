@@ -9,7 +9,7 @@ import type {
   Patch,
   ResolvedChange,
   SearchResult,
-} from "@codetrail/core"
+} from "@srctrek/core"
 
 function describeRange(repo: ResolvedChange["repos"][number]): string {
   if (repo.range === undefined) {

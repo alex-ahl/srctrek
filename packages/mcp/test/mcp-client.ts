@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { z } from "zod"
 
-const TRAIL = join(import.meta.dir, "../../cli/src/main.ts")
+const TREK = join(import.meta.dir, "../../cli/src/main.ts")
 
 const ResponseSchema = z.object({
   id: z.number(),
@@ -15,14 +15,14 @@ const ToolResultSchema = z.object({
   isError: z.boolean().optional(),
 })
 
-/** A minimal MCP client for tests: `trail mcp` as a child, JSON-RPC one line at a time. */
+/** A minimal MCP client for tests: `trek mcp` as a child, JSON-RPC one line at a time. */
 export class McpTestClient {
   private nextId = 1
   private pending = new Map<number, (response: Response) => void>()
   private readonly proc
 
   constructor(cwd: string, env: Record<string, string> = {}) {
-    this.proc = Bun.spawn(["bun", TRAIL, "mcp"], {
+    this.proc = Bun.spawn(["bun", TREK, "mcp"], {
       cwd,
       env: { ...process.env, ...env },
       stdin: "pipe",

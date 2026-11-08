@@ -46,7 +46,7 @@ describe("background builds", () => {
 
   test("are done when the agent exits cleanly having saved the tour", async () => {
     const root = await makeRepo()
-    const agent = "mkdir -p .codetrail/tours && echo '{}' > .codetrail/tours/refunds.json && true"
+    const agent = "mkdir -p .srctrek/tours && echo '{}' > .srctrek/tours/refunds.json && true"
     await startBuild(root, [], "refunds", agent)
 
     expect(await stateWhenEnded(root, "refunds")).toBe("done")

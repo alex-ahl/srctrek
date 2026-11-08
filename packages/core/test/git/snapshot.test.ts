@@ -34,7 +34,7 @@ describe("snapshotWorkingTree", () => {
     expect(await readFileAt(dir, snapshot, "new.ts")).toBe("new\n")
     expect(await readFileAt(dir, snapshot, "secret.env")).toBeUndefined()
     expect(await runGit(dir, ["rev-parse", `${snapshot}^`])).toBe(before[1] ?? "")
-    expect(await runGit(dir, ["rev-parse", `refs/codetrail/snapshots/${snapshot}`])).toBe(snapshot)
+    expect(await runGit(dir, ["rev-parse", `refs/srctrek/snapshots/${snapshot}`])).toBe(snapshot)
     expect(await userState(dir)).toEqual(before)
   })
 
@@ -50,26 +50,26 @@ describe("snapshotWorkingTree", () => {
     expect(await snapshotWorkingTree(dir)).not.toBe(first)
   })
 
-  test("leaves codetrail's own folder as HEAD has it", async () => {
+  test("leaves srctrek's own folder as HEAD has it", async () => {
     const dir = await makeRepo()
     const head = await runGit(dir, ["rev-parse", "HEAD"])
-    await mkdir(join(dir, ".codetrail/tours"), { recursive: true })
-    await writeFile(join(dir, ".codetrail/tours/a.json"), "{}\n")
+    await mkdir(join(dir, ".srctrek/tours"), { recursive: true })
+    await writeFile(join(dir, ".srctrek/tours/a.json"), "{}\n")
 
     expect(await snapshotWorkingTree(dir)).toBe(head)
   })
 
-  test("works when .codetrail is ignored or committed", async () => {
+  test("works when .srctrek is ignored or committed", async () => {
     const ignoring = await makeRepo()
-    await commit(ignoring, ".gitignore", ".codetrail\n")
-    await mkdir(join(ignoring, ".codetrail/tours"), { recursive: true })
-    await writeFile(join(ignoring, ".codetrail/tours/a.json"), "{}\n")
+    await commit(ignoring, ".gitignore", ".srctrek\n")
+    await mkdir(join(ignoring, ".srctrek/tours"), { recursive: true })
+    await writeFile(join(ignoring, ".srctrek/tours/a.json"), "{}\n")
     expect(await snapshotWorkingTree(ignoring)).toBe(await runGit(ignoring, ["rev-parse", "HEAD"]))
 
     const committing = await makeRepo()
-    await mkdir(join(committing, ".codetrail"))
-    const head = await commit(committing, ".codetrail/repos", "../api\n")
-    await writeFile(join(committing, ".codetrail/repos"), "../api\n../web\n")
+    await mkdir(join(committing, ".srctrek"))
+    const head = await commit(committing, ".srctrek/repos", "../api\n")
+    await writeFile(join(committing, ".srctrek/repos"), "../api\n../web\n")
     expect(await snapshotWorkingTree(committing)).toBe(head)
   })
 

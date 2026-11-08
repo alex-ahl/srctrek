@@ -8,7 +8,7 @@ import {
   resolveRange,
   parseRange,
   runGit,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { buildFixture } from "../src/fixture"
 
 const refund = await buildFixture("refund")

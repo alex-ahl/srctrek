@@ -1,6 +1,6 @@
-import type { Call, NextStop, StepRef, StepView } from "@codetrail/core"
+import type { Call, NextStop, StepRef, StepView } from "@srctrek/core"
 
-// Views as trail serve sends them, for testing what the extension makes of them.
+// Views as trek serve sends them, for testing what the extension makes of them.
 
 export const ref: StepRef = {
   id: "s1",

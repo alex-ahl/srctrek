@@ -1,21 +1,21 @@
--- The connection to `trail serve`, which loads tours and answers every move with the view to
+-- The connection to `trek serve`, which loads tours and answers every move with the view to
 -- draw. One server per Neovim, started in its working directory, where the tours were built.
 local M = {}
 
 local PROTOCOL_VERSION = 1
-local CLIENT = { name = "codetrail.nvim", version = "0.0.0" }
+local CLIENT = { name = "srctrek.nvim", version = "0.0.0" }
 
 local client = nil
 
 local function report(message)
-  vim.notify("codetrail: " .. message, vim.log.levels.ERROR)
+  vim.notify("srctrek: " .. message, vim.log.levels.ERROR)
 end
 
 -- Sends `method`; `on_result` gets the result, and an error is reported instead, then
 -- `on_error` runs if given.
 function M.request(method, params, on_result, on_error)
   if client == nil then
-    report("trail serve isn't running")
+    report("trek serve isn't running")
     return
   end
 
@@ -42,7 +42,7 @@ local function spawn(cmd)
 
     client = nil
     vim.schedule(function()
-      report(string.format("trail serve stopped (exit %d)", code))
+      report(string.format("trek serve stopped (exit %d)", code))
     end)
   end
 

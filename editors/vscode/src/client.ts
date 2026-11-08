@@ -1,5 +1,5 @@
 import { type ChildProcess, spawn } from "node:child_process"
-import type { SessionView, ToursResult } from "@codetrail/core"
+import type { SessionView, ToursResult } from "@srctrek/core"
 import {
   type MessageConnection,
   StreamMessageReader,
@@ -7,29 +7,29 @@ import {
   createMessageConnection,
 } from "vscode-jsonrpc/node"
 
-// The protocol version this extension speaks; trail serve refuses another. The extension bundles
+// The protocol version this extension speaks; trek serve refuses another. The extension bundles
 // none of core's code, so it keeps its own copy, which the contract tests check.
 export const PROTOCOL_VERSION = 1
-const CLIENT = { name: "codetrail-vscode", version: "0.0.0" }
+const CLIENT = { name: "srctrek-vscode", version: "0.0.0" }
 
 /** The moves that answer with the session's view. */
 export type Move = "next" | "prev" | "over" | "out" | "into" | "goto"
 
-/** The extension's side of the protocol: `trail serve` as a child process, started in `cwd`. */
-export class TrailClient {
+/** The extension's side of the protocol: `trek serve` as a child process, started in `cwd`. */
+export class TrekClient {
   private readonly proc: ChildProcess
   private readonly connection: MessageConnection
 
   constructor(command: readonly string[], cwd: string) {
     const [program, ...args] = command
     if (program === undefined) {
-      throw new Error("no command to start trail serve")
+      throw new Error("no command to start trek serve")
     }
     this.proc = spawn(program, args, { cwd, stdio: ["pipe", "pipe", "inherit"] })
 
     const { stdout, stdin } = this.proc
     if (stdout === null || stdin === null) {
-      throw new Error("trail serve started without pipes")
+      throw new Error("trek serve started without pipes")
     }
     this.connection = createMessageConnection(
       new StreamMessageReader(stdout),

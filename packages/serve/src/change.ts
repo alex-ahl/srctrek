@@ -12,13 +12,13 @@ import {
   readChangeArguments,
   resolveChange,
   tourStatus,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { RequestError } from "./errors"
 
 // Enough of a log to follow a build; the editor asks again for more.
 const LOG_LINES = 200
 
-/** The change trail's `args` name in `cwd`, as it is now. */
+/** The change trek's `args` name in `cwd`, as it is now. */
 export async function changeNow(cwd: string, args: string[]): Promise<ResolvedChange> {
   try {
     return await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
@@ -40,7 +40,7 @@ export async function toursIn(cwd: string, args: string[]): Promise<ToursResult>
 export async function buildTour(cwd: string, args: string[]): Promise<BuildResult> {
   const agent = agentCommand()
   if (agent === undefined) {
-    const message = "no agent: set CODETRAIL_AGENT to the command that runs your agent headless"
+    const message = "no agent: set SRCTREK_AGENT to the command that runs your agent headless"
     throw new RequestError(ErrorCode.noAgent, message)
   }
 

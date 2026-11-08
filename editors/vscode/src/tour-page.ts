@@ -1,4 +1,4 @@
-import type { EndView, FlaggedStep, OverviewView } from "@codetrail/core"
+import type { EndView, FlaggedStep, OverviewView } from "@srctrek/core"
 import { escapeHtml, gotoLink, pageHtml } from "./page"
 
 // The tour tab's page for the overview and the end, apart from VS Code: plain HTML in the theme's
@@ -31,7 +31,7 @@ const ON_SCREEN = [
   ],
   [`<code class="arrow">→</code>`, "a call next can step into; →? when the link is guessed"],
   [
-    `<code class="lens">codetrail 2/5 · next ▸</code>`,
+    `<code class="lens">srctrek 2/5 · next ▸</code>`,
     "above a stop: click to open the Stop view, or to step on",
   ],
 ] as const

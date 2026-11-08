@@ -1,8 +1,8 @@
-# @codetrail/core
+# @srctrek/core
 
 ## What it is
 
-The engine of codetrail: everything behind building, validating, and showing a tour, with
+The engine of srctrek: everything behind building, validating, and showing a tour, with
 no UI code.
 
 ## What it does, and does not

@@ -55,7 +55,7 @@ Neovim users arrange their windows with care, and a plugin that opens its own re
 VS Code has no virtual lines, so the sidebar carries what Neovim shows inline; its debugger's keys
 are the stepping keys VS Code users already know.
 
-## 2026-11-03 — The editor's theme colours codetrail; context steps aren't stops
+## 2026-11-03 — The editor's theme colours srctrek; context steps aren't stops
 
 Every visual role (the step, changed lines, predicted values, flags, guessed links, stale steps)
 has its own name and defaults to a colour the editor's theme already defines; predicted values
@@ -70,14 +70,14 @@ current frame.
 
 ## 2026-11-03 — A session starts from the terminal or the editor
 
-The terminal's home screen opens a tour in the editor `CODETRAIL_EDITOR` names; nothing is
+The terminal's home screen opens a tour in the editor `SRCTREK_EDITOR` names; nothing is
 detected, and without it `$EDITOR` opens the step at its line. Editors can also list the saved
 tours with their status, open one, and start a build, through requests the protocol gains in
 Milestone 6.
 
 The home screen can open Neovim but not VS Code, and most beta testers use VS Code and rarely
-live in a terminal; the editor needs its own way in. Naming the editor, as `CODETRAIL_AGENT`
-names the agent, keeps codetrail from assuming one.
+live in a terminal; the editor needs its own way in. Naming the editor, as `SRCTREK_AGENT`
+names the agent, keeps srctrek from assuming one.
 
 ## 2026-11-02 — Editor requests answer with the view
 
@@ -132,7 +132,7 @@ list of triggers is useful on its own, as a map of how the code is used.
 ## 2026-10-27 — Asking in plain words builds a tour
 
 A user asks their agent for a tour in their own words; no command or tool name to learn.
-`trail mcp` tells the agent at connection, through MCP server instructions, to read the
+`trek mcp` tells the agent at connection, through MCP server instructions, to read the
 tour guide first, and the guide is a tool as well as a prompt. The `build_tour` prompt stays
 for agents that show prompts as commands.
 
@@ -141,7 +141,7 @@ agents don't show prompts at all; without the guide, tours come out unguided.
 
 ## 2026-10-26 — Uncommitted work only when asked for
 
-`trail` follows committed work by default. `--uncommitted` includes edits, staged or not,
+`trek` follows committed work by default. `--uncommitted` includes edits, staged or not,
 and new files git doesn't ignore, by snapshotting the working tree as a commit on top of HEAD
 and using it as the range's head. It comes with Milestone 3, when tours of work in progress
 are built before it's committed.
@@ -173,7 +173,7 @@ step.
 
 ## 2026-10-25 — Repos are named in the repos list; the agent proposes the rest
 
-A line in `.codetrail/repos` can name its repo (`payments = ../payments`), so a call to a
+A line in `.srctrek/repos` can name its repo (`payments = ../payments`), so a call to a
 service resolves to a repo without guessing. Repos the list doesn't have are proposed by the
 agent through `propose_repo`, each citing its evidence, and added on the user's approval.
 
@@ -195,17 +195,17 @@ first and design comes before front-end code. Replaces "VS Code after version 1"
 "Supported editors"; asking from the editor joins milestone 6 instead of being its own
 milestone. The Neovim prototype keeps working meanwhile.
 
-## 2026-10-24 — The .codetrail folder is committed, not ignored
+## 2026-10-24 — The .srctrek folder is committed, not ignored
 
-The .codetrail folder belongs in the repo: the repos list for the whole team, and tours that travel
+The .srctrek folder belongs in the repo: the repos list for the whole team, and tours that travel
 with a change. Committed tours must be portable, so repo sources are relative paths or URLs,
-never absolute local paths. This repo ignores the folder until codetrail writes portable
+never absolute local paths. This repo ignores the folder until srctrek writes portable
 tours; then the ignore goes.
 
 ## 2026-10-24 — Repos without changes: listed simply, or added while building
 
 A repo the route passes through without changes is given like any repo, minus a range: in
-the command, or in `.codetrail/repos`, a plain list of paths and URLs read automatically.
+the command, or in `.srctrek/repos`, a plain list of paths and URLs read automatically.
 While building, the agent can ask to add a repo it finds on the route; once the user
 approves, it's appended to the list. A workspace format was the alternative; a list of lines
 needs nothing to learn.
@@ -217,7 +217,7 @@ the link guessed; after about three rounds the build stops with the failures sho
 auto-fixing: it would hide the agent's mistakes from it. The one exception is checks that read
 the code, which downgrade a link to guessed rather than reject. Saving checks every rule, so a
 saved tour that fails to load is another format version (rebuild), stale (open with marked
-steps, update through the agent), unreachable, or a codetrail bug. Hand-written tours aren't
+steps, update through the agent), unreachable, or a srctrek bug. Hand-written tours aren't
 a case to design for.
 
 ## 2026-10-22 — Supported editors: Neovim, then VS Code and its forks
@@ -231,45 +231,45 @@ editors cover the intended users.
 ## 2026-10-22 — Editor protocol; editor integrations live in this repo
 
 Editors talk to core over JSON-RPC 2.0 on stdio with language-server framing, through
-`trail serve` started by the client. Core owns the stepping session and pushes
+`trek serve` started by the client. Core owns the stepping session and pushes
 ready-to-render payloads; clients hold no logic. An `initialize` handshake checks one integer
 protocol version. Messages are defined in core and covered by contract tests that run each
-editor client headless against `trail serve`. Specified in `docs/PROTOCOL.md`.
+editor client headless against `trek serve`. Specified in `docs/PROTOCOL.md`.
 
 Editor integrations live in an editors directory in this repo while the protocol changes;
 every protocol change then touches core and clients in one commit and one CI run. The Neovim
 plugin is mirrored into its own repo on release, because plugin managers install from a
 repo root. The VS Code extension needs no mirror.
 
-## 2026-10-22 — `trail` builds tours by launching the user's agent; existing code in version 1
+## 2026-10-22 — `trek` builds tours by launching the user's agent; existing code in version 1
 
-With no tour for a change, `trail` runs the user's agent headless with `trail mcp` attached,
+With no tour for a change, `trek` runs the user's agent headless with `trek mcp` attached,
 the same mechanism as asking from the editor. Without a change, it builds a tour of existing
 code from a trigger the user picks among the agent's proposals. Both join version 1. Any tour,
 however built, is validated on load.
 
 This restores the one-command flow that building through MCP gave up, still without a model
-call of codetrail's own, and covers the onboarding case: a repo the user doesn't know. Moves
+call of srctrek's own, and covers the onboarding case: a repo the user doesn't know. Moves
 "tours of existing code" from the roadmap into version 1.
 
 ## 2026-10-22 — The editor is where you step; the TUI is for everything around it
 
 The Neovim plugin is the main surface for following a tour. The TUI covers the rest: a home
 screen of tours and PRs awaiting review, a live view while a tour is built, a route map of
-the whole trail, and a fallback stepping view for editors without a plugin. Core runs as a
-long-lived `trail` process that editor plugins talk to over JSON on stdio.
+the whole trek, and a fallback stepping view for editors without a plugin. Core runs as a
+long-lived `trek` process that editor plugins talk to over JSON on stdio.
 
 In the spike, the controller pane went unused once Neovim could step on its own; a separate
-pane repeats what the editor shows. The TUI keeps codetrail usable without a supported
+pane repeats what the editor shows. The TUI keeps srctrek usable without a supported
 editor and gives the overview the editor can't. OpenTUI is reviewed after Milestone 2
 against the TUI's narrower role.
 
 ## 2026-10-22 — Questions are asked from the editor
 
-The user asks about the current step from the editor; `trail ask` runs the user's own agent
-headless with the step's context and `trail mcp` attached, and the answer comes back through
+The user asks about the current step from the editor; `trek ask` runs the user's own agent
+headless with the step's context and `trek mcp` attached, and the answer comes back through
 MCP, validated, and saved on the step. Asking from inside the agent's chat was the
-alternative; the user wants to stay in the editor. codetrail still makes no model call of
+alternative; the user wants to stay in the editor. srctrek still makes no model call of
 its own. Planned as Milestone 5.
 
 ## 2026-10-22 — Severity on flags; cross-repo links cite both sides
@@ -281,13 +281,13 @@ of a topic-name match across repos without marking it guessed.
 
 ## 2026-10-21 — Tours are built by the user's agent, through MCP
 
-`trail mcp` is an MCP server. It resolves repos and ranges, serves git-backed read tools at
+`trek mcp` is an MCP server. It resolves repos and ranges, serves git-backed read tools at
 the tour's revisions, serves the schema and prompts, and validates the tour the agent
-submits. codetrail makes no model call of its own in version 1.
+submits. srctrek makes no model call of its own in version 1.
 
-Codetrail's users already work with an agent, and that agent already has an exploration
+srctrek's users already work with an agent, and that agent already has an exploration
 loop, repo access, and a code host CLI; building a second loop is most of Milestone 3 and
-asks users for an API key. Replaces the earlier decision that codetrail calls a model API
+asks users for an API key. Replaces the earlier decision that srctrek calls a model API
 itself; that becomes a provider-neutral standalone builder in `docs/ROADMAP.md`. Costs: tour quality depends on
 the user's agent, and evals drive an agent headless.
 
@@ -343,8 +343,8 @@ mode stays possible but is no longer the expected next mode.
 
 ## 2026-10-20 — A cli package owns the entry point
 
-The `trail` binary's entry point moves out of `tui` into its own cli package in Milestone 2.
-With `trail --gui` later, an entry inside `tui` would make one front-end import the other,
+The `trek` binary's entry point moves out of `tui` into its own cli package in Milestone 2.
+With `trek --gui` later, an entry inside `tui` would make one front-end import the other,
 or duplicate argument parsing in each.
 
 ## 2026-10-20 — TypeScript 7 with oxlint + Prettier
@@ -372,7 +372,7 @@ core. Lets the GUI be added without touching core.
 
 ## 2026-10-20 — GUI later: local web front-end
 
-Served by the same binary (`trail --gui`), likely React, sharing core and the tour format.
+Served by the same binary (`trek --gui`), likely React, sharing core and the tour format.
 
 ## 2026-10-20 — TUI: OpenTUI with React
 
@@ -384,4 +384,4 @@ library embedded. Ink is the fallback.
 
 `bun build --compile` produces a single binary, so users need no Node, Bun, or Python.
 
-## 2026-10-20 — Name: codetrail, command `trail`
+## 2026-10-20 — Name: srctrek, command `trek`

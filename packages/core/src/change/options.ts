@@ -22,7 +22,7 @@ function codeTour(args: string[]): CodeTour | undefined {
 }
 
 /**
- * trail's options, and the words left for repos and changes. Options start with "-", which no
+ * trek's options, and the words left for repos and changes. Options start with "-", which no
  * git ref, path, or URL does.
  */
 export function readOptions(args: string[]): Options {

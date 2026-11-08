@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { readFileAt } from "@codetrail/core"
+import { readFileAt } from "@srctrek/core"
 import { type Expected, readExpected } from "../src/expected"
 import { buildFixture, fixtureNames } from "../src/fixture"
 

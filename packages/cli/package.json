@@ -1,11 +1,11 @@
 {
-  "name": "@codetrail/cli",
+  "name": "@srctrek/cli",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@codetrail/core": "workspace:*",
-    "@codetrail/mcp": "workspace:*",
-    "@codetrail/serve": "workspace:*",
-    "@codetrail/tui": "workspace:*"
+    "@srctrek/core": "workspace:*",
+    "@srctrek/mcp": "workspace:*",
+    "@srctrek/serve": "workspace:*",
+    "@srctrek/tui": "workspace:*"
   }
 }

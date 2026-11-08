@@ -1,4 +1,4 @@
-import type { TourEntry } from "@codetrail/core"
+import type { TourEntry } from "@srctrek/core"
 import * as vscode from "vscode"
 import { tourSummary } from "./view"
 
@@ -13,11 +13,11 @@ function itemOf(entry: TourEntry): vscode.TreeItem {
   }
   item.description = `${entry.title} · ${tourSummary(entry)}`
   item.tooltip = `${entry.title}\n${tourSummary(entry)}`
-  item.command = { command: "codetrail.openTour", title: "Open Tour", arguments: [entry.name] }
+  item.command = { command: "srctrek.openTour", title: "Open Tour", arguments: [entry.name] }
   return item
 }
 
-/** The codetrail sidebar's Tours view: the saved tours, each opening on a click. */
+/** The srctrek sidebar's Tours view: the saved tours, each opening on a click. */
 export function createToursView(
   listTours: () => Promise<readonly TourEntry[]>,
 ): ToursView & vscode.Disposable {
@@ -27,7 +27,7 @@ export function createToursView(
     getTreeItem: itemOf,
     getChildren: async (parent) => (parent === undefined ? [...(await listTours())] : []),
   }
-  const view = vscode.window.createTreeView("codetrail.tours", { treeDataProvider: provider })
+  const view = vscode.window.createTreeView("srctrek.tours", { treeDataProvider: provider })
 
   return {
     refresh: () => {

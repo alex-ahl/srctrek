@@ -7,20 +7,20 @@ import { tourPath } from "../tours"
 import { type BuildFiles, buildFiles } from "./files"
 
 /**
- * Where the agent's trail mcp appends its own lines to the build's log, each starting
- * "trail: ", next to what the agent prints.
+ * Where the agent's trek mcp appends its own lines to the build's log, each starting
+ * "trek: ", next to what the agent prints.
  */
-export const BUILD_LOG_ENV = "CODETRAIL_BUILD_LOG"
+export const BUILD_LOG_ENV = "SRCTREK_BUILD_LOG"
 
-/** How trail mcp's lines in a build log start, telling them from the agent's own output. */
-export const BUILD_LOG_PREFIX = "trail: "
+/** How trek mcp's lines in a build log start, telling them from the agent's own output. */
+export const BUILD_LOG_PREFIX = "trek: "
 
 /** Where a background build stands: running, saved its tour, or ended without one. */
 export type BuildState = "building" | "done" | "failed"
 
 /**
  * Starts the user's agent building a tour of the change `args` names, saved as `name`, or
- * updating the one saved as `name`. The agent runs on its own, so the build goes on if trail
+ * updating the one saved as `name`. The agent runs on its own, so the build goes on if trek
  * quits; its output goes to a log, and its exit code to a file when it ends.
  */
 export async function startBuild(
@@ -36,15 +36,15 @@ export async function startBuild(
 
   // The user's command line with the instruction as its last argument, as for asking, then
   // the agent's exit code written where buildState looks for it.
-  const script = `${agentCommand} "$CODETRAIL_PROMPT"; echo $? > "$CODETRAIL_EXIT"`
+  const script = `${agentCommand} "$SRCTREK_PROMPT"; echo $? > "$SRCTREK_EXIT"`
   const env = {
     ...process.env,
-    CODETRAIL_PROMPT: headlessBuildPrompt(args, name, mode),
-    CODETRAIL_EXIT: files.exit,
+    SRCTREK_PROMPT: headlessBuildPrompt(args, name, mode),
+    SRCTREK_EXIT: files.exit,
     [BUILD_LOG_ENV]: files.log,
   }
 
-  // Emptied, then opened for appending, so the agent's output and trail mcp's lines, written
+  // Emptied, then opened for appending, so the agent's output and trek mcp's lines, written
   // to the same file, never overwrite each other.
   writeFileSync(files.log, "")
   const log = openSync(files.log, "a")
@@ -93,8 +93,8 @@ export async function buildLogTail(root: string, name: string, count: number): P
 }
 
 /**
- * Whether the build's log says its tour was saved: trail mcp answers a saved tour with
- * "saved <path>". Builds from before trail mcp wrote to the log never say so.
+ * Whether the build's log says its tour was saved: trek mcp answers a saved tour with
+ * "saved <path>". Builds from before trek mcp wrote to the log never say so.
  */
 export async function buildSavedTour(root: string, name: string): Promise<boolean> {
   const files = await buildFiles(root, name)

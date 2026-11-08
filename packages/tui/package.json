@@ -1,12 +1,12 @@
 {
-  "name": "@codetrail/tui",
+  "name": "@srctrek/tui",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@codetrail/core": "workspace:*",
+    "@srctrek/core": "workspace:*",
     "@opentui/core": "0.8.1",
     "@opentui/react": "0.8.1",
     "react": "19.3.1"

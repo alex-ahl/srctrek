@@ -24,7 +24,7 @@ describe("codePaths", () => {
       "`bun run check`",
       "`main...HEAD`",
       "`@opentui/core`",
-      "`.codetrail/tours/<name>.json`",
+      "`.srctrek/tours/<name>.json`",
       "`$EDITOR`",
       "`build/progress`",
     ].join(" ")
@@ -70,7 +70,7 @@ describe("existenceIn", () => {
   })
 
   test("doesn't find what isn't in the list, such as gitignored files", () => {
-    expect(exists(".codetrail/")).toBe(false)
+    expect(exists(".srctrek/")).toBe(false)
     expect(exists("docs/MISSING.md")).toBe(false)
   })
 })

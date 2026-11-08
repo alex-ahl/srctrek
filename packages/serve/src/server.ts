@@ -7,7 +7,7 @@ import {
 import { answerRequest, newServeState } from "./requests"
 
 /**
- * `trail serve`: the editor protocol over stdin and stdout, for one editor stepping through
+ * `trek serve`: the editor protocol over stdin and stdout, for one editor stepping through
  * tours saved in `cwd`. Resolves once the editor closes stdin.
  */
 export function startServe(cwd: string): Promise<void> {

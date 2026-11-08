@@ -7,7 +7,7 @@ import {
   dismissProposal,
   loadProposals,
   loadTourEntries,
-} from "@codetrail/core"
+} from "@srctrek/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { useEffect, useState } from "react"
@@ -15,7 +15,7 @@ import { App } from "./app"
 import { openInNeovim } from "./neovim"
 import { openInPager } from "./pager"
 
-/** What the home screen needs for the change trail was started for. */
+/** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
   status: () => Promise<TourStatus>
   // starts building the change's tour; absent when no agent is set
@@ -110,7 +110,7 @@ function Home(props: HomeProps) {
 
 /**
  * The home screen: the tours saved under `root`, each opened in Neovim on enter, and where
- * the tour of the change trail was started for stands.
+ * the tour of the change trek was started for stands.
  */
 export async function startHome(root: string, change?: HomeChange): Promise<void> {
   const firstEntries = await loadTourEntries(root)

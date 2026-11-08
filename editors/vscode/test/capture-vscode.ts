@@ -19,7 +19,7 @@ await build("test/in-vscode/capture.ts", "capture.js")
 const { code, log } = await runVsCode({
   workspace: resolve(workspace),
   tests: "capture.js",
-  env: { CODETRAIL_TOUR: tour, CODETRAIL_SCREENS: screens },
+  env: { SRCTREK_TOUR: tour, SRCTREK_SCREENS: screens },
 })
 console.log(
   log

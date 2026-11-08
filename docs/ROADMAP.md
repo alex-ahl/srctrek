@@ -5,7 +5,7 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 ## Tours
 
 - **Producer tours:** the agent that wrote a change records its tour as it finishes.
-- **Tours travel with the PR:** committed on the branch in .codetrail/tours, once tours use
+- **Tours travel with the PR:** committed on the branch in .srctrek/tours, once tours use
   portable sources.
 - **Comparing tours:** a producer's and a reviewer's tour of the same change side by side;
   disagreements are where to look first.
@@ -16,18 +16,18 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
   step it passes through, like a debugger's watch expressions.
 - **Boundary cards:** on each hop, what the sender sends beside what the receiver expects
   (field, type, unit, required), with mismatches marked.
-- **Unvisited changes:** after the trail, the changed lines no step covered.
+- **Unvisited changes:** after the trek, the changed lines no step covered.
 - **Continue:** jump to the next changed step, or to the next high-severity flag.
 - **Diff toggle:** a step's lines before and after the change, inline.
 - **Route panel:** every step grouped by repo, with the current step and the hops marked;
   any step can be jumped to.
-- **Choosing a tour in Neovim:** `:Trail` without a name lists the saved tours with their
-  status in `vim.ui.select`, and `:Trail <Tab>` completes their names; until then tours are
+- **Choosing a tour in Neovim:** `:Trek` without a name lists the saved tours with their
+  status in `vim.ui.select`, and `:Trek <Tab>` completes their names; until then tours are
   chosen in the terminal.
 
 ## Building
 
-- Standalone builder: codetrail explores and calls a model API itself, with the provider
+- Standalone builder: srctrek explores and calls a model API itself, with the provider
   chosen by the user, for CI and for users without an agent.
 
 ## Sources
@@ -42,9 +42,9 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 
 - TUI sidebar mode: narration, call stack, watched values, and boundary cards in a pane, for
   an editor kept free of inline text.
-- `trail doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
+- `trek doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
 - Presenting: a tour walked through for a team, with large narration and the route map.
-- Web GUI served by the same binary (`trail --gui`).
+- Web GUI served by the same binary (`trek --gui`).
 - Several clients on one stepping session (the TUI's route map following the editor),
   through a local socket.
 
@@ -70,4 +70,4 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - The VS Code extension published to both the VS Code Marketplace and Open VSX, so forks can
   install it.
 - Versioning: release-please from Conventional Commits; semver covers the CLI, key
-  bindings, the tour format, and `.codetrail/repos`; 0.x until those settle.
+  bindings, the tour format, and `.srctrek/repos`; 0.x until those settle.

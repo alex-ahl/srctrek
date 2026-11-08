@@ -10,7 +10,7 @@ export const TRAIL_VERSION = "0.0.0"
 
 const nonEmpty = z.string().min(1)
 const none = z.object({}).strict().optional()
-// trail's arguments for the change as it is now; none means the current branch's change
+// trek's arguments for the change as it is now; none means the current branch's change
 const change = z
   .object({ args: z.array(z.string()).optional() })
   .strict()
@@ -25,7 +25,7 @@ export const RequestParams = {
     protocol_version: z.number().int(),
     client: z.object({ name: nonEmpty, version: nonEmpty }),
   }),
-  // a tour saved in the folder trail serve runs in, by name; with trail's arguments for the
+  // a tour saved in the folder trek serve runs in, by name; with trek's arguments for the
   // change as it is now, steps whose file has moved on are marked stale
   open: z.object({ tour: nonEmpty, args: z.array(z.string()).optional() }),
   next: none,
@@ -74,7 +74,7 @@ export function isMethod(method: string): method is Method {
 
 /** What to tell the user when a client speaks another protocol version: which side to update. */
 export function versionMismatch(clientVersion: number): string {
-  const older = clientVersion < PROTOCOL_VERSION ? "the editor plugin" : "trail"
+  const older = clientVersion < PROTOCOL_VERSION ? "the editor plugin" : "trek"
 
-  return `the editor plugin speaks protocol ${clientVersion}, trail speaks ${PROTOCOL_VERSION}: update ${older}`
+  return `the editor plugin speaks protocol ${clientVersion}, trek speaks ${PROTOCOL_VERSION}: update ${older}`
 }
