@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/editor-Neovim-36c6f4?style=flat-square&logo=neovim&logoColor=white" alt="Editor: Neovim">
   <img src="https://img.shields.io/badge/editor-VS%20Code-5ff0c0?style=flat-square" alt="Editor: VS Code">
   <img src="https://img.shields.io/badge/MCP-trek%20mcp-6b7cff?style=flat-square" alt="MCP server: trek mcp">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-36c6f4?style=flat-square" alt="License: MIT"></a>
 </p>
 
 A debugger session for code you haven't run. `trek` takes a change — a git range or pull
@@ -97,3 +98,7 @@ narration and call stack for each stop and the tour's predicted values in the co
   without an editor.
 
 Plans after version 1 are in `docs/ROADMAP.md`.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
