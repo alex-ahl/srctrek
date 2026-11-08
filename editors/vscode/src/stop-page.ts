@@ -74,17 +74,17 @@ function cameFromSection(view: StepView, codeAt: CodeAt): string {
   )
 }
 
-// The flag and where next goes, on one line under the narration.
+// The flag, then where next goes, each a line of its own under the narration.
+function flagLine(view: StepView): string {
+  if (!view.flag) {
+    return ""
+  }
+  const { severity, note } = view.flag
+  return `<p class="${severity}">${FLAG_WORDING[severity]} · ${escapeHtml(note)}</p>`
+}
+
 function nextLine(view: StepView): string {
-  const flag = view.flag
-    ? `<span class="${view.flag.severity}">${FLAG_WORDING[view.flag.severity]} · ${escapeHtml(view.flag.note)}</span>`
-    : ""
-  const next =
-    view.step_kind === "context" ? "" : `<span class="muted">${escapeHtml(whereNext(view))}</span>`
-  const parts = [flag, next].filter((part) => part !== "")
-  return parts.length === 0
-    ? ""
-    : `<p class="hints">${parts.join('<span class="muted"> · </span>')}</p>`
+  return view.step_kind === "context" ? "" : `<p class="muted">${escapeHtml(whereNext(view))}</p>`
 }
 
 function contextSection(view: StepView): string {
@@ -111,7 +111,7 @@ function questionsSection(view: StepView): string {
 
 function leadSection(view: StepView): string {
   const details = view.details === "" ? "" : `<p class="details">${escapeHtml(view.details)}</p>`
-  return `<section class="lead"><p>${escapeHtml(view.summary)}</p>${details}${nextLine(view)}</section>`
+  return `<section class="lead"><p>${escapeHtml(view.summary)}</p>${details}${flagLine(view)}${nextLine(view)}</section>`
 }
 
 const STYLE = `
@@ -123,7 +123,6 @@ const STYLE = `
   h3 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--vscode-descriptionForeground); margin: 0 0 0.4em; }
   .details { color: var(--vscode-descriptionForeground); white-space: pre-wrap; }
-  .hints { margin-top: 0.5em; }
   ul.rows { list-style: none; margin: 0; padding: 0; }
   ul.rows li { padding: 0.1em 0; }
   code { font-size: var(--vscode-editor-font-size); color: var(--vscode-descriptionForeground); }

@@ -18,8 +18,9 @@ test("the page opens with the narration, its details, then the flag and where ne
   expect(html).toContain(
     '<section class="lead"><p>Pays &lt;first&gt;.</p><p class="details">Why it pays first.</p>',
   )
-  expect(html).toContain('<span class="high">⚠ likely wrong · fixed</span>')
-  expect(html).toContain('<span class="muted">next: the end of the tour</span>')
+  expect(html).toContain(
+    '<p class="high">⚠ likely wrong · fixed</p><p class="muted">next: the end of the tour</p>',
+  )
 })
 
 test("the stack lists the newest frame first, links the older ones, and marks a hop", () => {
