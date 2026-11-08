@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import type { NextStop } from "@codetrail/core"
-import { callAt, callMarks, lineAbove, sameView } from "../src/view"
+import { callAt, callMarks, changedLinesShown, lineAbove, sameView } from "../src/view"
 import { call, stepWith } from "./support/views"
 
 test("the actions sit on the line above the step", () => {
@@ -44,4 +44,16 @@ test("a move answered with the step it started on went nowhere", () => {
 
   expect(sameView(view, view)).toBe(true)
   expect(sameView(view, { ...view, id: "s2" })).toBe(false)
+})
+
+test("changed lines are marked, except in a file the change adds whole", () => {
+  const changed_lines = [
+    { line: 2, change: "added" as const },
+    { line: 3, change: "changed" as const },
+    { line: 9, change: "added" as const },
+  ]
+  const view = stepWith([], toPay, { changed_lines })
+
+  expect(changedLinesShown(view, false, 4)).toEqual(changed_lines.slice(0, 2))
+  expect(changedLinesShown(view, true, 4)).toEqual([])
 })

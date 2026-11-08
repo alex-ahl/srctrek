@@ -1,6 +1,7 @@
 import type { SessionView, StepView, TourEntry } from "@codetrail/core"
 import * as vscode from "vscode"
 import { type Arrows, createArrows } from "./arrows"
+import { type ChangeMarks, createChangeMarks } from "./change-marks"
 import { type Move, TrailClient } from "./client"
 import { type InlineValues, createInlineValues } from "./inline-values"
 import { type StepLens, createStepLens } from "./step-lens"
@@ -17,6 +18,7 @@ let current: SessionView | undefined
 let stepTint: vscode.TextEditorDecorationType | undefined
 let arrows: Arrows | undefined
 let values: InlineValues | undefined
+let changeMarks: ChangeMarks | undefined
 let decorations: vscode.TextEditorDecorationType[] = []
 let status: vscode.StatusBarItem | undefined
 let stepLens: StepLens | undefined
@@ -58,8 +60,9 @@ async function showStep(view: StepView): Promise<void> {
   const place = placeOf(view)
   const uri = vscode.Uri.file(place.path)
   const editor = await vscode.window.showTextDocument(uri, { preview: false })
+  const newFile = isNewFileIn(editor.document, view)
   if (status !== undefined) {
-    status.text = statusText(view, stepTags(view, isNewFileIn(editor.document, view)))
+    status.text = statusText(view, stepTags(view, newFile))
   }
   const range = new vscode.Range(place.first, 0, place.last, 0)
   editor.selection = new vscode.Selection(place.first, 0, place.first, 0)
@@ -69,6 +72,7 @@ async function showStep(view: StepView): Promise<void> {
   }
   arrows?.show(editor, view)
   values?.show(editor, view)
+  changeMarks?.show(editor, view, newFile)
   if (view.tour_copy) {
     // the tour's version of a file, kept in trail's cache, isn't for editing
     await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
@@ -259,7 +263,9 @@ export function activate(context: vscode.ExtensionContext): void {
   arrows = callArrows
   const inlineValues = createInlineValues()
   values = inlineValues
-  decorations = [stepTint, ...callArrows.types, inlineValues.type]
+  const marks = createChangeMarks()
+  changeMarks = marks
+  decorations = [stepTint, ...callArrows.types, inlineValues.type, ...marks.types]
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
   const lens = createStepLens()
   stepLens = lens

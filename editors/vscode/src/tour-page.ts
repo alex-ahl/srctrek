@@ -20,6 +20,22 @@ const KEYS = [
   ["Shift+F11", "out of the function"],
 ] as const
 
+// What the tour draws in the code, each beside a sample of how it looks, said once here rather
+// than on every line.
+const ON_SCREEN = [
+  [`<span class="bar added"></span>`, "a line this change added"],
+  [`<span class="bar changed"></span>`, "a line this change edited"],
+  [
+    `<code class="value">name ≈ 40</code>`,
+    "a predicted value, worked out from the code, not run; ≈? when unsure",
+  ],
+  [`<code class="arrow">→</code>`, "a call next can step into; →? when the link is guessed"],
+  [
+    `<code class="lens">codetrail 2/5 · next ▸</code>`,
+    "above a stop: click to open the Stop view, or to step on",
+  ],
+] as const
+
 // The file's last two parts and its line, as the narration and Neovim write a place.
 function placeText(ref: FlaggedStep): string {
   const short = ref.file.split("/").slice(-2).join("/")
@@ -41,6 +57,9 @@ function flagCounts(flags: OverviewView["flags"]): string {
 
 function overviewBody(view: OverviewView): string {
   const keys = KEYS.map(([key, does]) => `<tr><th><kbd>${key}</kbd></th><td>${does}</td></tr>`)
+  const onScreen = ON_SCREEN.map(
+    ([sample, means]) => `<tr><th>${sample}</th><td>${means}</td></tr>`,
+  )
   return [
     `<h1>${escapeHtml(view.title)}</h1>`,
     `<p class="story">${escapeHtml(view.overview)}</p>`,
@@ -52,6 +71,8 @@ function overviewBody(view: OverviewView): string {
     "</table>",
     "<h2>Keys</h2>",
     `<table>${keys.join("")}</table>`,
+    "<h2>On screen</h2>",
+    `<table>${onScreen.join("")}</table>`,
     `<p class="muted">${String(view.count)} stops · F8 to start</p>`,
   ].join("\n")
 }
@@ -89,6 +110,12 @@ const STYLE = `
   .muted { margin-top: 1.6em; }
   ul.flags { list-style: none; padding: 0; }
   ul.flags li { margin-bottom: 0.8em; }
+  .bar { display: inline-block; width: 3px; height: 1.1em; margin-right: 4px; vertical-align: middle; }
+  .bar.added { background: var(--vscode-editorGutter-addedBackground); }
+  .bar.changed { background: var(--vscode-editorGutter-modifiedBackground); }
+  .value { color: var(--vscode-editorInlayHint-foreground); }
+  .arrow { color: var(--vscode-textLink-foreground); }
+  .lens { color: var(--vscode-editorCodeLens-foreground); }
 `
 
 /** The whole page; `nonce` lets only its own script run. */

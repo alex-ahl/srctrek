@@ -46,6 +46,16 @@ test("the overview tells the story, its trigger and outcome, repos, flags, and t
   expect(html).toContain("4 stops · F8 to start")
 })
 
+test("the overview says once what the tour draws in the code", () => {
+  const html = tourPageHtml(overview, "n0nce")
+
+  expect(html).toContain(
+    '<th><span class="bar added"></span></th><td>a line this change added</td>',
+  )
+  expect(html).toContain("a predicted value, worked out from the code, not run")
+  expect(html).toContain("a call next can step into; →? when the link is guessed")
+})
+
 test("the end lists each flag as a link to its stop", () => {
   const html = tourPageHtml(end, "n0nce")
 
