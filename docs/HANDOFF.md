@@ -138,6 +138,10 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   goes; then the call stack (only with two frames or a "started by"), came from with each cited
   line's code, context, and questions, under small uppercase labels. It leaves out what the status
   bar, the actions, or the code already show: the stop number and the values.
+- `bun scripts/showcase-repo.ts` makes a throwaway repo and prints its path; its tour "pay" uses
+  everything an editor shows: values of each role, a doubtful one, a flag of each severity, a stop
+  with two calls, a guessed link, context, a question, and a hop that starts a stack of its own.
+  Open it in an editor, or pass it to the VS Code capture as its workspace.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

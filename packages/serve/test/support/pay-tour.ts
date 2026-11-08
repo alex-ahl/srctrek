@@ -40,7 +40,7 @@ function buildersIn(repo: string) {
 
 // A repo holding `base`, then on branch feature a change committing `files` in order, with the
 // steps `stepsIn` gives for its repo saved as the tour "pay".
-async function repoWithSteps(
+export async function repoWithSteps(
   files: [string, string][],
   stepsIn: (builders: ReturnType<typeof buildersIn>) => SubmittedStep[],
   base: [string, string][] = [],

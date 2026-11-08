@@ -1,6 +1,7 @@
 import { afterEach, expect, test } from "bun:test"
 import { join } from "node:path"
 import { repoWithTour } from "../../../packages/serve/test/support/pay-tour"
+import { repoWithShowcase } from "../../../packages/serve/test/support/showcase-tour"
 import { TrailClient } from "../src/client"
 import { statusText } from "../src/view"
 
@@ -28,4 +29,19 @@ test("speaks the protocol version trail serve expects", async () => {
   client = new TrailClient(["bun", TRAIL, "serve"], await repoWithTour())
 
   expect(await client.initialize()).toMatchObject({ protocol_version: 1 })
+})
+
+test("the showcase tour ends in a hop that starts a stack of its own", async () => {
+  client = new TrailClient(["bun", TRAIL, "serve"], await repoWithShowcase())
+  await client.initialize()
+  await client.open("pay")
+  for (let stop = 1; stop < 5; stop++) {
+    await client.move("next")
+  }
+
+  expect(await client.move("next")).toMatchObject({
+    kind: "step",
+    step_kind: "hop",
+    started_by: { name: "publish" },
+  })
 })
