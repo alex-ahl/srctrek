@@ -1,7 +1,7 @@
 // Runs the extension's checks inside the installed VS Code on a repo holding the two-call pay
-// tour. Prints each check, and VS Code's log too when one fails, and exits non-zero then.
+// trek. Prints each check, and VS Code's log too when one fails, and exits non-zero then.
 //   bun editors/vscode/test/run-in-vscode.ts
-import { repoWithTwoCalls } from "../../../packages/serve/test/support/pay-tour"
+import { repoWithTwoCalls } from "../../../packages/serve/test/support/pay-trek"
 import { build, runVsCode } from "./launch"
 
 // The checks' own lines; VS Code's logging only when something failed, as it's mostly its own

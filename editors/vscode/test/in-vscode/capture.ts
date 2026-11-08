@@ -1,4 +1,4 @@
-// Runs inside VS Code, loaded by capture-vscode.ts: opens the tour SRCTREK_TOUR names and
+// Runs inside VS Code, loaded by capture-vscode.ts: opens the trek SRCTREK_TREK names and
 // captures VS Code's window into SRCTREK_SCREENS at the overview, each stop, and the end.
 import { strict as assert } from "node:assert"
 import { execFile } from "node:child_process"
@@ -11,7 +11,7 @@ import { useTestServe } from "./serve"
 const execute = promisify(execFile)
 // the Stop view, the actions above the step, and the decorations draw after the command returns
 const SETTLE_MS = 800
-// a tour with more stops than this is a loop that never reaches its end
+// a trek with more stops than this is a loop that never reaches its end
 const MOST_STOPS = 200
 
 // The id of the biggest window VS Code's main process, the extension host's parent, has on
@@ -59,14 +59,14 @@ async function step(command: string, argument?: string): Promise<SessionView> {
 }
 
 export async function run(): Promise<void> {
-  const tour = process.env["SRCTREK_TOUR"]
+  const trek = process.env["SRCTREK_TREK"]
   const dir = process.env["SRCTREK_SCREENS"]
-  assert.ok(tour && dir, "SRCTREK_TOUR and SRCTREK_SCREENS name the tour and where to save")
+  assert.ok(trek && dir, "SRCTREK_TREK and SRCTREK_SCREENS name the trek and where to save")
   await useTestServe()
   // VS Code's own notice that the user's extensions are off for this run
   await vscode.commands.executeCommand("notifications.clearAll")
 
-  let view = await step("srctrek.openTour", tour)
+  let view = await step("srctrek.openTrek", trek)
   await capture(dir, 0, view)
   for (let index = 1; view.kind !== "end" && index <= MOST_STOPS; index++) {
     view = await step("srctrek.next")

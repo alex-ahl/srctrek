@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { buildState, resolveChange, startBuild, tourStatus } from "../../src"
-import { changeOf, makeBranchRepo, saveTourOf } from "../support/branch"
+import { buildState, resolveChange, startBuild, trekStatus } from "../../src"
+import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
 import { commit } from "../support/repo"
 import { makeCacheDir } from "../support/remote"
 
@@ -12,11 +12,11 @@ async function untilEnded(root: string, name: string): Promise<void> {
   }
 }
 
-describe("tourStatus", () => {
-  test("is missing before any build, under the name a new tour would get", async () => {
+describe("trekStatus", () => {
+  test("is missing before any build, under the name a new trek would get", async () => {
     const dir = await makeBranchRepo()
 
-    expect(await tourStatus(dir, await changeOf(dir))).toEqual({
+    expect(await trekStatus(dir, await changeOf(dir))).toEqual({
       kind: "missing",
       name: "feature-refunds",
     })
@@ -25,26 +25,26 @@ describe("tourStatus", () => {
   test("is empty when the branch hasn't moved from where it left the base", async () => {
     const dir = await makeBranchRepo()
 
-    expect(await tourStatus(dir, await changeOf(dir, "HEAD..HEAD"))).toEqual({
+    expect(await trekStatus(dir, await changeOf(dir, "HEAD..HEAD"))).toEqual({
       kind: "empty",
       name: "feature-refunds",
     })
   })
 
-  test("is ready once a tour of the change is saved, whatever its name", async () => {
+  test("is ready once a trek of the change is saved, whatever its name", async () => {
     const dir = await makeBranchRepo()
     const change = await changeOf(dir)
-    await saveTourOf(dir, change, "my-refunds")
+    await saveTrekOf(dir, change, "my-refunds")
 
-    expect(await tourStatus(dir, change)).toEqual({ kind: "ready", name: "my-refunds" })
+    expect(await trekStatus(dir, change)).toEqual({ kind: "ready", name: "my-refunds" })
   })
 
   test("is ready again for the same uncommitted work", async () => {
     const dir = await makeBranchRepo()
     await writeFile(join(dir, "app.ts"), "const total = 300\n")
-    await saveTourOf(dir, await changeOf(dir, "", true), "work-in-progress")
+    await saveTrekOf(dir, await changeOf(dir, "", true), "work-in-progress")
 
-    expect(await tourStatus(dir, await changeOf(dir, "", true))).toEqual({
+    expect(await trekStatus(dir, await changeOf(dir, "", true))).toEqual({
       kind: "ready",
       name: "work-in-progress",
     })
@@ -55,34 +55,34 @@ describe("tourStatus", () => {
     const change = await changeOf(dir)
     await startBuild(dir, [], "feature-refunds", "sleep 0.3; echo 'cannot reach the server'; false")
 
-    expect(await tourStatus(dir, change)).toEqual({
+    expect(await trekStatus(dir, change)).toEqual({
       kind: "building",
       name: "feature-refunds",
       logTail: [],
     })
     await untilEnded(dir, "feature-refunds")
-    expect(await tourStatus(dir, change)).toEqual({
+    expect(await trekStatus(dir, change)).toEqual({
       kind: "failed",
       name: "feature-refunds",
       logTail: ["cannot reach the server"],
     })
   })
 
-  test("is missing again when a build saved its tour and the tour was then removed", async () => {
+  test("is missing again when a build saved its trek and the trek was then removed", async () => {
     const dir = await makeBranchRepo()
     const change = await changeOf(dir)
     await startBuild(
       dir,
       [],
       "feature-refunds",
-      "echo 'trek: saved .srctrek/tours/feature-refunds.json'; true",
+      "echo 'trek: saved .srctrek/treks/feature-refunds.json'; true",
     )
     await untilEnded(dir, "feature-refunds")
 
-    expect(await tourStatus(dir, change)).toEqual({ kind: "missing", name: "feature-refunds" })
+    expect(await trekStatus(dir, change)).toEqual({ kind: "missing", name: "feature-refunds" })
   })
 
-  test("a code tour is named after its trigger, found again, and stale once the code moves on", async () => {
+  test("a code trek is named after its trigger, found again, and stale once the code moves on", async () => {
     const dir = await makeBranchRepo()
     const codeOf = async () =>
       resolveChange(
@@ -96,16 +96,16 @@ describe("tourStatus", () => {
         await makeCacheDir(),
       )
 
-    expect(await tourStatus(dir, await codeOf())).toEqual({
+    expect(await trekStatus(dir, await codeOf())).toEqual({
       kind: "missing",
       name: "a-refund-request",
     })
 
-    await saveTourOf(dir, await codeOf(), "a-refund-request")
-    expect((await tourStatus(dir, await codeOf())).kind).toBe("ready")
+    await saveTrekOf(dir, await codeOf(), "a-refund-request")
+    expect((await trekStatus(dir, await codeOf())).kind).toBe("ready")
 
     await commit(dir, "app.ts", "const total = 300\n")
-    expect(await tourStatus(dir, await codeOf())).toEqual({
+    expect(await trekStatus(dir, await codeOf())).toEqual({
       kind: "stale",
       name: "a-refund-request",
       staleSteps: 1,
@@ -115,10 +115,10 @@ describe("tourStatus", () => {
 
   test("is stale once the branch moves on, counting the steps whose files changed", async () => {
     const dir = await makeBranchRepo()
-    await saveTourOf(dir, await changeOf(dir), "feature-refunds")
+    await saveTrekOf(dir, await changeOf(dir), "feature-refunds")
 
     await commit(dir, "README.md", "more docs\n")
-    expect(await tourStatus(dir, await changeOf(dir))).toEqual({
+    expect(await trekStatus(dir, await changeOf(dir))).toEqual({
       kind: "stale",
       name: "feature-refunds",
       staleSteps: 0,
@@ -126,19 +126,19 @@ describe("tourStatus", () => {
     })
 
     await commit(dir, "app.ts", "const total = 300\n")
-    expect(await tourStatus(dir, await changeOf(dir))).toMatchObject({
+    expect(await trekStatus(dir, await changeOf(dir))).toMatchObject({
       kind: "stale",
       staleSteps: 1,
     })
   })
 
-  test("is building while a stale tour is updated", async () => {
+  test("is building while a stale trek is updated", async () => {
     const dir = await makeBranchRepo()
-    await saveTourOf(dir, await changeOf(dir), "feature-refunds")
+    await saveTrekOf(dir, await changeOf(dir), "feature-refunds")
     await commit(dir, "app.ts", "const total = 300\n")
 
     await startBuild(dir, [], "feature-refunds", "sleep 1; true")
-    expect((await tourStatus(dir, await changeOf(dir))).kind).toBe("building")
+    expect((await trekStatus(dir, await changeOf(dir))).kind).toBe("building")
     await untilEnded(dir, "feature-refunds")
   })
 })

@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
-import { callStacks, parseTour } from "../src"
+import { callStacks, parseTrek } from "../src"
 
-const fixturePath = join(import.meta.dir, "fixtures/refund-tour.json")
-const tour = parseTour(await Bun.file(fixturePath).json(), fixturePath)
-const { stacks, beneath, continues, answeredHops, misplacedReturns } = callStacks(tour.steps)
+const fixturePath = join(import.meta.dir, "fixtures/refund-trek.json")
+const trek = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
+const { stacks, beneath, continues, answeredHops, misplacedReturns } = callStacks(trek.steps)
 
 describe("callStacks", () => {
   test("puts a call on top of the step it came from", () => {
@@ -43,12 +43,12 @@ describe("callStacks", () => {
 
   test("follows a return that takes the place of a hop back to the hop's caller", () => {
     // the api's server writes the 202 (s13b), then the response is back in web's action (s14)
-    const answered = tour.steps.find((step) => step.id === "s14")
+    const answered = trek.steps.find((step) => step.id === "s14")
     if (answered === undefined) {
       throw new Error("no s14")
     }
     const written = { ...answered, id: "s13b", repo: "api", file: "src/server.ts", from: "s11" }
-    const steps = tour.steps.flatMap((step) =>
+    const steps = trek.steps.flatMap((step) =>
       step.id === "s14" ? [written, { ...step, from: "s13b" }] : [step],
     )
 
@@ -62,7 +62,7 @@ describe("callStacks", () => {
   })
 
   test("stacks a return that comes back to no frame as a call, and reports it", () => {
-    const steps = tour.steps.map((step) =>
+    const steps = trek.steps.map((step) =>
       step.id === "s18" ? { ...step, kind: "return" as const } : step,
     )
 

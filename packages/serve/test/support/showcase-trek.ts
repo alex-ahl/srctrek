@@ -1,7 +1,7 @@
 import type { SubmittedStep } from "@srctrek/core"
-import { repoWithSteps } from "./pay-tour"
+import { repoWithSteps } from "./pay-trek"
 
-// A small refund flow whose tour, "pay", uses everything an editor shows: predicted values (an
+// A small refund flow whose trek, "pay", uses everything an editor shows: predicted values (an
 // argument, an assignment, a return, a doubtful one), a flag of each severity, a step with two
 // calls, a guessed link, context, a question, a hop that starts a stack of its own, and a file the
 // change edits rather than adds. The code is typed and complete, so an editor shows no errors.

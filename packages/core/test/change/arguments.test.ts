@@ -60,7 +60,7 @@ describe("readChangeArguments", () => {
     expect(() => read("--staged")).toThrow("unknown option --staged")
   })
 
-  test("reads --code as a tour of code as it is, with its trigger when named", () => {
+  test("reads --code as a trek of code as it is, with its trigger when named", () => {
     expect(read("--code")).toEqual({
       changes: [],
       unchanged: [current],
@@ -78,10 +78,10 @@ describe("readChangeArguments", () => {
 
   test("says --code takes repos, not ranges or pull requests", () => {
     expect(() => read("--code", "main...feature")).toThrow(
-      "--code tours code as it is, so it takes repos, not ranges: main...feature",
+      "--code walks code as it is, so it takes repos, not ranges: main...feature",
     )
     expect(() => read("--code", "https://github.com/acme/pay/pull/12")).toThrow(
-      "--code tours code as it is, so it takes repos, not pull requests",
+      "--code walks code as it is, so it takes repos, not pull requests",
     )
   })
 

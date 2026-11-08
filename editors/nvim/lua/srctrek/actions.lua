@@ -10,5 +10,5 @@ return {
   { name = "context", command = "TrekContext", desc = "context code: contracts, types, where data came from" },
   { name = "details", command = "TrekDetails", desc = "details: where it came from, flags, values" },
   { name = "values", command = "TrekValues", desc = "show or hide predicted values" },
-  { name = "quit", command = "TrekQuit", desc = "end the tour" },
+  { name = "quit", command = "TrekQuit", desc = "end the trek" },
 }

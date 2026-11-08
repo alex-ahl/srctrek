@@ -16,15 +16,15 @@ import {
   stepTo,
   versionMismatch,
 } from "@srctrek/core"
-import { buildTour, logOf, toursIn } from "./change"
+import { buildTrek, logOf, treksIn } from "./change"
 import { RequestError } from "./errors"
-import { type OpenTour, openTour } from "./open"
+import { type OpenTrek, openTrek } from "./open"
 
 /** What trek serve holds between requests. */
 export type ServeState = {
   readonly cwd: string
   readonly initialized: boolean
-  readonly open: OpenTour | undefined
+  readonly open: OpenTrek | undefined
 }
 
 /** A request's answer: its result, or why it failed. */
@@ -53,25 +53,25 @@ function initialize(state: ServeState, clientVersion: number): Moved {
   return { state: { ...state, initialized: true }, result }
 }
 
-// The state with the open tour moved to `session`, and its view as the answer.
-function moved(open: OpenTour, state: ServeState, session: SteppingSession): Moved {
+// The state with the open trek moved to `session`, and its view as the answer.
+function moved(open: OpenTrek, state: ServeState, session: SteppingSession): Moved {
   return {
     state: { ...state, open: { ...open, session } },
     result: sessionView(session, open.context),
   }
 }
 
-// The step `goto` names, which must be one of the tour's.
+// The step `goto` names, which must be one of the trek's.
 function gotoStep(session: SteppingSession, params: unknown): SteppingSession {
   const { step } = RequestParams.goto.parse(params)
-  if (!session.tour.steps.some((s) => s.id === step)) {
-    throw new RequestError(ErrorCode.unknownStep, `the tour has no step ${step}`)
+  if (!session.trek.steps.some((s) => s.id === step)) {
+    throw new RequestError(ErrorCode.unknownStep, `the trek has no step ${step}`)
   }
 
   return stepTo(session, step)
 }
 
-type AboutChange = "tours" | "build" | "log"
+type AboutChange = "treks" | "build" | "log"
 type Move = Exclude<Method, "initialize" | "open" | AboutChange>
 
 // Each move, from the session and the request's params, already checked.
@@ -87,20 +87,20 @@ const MOVES: Record<Move, (session: SteppingSession, params: unknown) => Steppin
 function move(state: ServeState, method: Move, params: unknown): Moved {
   const open = state.open
   if (open === undefined) {
-    throw new RequestError(ErrorCode.noTour, "no tour is open: send open first")
+    throw new RequestError(ErrorCode.noTrek, "no trek is open: send open first")
   }
 
   return moved(open, state, MOVES[method](open.session, params))
 }
 
-// Requests about the change and its saved tours, from the params already checked; they leave
+// Requests about the change and its saved treks, from the params already checked; they leave
 // the session as it is.
 const ABOUT_CHANGE: Record<AboutChange, (cwd: string, params: unknown) => Promise<unknown>> = {
-  tours: (cwd, params) => toursIn(cwd, RequestParams.tours.parse(params)?.args ?? []),
-  build: (cwd, params) => buildTour(cwd, RequestParams.build.parse(params)?.args ?? []),
+  treks: (cwd, params) => treksIn(cwd, RequestParams.treks.parse(params)?.args ?? []),
+  build: (cwd, params) => buildTrek(cwd, RequestParams.build.parse(params)?.args ?? []),
   log: (cwd, params) => {
-    const { tour, lines } = RequestParams.log.parse(params)
-    return logOf(cwd, tour, lines)
+    const { trek, lines } = RequestParams.log.parse(params)
+    return logOf(cwd, trek, lines)
   },
 }
 
@@ -118,8 +118,8 @@ async function carryOut(state: ServeState, method: Method, params: unknown): Pro
   }
 
   if (method === "open") {
-    const { tour, args } = RequestParams.open.parse(params)
-    const open = await openTour(state.cwd, tour, args)
+    const { trek, args } = RequestParams.open.parse(params)
+    const open = await openTrek(state.cwd, trek, args)
     return { state: { ...state, open }, result: sessionView(open.session, open.context) }
   }
 

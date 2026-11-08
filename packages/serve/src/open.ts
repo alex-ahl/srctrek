@@ -1,32 +1,32 @@
 import {
   ErrorCode,
   type SteppingSession,
-  TourValidationError,
+  TrekValidationError,
   UnreachableRepoError,
   type ViewContext,
-  loadTour,
+  loadTrek,
   openSession,
-  tourPath,
+  trekPath,
   viewContext,
 } from "@srctrek/core"
 import { existsSync } from "node:fs"
 import { changeNow } from "./change"
 import { RequestError } from "./errors"
 
-/** A tour open for stepping: its session, and what its view needs from git. */
-export type OpenTour = { session: SteppingSession; context: ViewContext }
+/** A trek open for stepping: its session, and what its view needs from git. */
+export type OpenTrek = { session: SteppingSession; context: ViewContext }
 
 async function loadNamed(cwd: string, name: string) {
-  const path = tourPath(cwd, name)
+  const path = trekPath(cwd, name)
   if (!existsSync(path)) {
-    throw new RequestError(ErrorCode.noTour, `no tour named ${name} in ${cwd}`)
+    throw new RequestError(ErrorCode.noTrek, `no trek named ${name} in ${cwd}`)
   }
 
   try {
-    return await loadTour(path)
+    return await loadTrek(path)
   } catch (error) {
-    if (error instanceof TourValidationError) {
-      throw new RequestError(ErrorCode.invalidTour, error.message)
+    if (error instanceof TrekValidationError) {
+      throw new RequestError(ErrorCode.invalidTrek, error.message)
     }
 
     throw error
@@ -34,16 +34,16 @@ async function loadNamed(cwd: string, name: string) {
 }
 
 /**
- * The tour saved under `name` in `cwd`, open at its overview; with trek's `args`, the change
+ * The trek saved under `name` in `cwd`, open at its overview; with trek's `args`, the change
  * as it is now marks the steps whose file has moved on.
  */
-export async function openTour(cwd: string, name: string, args?: string[]): Promise<OpenTour> {
-  const tour = await loadNamed(cwd, name)
+export async function openTrek(cwd: string, name: string, args?: string[]): Promise<OpenTrek> {
+  const trek = await loadNamed(cwd, name)
   const change = args === undefined ? undefined : await changeNow(cwd, args)
 
   try {
-    const context = await viewContext(cwd, tour, change === undefined ? {} : { change })
-    return { session: openSession(tour), context }
+    const context = await viewContext(cwd, trek, change === undefined ? {} : { change })
+    return { session: openSession(trek), context }
   } catch (error) {
     if (error instanceof UnreachableRepoError) {
       throw new RequestError(ErrorCode.unreachableRepo, error.message)

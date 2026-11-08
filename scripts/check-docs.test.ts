@@ -24,7 +24,7 @@ describe("codePaths", () => {
       "`bun run check`",
       "`main...HEAD`",
       "`@opentui/core`",
-      "`.srctrek/tours/<name>.json`",
+      "`.srctrek/treks/<name>.json`",
       "`$EDITOR`",
       "`build/progress`",
     ].join(" ")

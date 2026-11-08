@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test"
-import type { ProposedRepo, TourEntry } from "@srctrek/core"
+import type { ProposedRepo, TrekEntry } from "@srctrek/core"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
 import { pressEnterOn, pressKeyOn, pressOn } from "./support/keys"
@@ -11,7 +11,7 @@ const payments: ProposedRepo = {
   reason: "the client posts refunds to the payments service",
   evidence: [{ repo: "web", file: "src/pay.ts", line: 30 }],
 }
-const refund: TourEntry = {
+const refund: TrekEntry = {
   name: "refund",
   path: "/t/refund.json",
   valid: true,
@@ -62,7 +62,7 @@ test("enter on a proposed repo adds it; d dismisses it", async () => {
   expect(dismiss).toHaveBeenCalledWith("payments")
 })
 
-test("d on a tour does nothing", async () => {
+test("d on a trek does nothing", async () => {
   const dismiss = mock((_name: string) => undefined)
 
   await pressKeyOn(

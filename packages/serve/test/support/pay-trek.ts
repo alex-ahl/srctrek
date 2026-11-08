@@ -2,10 +2,10 @@ import { expect } from "bun:test"
 import {
   type SubmittedStep,
   addSteps,
-  draftToTour,
+  draftToTrek,
   newDraft,
   runGit,
-  saveTour,
+  saveTrek,
 } from "@srctrek/core"
 import { changeOf } from "../../../core/test/support/branch"
 import { commit, makeRepo } from "../../../core/test/support/repo"
@@ -39,7 +39,7 @@ function buildersIn(repo: string) {
 }
 
 // A repo holding `base`, then on branch feature a change committing `files` in order, with the
-// steps `stepsIn` gives for its repo saved as the tour "pay".
+// steps `stepsIn` gives for its repo saved as the trek "pay".
 export async function repoWithSteps(
   files: [string, string][],
   stepsIn: (builders: ReturnType<typeof buildersIn>) => SubmittedStep[],
@@ -58,14 +58,14 @@ export async function repoWithSteps(
   const steps = stepsIn(buildersIn(change.repos[0]?.name ?? ""))
   const { draft, problems } = await addSteps(newDraft(change, header), steps)
   expect(problems).toEqual([])
-  await saveTour(dir, "pay", draftToTour(draft))
+  await saveTrek(dir, "pay", draftToTrek(draft))
 
   return dir
 }
 
 // main.ts calls pay in pay.ts and carries on: main (s1) calls pay (s2), which returns to main
 // (s3). pay is named, predicts its result, and carries a high flag.
-export function repoWithTour(): Promise<string> {
+export function repoWithTrek(): Promise<string> {
   const files: [string, string][] = [
     ["pay.ts", "export function pay() {\n  return 250\n}\n"],
     ["main.ts", "const total = pay()\nconsole.log(total)\n"],
@@ -161,7 +161,7 @@ export function repoWithEdit(): Promise<string> {
 export const LONG_VALUE = "250 öre, read from the order total after rounding half up"
 
 // One step whose narration runs to several sentences, longer than a band line, with a long value
-// the tour doubts.
+// the trek doubts.
 export const LONG_NARRATION = Array.from(
   { length: 6 },
   (_, i) => `Sentence ${i + 1} says what happens at this stop and why it matters for paying.`,

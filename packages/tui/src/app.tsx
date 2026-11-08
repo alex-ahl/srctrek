@@ -1,4 +1,4 @@
-import type { ProposedRepo, TourEntry, TourStatus } from "@srctrek/core"
+import type { ProposedRepo, TrekEntry, TrekStatus } from "@srctrek/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { useState } from "react"
 import { ChangeStatus } from "./change-status"
@@ -10,14 +10,14 @@ import { visibleWindow } from "./window"
 type Action = (() => void) | undefined
 
 type Props = {
-  entries: TourEntry[]
-  onOpen: (entry: TourEntry) => void
+  entries: TrekEntry[]
+  onOpen: (entry: TrekEntry) => void
   onQuit: () => void
   // where the change trek was started for stands; absent when there's none to show
-  status?: TourStatus | undefined
-  // starts building the change's tour; absent when no agent is set
+  status?: TrekStatus | undefined
+  // starts building the change's trek; absent when no agent is set
   onBuild?: (() => void) | undefined
-  // starts building the tour of a trigger found in the code; absent when no agent is set
+  // starts building the trek of a trigger found in the code; absent when no agent is set
   onBuildTrigger?: ((trigger: string) => void) | undefined
   // shows the full log of the build with this name
   onShowLog?: ((name: string) => void) | undefined
@@ -28,16 +28,16 @@ type Props = {
   onDismissRepo?: ((name: string) => void) | undefined
 }
 
-type WithLog = Extract<TourStatus, { kind: "building" | "failed" }>
+type WithLog = Extract<TrekStatus, { kind: "building" | "failed" }>
 
 // A build's log is worth reading while it runs, and after it failed.
-function hasLog(status: TourStatus | undefined): status is WithLog {
+function hasLog(status: TrekStatus | undefined): status is WithLog {
   return status?.kind === "building" || status?.kind === "failed"
 }
 
-// A build can start when the change has no tour yet, its last build failed, or its tour is out
+// A build can start when the change has no trek yet, its last build failed, or its trek is out
 // of date and can be updated.
-function canStartBuild(status: TourStatus | undefined): boolean {
+function canStartBuild(status: TrekStatus | undefined): boolean {
   return status?.kind === "missing" || status?.kind === "failed" || status?.kind === "stale"
 }
 
@@ -52,7 +52,7 @@ function addAction(proposal: ProposedRepo, props: Props, askLocation: (name: str
   return source === undefined ? () => askLocation(name) : () => onAddRepo(name)
 }
 
-// What enter does on a row: add a proposed repo; open a tour; on a trigger, open its tour or
+// What enter does on a row: add a proposed repo; open a trek; on a trigger, open its trek or
 // build it.
 function pickAction(row: Row, props: Props, askLocation: (name: string) => void): Action {
   const { entries, onOpen, onBuildTrigger } = props
@@ -60,32 +60,32 @@ function pickAction(row: Row, props: Props, askLocation: (name: string) => void)
     return addAction(row.proposal, props, askLocation)
   }
 
-  if (row.kind === "tour") {
+  if (row.kind === "trek") {
     return row.entry.valid ? () => onOpen(row.entry) : undefined
   }
 
-  const { trigger, tour } = row.found
-  if (tour.kind === "ready") {
-    const entry = entries.find((e) => e.name === tour.name)
+  const { trigger, trek } = row.found
+  if (trek.kind === "ready") {
+    const entry = entries.find((e) => e.name === trek.name)
     return entry?.valid ? () => onOpen(entry) : undefined
   }
 
-  return canStartBuild(tour) && onBuildTrigger ? () => onBuildTrigger(trigger.name) : undefined
+  return canStartBuild(trek) && onBuildTrigger ? () => onBuildTrigger(trigger.name) : undefined
 }
 
 // Whose build log l shows: the selected trigger's, when it has one, else the change's.
-function logName(row: Row | undefined, status: TourStatus | undefined): string | undefined {
-  if (row?.kind === "trigger" && hasLog(row.found.tour)) {
-    return row.found.tour.name
+function logName(row: Row | undefined, status: TrekStatus | undefined): string | undefined {
+  if (row?.kind === "trigger" && hasLog(row.found.trek)) {
+    return row.found.trek.name
   }
 
   return hasLog(status) ? status.name : undefined
 }
 
-// What b does, when it does anything: "build" a tour, or "update" an out-of-date one.
+// What b does, when it does anything: "build" a trek, or "update" an out-of-date one.
 type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
 
-function buildVerb(status: TourStatus | undefined): string {
+function buildVerb(status: TrekStatus | undefined): string {
   return status?.kind === "stale" ? "update" : "build"
 }
 
@@ -103,9 +103,9 @@ function enterLabel(row: Row | undefined): string {
     return "add to the repos list"
   }
 
-  const buildsTrigger = row?.kind === "trigger" && row.found.tour.kind !== "ready"
+  const buildsTrigger = row?.kind === "trigger" && row.found.trek.kind !== "ready"
 
-  return buildsTrigger ? "build its tour" : "open in Neovim"
+  return buildsTrigger ? "build its trek" : "open in Neovim"
 }
 
 // What each key does on the selected row; undefined where it does nothing.
@@ -143,9 +143,9 @@ export function App(props: Props) {
   // the proposed repo whose location the user is typing, while they are
   const [placing, setPlacing] = useState<string | undefined>(undefined)
 
-  // Until the user moves, the change's tour is the one picked out, once it's listed.
+  // Until the user moves, the change's trek is the one picked out, once it's listed.
   const readyIndex = rows.findIndex(
-    (row) => status?.kind === "ready" && row.kind === "tour" && row.entry.name === status.name,
+    (row) => status?.kind === "ready" && row.kind === "trek" && row.entry.name === status.name,
   )
   const selected = chosen ?? Math.max(readyIndex, 0)
   const row = rows[selected]
@@ -186,7 +186,7 @@ export function App(props: Props) {
       )}
       <box flexDirection="column" style={{ flexGrow: 1, overflow: "hidden" }}>
         {rows.length === 0 ? (
-          <text>No tours in .srctrek/tours. Press q to quit.</text>
+          <text>No treks in .srctrek/treks. Press q to quit.</text>
         ) : (
           rows
             .slice(start, end)

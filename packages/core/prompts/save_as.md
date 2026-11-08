@@ -1,1 +1,1 @@
-Save the finished tour with finish_tour as `{{name}}`.
+Save the finished trek with finish_trek as `{{name}}`.

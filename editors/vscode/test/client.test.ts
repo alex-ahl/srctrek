@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test"
 import { join } from "node:path"
-import { repoWithTour } from "../../../packages/serve/test/support/pay-tour"
-import { repoWithShowcase } from "../../../packages/serve/test/support/showcase-tour"
+import { repoWithTrek } from "../../../packages/serve/test/support/pay-trek"
+import { repoWithShowcase } from "../../../packages/serve/test/support/showcase-trek"
 import { TrekClient } from "../src/client"
 import { statusText } from "../src/view"
 
@@ -11,27 +11,27 @@ let client: TrekClient | undefined
 
 afterEach(() => client?.close())
 
-test("lists the saved tours, opens one, and steps through it with trek serve", async () => {
-  client = new TrekClient(["bun", TREK, "serve"], await repoWithTour())
+test("lists the saved treks, opens one, and steps through it with trek serve", async () => {
+  client = new TrekClient(["bun", TREK, "serve"], await repoWithTrek())
   await client.initialize()
 
-  const { tours } = await client.tours()
+  const { treks } = await client.treks()
   const overview = await client.open("pay")
   const first = await client.move("next")
 
-  expect(tours.map((tour) => tour.name)).toEqual(["pay"])
+  expect(treks.map((trek) => trek.name)).toEqual(["pay"])
   expect(statusText(overview)).toBe("srctrek · Pay")
   expect(first).toMatchObject({ kind: "step", file: "main.ts", start_line: 1 })
   expect(statusText(first)).toBe("srctrek 1/3")
 })
 
 test("speaks the protocol version trek serve expects", async () => {
-  client = new TrekClient(["bun", TREK, "serve"], await repoWithTour())
+  client = new TrekClient(["bun", TREK, "serve"], await repoWithTrek())
 
   expect(await client.initialize()).toMatchObject({ protocol_version: 1 })
 })
 
-test("the showcase tour ends in a hop that starts a stack of its own", async () => {
+test("the showcase trek ends in a hop that starts a stack of its own", async () => {
   client = new TrekClient(["bun", TREK, "serve"], await repoWithShowcase())
   await client.initialize()
   await client.open("pay")

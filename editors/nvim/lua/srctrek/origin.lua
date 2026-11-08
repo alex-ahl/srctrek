@@ -1,9 +1,9 @@
--- What the user had in each window the tour draws in, kept whole while the tour runs and put
+-- What the user had in each window the trek draws in, kept whole while the trek runs and put
 -- back when it ends.
 local M = {}
 
 local before = {} -- window -> { buf, name, view } as the user had it
-local bufhidden = {} -- buffer -> its own 'bufhidden', while the tour keeps it loaded
+local bufhidden = {} -- buffer -> its own 'bufhidden', while the trek keeps it loaded
 
 -- With 'hidden' off, showing another file unloads a buffer, and its undo history with it, or
 -- refuses when it has unsaved changes; 'bufhidden' hide keeps it loaded either way.
@@ -25,7 +25,7 @@ function M.keep(win)
 end
 
 -- Neovim opens a file into an empty, unnamed buffer rather than beside it, as in a fresh
--- Neovim; that buffer now holds a tour file, so an empty one stands in for it.
+-- Neovim; that buffer now holds a trek file, so an empty one stands in for it.
 local function as_it_was(shown)
   if vim.api.nvim_buf_get_name(shown.buf) == shown.name then
     return shown.buf

@@ -6,41 +6,41 @@ import { buildFixture } from "../src/fixture"
 import { runEval } from "../src/main"
 import { tempDir } from "../../core/test/support/temp"
 
-const refundTour = join(import.meta.dir, "../../core/test/fixtures/refund-tour.json")
+const refundTrek = join(import.meta.dir, "../../core/test/fixtures/refund-trek.json")
 
-// An agent that saves the hand-made tour and prints a usage line, ignoring its instruction.
+// An agent that saves the hand-made trek and prints a usage line, ignoring its instruction.
 async function fakeAgent(): Promise<string> {
   const script = join(await tempDir("agent-"), "agent.sh")
   await writeFile(
     script,
-    `mkdir -p .srctrek/tours\ncp '${refundTour}' .srctrek/tours/eval.json\necho 'used 1234 tokens'\n`,
+    `mkdir -p .srctrek/treks\ncp '${refundTrek}' .srctrek/treks/eval.json\necho 'used 1234 tokens'\n`,
   )
 
   return `sh '${script}'`
 }
 
 describe("runEval", () => {
-  test("runs the agent in the fixture, then scores the tour it saved", async () => {
+  test("runs the agent in the fixture, then scores the trek it saved", async () => {
     const report = await runEval("refund", await fakeAgent())
 
     expect(report).toContain("Route   10/10 reached, in order")
     expect(report).toContain("Agent   used 1234 tokens")
   })
 
-  test("says when the agent saved no tour, with its last line", async () => {
+  test("says when the agent saved no trek, with its last line", async () => {
     // The instruction trek appends becomes $0, so the agent prints only its own line.
     const failure = await runEval("refund", "sh -c 'echo login expired'").then(
       () => "",
       (error: unknown) => String(error),
     )
 
-    expect(failure).toContain("the agent saved no tour; its last line: login expired")
+    expect(failure).toContain("the agent saved no trek; its last line: login expired")
   })
 
   test("runs trek in another repo when told to", async () => {
     const report = await runEval("refund", await fakeAgent(), { run: { in: "api", args: [] } })
 
-    expect(report).toMatch(/Tour    .*\/api\/\.srctrek\/tours\/eval\.json/)
+    expect(report).toMatch(/Trek    .*\/api\/\.srctrek\/treks\/eval\.json/)
   })
 
   test("builds the repos as a reviewer has them: the work only on origin's branches", async () => {
@@ -54,7 +54,7 @@ describe("runEval", () => {
     )
   })
 
-  test("with --update, commits the follow-ups, updates the tour, and reports both runs", async () => {
+  test("with --update, commits the follow-ups, updates the trek, and reports both runs", async () => {
     const report = await runEval("refund", await fakeAgent(), { update: true })
 
     expect(report).toContain("Build   used 1234 tokens")

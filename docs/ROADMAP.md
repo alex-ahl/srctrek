@@ -2,12 +2,12 @@
 
 After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 
-## Tours
+## Treks
 
-- **Producer tours:** the agent that wrote a change records its tour as it finishes.
-- **Tours travel with the PR:** committed on the branch in .srctrek/tours, once tours use
+- **Producer treks:** the agent that wrote a change records its trek as it finishes.
+- **Treks travel with the PR:** committed on the branch in .srctrek/treks, once treks use
   portable sources.
-- **Comparing tours:** a producer's and a reviewer's tour of the same change side by side;
+- **Comparing treks:** a producer's and a reviewer's trek of the same change side by side;
   disagreements are where to look first.
 
 ## Stepping
@@ -21,8 +21,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - **Diff toggle:** a step's lines before and after the change, inline.
 - **Route panel:** every step grouped by repo, with the current step and the hops marked;
   any step can be jumped to.
-- **Choosing a tour in Neovim:** `:Trek` without a name lists the saved tours with their
-  status in `vim.ui.select`, and `:Trek <Tab>` completes their names; until then tours are
+- **Choosing a trek in Neovim:** `:Trek` without a name lists the saved treks with their
+  status in `vim.ui.select`, and `:Trek <Tab>` completes their names; until then treks are
   chosen in the terminal.
 
 ## Building
@@ -43,7 +43,7 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - TUI sidebar mode: narration, call stack, watched values, and boundary cards in a pane, for
   an editor kept free of inline text.
 - `trek doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
-- Presenting: a tour walked through for a team, with large narration and the route map.
+- Presenting: a trek walked through for a team, with large narration and the route map.
 - Web GUI served by the same binary (`trek --gui`).
 - **srctrek.nvim:** the Neovim plugin copied on each release to a repo of its own, installable by
   URL from plugin managers; its source stays in `editors/nvim/`.
@@ -52,8 +52,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 
 ## Accuracy
 
-- Recorded mode: tours from a real run (Debug Adapter Protocol, tracers, tests).
-- Mixed tours: observed steps where something cheap could run, predicted elsewhere, with
+- Recorded mode: treks from a real run (Debug Adapter Protocol, tracers, tests).
+- Mixed treks: observed steps where something cheap could run, predicted elsewhere, with
   provenance on each value.
 - tree-sitter or LSP call graphs.
 
@@ -72,4 +72,4 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - The VS Code extension published to both the VS Code Marketplace and Open VSX, so forks can
   install it.
 - Versioning: release-please from Conventional Commits; semver covers the CLI, key
-  bindings, the tour format, and `.srctrek/repos`; 0.x until those settle.
+  bindings, the trek format, and `.srctrek/repos`; 0.x until those settle.

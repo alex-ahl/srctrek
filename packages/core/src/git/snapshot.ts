@@ -30,7 +30,7 @@ async function startIndex(dir: string, index: string): Promise<void> {
 
 // The working tree as a tree object: HEAD's files, then every edit, staged or not, and every
 // new file git doesn't ignore. A temporary index does the work, so the user's stays as it is.
-// .srctrek stays as HEAD has it: saving a tour is never part of the change it describes.
+// .srctrek stays as HEAD has it: saving a trek is never part of the change it describes.
 async function workingTree(dir: string): Promise<string> {
   const scratch = await mkdtemp(join(tmpdir(), "srctrek-index-"))
   const index = join(scratch, "index")
@@ -51,7 +51,7 @@ async function workingTree(dir: string): Promise<string> {
 /**
  * The working tree committed on top of HEAD, without touching the branch, the index, or any
  * file; HEAD itself when nothing is uncommitted. A ref under refs/srctrek keeps the snapshot
- * from git's garbage collection. The same work always gives the same commit, so a tour of it
+ * from git's garbage collection. The same work always gives the same commit, so a trek of it
  * is found again.
  */
 export async function snapshotWorkingTree(dir: string): Promise<string> {

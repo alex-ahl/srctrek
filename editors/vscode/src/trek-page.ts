@@ -1,10 +1,10 @@
 import type { EndView, FlaggedStep, OverviewView } from "@srctrek/core"
 import { escapeHtml, gotoLink, pageHtml } from "./page"
 
-// The tour tab's page for the overview and the end, apart from VS Code: plain HTML in the theme's
+// The trek tab's page for the overview and the end, apart from VS Code: plain HTML in the theme's
 // colours, where a flag at the end is a link to its stop.
 
-export type TourPageView = OverviewView | EndView
+export type TrekPageView = OverviewView | EndView
 
 const FLAGS = {
   high: { mark: "⚠", wording: "likely wrong" },
@@ -20,7 +20,7 @@ const KEYS = [
   ["Shift+F11", "out of the function"],
 ] as const
 
-// What the tour draws in the code, each beside a sample of how it looks, said once here rather
+// What the trek draws in the code, each beside a sample of how it looks, said once here rather
 // than on every line.
 const ON_SCREEN = [
   [`<span class="bar added"></span>`, "a line this change added"],
@@ -97,7 +97,7 @@ function endBody(view: EndView): string {
       : `<h2>Flags</h2><ul class="flags">${view.flags.map(flagItem).join("\n")}</ul>`
   return [
     `<h1>${escapeHtml(view.title)}</h1>`,
-    "<h2>End of the tour</h2>",
+    "<h2>End of the trek</h2>",
     `<p class="story">${escapeHtml(view.outcome)}</p>`,
     flags,
     `<p class="muted">a flag goes to its stop · Shift+F8 back to the last stop</p>`,
@@ -119,7 +119,7 @@ const STYLE = `
 `
 
 /** The whole page; `nonce` lets only its own script run. */
-export function tourPageHtml(view: TourPageView, nonce: string): string {
+export function trekPageHtml(view: TrekPageView, nonce: string): string {
   const body = view.kind === "overview" ? overviewBody(view) : endBody(view)
   return pageHtml(body, nonce, STYLE)
 }

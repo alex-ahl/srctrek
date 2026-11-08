@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTourPrompt, runGit } from "@srctrek/core"
+import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTrekPrompt, runGit } from "@srctrek/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { z } from "zod"
 import { McpTestClient } from "./mcp-client"
@@ -94,22 +94,22 @@ describe("trek mcp", () => {
     expect(opened.text.split("\n").at(-1)).toBe("not opened, next to this repo: ../api")
   })
 
-  test("offers the tour-building guide as a prompt, with the change filled in", async () => {
+  test("offers the trek-building guide as a prompt, with the change filled in", async () => {
     client = new McpTestClient(await makeFeatureRepo())
     await client.initialize()
 
     const { prompts } = PromptListSchema.parse((await client.request("prompts/list")).result)
     expect(prompts.map((prompt) => [prompt.name, prompt.arguments.map((arg) => arg.name)])).toEqual(
-      [["build_tour", ["change"]]],
+      [["build_trek", ["change"]]],
     )
 
     const asked = await client.request("prompts/get", {
-      name: "build_tour",
+      name: "build_trek",
       arguments: { change: "../api  main...feature" },
     })
     const [message] = PromptSchema.parse(asked.result).messages
     expect(message?.role).toBe("user")
-    expect(message?.content.text).toBe(buildTourPrompt(["../api", "main...feature"]))
+    expect(message?.content.text).toBe(buildTrekPrompt(["../api", "main...feature"]))
     expect(message?.content.text).toEndWith('these args: ["../api","main...feature"]')
   })
 
@@ -117,8 +117,8 @@ describe("trek mcp", () => {
     client = new McpTestClient(await makeFeatureRepo())
     await client.initialize()
 
-    expect(await client.call("tour_guide", { change: "main...feature --uncommitted" })).toEqual({
-      text: buildTourPrompt(["main...feature", "--uncommitted"]),
+    expect(await client.call("trek_guide", { change: "main...feature --uncommitted" })).toEqual({
+      text: buildTrekPrompt(["main...feature", "--uncommitted"]),
       isError: false,
     })
   })

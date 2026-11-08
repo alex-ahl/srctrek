@@ -5,7 +5,7 @@ import {
   BUILD_LOG_ENV,
   BUILD_STOPPED,
   loadProposals,
-  loadTour,
+  loadTrek,
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
   runGit,
@@ -73,15 +73,15 @@ let client: McpTestClient | undefined
 
 afterEach(() => client?.close())
 
-describe("building a tour over trek mcp", () => {
-  test("checks steps on the way in, the tour as a whole at the end, then saves it", async () => {
+describe("building a trek over trek mcp", () => {
+  test("checks steps on the way in, the trek as a whole at the end, then saves it", async () => {
     const dir = await makeFeatureRepo()
     const repo = basename(dir)
     const { s1, s2, s2WithEvidence } = stepsFor(repo)
     client = new McpTestClient(dir)
     await client.initialize()
     await client.call("open_change", { args: [] })
-    await client.call("start_tour", header)
+    await client.call("start_trek", header)
 
     const outOfRange = await client.call("add_steps", { steps: [s1, { ...s2, end_line: 9 }] })
     expect(outOfRange).toEqual({
@@ -90,26 +90,26 @@ describe("building a tour over trek mcp", () => {
     })
 
     expect((await client.call("add_steps", { steps: [s1, s2] })).text).toBe(
-      "added s1, s2; the tour has s1, s2",
+      "added s1, s2; the trek has s1, s2",
     )
-    const unfinished = await client.call("finish_tour", { name: "total" })
+    const unfinished = await client.call("finish_trek", { name: "total" })
     expect(unfinished.isError).toBe(true)
     expect(unfinished.text).toContain("steps.1 (s2).via: missing evidence")
 
     expect((await client.call("add_steps", { steps: [s2WithEvidence] })).text).toBe(
-      "added s2; the tour has s1, s2",
+      "added s2; the trek has s1, s2",
     )
-    const saved = await client.call("finish_tour", { name: "total" })
+    const saved = await client.call("finish_trek", { name: "total" })
     // trek runs in the folder's real path; tmp is a symlink on macOS
-    expect(saved.text).toBe(`saved ${join(await realpath(dir), ".srctrek/tours/total.json")}`)
+    expect(saved.text).toBe(`saved ${join(await realpath(dir), ".srctrek/treks/total.json")}`)
 
-    const tour = await loadTour(join(dir, ".srctrek/tours/total.json"))
-    expect(tour.steps.map((step) => [step.id, step.changed])).toEqual([
+    const trek = await loadTrek(join(dir, ".srctrek/treks/total.json"))
+    expect(trek.steps.map((step) => [step.id, step.changed])).toEqual([
       ["s1", true],
       ["s2", false],
     ])
-    expect(tour.repos[0]?.range).toMatch(/^[0-9a-f]{40}\.\.[0-9a-f]{40}$/)
-    expect(await Bun.file(join(dir, ".srctrek/tours/total.changed.json")).json()).toEqual({
+    expect(trek.repos[0]?.range).toMatch(/^[0-9a-f]{40}\.\.[0-9a-f]{40}$/)
+    expect(await Bun.file(join(dir, ".srctrek/treks/total.changed.json")).json()).toEqual({
       [repo]: { "src/app.ts": { "1": "changed" } },
     })
   })
@@ -120,7 +120,7 @@ describe("building a tour over trek mcp", () => {
     client = new McpTestClient(dir)
     await client.initialize()
     await client.call("open_change", { args: [] })
-    await client.call("start_tour", header)
+    await client.call("start_trek", header)
 
     const outOfRange = { ...s1, end_line: 9, predicted_values: [] }
     await client.call("add_steps", { steps: [outOfRange] })
@@ -130,7 +130,7 @@ describe("building a tour over trek mcp", () => {
     expect(third.isError).toBe(true)
     expect(third.text).toEndWith(BUILD_STOPPED)
     expect((await client.call("add_steps", { steps: [s1] })).text).toBe(
-      "no tour is started: call start_tour first",
+      "no trek is started: call start_trek first",
     )
   })
 
@@ -144,19 +144,19 @@ describe("building a tour over trek mcp", () => {
 
     const repo = basename(dir)
     await client.call("open_change", { args: [] })
-    const guide = await client.call("tour_guide", {})
+    const guide = await client.call("trek_guide", {})
     const read = await client.call("read_file", { repo, path: "src/app.ts", to: 1 })
     const found = await client.call("search", { repo, pattern: "total", folder: "src" })
-    await client.call("start_tour", header)
+    await client.call("start_trek", header)
     await client.call("add_steps", { steps: [s1] })
 
     expect((await Bun.file(log).text()).split("\n")).toEqual([
       `trek: opened ${repo}`,
-      `trek: tour_guide → ${guide.text.length} chars`,
+      `trek: trek_guide → ${guide.text.length} chars`,
       `trek: read_file ${repo} src/app.ts 1–1 → ${read.text.length} chars`,
       `trek: search ${repo} "total" in src → ${found.text.length} chars`,
       'trek: started "Total": add steps with add_steps',
-      "trek: added s1; the tour has s1",
+      "trek: added s1; the trek has s1",
       "",
     ])
   })
@@ -211,7 +211,7 @@ describe("building a tour over trek mcp", () => {
     expect(missing.text).toContain("it isn't opened (no repo at ../nowhere")
   })
 
-  test("opens a proposed repo it can find, so the tour goes on into it and records it", async () => {
+  test("opens a proposed repo it can find, so the trek goes on into it and records it", async () => {
     const parent = await tempDir("route-")
     const web = await featureRepoIn(join(parent, "web"))
     const payments = join(parent, "payments")
@@ -221,7 +221,7 @@ describe("building a tour over trek mcp", () => {
     client = new McpTestClient(web)
     await client.initialize()
     await client.call("open_change", { args: ["main...feature"] })
-    await client.call("start_tour", header)
+    await client.call("start_trek", header)
 
     const proposed = await client.call("propose_repo", {
       name: "payments",
@@ -248,11 +248,11 @@ describe("building a tour over trek mcp", () => {
       predicted_values: [{ name: "charged", value: "250", line: 1, role: "assignment" }],
     }
     const added = await client.call("add_steps", { steps: [s1, charge] })
-    expect(added.text).toBe("added s1, s2; the tour has s1, s2")
+    expect(added.text).toBe("added s1, s2; the trek has s1, s2")
 
-    const saved = await client.call("finish_tour", { name: "charge" })
-    const tour = await loadTour(saved.text.replace("saved ", ""))
-    expect(tour.repos.map(({ name }) => name)).toEqual(["web", "payments"])
+    const saved = await client.call("finish_trek", { name: "charge" })
+    const trek = await loadTrek(saved.text.replace("saved ", ""))
+    expect(trek.repos.map(({ name }) => name)).toEqual(["web", "payments"])
   })
 
   test("from a folder inside the repo, a nearby repo is named by the path that opens it", async () => {
@@ -299,7 +299,7 @@ describe("building a tour over trek mcp", () => {
     expect((await client.call("diff", { repo: "payments" })).text).toBe("modified src/app.ts")
   })
 
-  test("updates a saved tour after the change moves on: keeps what holds, redoes the rest", async () => {
+  test("updates a saved trek after the change moves on: keeps what holds, redoes the rest", async () => {
     const dir = await makeFeatureRepo()
     const repo = basename(dir)
     await commit(dir, "src/pay.ts", "pay(total)\n")
@@ -316,13 +316,13 @@ describe("building a tour over trek mcp", () => {
     client = new McpTestClient(dir)
     await client.initialize()
     await client.call("open_change", { args: [] })
-    await client.call("start_tour", header)
+    await client.call("start_trek", header)
     await client.call("add_steps", { steps: [s1, s2] })
-    await client.call("finish_tour", { name: "total" })
+    await client.call("finish_trek", { name: "total" })
 
     await commit(dir, "src/app.ts", "const total = 300\nexport { total }\n")
     await client.call("open_change", { args: [] })
-    const updating = await client.call("update_tour", { name: "total" })
+    const updating = await client.call("update_trek", { name: "total" })
     expect(updating.text).toContain(`redo s1  ${repo} src/app.ts 1–1  The total is set.`)
     expect(updating.text).toContain("       why: src/app.ts changed")
     expect(updating.text).toContain("       was: The change raises it.")
@@ -333,17 +333,17 @@ describe("building a tour over trek mcp", () => {
       predicted_values: [{ name: "total", value: "300", line: 1, role: "assignment" }],
     }
     expect((await client.call("add_steps", { steps: [redone] })).text).toBe(
-      "added s1; the tour has s1, s2",
+      "added s1; the trek has s1, s2",
     )
     const overview = "The total changes from 100 to 300."
-    const finished = await client.call("finish_tour", { name: "total", overview })
+    const finished = await client.call("finish_trek", { name: "total", overview })
     expect(finished.text).toStartWith("saved ")
 
-    const tour = await loadTour(join(dir, ".srctrek/tours/total.json"))
+    const trek = await loadTrek(join(dir, ".srctrek/treks/total.json"))
     const head = await runGit(dir, ["rev-parse", "HEAD"])
-    expect(tour.overview).toBe(overview)
-    expect(tour.title).toBe(header.title)
-    expect(tour.repos[0]?.range).toEndWith(`..${head}`)
-    expect(tour.steps.map((step) => step.id)).toEqual(["s1", "s2"])
+    expect(trek.overview).toBe(overview)
+    expect(trek.title).toBe(header.title)
+    expect(trek.repos[0]?.range).toEndWith(`..${head}`)
+    expect(trek.steps.map((step) => step.id)).toEqual(["s1", "s2"])
   })
 })

@@ -1,4 +1,4 @@
-import type { Call, SessionView, StepView, TourEntry } from "@srctrek/core"
+import type { Call, SessionView, StepView, TrekEntry } from "@srctrek/core"
 import type { Move } from "./client"
 
 /** Where a step opens: its file, and its lines numbered from 0, as VS Code counts them. */
@@ -16,13 +16,13 @@ export function lineAbove(place: StepPlace): number {
   return Math.max(place.first - 1, 0)
 }
 
-/** The status bar's text for wherever the tour is; at a stop, its tags follow its number. */
+/** The status bar's text for wherever the trek is; at a stop, its tags follow its number. */
 export function statusText(view: SessionView, tags: readonly string[] = []): string {
   if (view.kind === "overview") {
     return `srctrek · ${view.title}`
   }
   if (view.kind === "end") {
-    return `srctrek · end of the tour`
+    return `srctrek · end of the trek`
   }
   return [`srctrek ${String(view.number)}/${String(view.count)}`, ...tags].join(" · ")
 }
@@ -31,7 +31,7 @@ export function statusText(view: SessionView, tags: readonly string[] = []): str
 export type CallMark = { line: number; text: string; leadsNext: boolean }
 
 // The line itself says what it calls; only a hop into another repo says where it goes, and a link
-// matched only by name gets a ?, since the tour can't prove this line makes the call.
+// matched only by name gets a ?, since the trek can't prove this line makes the call.
 function arrowOf(view: StepView, call: Call): string {
   const arrow = call.repo === view.repo ? "→" : `↯ ${call.repo}`
   return call.guessed ? `${arrow}?` : arrow
@@ -72,7 +72,7 @@ export function callAt(view: StepView, path: string, line: number): Call | undef
   return view.calls.find((call) => call.call_line === line)
 }
 
-/** Whether a move left the tour where it was, which the server answers with the same view. */
+/** Whether a move left the trek where it was, which the server answers with the same view. */
 export function sameView(before: SessionView, after: SessionView): boolean {
   if (before.kind === "step" && after.kind === "step") {
     return before.id === after.id
@@ -81,16 +81,16 @@ export function sameView(before: SessionView, after: SessionView): boolean {
 }
 
 export const NOWHERE: Record<Move, string> = {
-  next: "the tour ends here",
-  prev: "this is the start of the tour",
+  next: "the trek ends here",
+  prev: "this is the start of the trek",
   into: "nothing to step into here",
   over: "nothing to step over here",
   out: "nothing to step out to",
   goto: "already there",
 }
 
-/** A valid tour's size and its likely-wrong flags, for the lists of tours. */
-export function tourSummary(entry: Extract<TourEntry, { valid: true }>): string {
+/** A valid trek's size and its likely-wrong flags, for the lists of treks. */
+export function trekSummary(entry: Extract<TrekEntry, { valid: true }>): string {
   const flags = entry.highFlags > 0 ? ` · ${String(entry.highFlags)} likely wrong` : ""
   return `${String(entry.steps)} stops${flags}`
 }

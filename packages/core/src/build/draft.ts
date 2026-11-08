@@ -1,22 +1,22 @@
 import type { ResolvedChange, ResolvedRepo } from "../change/resolve"
 import { PROMPT_HASH } from "../prompts"
-import { FORMAT_VERSION, type Tour, type TourHeader, type TourStep } from "../schema/tour"
+import { FORMAT_VERSION, type Trek, type TrekHeader, type TrekStep } from "../schema/trek"
 import { citationProblems } from "./citations"
 import { type SubmittedStep, completeStep } from "./complete"
 
-/** A tour being built: the change, its header, and the steps so far, each checked on the way in. */
+/** A trek being built: the change, its header, and the steps so far, each checked on the way in. */
 export type Draft = Readonly<{
   change: ResolvedChange
-  header: TourHeader
-  steps: readonly TourStep[]
-  // an updated tour's step order, so a redone step goes back where it was; others follow
+  header: TrekHeader
+  steps: readonly TrekStep[]
+  // an updated trek's step order, so a redone step goes back where it was; others follow
   order?: readonly string[] | undefined
 }>
 
 /** A draft after steps were offered: unchanged with the problems, or with the steps added. */
 export type Added = Readonly<{ draft: Draft; problems: readonly string[] }>
 
-export function newDraft(change: ResolvedChange, header: TourHeader): Draft {
+export function newDraft(change: ResolvedChange, header: TrekHeader): Draft {
   return { change, header, steps: [] }
 }
 
@@ -26,7 +26,7 @@ export function withChange(draft: Draft, change: ResolvedChange): Draft {
 }
 
 // A step whose id is already in the draft takes its place, which is how a step is fixed.
-function withStep(steps: readonly TourStep[], step: TourStep): readonly TourStep[] {
+function withStep(steps: readonly TrekStep[], step: TrekStep): readonly TrekStep[] {
   const replaces = steps.some((existing) => existing.id === step.id)
   if (!replaces) {
     return [...steps, step]
@@ -48,14 +48,14 @@ export async function addSteps(draft: Draft, steps: SubmittedStep[]): Promise<Ad
   return { draft: { ...draft, steps: completed.reduce(withStep, draft.steps) }, problems: [] }
 }
 
-// Where a step goes: its place in an updated tour's order; steps not in it after, as added.
+// Where a step goes: its place in an updated trek's order; steps not in it after, as added.
 function rank(order: readonly string[], id: string): number {
   const place = order.indexOf(id)
   return place === -1 ? order.length : place
 }
 
-// The steps in tour order: as added, unless the draft keeps an updated tour's order.
-function orderedSteps({ steps, order }: Draft): TourStep[] {
+// The steps in trek order: as added, unless the draft keeps an updated trek's order.
+function orderedSteps({ steps, order }: Draft): TrekStep[] {
   if (order === undefined) {
     return [...steps]
   }
@@ -67,8 +67,8 @@ export function stepIds(draft: Draft): string[] {
   return orderedSteps(draft).map((step) => step.id)
 }
 
-// The tour's record of a repo. The range names exact commits, since branches move on.
-function tourRepo({ name, source, revision, range }: ResolvedRepo): Tour["repos"][number] {
+// The trek's record of a repo. The range names exact commits, since branches move on.
+function trekRepo({ name, source, revision, range }: ResolvedRepo): Trek["repos"][number] {
   if (range === undefined) {
     return { name, source, revision }
   }
@@ -76,15 +76,15 @@ function tourRepo({ name, source, revision, range }: ResolvedRepo): Tour["repos"
   return { name, source, revision, range: `${range.baseCommit}..${range.headCommit}` }
 }
 
-/** The tour as the draft stands; saving validates it as a whole. */
-export function draftToTour(draft: Draft, now = new Date()): Tour {
+/** The trek as the draft stands; saving validates it as a whole. */
+export function draftToTrek(draft: Draft, now = new Date()): Trek {
   return {
     format_version: FORMAT_VERSION,
     created_at: now.toISOString(),
     prompt_hash: PROMPT_HASH,
     ...draft.header,
     author: { role: "producer", ...draft.header.author },
-    repos: draft.change.repos.map(tourRepo),
+    repos: draft.change.repos.map(trekRepo),
     steps: orderedSteps(draft),
   }
 }

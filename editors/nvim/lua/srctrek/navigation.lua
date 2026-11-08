@@ -1,4 +1,4 @@
--- Moving through the tour: each move asks the server, and its answer is drawn.
+-- Moving through the trek: each move asks the server, and its answer is drawn.
 local details = require("srctrek.details")
 local popup = require("srctrek.popup")
 local server = require("srctrek.server")
@@ -10,7 +10,7 @@ local M = {}
 
 -- Each step fires `User SrctrekStep` with { path, shown, line, repo }; anything may listen.
 -- `path` is where the file lives in the user's project, for a file tree to reveal; `shown` is
--- the file opened, the tour's copy when the user's file differs.
+-- the file opened, the trek's copy when the user's file differs.
 local function announce(view)
   vim.api.nvim_exec_autocmds("User", {
     pattern = "SrctrekStep",
@@ -43,8 +43,8 @@ function M.show(view)
 end
 
 local NOWHERE = {
-  next = "the tour ends here",
-  prev = "this is the start of the tour",
+  next = "the trek ends here",
+  prev = "this is the start of the trek",
   into = "nothing to step into here",
   over = "nothing to step over here",
   out = "nothing to step out to",
@@ -82,7 +82,7 @@ local function call_at_cursor(view)
   end
 end
 
--- Back to the step the tour is on, without moving the tour.
+-- Back to the step the trek is on, without moving the trek.
 function M.current()
   M.show(state.view)
 end

@@ -75,7 +75,7 @@ async function workBranchOf(dir: string, branch: string | undefined): Promise<st
 /**
  * The branches the work is on: where each changed repo's range ends (a local branch, a
  * remote-tracking one, a remote range's head, or the branch a pull request was opened from),
- * or, for a tour of code as it is, the branch checked out in the current repo. Another repo
+ * or, for a trek of code as it is, the branch checked out in the current repo. Another repo
  * with a branch of the same name holds that work's other side, by the usual convention for
  * work across repos.
  */

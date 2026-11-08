@@ -1,5 +1,5 @@
 import { type RangeSpec, parseRange } from "../git/range"
-import { type CodeTour, readOptions } from "./options"
+import { type CodeTrek, readOptions } from "./options"
 import { type RepoEntry, isRemote, parseRepoEntry } from "../repos/entry"
 import { type PullRequest, parsePullRequestUrl } from "../repos/pull-request"
 
@@ -9,13 +9,13 @@ export type ChangeSource =
 
 /**
  * trek's arguments, read: the changes, the repos on the route without changes, whether
- * uncommitted work is included, and, for a tour of code as it is, its trigger.
+ * uncommitted work is included, and, for a trek of code as it is, its trigger.
  */
 export type ChangeArguments = {
   changes: ChangeSource[]
   unchanged: RepoEntry[]
   uncommitted: boolean
-  code?: CodeTour | undefined
+  code?: CodeTrek | undefined
 }
 
 type Token =
@@ -113,12 +113,12 @@ function unchangedOf(group: Group): RepoEntry[] {
   return group.kind === "repo" && group.range === undefined ? [group.repo] : []
 }
 
-// A tour of code as it is takes repos only: a range or a pull request names a change instead.
+// A trek of code as it is takes repos only: a range or a pull request names a change instead.
 function codeRepo(word: string, isDirectory: (path: string) => boolean): RepoEntry {
   const token = readToken(word, isDirectory)
   if (token.kind !== "repo") {
     const what = token.kind === "range" ? "ranges" : "pull requests"
-    throw new Error(`--code tours code as it is, so it takes repos, not ${what}: ${word}`)
+    throw new Error(`--code walks code as it is, so it takes repos, not ${what}: ${word}`)
   }
 
   return token.entry
@@ -133,7 +133,7 @@ function codeRepos(words: string[], isDirectory: (path: string) => boolean): Rep
 }
 
 /**
- * Reads trek's arguments. With --code, every word is a repo to tour as it is. A range applies to the repo just before it, or to the current repo
+ * Reads trek's arguments. With --code, every word is a repo to trek as it is. A range applies to the repo just before it, or to the current repo
  * when none is; a repo with no range after it is on the route without changes. No change
  * means the current repo's branch since it left the base branch.
  */

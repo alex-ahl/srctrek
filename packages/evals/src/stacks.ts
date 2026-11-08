@@ -1,4 +1,4 @@
-import { type TourStep, callStacks } from "@srctrek/core"
+import { type TrekStep, callStacks } from "@srctrek/core"
 import type { Expected, ExpectedPlace } from "./expected"
 import { covers, inFile } from "./places"
 
@@ -27,12 +27,12 @@ function framesMatch(files: ExpectedPlace[], frames: Frame[]): boolean {
   return matchesHere || (frame.optional === true && framesMatch(files, laterFrames))
 }
 
-/** Checks each checkpoint against the call stacks worked out from the tour's links. */
-export function checkStacks(steps: TourStep[], checkpoints: Checkpoint[]): StackCheck[] {
+/** Checks each checkpoint against the call stacks worked out from the trek's links. */
+export function checkStacks(steps: TrekStep[], checkpoints: Checkpoint[]): StackCheck[] {
   const { stacks } = callStacks(steps)
   const byId = new Map(steps.map((step) => [step.id, step]))
   // The frames under a step, outermost first: its stack without itself.
-  const framesUnder = (step: TourStep) =>
+  const framesUnder = (step: TrekStep) =>
     (stacks.get(step.id) ?? []).slice(0, -1).flatMap((id) => byId.get(id) ?? [])
 
   const check = (checkpoint: Checkpoint): StackFound => {

@@ -1,6 +1,6 @@
-import type { TourStep } from "./tour"
+import type { TrekStep } from "./trek"
 
-type Link = Pick<TourStep, "id" | "repo" | "file" | "kind" | "from">
+type Link = Pick<TrekStep, "id" | "repo" | "file" | "kind" | "from">
 
 /**
  * Each executed step's call stack as step ids, outermost first; the step a stack's hop came
@@ -18,7 +18,7 @@ export type CallStacks = {
 const sameFile = (a: Link, b: Link) => a.repo === b.repo && a.file === b.file
 
 /**
- * Works out the call stacks from the tour's links, in tour order: a call goes on top of the
+ * Works out the call stacks from the trek's links, in trek order: a call goes on top of the
  * step it came from, a hop starts a stack of its own, and a return takes the place of the
  * nearest frame below it in its own file, found back across hops to their cause. A step
  * whose `from` names no earlier executed step starts a stack; other rules report it.

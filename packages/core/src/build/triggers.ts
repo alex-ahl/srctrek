@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { z } from "zod"
 import type { ResolvedChange } from "../change/resolve"
 import { pathExists } from "../files"
-import { TriggerKindSchema } from "../schema/tour"
+import { TriggerKindSchema } from "../schema/trek"
 import { placeProblem } from "./citations"
 
 /**

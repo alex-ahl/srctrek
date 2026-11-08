@@ -3,7 +3,7 @@ import { changedLines } from "../git/diff"
 import { blobAt } from "../git/read"
 import { describeRepo, repoNamed } from "../read/repo"
 import type { z } from "zod"
-import type { SubmittedStepSchema, TourStep } from "../schema/tour"
+import type { SubmittedStepSchema, TrekStep } from "../schema/trek"
 
 export type SubmittedStep = z.infer<typeof SubmittedStepSchema>
 
@@ -20,7 +20,7 @@ async function touchesChange(repo: ResolvedRepo, step: SubmittedStep): Promise<b
 }
 
 /** The step with its file's blob at the repo's revision and whether the change touches it. */
-export async function completeStep(change: ResolvedChange, step: SubmittedStep): Promise<TourStep> {
+export async function completeStep(change: ResolvedChange, step: SubmittedStep): Promise<TrekStep> {
   const repo = repoNamed(change, step.repo)
   const blob = await blobAt(repo.dir, repo.revision, step.file)
   if (blob === undefined) {

@@ -11,7 +11,7 @@ export const FLAG_WORDING = {
 
 function labelOf(ref: StepRef | null): string {
   if (ref === null) {
-    return "the end of the tour"
+    return "the end of the trek"
   }
   return ref.name ?? `${ref.file}:${String(ref.start_line)}`
 }
@@ -20,7 +20,7 @@ function labelOf(ref: StepRef | null): string {
 export function whereNext(view: StepView): string {
   const { how, to, line } = view.next
   if (how === "end") {
-    return "next: the end of the tour"
+    return "next: the end of the trek"
   }
   if (how === "into") {
     return `next: into ${labelOf(to)}${line === null ? "" : `, line ${String(line)}`}`
@@ -51,7 +51,7 @@ export function stepTags(view: StepView, newFile: boolean): string[] {
     codeTag(view, newFile),
     view.came_from?.guessed === true ? "guessed link" : null,
     view.context.length > 0 ? "context available" : null,
-    view.tour_copy ? "tour's version" : null,
+    view.trek_copy ? "trek's version" : null,
     view.stale ? "stale: file changed since" : null,
   ]
   return tags.filter((tag) => tag !== null)

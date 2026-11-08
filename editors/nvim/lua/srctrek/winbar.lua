@@ -89,8 +89,8 @@ local function tags(view, new_file)
   if #view.context > 0 then
     table.insert(found, coloured("SrctrekContext", "context available"))
   end
-  if view.tour_copy then
-    table.insert(found, coloured("SrctrekTourCopy", "tour's version"))
+  if view.trek_copy then
+    table.insert(found, coloured("SrctrekTrekCopy", "trek's version"))
   end
   if view.stale then
     table.insert(found, coloured("SrctrekStale", "stale: file changed since"))
@@ -107,7 +107,7 @@ local function bar(view, away, new_file)
   end
   -- at the right end (%=), so it doesn't shift the rest; the key back is in the overview
   local away_text = away and ("  %=" .. coloured("SrctrekAway", "away") .. " ") or ""
-  -- the badge says a tour is on, as -- INSERT -- says a mode is
+  -- the badge says a trek is on, as -- INSERT -- says a mode is
   local separator = coloured("SrctrekSeparator", "  │  ")
   local badge = coloured("SrctrekBadge", " srctrek ")
   return badge .. "  " .. table.concat(parts, separator) .. away_text

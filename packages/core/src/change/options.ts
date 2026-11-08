@@ -1,7 +1,7 @@
-/** A tour of code as it is, with no change: the trigger to follow, in the user's words. */
-export type CodeTour = Readonly<{ trigger: string | undefined }>
+/** A trek of code as it is, with no change: the trigger to follow, in the user's words. */
+export type CodeTrek = Readonly<{ trigger: string | undefined }>
 
-export type Options = { uncommitted: boolean; code: CodeTour | undefined; words: string[] }
+export type Options = { uncommitted: boolean; code: CodeTrek | undefined; words: string[] }
 
 const UNCOMMITTED = "--uncommitted"
 const CODE = "--code"
@@ -11,7 +11,7 @@ function isCodeOption(arg: string): boolean {
 }
 
 // --code alone leaves the trigger to the agent; --code="a refund request" names it.
-function codeTour(args: string[]): CodeTour | undefined {
+function codeTrek(args: string[]): CodeTrek | undefined {
   const option = args.find(isCodeOption)
   if (option === undefined) {
     return undefined
@@ -34,7 +34,7 @@ export function readOptions(args: string[]): Options {
 
   return {
     uncommitted: args.includes(UNCOMMITTED),
-    code: codeTour(args),
+    code: codeTrek(args),
     words: args.filter((arg) => !isOption(arg)),
   }
 }

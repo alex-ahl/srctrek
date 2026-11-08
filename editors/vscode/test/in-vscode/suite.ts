@@ -1,5 +1,5 @@
 // Runs inside VS Code, loaded by run-in-vscode.ts: drives the extension's commands on the
-// two-call pay tour and checks what the editor shows. VS Code reports a thrown error as a failed run.
+// two-call pay trek and checks what the editor shows. VS Code reports a thrown error as a failed run.
 import { strict as assert } from "node:assert"
 import { basename } from "node:path"
 import * as vscode from "vscode"
@@ -26,9 +26,9 @@ async function putCursorOn(line: number): Promise<void> {
 
 const checks: Check[] = [
   {
-    name: "opens a tour by name at its overview",
+    name: "opens a trek by name at its overview",
     run: async () => {
-      await vscode.commands.executeCommand("srctrek.openTour", "pay")
+      await vscode.commands.executeCommand("srctrek.openTrek", "pay")
       assert.equal(vscode.window.activeTextEditor, undefined)
     },
   },

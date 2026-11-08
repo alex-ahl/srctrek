@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import type { EndView, OverviewView } from "@srctrek/core"
 import { escapeHtml } from "../src/page"
-import { tourPageHtml } from "../src/tour-page"
+import { trekPageHtml } from "../src/trek-page"
 import { ref } from "./support/views"
 
 const overview: OverviewView = {
@@ -35,7 +35,7 @@ const end: EndView = {
 }
 
 test("the overview tells the story, its trigger and outcome, repos, flags, and the keys", () => {
-  const html = tourPageHtml(overview, "n0nce")
+  const html = trekPageHtml(overview, "n0nce")
 
   expect(html).toContain("<h1>Refund &lt;an&gt; order</h1>")
   expect(html).toContain("The route refunds &amp; records it.")
@@ -46,8 +46,8 @@ test("the overview tells the story, its trigger and outcome, repos, flags, and t
   expect(html).toContain("4 stops · F8 to start")
 })
 
-test("the overview says once what the tour draws in the code", () => {
-  const html = tourPageHtml(overview, "n0nce")
+test("the overview says once what the trek draws in the code", () => {
+  const html = trekPageHtml(overview, "n0nce")
 
   expect(html).toContain(
     '<th><span class="bar added"></span></th><td>a line this change added</td>',
@@ -57,7 +57,7 @@ test("the overview says once what the tour draws in the code", () => {
 })
 
 test("the end lists each flag as a link to its stop", () => {
-  const html = tourPageHtml(end, "n0nce")
+  const html = trekPageHtml(end, "n0nce")
 
   expect(html).toContain(
     '<a href="#" data-goto="s3">⚠ likely wrong · 3 · routes/refund.ts:11 · refund</a>',
@@ -66,7 +66,7 @@ test("the end lists each flag as a link to its stop", () => {
 })
 
 test("only the page's own script may run", () => {
-  const html = tourPageHtml(end, "n0nce")
+  const html = trekPageHtml(end, "n0nce")
 
   expect(html).toContain("script-src 'nonce-n0nce'")
   expect(html).toContain('<script nonce="n0nce">')

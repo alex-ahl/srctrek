@@ -1,20 +1,20 @@
 import { describe, expect, test } from "bun:test"
-import { type Tour, type TourStep, parseTour } from "@srctrek/core"
+import { type Trek, type TrekStep, parseTrek } from "@srctrek/core"
 import { join } from "node:path"
 import { readExpected } from "../src/expected"
-import { scoreTour } from "../src/score"
+import { scoreTrek } from "../src/score"
 
-const tourPath = join(import.meta.dir, "../../core/test/fixtures/refund-tour.json")
-const refundTour = parseTour(await Bun.file(tourPath).json(), tourPath)
+const trekPath = join(import.meta.dir, "../../core/test/fixtures/refund-trek.json")
+const refundTrek = parseTrek(await Bun.file(trekPath).json(), trekPath)
 const expected = await readExpected(join(import.meta.dir, "../../../evals/fixtures/refund"))
 
-function withoutStepsIn(tour: Tour, file: string): Tour {
-  return { ...tour, steps: tour.steps.filter((step) => step.file !== file) }
+function withoutStepsIn(trek: Trek, file: string): Trek {
+  return { ...trek, steps: trek.steps.filter((step) => step.file !== file) }
 }
 
-describe("scoreTour", () => {
-  test("gives the hand-made refund tour the whole route, both links, the bug flagged high", () => {
-    const score = scoreTour(refundTour, expected)
+describe("scoreTrek", () => {
+  test("gives the hand-made refund trek the whole route, both links, the bug flagged high", () => {
+    const score = scoreTrek(refundTrek, expected)
 
     expect(score.route).toMatchObject({
       found: 10,
@@ -44,48 +44,48 @@ describe("scoreTour", () => {
       files: [{ repo: "api", file: "openapi.json", line: 40 }],
     }
     const withBug = { ...expected, bugs: [bug] }
-    const flagged = refundTour.steps.map((step) =>
+    const flagged = refundTrek.steps.map((step) =>
       step.id === "s8" ? { ...step, uncertain: { severity: "high" as const, note: "n" } } : step,
     )
 
     // s9 carries a low flag of its own
-    expect(scoreTour(refundTour, withBug).bugs[0]?.lines).toEqual(["low"])
-    expect(scoreTour({ ...refundTour, steps: flagged }, withBug).bugs[0]?.lines).toEqual(["high"])
+    expect(scoreTrek(refundTrek, withBug).bugs[0]?.lines).toEqual(["low"])
+    expect(scoreTrek({ ...refundTrek, steps: flagged }, withBug).bugs[0]?.lines).toEqual(["high"])
   })
 
   test("tells a response labelled a hop from one that comes back to its caller", () => {
     // s14, back in web's refund action once the api answers, starts a stack of its own as a hop
-    const steps = refundTour.steps.map((step) =>
+    const steps = refundTrek.steps.map((step) =>
       step.id === "s14" ? { ...step, kind: "hop" as const } : step,
     )
 
-    const back = scoreTour({ ...refundTour, steps }, expected).stacks[3]
+    const back = scoreTrek({ ...refundTrek, steps }, expected).stacks[3]
 
     expect(back?.found).toEqual({ kind: "wrong", step: "s14", frames: [] })
   })
 
   test("tells a handler shown under the step that drew its button", () => {
     // the click handler (s4) labelled a call from the render (s3) that drew the button
-    const steps = refundTour.steps.map((step) =>
+    const steps = refundTrek.steps.map((step) =>
       step.id === "s4" ? { ...step, kind: "call" as const } : step,
     )
 
-    const post = scoreTour({ ...refundTour, steps }, expected).stacks[0]
+    const post = scoreTrek({ ...refundTrek, steps }, expected).stacks[0]
 
     expect(post?.found).toMatchObject({ kind: "wrong", step: "s7" })
   })
 
   test("tells a bug walked past from one flagged", () => {
-    const unflagged = refundTour.steps.map((step) => ({ ...step, uncertain: undefined }))
-    const lower = refundTour.steps.map((step) =>
+    const unflagged = refundTrek.steps.map((step) => ({ ...step, uncertain: undefined }))
+    const lower = refundTrek.steps.map((step) =>
       step.uncertain === undefined
         ? step
         : { ...step, uncertain: { ...step.uncertain, severity: "medium" as const } },
     )
-    const withoutWorker = refundTour.steps.filter((step) => step.repo !== "worker")
+    const withoutWorker = refundTrek.steps.filter((step) => step.repo !== "worker")
 
-    const linesOf = (steps: TourStep[]) =>
-      scoreTour({ ...refundTour, steps }, expected).bugs[0]?.lines
+    const linesOf = (steps: TrekStep[]) =>
+      scoreTrek({ ...refundTrek, steps }, expected).bugs[0]?.lines
 
     expect(linesOf(unflagged)).toEqual(Array(5).fill("unflagged"))
     expect(linesOf(lower)).toEqual(["medium", "medium", "medium", "medium", "medium"])
@@ -93,7 +93,7 @@ describe("scoreTour", () => {
   })
 
   test("names a route entry no step reaches, and a link whose target is never reached", () => {
-    const score = scoreTour(withoutStepsIn(refundTour, "worker/handlers/refunds.py"), expected)
+    const score = scoreTrek(withoutStepsIn(refundTrek, "worker/handlers/refunds.py"), expected)
 
     expect(score.route.found).toBe(9)
     expect(score.route.missing.map(({ file }) => file)).toEqual(["worker/handlers/refunds.py"])
@@ -101,9 +101,9 @@ describe("scoreTour", () => {
   })
 
   test("takes one step covering two route entries, and a file visited twice, as in order", () => {
-    const [first] = refundTour.steps
+    const [first] = refundTrek.steps
     if (first === undefined) {
-      throw new Error("the refund tour has no steps")
+      throw new Error("the refund trek has no steps")
     }
 
     const at = (file: string, start: number, end: number) => ({
@@ -129,55 +129,55 @@ describe("scoreTour", () => {
       at("stock.ts", 5, 11),
     ]
 
-    expect(scoreTour({ ...refundTour, steps }, expire).route).toMatchObject({
+    expect(scoreTrek({ ...refundTrek, steps }, expire).route).toMatchObject({
       found: 4,
       inOrder: true,
     })
   })
 
   test("tells an optional entry skipped from a required one missed", () => {
-    const route = scoreTour(withoutStepsIn(refundTour, "openapi.json"), expected).route
+    const route = scoreTrek(withoutStepsIn(refundTrek, "openapi.json"), expected).route
 
     expect(route).toMatchObject({ found: 10, total: 10, missing: [] })
     expect(route.skipped.map(({ file }) => file)).toEqual(["openapi.json"])
   })
 
   test("sees a route walked out of order", () => {
-    const steps = refundTour.steps.toReversed()
+    const steps = refundTrek.steps.toReversed()
 
-    expect(scoreTour({ ...refundTour, steps }, expected).route.inOrder).toBe(false)
+    expect(scoreTrek({ ...refundTrek, steps }, expected).route.inOrder).toBe(false)
   })
 
   // The first link runs from the server (s8) to the refund handler (s11).
   test("tells a guessed link from a cited one, and from one with no evidence", () => {
     const linkSteps = new Set(["s8", "s9", "s10", "s11"])
-    const withVia = (via: TourStep["via"]): Tour => ({
-      ...refundTour,
-      steps: refundTour.steps.map((step) => (linkSteps.has(step.id) ? { ...step, via } : step)),
+    const withVia = (via: TrekStep["via"]): Trek => ({
+      ...refundTrek,
+      steps: refundTrek.steps.map((step) => (linkSteps.has(step.id) ? { ...step, via } : step)),
     })
 
     const guessed = withVia({
       cites: [{ repo: "api", file: "src/server.ts", line: 39 }],
       guessed: true,
     })
-    expect(scoreTour(guessed, expected).links[0]?.found).toBe("guessed")
-    expect(scoreTour(withVia(null), expected).links[0]?.found).toBe("no evidence")
+    expect(scoreTrek(guessed, expected).links[0]?.found).toBe("guessed")
+    expect(scoreTrek(withVia(null), expected).links[0]?.found).toBe("no evidence")
   })
 
-  test("scores a repo by the folder it was read from, whatever the tour named it", () => {
+  test("scores a repo by the folder it was read from, whatever the trek named it", () => {
     const renamed = (name: string) => (name === "api" ? "payments" : name)
-    const tour: Tour = {
-      ...refundTour,
-      repos: refundTour.repos.map((repo) => ({ ...repo, name: renamed(repo.name) })),
-      steps: refundTour.steps.map((step) => ({ ...step, repo: renamed(step.repo) })),
+    const trek: Trek = {
+      ...refundTrek,
+      repos: refundTrek.repos.map((repo) => ({ ...repo, name: renamed(repo.name) })),
+      steps: refundTrek.steps.map((step) => ({ ...step, repo: renamed(step.repo) })),
     }
 
-    expect(scoreTour(tour, expected).route).toMatchObject({ found: 10, total: 10, missing: [] })
+    expect(scoreTrek(trek, expected).route).toMatchObject({ found: 10, total: 10, missing: [] })
   })
 
-  test("names the decoys a tour stepped into, and how often", () => {
+  test("names the decoys a trek stepped into, and how often", () => {
     const withDecoy = { ...expected, decoys: ["worker", "docs"] }
 
-    expect(scoreTour(refundTour, withDecoy).decoys).toEqual([{ repo: "worker", steps: 6 }])
+    expect(scoreTrek(refundTrek, withDecoy).decoys).toEqual([{ repo: "worker", steps: 6 }])
   })
 })

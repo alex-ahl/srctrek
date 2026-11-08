@@ -1,12 +1,12 @@
 import {
   type ProposedRepo,
-  type TourEntry,
-  type TourStatus,
+  type TrekEntry,
+  type TrekStatus,
   acceptProposal,
   buildFiles,
   dismissProposal,
   loadProposals,
-  loadTourEntries,
+  loadTrekEntries,
 } from "@srctrek/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
@@ -17,17 +17,17 @@ import { openInPager } from "./pager"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
-  status: () => Promise<TourStatus>
-  // starts building the change's tour; absent when no agent is set
+  status: () => Promise<TrekStatus>
+  // starts building the change's trek; absent when no agent is set
   build?: (() => Promise<void>) | undefined
-  // starts building the tour of a trigger found in the code; absent when no agent is set
+  // starts building the trek of a trigger found in the code; absent when no agent is set
   buildTrigger?: ((trigger: string) => Promise<void>) | undefined
 }
 
-// Something is being built: the change's tour, or the tour of one of its triggers.
-function isBuilding(status: TourStatus | undefined): boolean {
+// Something is being built: the change's trek, or the trek of one of its triggers.
+function isBuilding(status: TrekStatus | undefined): boolean {
   if (status?.kind === "triggers") {
-    return status.triggers.some(({ tour }) => tour.kind === "building")
+    return status.triggers.some(({ trek }) => trek.kind === "building")
   }
 
   return status?.kind === "building"
@@ -39,10 +39,10 @@ const POLL_MS = 2000
 type HomeProps = {
   root: string
   change: HomeChange | undefined
-  firstEntries: TourEntry[]
-  firstStatus: TourStatus | undefined
+  firstEntries: TrekEntry[]
+  firstStatus: TrekStatus | undefined
   firstProposals: ProposedRepo[]
-  onOpen: (entry: TourEntry) => void
+  onOpen: (entry: TrekEntry) => void
   onQuit: () => void
   onShowFile: (path: string) => void
 }
@@ -53,7 +53,7 @@ function Home(props: HomeProps) {
   const [status, setStatus] = useState(props.firstStatus)
   const [proposals, setProposals] = useState(props.firstProposals)
 
-  // While the agent builds, check on it; when it ends, the tour list has changed too.
+  // While the agent builds, check on it; when it ends, the trek list has changed too.
   const building = isBuilding(status)
   useEffect(() => {
     if (!building || change === undefined) {
@@ -63,7 +63,7 @@ function Home(props: HomeProps) {
     const refresh = async () => {
       const next = await change.status()
       if (next.kind !== "building") {
-        setEntries(await loadTourEntries(root))
+        setEntries(await loadTrekEntries(root))
         setProposals(await loadProposals(root))
       }
 
@@ -109,11 +109,11 @@ function Home(props: HomeProps) {
 }
 
 /**
- * The home screen: the tours saved under `root`, each opened in Neovim on enter, and where
- * the tour of the change trek was started for stands.
+ * The home screen: the treks saved under `root`, each opened in Neovim on enter, and where
+ * the trek of the change trek was started for stands.
  */
 export async function startHome(root: string, change?: HomeChange): Promise<void> {
-  const firstEntries = await loadTourEntries(root)
+  const firstEntries = await loadTrekEntries(root)
   const firstStatus = await change?.status()
   const firstProposals = await loadProposals(root)
   const renderer = await createCliRenderer({ exitOnCtrlC: true })

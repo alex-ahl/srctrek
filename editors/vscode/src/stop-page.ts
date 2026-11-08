@@ -2,7 +2,7 @@ import type { CameFrom, Cite, Frame, StepRef, StepView } from "@srctrek/core"
 import { escapeHtml, gotoLink, openLink, pageHtml } from "./page"
 import { FLAG_WORDING, whereNext } from "./step-text"
 
-// The sidebar's page for the stop the tour is on, apart from VS Code: its narration, details,
+// The sidebar's page for the stop the trek is on, apart from VS Code: its narration, details,
 // flag, and where next goes, then the call stack, where it came from with its evidence, context
 // steps, and questions, each a block of its own. What the status bar, the actions above the step,
 // or the code already show (the stop number, the values) isn't repeated.
@@ -173,10 +173,10 @@ const STYLE = `
     border-left: 2px solid var(--vscode-textLink-foreground); }
 `
 
-/** The page for a stop, or a line saying how to start when the tour isn't on one. */
+/** The page for a stop, or a line saying how to start when the trek isn't on one. */
 export function stopPageHtml(view: StepView | null, codeAt: CodeAt, nonce: string): string {
   if (view === null) {
-    return pageHtml(`<p class="muted">No stop open. Run Srctrek: Open Tour…</p>`, nonce, STYLE)
+    return pageHtml(`<p class="muted">No stop open. Run Srctrek: Open Trek…</p>`, nonce, STYLE)
   }
   const body = [
     leadSection(view),

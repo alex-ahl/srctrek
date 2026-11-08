@@ -3,7 +3,7 @@
 -- groups, and after each writes the screen as text with its colours (.txt) and as a picture
 -- (.png, drawn with ImageMagick in Menlo).
 --
---   nvim --headless -l scripts/nvim-screen.lua <out-prefix> <setup> <tour> [keys]...
+--   nvim --headless -l scripts/nvim-screen.lua <out-prefix> <setup> <trek> [keys]...
 --
 -- Run from the repo root after `bun run build`. <setup> is an Ex command run before the plugin
 -- loads, such as "set background=light | colorscheme retrobox". Each [keys] is sent as typed.
@@ -11,7 +11,7 @@ local W, H = 110, 32
 local CELL_WIDTH, CELL_HEIGHT = 8.43, 17
 local FONT = "/System/Library/Fonts/Menlo.ttc"
 
-local out, setup, tour = arg[1], arg[2], arg[3]
+local out, setup, trek = arg[1], arg[2], arg[3]
 local key_groups = vim.list_slice(arg, 4)
 local repo = vim.fn.getcwd()
 
@@ -193,7 +193,7 @@ clear_cells()
 local request = start_neovim()
 request("nvim_ui_attach", { W, H, { ext_linegrid = true, rgb = true } })
 vim.wait(800)
-request("nvim_command", { "Trek " .. tour })
+request("nvim_command", { "Trek " .. trek })
 vim.wait(1500)
 save(0)
 for n, keys in ipairs(key_groups) do

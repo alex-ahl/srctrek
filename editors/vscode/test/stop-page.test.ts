@@ -19,7 +19,7 @@ test("the page opens with the narration, its details, then the flag and where ne
     '<section class="lead"><p>Pays &lt;first&gt;.</p><p class="details">Why it pays first.</p>',
   )
   expect(html).toContain(
-    '<p class="high">⚠ likely wrong · fixed</p><p class="muted">next: the end of the tour</p>',
+    '<p class="high">⚠ likely wrong · fixed</p><p class="muted">next: the end of the trek</p>',
   )
 })
 
@@ -113,5 +113,5 @@ test("questions get their own block; values stay in the code", () => {
 })
 
 test("with no stop open the page says how to start", () => {
-  expect(stopPageHtml(null, noCode, "n")).toContain("No stop open. Run Srctrek: Open Tour…")
+  expect(stopPageHtml(null, noCode, "n")).toContain("No stop open. Run Srctrek: Open Trek…")
 })

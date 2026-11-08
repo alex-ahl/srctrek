@@ -5,15 +5,15 @@ import {
   type StepView,
   type ViewContext,
   openSession,
-  parseTour,
+  parseTrek,
   sessionView,
   stepNext,
   stepTo,
 } from "../../src"
 
-const fixturePath = join(import.meta.dir, "../fixtures/refund-tour.json")
-const tour = parseTour(await Bun.file(fixturePath).json(), fixturePath)
-const opened = openSession(tour)
+const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
+const trek = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
+const opened = openSession(trek)
 
 const context: ViewContext = {
   roots: new Map([
@@ -57,15 +57,15 @@ describe("sessionView", () => {
 
     expect(overview).toMatchObject({
       kind: "overview",
-      title: tour.title,
+      title: trek.title,
       count: 17,
       repos: ["web", "api", "worker"],
       flags: { high: 4, medium: 4, low: 4 },
     })
-    expect(end).toMatchObject({ kind: "end", outcome: tour.outcome, count: 17 })
+    expect(end).toMatchObject({ kind: "end", outcome: trek.outcome, count: 17 })
   })
 
-  test("lists every flag at the end, most severe first, then in tour order", () => {
+  test("lists every flag at the end, most severe first, then in trek order", () => {
     const end = sessionView(stepNext(stepTo(opened, "s20")), context)
     if (end.kind !== "end") {
       throw new Error("no end view")
@@ -108,18 +108,18 @@ describe("sessionView", () => {
     expect(view.flag?.severity).toBe("high")
   })
 
-  test("opens the user's own file when it's the tour's version, else the tour's copy", () => {
+  test("opens the user's own file when it's the trek's version, else the trek's copy", () => {
     expect(viewOf("s11")).toMatchObject({
       path: "/mine/api/src/handlers/refunds.ts",
-      tour_copy: false,
+      trek_copy: false,
     })
     expect(viewOf("s13")).toMatchObject({
       path: "/checkouts/api/src/bus.ts",
-      tour_copy: true,
+      trek_copy: true,
       own_path: "/mine/api/src/bus.ts",
     })
     // web has no checkout of the user's
-    expect(viewOf("s1")).toMatchObject({ tour_copy: true, own_path: null })
+    expect(viewOf("s1")).toMatchObject({ trek_copy: true, own_path: null })
   })
 
   test("marks a step whose file has changed since as stale", () => {
@@ -149,12 +149,12 @@ describe("sessionView", () => {
     expect(names.slice(-3)).toEqual(["POST /refunds", "createRefund", "publish"])
   })
 
-  test("leaves a step's name empty when the tour doesn't give one", () => {
-    const withoutName = (step: (typeof tour.steps)[number]) => {
+  test("leaves a step's name empty when the trek doesn't give one", () => {
+    const withoutName = (step: (typeof trek.steps)[number]) => {
       const { name: _, ...rest } = step
       return rest
     }
-    const unnamed = { ...tour, steps: tour.steps.map(withoutName) }
+    const unnamed = { ...trek, steps: trek.steps.map(withoutName) }
     const view = sessionView(stepTo(openSession(unnamed), "s11"), context)
 
     expect(view).toMatchObject({ kind: "step", name: null })
@@ -180,8 +180,8 @@ describe("sessionView", () => {
 
   test("leaves a call's line empty when its evidence points elsewhere", () => {
     const uncited = {
-      ...tour,
-      steps: tour.steps.map((s) => (s.id === "s11" ? { ...s, via: null } : s)),
+      ...trek,
+      steps: trek.steps.map((s) => (s.id === "s11" ? { ...s, via: null } : s)),
     }
     const view = sessionView(stepTo(openSession(uncited), "s8"), context)
 
@@ -201,9 +201,9 @@ describe("sessionView", () => {
   })
 
   test("marks a link matched only by name as guessed", () => {
-    const guess = (s: (typeof tour.steps)[number]) =>
+    const guess = (s: (typeof trek.steps)[number]) =>
       s.id === "s11" && s.via !== null ? { ...s, via: { ...s.via, guessed: true } } : s
-    const guessed = { ...tour, steps: tour.steps.map(guess) }
+    const guessed = { ...trek, steps: trek.steps.map(guess) }
     const view = sessionView(stepTo(openSession(guessed), "s11"), context)
 
     expect(view).toMatchObject({ kind: "step", came_from: { id: "s8", guessed: true } })

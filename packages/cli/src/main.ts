@@ -1,31 +1,31 @@
 import {
   type ResolvedChange,
   agentCommand,
-  buildChangeTour,
+  buildChangeTrek,
   directoryIn,
   readChangeArguments,
   resolveChange,
   startBuild,
-  tourStatus,
+  trekStatus,
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
 import { startServe } from "@srctrek/serve"
 import { startHome } from "@srctrek/tui"
 
-// The same repos as trek's args, toured from one trigger: --code="<trigger>" for --code.
+// The same repos as trek's args, followed from one trigger: --code="<trigger>" for --code.
 function argsForTrigger(args: string[], trigger: string): string[] {
   return [...args.filter((arg) => !arg.startsWith("--code")), `--code=${trigger}`]
 }
 
-// Starts the agent on the tour of one trigger found in the code.
-async function buildTriggerTour(
+// Starts the agent on the trek of one trigger found in the code.
+async function buildTriggerTrek(
   cwd: string,
   args: string[],
   agent: string,
   change: ResolvedChange,
   trigger: string,
 ) {
-  const { name } = await tourStatus(cwd, { ...change, code: { trigger } })
+  const { name } = await trekStatus(cwd, { ...change, code: { trigger } })
   await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
 }
 
@@ -34,14 +34,14 @@ async function trek(args: string[]): Promise<void> {
   const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
   const agent = agentCommand()
 
-  const status = () => tourStatus(cwd, change)
-  const build = agent === undefined ? undefined : () => buildChangeTour(cwd, args, change, agent)
+  const status = () => trekStatus(cwd, change)
+  const build = agent === undefined ? undefined : () => buildChangeTrek(cwd, args, change, agent)
   const buildTrigger =
     agent === undefined
       ? undefined
-      : (trigger: string) => buildTriggerTour(cwd, args, agent, change, trigger)
+      : (trigger: string) => buildTriggerTrek(cwd, args, agent, change, trigger)
 
-  // A change with no tour gets one started right away, when there's an agent to build it.
+  // A change with no trek gets one started right away, when there's an agent to build it.
   if (build !== undefined && (await status()).kind === "missing") {
     await build()
   }

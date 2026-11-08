@@ -6,18 +6,18 @@
 local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──► user's agent
                            │        ▲
                            ▼        │ JSON-RPC over stdio (trek serve)
-        tour (.srctrek/tours/<name>.json)   ├── Neovim plugin (stepping, in the editor)
+        trek (.srctrek/treks/<name>.json)   ├── Neovim plugin (stepping, in the editor)
                                               └── tui (home, build view, route map, fallback)
 ```
 
 - **`packages/core/`** — everything that is not presentation: resolving repos and ranges,
   fetching remote refs, reading and searching files at a revision, preparing editor
-  checkouts, prompts, the tour schema, validation, saving and loading tours, and the
+  checkouts, prompts, the trek schema, validation, saving and loading treks, and the
   stepping session (current step, next, into, over, out, call stack) that every front-end and
   editor adapter renders. Exposes its API only
   through `packages/core/src/index.ts`. Runs as a long-lived `trek` process that editor
   plugins talk to over JSON on stdio, the way language servers do.
-- **`editors/nvim/`** — the Neovim plugin (Lua), the main place a tour is followed:
+- **`editors/nvim/`** — the Neovim plugin (Lua), the main place a trek is followed:
   highlights, narration, change signs, details, context code. Depends on no file
   explorer; each step fires a `User SrctrekStep` event that explorers or user config can
   follow. Every action is a command (`:TrekNext` and so on) and a Lua function; keys exist
@@ -30,29 +30,29 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
   it starts `trek serve` in the workspace folder and draws the views it answers with. It imports
   only core's types, so its bundle holds none of core's code.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
-  stepping: a home screen of tours and PRs awaiting review, ranked by high-severity flags; a
-  live view while a tour is built; a route map of the whole trek across repos; and a
+  stepping: a home screen of treks and PRs awaiting review, ranked by high-severity flags; a
+  live view while a trek is built; a route map of the whole trek across repos; and a
   stepping view with a code panel, for a quick look and for editors without a plugin. Holds
-  no tour-building logic.
+  no trek-building logic.
 - **mcp** — the MCP server (`trek mcp`, stdio, `packages/mcp/`) that the user's agent talks
-  to. Exposes core's capabilities as MCP tools and prompts. Holds no tour logic of its own.
+  to. Exposes core's capabilities as MCP tools and prompts. Holds no trek logic of its own.
 - **serve** — the editor protocol's server (`trek serve`, stdio, `packages/serve/`), started
   by an editor's plugin: carries out each request on core's stepping session and answers with
   its view. Holds no stepping logic of its own.
 - **cli** — the `trek` binary's entry point (`packages/cli/`): parses arguments, resolves
   repos and ranges through core, and starts a front-end. Front-ends never import each other.
 - **GUI (later)** — a local web front-end served by the same binary (`trek --gui`), using
-  the same core API and tour format.
+  the same core API and trek format.
 
 ## Boundaries
 
 - core imports no UI code; oxlint enforces this (`no-restricted-imports` in `.oxlintrc.json`).
 - Front-ends import only `@srctrek/core`; oxlint rejects deep and relative imports into it.
-- The tour schema is the contract between core and every front-end.
+- The trek schema is the contract between core and every front-end.
 - Prompts are files under `packages/core/prompts/`, imported as text
   (`import x from "./x.md" with { type: "text" }`) so the compiled binary embeds them.
   Nothing reads them from disk at runtime.
-- A submitted tour is validated against the schema, and every cited file and line range
+- A submitted trek is validated against the schema, and every cited file and line range
   must exist at its revision. Errors go back to the agent to fix.
 
 ## Sources
@@ -64,9 +64,9 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
   repo when none is; a repo with no range after it is on the route without changes. With no
   arguments, the change is the current branch since it left the base branch:
   `trek ../api main...feature ../web main...feature ../gateway`.
-- `--code` tours code as it is, with no change: every argument is a repo (the current one
+- `--code` walks code as it is, with no change: every argument is a repo (the current one
   when none is given), local repos are read at what's checked out unless pinned, and
-  `--code="a refund request"` names the trigger to follow. Plain `--code` builds no tour: the
+  `--code="a refund request"` names the trigger to follow. Plain `--code` builds no trek: the
   agent records the code's triggers (`record_triggers`, each with a cited line as evidence),
   saved in .srctrek/triggers while the code is at the same revisions, and the user picks.
 - Repos on the route without changes have no range. They come from the command (a repo
@@ -81,9 +81,9 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
   the evidence (a client, a config value, a contract file, a dependency), with the source
   when it finds it: `open_change` names git repos next to the current one as candidates, and
   the agent can search the user's code host with its own tools; srctrek doesn't search hosts
-  itself. A proposal with a source is opened at once, so the tour goes on into it and records
+  itself. A proposal with a source is opened at once, so the trek goes on into it and records
   it: on the branch the work is on, as part of the change, when the repo has it, locally or
-  as a remote-tracking branch as of the last fetch; else at its default branch, and the tour
+  as a remote-tracking branch as of the last fetch; else at its default branch, and the trek
   flags the hop as possibly missing the change's side there.
   With the user's approval the repo is appended to the repos list under its name; for a
   proposal without a source, the user gives the location when adding it.
@@ -96,9 +96,9 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
   of HEAD (edits staged or not, new files git doesn't ignore), made without touching the
   branch, the index, or any file, and kept by a ref under refs/srctrek. The .srctrek
   folder stays as HEAD has it, and the snapshot is dated with HEAD's date, so the same work
-  always gives the same commit and its tour is found again.
-- For the editor, each repo is checked out at the tour's revision into a cached worktree
-  (`git worktree add`), so the editor shows the code the tour describes. The user's own
+  always gives the same commit and its trek is found again.
+- For the editor, each repo is checked out at the trek's revision into a cached worktree
+  (`git worktree add`), so the editor shows the code the trek describes. The user's own
   checkout serves instead when it's at that revision with no edits to tracked files.
 
 ## Specs
@@ -114,9 +114,9 @@ They set the scenario and serve as evidence: a route or topic in a contract file
 caller to its handler without a guess. The code decides the route; where a spec and the
 code disagree, the step is flagged `uncertain`.
 
-## Tour format
+## Trek format
 
-Defined in code in `packages/core/src/schema/tour.ts`. Saved as `.srctrek/tours/<name>.json`.
+Defined in code in `packages/core/src/schema/trek.ts`. Saved as `.srctrek/treks/<name>.json`.
 
 A step's narration (summary and details) is about the step's own lines. Any other code it
 mentions is a citation, `<repo>/<path>:<line>`, which the editor can jump to and validation
@@ -124,7 +124,7 @@ can check; never a bare "line 5".
 
 - `format_version`, `title`, `created_at`, `prompt_hash`, `overview`
 - `author`: `{ role, agent, model }` — role is `producer` (the agent that wrote the change) or
-  `reviewer` (an independent reading); `agent` is absent when core built the tour itself
+  `reviewer` (an independent reading); `agent` is absent when core built the trek itself
 - `sources`: the specs read, each `{ kind, location }`
 - `trigger`: `{ kind, input }` — kind is a request, event, schedule, or command; input is the
   scenario's concrete example
@@ -134,14 +134,14 @@ can check; never a bare "line 5".
 - `steps[]`:
   - `id`, `repo`, `file`, `start_line`, `end_line`, `summary`, `details`
   - optional: `name`, the function, route, or handler the step shows, as the code names it
-  - `blob`: the file's git blob id at the tour's revision; a mismatch marks the step stale
+  - `blob`: the file's git blob id at the trek's revision; a mismatch marks the step stale
   - `kind`: `call` (enters a function), `return` (comes back to a function a step on the
     call stack showed), `hop` (cross-process, or later: a message, a job, an event handler; the
     call stack resets), or `context`
   - `changed`: whether the range touches these lines
   - `from`: the id of the earlier step execution came from, on every executed step but the
     first; for async work it names the cause (the publish), not the step before it in the
-    tour. A context step is never executed, so `from` never names one.
+    trek. A context step is never executed, so `from` never names one.
   - `for`: on a context step, in place of `from`: the step it explains. Context steps sit
     outside the execution chain and the call stack.
   - `via`: the evidence for arriving here — one or more `{ repo, file, line }` citing the
@@ -159,15 +159,15 @@ can check; never a bare "line 5".
     (risky), or `low` (worth knowing). Front-ends show `high` inline and the rest in details.
   - `notes[]`: questions asked on this step and their answers (see Asking)
 
-Each executed step's call stack comes from these links, in tour order: a call goes on top of
+Each executed step's call stack comes from these links, in trek order: a call goes on top of
 the step it came from, a hop starts a new stack, and a return takes the place of the nearest
 frame in its own file below the step it returns from, found back across hops to their cause.
 A step's calls are the steps that come from it as calls. Validation rejects a return that
 comes back to no frame.
 
-## Building a tour
+## Building a trek
 
-The user's agent builds the tour through `trek mcp`:
+The user's agent builds the trek through `trek mcp`:
 
 1. `open_change`: the agent names local paths, ranges, or PR URLs; core resolves repos,
    revisions, and ranges, fetches what's remote, and returns the change.
@@ -176,58 +176,58 @@ The user's agent builds the tour through `trek mcp`:
 3. Instructions: the schema and the guidance from `packages/core/prompts/`, as MCP prompts.
 4. `propose_repo`: a repo on the route that the change doesn't include, with its evidence;
    see Sources.
-5. Submission: `start_tour` (trigger, outcome, overview), `add_steps`, `finish_tour`. Each
-   call is validated; the TUI shows the overview as soon as `start_tour` lands and steps as
+5. Submission: `start_trek` (trigger, outcome, overview), `add_steps`, `finish_trek`. Each
+   call is validated; the TUI shows the overview as soon as `start_trek` lands and steps as
    they arrive.
 
 The agent is started one of two ways:
 
 - From the agent's own chat, with `trek mcp` registered.
-- By `trek` itself, when there is no tour for the change: it runs the command in
+- By `trek` itself, when there is no trek for the change: it runs the command in
   `SRCTREK_AGENT` in the background, as for Asking, with the instruction (the guide, the
-  change's args, and the tour's name) as its last argument. The agent reaches `trek mcp`
+  change's args, and the trek's name) as its last argument. The agent reaches `trek mcp`
   through the user's own registration. The build goes on if `trek` quits; its log and exit
-  code are kept in the repo's git folder, and the build view shows the tour when it arrives.
+  code are kept in the repo's git folder, and the build view shows the trek when it arrives.
   `trek mcp` appends a `trek:` line to that log for each answer it gives the agent, so the
   log shows the build's progress next to the agent's own output.
 
-Without a change (a repo the user doesn't know), `trek` builds a tour of existing code: the
+Without a change (a repo the user doesn't know), `trek` builds a trek of existing code: the
 agent proposes candidate triggers (CLI commands, HTTP routes, event handlers, scheduled
-jobs), the user picks one or types their own, and the tour follows it with every step
+jobs), the user picks one or types their own, and the trek follows it with every step
 unchanged and no range.
 
-A tour from anywhere — an agent, a teammate, written by hand — is validated when loaded:
+A trek from anywhere — an agent, a teammate, written by hand — is validated when loaded:
 the schema, cited lines at their recorded revisions, and steps whose files changed since
 marked stale.
 
 ## When validation fails
 
-While a tour is built, each submission is checked against every rule, and failures go back to
+While a trek is built, each submission is checked against every rule, and failures go back to
 the agent as messages naming the step. A failed link has two ways out: cite the missing
 evidence, or mark the link `guessed`. At the third rejected round, the build stops and the
 build view shows the failures; nothing is saved and nothing is fixed silently.
 
-Checks that read the code at the tour's revisions (cited lines exist; the two sides of a
+Checks that read the code at the trek's revisions (cited lines exist; the two sides of a
 cross-repo link share a distinctive string such as a route or topic) downgrade a link to
-`guessed` instead of rejecting the tour.
+`guessed` instead of rejecting the trek.
 
-A saved tour has passed every rule. When one doesn't load:
+A saved trek has passed every rule. When one doesn't load:
 
-- **Other format version** (a teammate's tour from another srctrek): one plain message
+- **Other format version** (a teammate's trek from another srctrek): one plain message
   naming the version, and an action to rebuild it.
 - **Otherwise invalid:** reported as a srctrek bug, since saving and building never let one
   through.
-- **Stale** (a cited file's blob changed since): the tour opens with stale steps marked, and
+- **Stale** (a cited file's blob changed since): the trek opens with stale steps marked, and
   an action asks the agent to update them.
-- **Unreachable** (a repo isn't where the tour says): the home screen names the repo and the
+- **Unreachable** (a repo isn't where the trek says): the home screen names the repo and the
   expected location.
 
 ## Following in the editor
 
-The tour is stepped in the editor, in files from the cached worktree. Core's stepping session
+The trek is stepped in the editor, in files from the cached worktree. Core's stepping session
 (`packages/core/src/session/`) moves through it:
 
-- next and back: the executed steps in tour order, from the overview to the end; context steps
+- next and back: the executed steps in trek order, from the overview to the end; context steps
   are opened from the step they explain.
 - into: a step the current one calls or starts a hop to, the first not yet visited unless one
   is named.
@@ -241,8 +241,8 @@ or the step with its path in the repo's checkout, its narration, flag, predicted
 lines the change touches in its file, whether it's stale, the steps it can step into, the context
 steps that explain it, and its call stack back across every hop to the trigger, hops marked.
 What the view needs from git comes from `viewContext`: each repo found from its source and checked
-out at the tour's revision, the lines its recorded range touches, and, given the change as it is
-now, the steps whose file has moved on. A repo that isn't where the tour says, or lacks its
+out at the trek's revision, the lines its recorded range touches, and, given the change as it is
+now, the steps whose file has moved on. A repo that isn't where the trek says, or lacks its
 commit, is reported by name.
 
 - Neovim (version 1): the plugin steps from inside the editor and renders each step.
@@ -259,8 +259,8 @@ agent to answer it.
 1. The editor sends the question, the current step, the call stack, and any selected lines
    to `trek ask`.
 2. `trek ask` builds the prompt from `packages/core/prompts/` and runs the user's agent CLI
-   headless, with `trek mcp` attached for reading code at the tour's revisions.
-3. The agent answers through an MCP tool. Core validates the answer like a tour: cited lines
+   headless, with `trek mcp` attached for reading code at the trek's revisions.
+3. The agent answers through an MCP tool. Core validates the answer like a trek: cited lines
    exist, values are labeled predicted.
 4. The editor shows the answer beside the code with jumpable citations, and core saves it on
    the step as a note.
@@ -272,7 +272,7 @@ The agent is the command in `SRCTREK_AGENT`; nothing is detected.
 
 ## Modes
 
-Narrated only: tours are built by reading code, not running it. Values shown for the
+Narrated only: treks are built by reading code, not running it. Values shown for the
 scenario are predictions and are labeled as predicted. Recorded runs (a debugger, a tracer,
 or a test) serve only as ground truth in evals.
 
@@ -282,7 +282,7 @@ Each fixture under `evals/fixtures/` is a base tree plus a patch per repo, and a
 expected.json: where to run `trek` and with which arguments, the route, the links and their
 evidence, the planted bugs, and the call stack expected at a few lines. The eval runner
 (`packages/evals/`) builds temporary git repos from them, runs the agent in `SRCTREK_AGENT` as
-a background build, and scores the saved tour: route entries reached and their order, links
+a background build, and scores the saved trek: route entries reached and their order, links
 cited or guessed, bugs found (a bug line inside a step flagged high, or inside a context step
 whose step is), stacks as expected (every step showing the line under the expected frames, by
 file), and how many steps carry flags.

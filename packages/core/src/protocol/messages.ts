@@ -1,6 +1,6 @@
 import { z } from "zod"
-import type { TourStatus } from "../build/status"
-import type { TourEntry } from "../tour-entries"
+import type { TrekStatus } from "../build/status"
+import type { TrekEntry } from "../trek-entries"
 
 /** The editor protocol's version; client and core must agree on it. */
 export const PROTOCOL_VERSION = 1
@@ -25,32 +25,32 @@ export const RequestParams = {
     protocol_version: z.number().int(),
     client: z.object({ name: nonEmpty, version: nonEmpty }),
   }),
-  // a tour saved in the folder trek serve runs in, by name; with trek's arguments for the
+  // a trek saved in the folder trek serve runs in, by name; with trek's arguments for the
   // change as it is now, steps whose file has moved on are marked stale
-  open: z.object({ tour: nonEmpty, args: z.array(z.string()).optional() }),
+  open: z.object({ trek: nonEmpty, args: z.array(z.string()).optional() }),
   next: none,
   prev: none,
   into: z.object({ target: nonEmpty.optional() }).strict().optional(),
   over: none,
   out: none,
   goto: z.object({ step: nonEmpty }),
-  // the saved tours, and where the change's tour stands
-  tours: change,
-  // builds the change's tour, or updates it when it's stale
+  // the saved treks, and where the change's trek stands
+  treks: change,
+  // builds the change's trek, or updates it when it's stale
   build: change,
-  // the last lines of a tour's build log
-  log: z.object({ tour: nonEmpty, lines: z.number().int().positive().optional() }),
+  // the last lines of a trek's build log
+  log: z.object({ trek: nonEmpty, lines: z.number().int().positive().optional() }),
 }
 
 export type Method = keyof typeof RequestParams
 
 export type InitializeResult = { protocol_version: number; trail_version: string }
 
-/** What `tours` answers: every saved tour, and the change's tour as it stands. */
-export type ToursResult = { change: TourStatus; tours: TourEntry[] }
+/** What `treks` answers: every saved trek, and the change's trek as it stands. */
+export type TreksResult = { change: TrekStatus; treks: TrekEntry[] }
 
-/** What `build` answers: the change's tour as it stands once the build has started. */
-export type BuildResult = { change: TourStatus }
+/** What `build` answers: the change's trek as it stands once the build has started. */
+export type BuildResult = { change: TrekStatus }
 
 /** What `log` answers: the end of a build's log, oldest line first. */
 export type LogResult = { lines: string[] }
@@ -59,8 +59,8 @@ export type LogResult = { lines: string[] }
 export const ErrorCode = {
   versionMismatch: 1,
   notInitialized: 2,
-  noTour: 3,
-  invalidTour: 4,
+  noTrek: 3,
+  invalidTrek: 4,
   unreachableRepo: 5,
   unknownStep: 6,
   noAgent: 7,

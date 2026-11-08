@@ -3,7 +3,7 @@ import { closeSync, openSync, writeFileSync } from "node:fs"
 import { mkdir, readFile, rm } from "node:fs/promises"
 import { pathExists } from "../files"
 import { type BuildMode, headlessBuildPrompt } from "../prompts"
-import { tourPath } from "../tours"
+import { trekPath } from "../treks"
 import { type BuildFiles, buildFiles } from "./files"
 
 /**
@@ -15,11 +15,11 @@ export const BUILD_LOG_ENV = "SRCTREK_BUILD_LOG"
 /** How trek mcp's lines in a build log start, telling them from the agent's own output. */
 export const BUILD_LOG_PREFIX = "trek: "
 
-/** Where a background build stands: running, saved its tour, or ended without one. */
+/** Where a background build stands: running, saved its trek, or ended without one. */
 export type BuildState = "building" | "done" | "failed"
 
 /**
- * Starts the user's agent building a tour of the change `args` names, saved as `name`, or
+ * Starts the user's agent building a trek of the change `args` names, saved as `name`, or
  * updating the one saved as `name`. The agent runs on its own, so the build goes on if trek
  * quits; its output goes to a log, and its exit code to a file when it ends.
  */
@@ -72,7 +72,7 @@ export async function buildState(root: string, name: string): Promise<BuildState
   }
 
   const exitCode = (await readFile(files.exit, "utf8")).trim()
-  const saved = await pathExists(tourPath(root, name))
+  const saved = await pathExists(trekPath(root, name))
 
   return exitCode === "0" && saved ? "done" : "failed"
 }
@@ -93,10 +93,10 @@ export async function buildLogTail(root: string, name: string, count: number): P
 }
 
 /**
- * Whether the build's log says its tour was saved: trek mcp answers a saved tour with
+ * Whether the build's log says its trek was saved: trek mcp answers a saved trek with
  * "saved <path>". Builds from before trek mcp wrote to the log never say so.
  */
-export async function buildSavedTour(root: string, name: string): Promise<boolean> {
+export async function buildSavedTrek(root: string, name: string): Promise<boolean> {
   const files = await buildFiles(root, name)
   if (!(await pathExists(files.log))) {
     return false

@@ -8,7 +8,7 @@ import { answerRequest, newServeState } from "./requests"
 
 /**
  * `trek serve`: the editor protocol over stdin and stdout, for one editor stepping through
- * tours saved in `cwd`. Resolves once the editor closes stdin.
+ * treks saved in `cwd`. Resolves once the editor closes stdin.
  */
 export function startServe(cwd: string): Promise<void> {
   const connection = createMessageConnection(

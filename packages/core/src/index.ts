@@ -3,12 +3,12 @@ export {
   FORMAT_VERSION,
   TriggerKindSchema,
   SubmittedStepSchema,
-  TourHeaderSchema,
-  TourSchema,
-  type Tour,
-  type TourHeader,
-  type TourStep,
-} from "./schema/tour"
+  TrekHeaderSchema,
+  TrekSchema,
+  type Trek,
+  type TrekHeader,
+  type TrekStep,
+} from "./schema/trek"
 export { callStacks, type CallStacks } from "./schema/stacks"
 export { currentStep, openSession, type Position, type SteppingSession } from "./session/session"
 export {
@@ -49,17 +49,17 @@ export {
   type InitializeResult,
   type LogResult,
   type Method,
-  type ToursResult,
+  type TreksResult,
 } from "./protocol/messages"
 export {
-  TOURS_DIR,
-  TourValidationError,
-  listTours,
-  loadTour,
-  parseTour,
-  saveTour,
-  tourPath,
-} from "./tours"
+  TREKS_DIR,
+  TrekValidationError,
+  listTreks,
+  loadTrek,
+  parseTrek,
+  saveTrek,
+  trekPath,
+} from "./treks"
 export { detectBase } from "./git/base"
 export { parseRange, resolveRange, type RangeSpec, type ResolvedRange } from "./git/range"
 export { GitError, runGit } from "./git/run"
@@ -91,7 +91,7 @@ export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
 export { cachePath, cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
-export type { CodeTour } from "./change/options"
+export type { CodeTrek } from "./change/options"
 export {
   hasRange,
   resolveChange,
@@ -123,7 +123,7 @@ export { completeStep, type SubmittedStep } from "./build/complete"
 export { saveChangedLines } from "./build/changed-lines"
 export {
   addSteps,
-  draftToTour,
+  draftToTrek,
   newDraft,
   stepIds,
   withChange,
@@ -131,21 +131,21 @@ export {
   type Draft,
 } from "./build/draft"
 export { snapshotWorkingTree } from "./git/snapshot"
-export { existingTourFor } from "./build/existing"
-export { tourNameFor } from "./build/name"
+export { existingTrekFor } from "./build/existing"
+export { trekNameFor } from "./build/name"
 export {
   BUILD_LOG_ENV,
   BUILD_LOG_PREFIX,
   buildLogTail,
-  buildSavedTour,
+  buildSavedTrek,
   buildState,
   startBuild,
   type BuildState,
 } from "./build/background"
-export { tourStatus, type TourStatus, type TriggerTour } from "./build/status"
-export { agentCommand, buildChangeTour } from "./build/start"
-export { loadTourEntries, type TourEntry } from "./tour-entries"
-export { buildTourPrompt } from "./guide"
+export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status"
+export { agentCommand, buildChangeTrek } from "./build/start"
+export { loadTrekEntries, type TrekEntry } from "./trek-entries"
+export { buildTrekPrompt } from "./guide"
 export { buildFiles, type BuildFiles } from "./build/files"
 export {
   TRIGGERS_DIR,

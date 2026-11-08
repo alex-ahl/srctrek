@@ -13,7 +13,7 @@ import {
 } from "../repos/resolve"
 import { snapshotWorkingTree } from "../git/snapshot"
 import type { ChangeArguments, ChangeSource } from "./arguments"
-import type { CodeTour } from "./options"
+import type { CodeTrek } from "./options"
 
 /**
  * A repo of the change at an exact commit: its head when it changed (with its range), else
@@ -35,10 +35,10 @@ export function hasRange(repo: ResolvedRepo): repo is RepoWithRange {
 }
 
 /**
- * Every repo the trek may pass through, changed ones first; for a tour of code as it is,
+ * Every repo the trek may pass through, changed ones first; for a trek of code as it is,
  * no repo has a range, and `code` holds its trigger.
  */
-export type ResolvedChange = { repos: ResolvedRepo[]; code?: CodeTour | undefined }
+export type ResolvedChange = { repos: ResolvedRepo[]; code?: CodeTrek | undefined }
 
 // Uncommitted work lives in a local checkout, at its HEAD; a pull request or a remote repo has
 // none.
@@ -117,7 +117,7 @@ function assertUniqueNames(repos: ResolvedRepo[]): void {
   }
 }
 
-// A repo toured as it is: a local one at what's checked out (or a snapshot of the working tree,
+// A repo read as it is: a local one at what's checked out (or a snapshot of the working tree,
 // with uncommitted work), unless pinned; a URL at its default branch.
 async function resolveCodeRepo(
   cwd: string,
@@ -181,7 +181,7 @@ export type ReadAt =
   | { kind: "pinned"; revision: string }
   | { kind: "default"; why: string }
 
-// How far a local branch treks the branch it tracks, as of the last fetch; none when it
+// How far a local branch lags behind the branch it tracks, as of the last fetch; none when it
 // tracks nothing or is level with it. Nothing is fetched: the user's repo is left as it is.
 async function behindUpstream(dir: string, branch: string): Promise<Behind | undefined> {
   try {

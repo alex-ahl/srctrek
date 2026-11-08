@@ -4,7 +4,7 @@ import { neovimArgs } from "../src/neovim"
 const useServe =
   'lua vim.g.srctrek = vim.tbl_deep_extend("force", vim.g.srctrek or {}, { cmd = { "/bin/trek", "serve" } })'
 
-test("starts the tour by name, loading the plugin from a checkout after the user's config", () => {
+test("starts the trek by name, loading the plugin from a checkout after the user's config", () => {
   expect(neovimArgs("pay", "/repo/editors/nvim", ["/bin/trek", "serve"])).toEqual([
     "nvim",
     "-c",

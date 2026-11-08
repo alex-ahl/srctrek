@@ -33,20 +33,20 @@ describe("background builds", () => {
     )
   })
 
-  test("tell the agent to update the saved tour when asked to", async () => {
+  test("tell the agent to update the saved trek when asked to", async () => {
     const root = await makeRepo()
     const files = await startBuild(root, [], "refunds", "printf %s", "update")
     await stateWhenEnded(root, "refunds")
 
     const prompt = await readFile(files.log, "utf8")
     expect(prompt).toBe(headlessBuildPrompt([], "refunds", "update"))
-    expect(prompt).toContain("call update_tour with `refunds` instead of start_tour")
-    expect(prompt).not.toContain("Save the finished tour")
+    expect(prompt).toContain("call update_trek with `refunds` instead of start_trek")
+    expect(prompt).not.toContain("Save the finished trek")
   })
 
-  test("are done when the agent exits cleanly having saved the tour", async () => {
+  test("are done when the agent exits cleanly having saved the trek", async () => {
     const root = await makeRepo()
-    const agent = "mkdir -p .srctrek/tours && echo '{}' > .srctrek/tours/refunds.json && true"
+    const agent = "mkdir -p .srctrek/treks && echo '{}' > .srctrek/treks/refunds.json && true"
     await startBuild(root, [], "refunds", agent)
 
     expect(await stateWhenEnded(root, "refunds")).toBe("done")

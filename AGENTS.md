@@ -35,15 +35,15 @@ migration layers. When something changes, change it everywhere at once.
 
 ## Layout
 
-- `packages/core/` — git, schema, prompts, validation, saving and loading tours. No UI.
+- `packages/core/` — git, schema, prompts, validation, saving and loading treks. No UI.
 - `packages/cli/` — the `trek` entry point: arguments, resolving the change, starting a
   front-end.
-- `packages/mcp/` — the MCP server, `trek mcp`, for the agent that builds a tour.
-- `packages/serve/` — the editor protocol's server, `trek serve`, for editors stepping a tour.
+- `packages/mcp/` — the MCP server, `trek mcp`, for the agent that builds a trek.
+- `packages/serve/` — the editor protocol's server, `trek serve`, for editors stepping a trek.
 - `packages/tui/` — OpenTUI + React front-end.
-- `packages/evals/` — the eval runner: an agent builds a fixture's tour, scored against
+- `packages/evals/` — the eval runner: an agent builds a fixture's trek, scored against
   expected.json.
 - `editors/nvim/` — the Neovim plugin (Lua).
 - `editors/vscode/` — the VS Code extension, for VS Code and its forks.
-- `evals/fixtures/` — sample repos for tour-quality evals.
+- `evals/fixtures/` — sample repos for trek-quality evals.
 - `scripts/` — repo tooling.

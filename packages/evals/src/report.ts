@@ -7,15 +7,15 @@ type RouteEntry = Score["route"]["missing"][number]
 export type UpdateFacts = { seconds: number; kept: number; redo: number; agentSummary: string }
 
 /**
- * What a run took, besides the tour: how long, and what the agent said last; and, when the
- * tour was then updated, what the update took.
+ * What a run took, besides the trek: how long, and what the agent said last; and, when the
+ * trek was then updated, what the update took.
  */
 export type RunFacts = {
   seconds: number
   steps: number
   agentSummary: string
   log: string
-  tour: string
+  trek: string
   update?: UpdateFacts | undefined
 }
 
@@ -146,7 +146,7 @@ export function formatReport(name: string, score: Score, facts: RunFacts): strin
     "",
     ...section(facts.update === undefined ? "Agent" : "Build", agentNumbers(facts.agentSummary)),
     ...updateLines(facts.update),
-    ...section("Tour", [facts.tour]),
+    ...section("Trek", [facts.trek]),
     ...section("Log", [facts.log]),
   ].join("\n")
 }

@@ -5,10 +5,10 @@ terminal. Status: Milestone 5, in progress.
 
 ## Surfaces
 
-- **Terminal** (`trek`): choosing a change, watching its tour being built, the whole route at
+- **Terminal** (`trek`): choosing a change, watching its trek being built, the whole route at
   once, and stepping for editors without a plugin.
-- **Editor** (the Neovim plugin, the VS Code extension): stepping through a tour.
-- **The agent's chat:** building a tour by asking for one.
+- **Editor** (the Neovim plugin, the VS Code extension): stepping through a trek.
+- **The agent's chat:** building a trek by asking for one.
 - **GUI** (later): screens shared with the VS Code extension.
 
 ## Flows
@@ -16,12 +16,12 @@ terminal. Status: Milestone 5, in progress.
 ### 1. Review a pull request
 
 1. In a repo of the change, run `trek <pull request URL>…`, or `trek` on the branch.
-2. `trek` resolves the change, fetching what's remote, and opens the home screen. With no tour
+2. `trek` resolves the change, fetching what's remote, and opens the home screen. With no trek
    yet and an agent configured, the build starts at once, and the home screen follows it: the
    overview, then steps as they arrive.
-3. A repo the agent proposes appears as a row: add it to the repos list, or dismiss it. The tour
+3. A repo the agent proposes appears as a row: add it to the repos list, or dismiss it. The trek
    goes on into it either way.
-4. Once saved, the tour is picked out; enter opens it in the editor.
+4. Once saved, the trek is picked out; enter opens it in the editor.
 5. In the editor: the overview, then next, over, into, and out through the steps, high flags
    inline and predicted values at the ends of their lines; at the end, the outcome.
 
@@ -34,17 +34,17 @@ agent's.
 
 1. `trek --code` lists the code's triggers (routes, commands, jobs, handlers), each with the line
    that proves it.
-2. Picking one builds its tour, which opens as in flow 1. `trek --code="<trigger>"` skips the
+2. Picking one builds its trek, which opens as in flow 1. `trek --code="<trigger>"` skips the
    list.
 
 ### 4. Come back after the change moved on
 
-The home screen marks the tour stale, with how many steps' files changed; `b` updates it. Until
+The home screen marks the trek stale, with how many steps' files changed; `b` updates it. Until
 then the editor marks the stale steps.
 
 ### 5. Build from the agent's chat
 
-The user asks their agent for a tour in plain words; the agent builds it through `trek mcp`, and
+The user asks their agent for a trek in plain words; the agent builds it through `trek mcp`, and
 `trek` finds it on the home screen.
 
 ### 6. Ask about a step (Milestone 6)
@@ -62,15 +62,15 @@ at its line.
 - No agent configured: the home screen says how to set `SRCTREK_AGENT`.
 - A build failed: the end of its log, `b` to build again, `l` for the whole log.
 - A repo isn't reachable: its name and where it was expected.
-- A tour from another format version: says so, with a rebuild.
-- A change with no commits: nothing to tour.
+- A trek from another format version: says so, with a rebuild.
+- A change with no commits: nothing to trek.
 
 ### Where a session starts
 
-- **From the terminal:** enter on the home screen opens the tour in the editor that
+- **From the terminal:** enter on the home screen opens the trek in the editor that
   `SRCTREK_EDITOR` names (`nvim`, `code`, …); nothing is detected. Without it, `$EDITOR` opens
   the step at its line.
-- **From the editor:** the plugin or extension lists the saved tours with their status (ready,
+- **From the editor:** the plugin or extension lists the saved treks with their status (ready,
   stale, building, failed), opens one, and starts a build. The protocol gains the requests for
   this in Milestone 6.
 
@@ -92,23 +92,23 @@ The vocabulary every surface shares, shown in place on a step in the review page
   theme, so the step's tint, the narration's band, and the badge are mixed from the theme's
   text, background, and info colours.
 - **The user's own files, where they can be.** A step opens the user's own file when it's the
-  version the tour describes; only a file that differs opens from the tour's copy, read-only.
-- **Nothing the user has is lost.** A tour changes no file, buffer, window, key, or setting of the
+  version the trek describes; only a file that differs opens from the trek's copy, read-only.
+- **Nothing the user has is lost.** A trek changes no file, buffer, window, key, or setting of the
   user's for good: whatever it borrows (a window, a key, the winbar) comes back as it was when the
-  tour ends, and nothing it does while running can throw away unsaved changes or undo history.
+  trek ends, and nothing it does while running can throw away unsaved changes or undo history.
 - **Changed code gets the attention.** The step's lines are tinted, the change's own lines carry a
   sign in the gutter, and a step in existing code says so quietly.
-- **It's always clear you're in a tour, and where.** A badge starts the winbar; the narration sits on a band across the window, so it reads as
+- **It's always clear you're in a trek, and where.** A badge starts the winbar; the narration sits on a band across the window, so it reads as
   commentary, not code; the step's tint is its own, never the cursor line's; its first line
   carries `▶`, as a debugger's current line does; and once the reader moves away, the winbar
   says so, and a key goes back.
 - **Nothing predicted reads as fact.** Every predicted value carries `≈` in place of `=`.
 - **Readers see stops, never ids.** A step shows its number among the stops (`9 / 17`), in the
   winbar's strongest text, and its place (repo, file, line); step ids are for the protocol and
-  the tour file.
-- **Every action answers.** Opening a tour says so at once; a move with nowhere to go says so
+  the trek file.
+- **Every action answers.** Opening a trek says so at once; a move with nowhere to go says so
   and leaves the cursor where it is.
-- **Next and the narration are the whole tour** (`docs/PRODUCT.md`): in Neovim, `]t` and the band
+- **Next and the narration are the whole trek** (`docs/PRODUCT.md`): in Neovim, `]t` and the band
   above the step; in VS Code, `F8` and the top of the sidebar's Stop view.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details. The band holds the narration and,
@@ -136,7 +136,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Cited link      | in details: the stop it came from, then each cited line with its code under it                                                                                                                                                                          | “Reached from stop 7 · publish”                                                          | `Normal`          | `foreground`                      |
 | Guessed link    | in details, marked guessed; a “guessed link” tag in the winbar of the step it reaches; `→?` on the line it was guessed from                                                                                                                             | “(guessed: matched by name)”                                                             | `DiagnosticHint`  | `editorHint.foreground`           |
 | Stale step      | a tag in the winbar and details                                                                                                                                                                                                                         | “stale: file changed since”                                                              | `DiagnosticWarn`  | `editorWarning.foreground`        |
-| Tour's version  | a tag in the winbar; the file opens read-only, its diagnostics hidden until the tour ends                                                                                                                                                               | “tour's version”                                                                         | `DiagnosticHint`  | a read-only editor                |
+| Trek's version  | a tag in the winbar; the file opens read-only, its diagnostics hidden until the trek ends                                                                                                                                                               | “trek's version”                                                                         | `DiagnosticHint`  | a read-only editor                |
 | Where next goes | a muted note at the band's end; the arrow on the line it enters from is bold                                                                                                                                                                            | “next: into refund, line 11”, “next: ↯ api: POST /refunds”, “next: back to createRefund” | `Comment`         |                                   |
 | Away            | a tag at the winbar's right end                                                                                                                                                                                                                         | “away”                                                                                   | `Comment`         |                                   |
 | Hop             | `↯` and a dashed rule in the call stack                                                                                                                                                                                                                 | “hop · HTTP request from …”                                                              | `Comment`         | `descriptionForeground`           |
@@ -146,7 +146,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 ### Winbar
 
 The stop number, its tags ("existing code" or "new file", "guessed link", "context available",
-"tour's version", "stale"),
+"trek's version", "stale"),
 the step's place as `repo: path` with the repo in its own colour, and the call stack, its frames
 below the step's dimmed; every part is split from the next by a dim `│`. "away" sits at the right end, so it
 doesn't move the rest.
@@ -161,11 +161,11 @@ a hop into another repo names it: `post ↯ api: POST /refunds › createRefund`
 only across hops whose caller waits for an answer, such as a request; a hop nobody waits on, such
 as a queued message or an event, starts a fresh stack, which names its cause dimmed: `started by
 api: publish ↯ worker: poll_once`. Each frame shows its step's name (`createRefund`), or its place
-(`handlers/refunds.ts:8`) when the tour gives no name. The route lists steps the same way.
+(`handlers/refunds.ts:8`) when the trek gives no name. The route lists steps the same way.
 
 ### Calls
 
-A line that makes a call the tour follows ends in `→`; the line already says what it calls, so
+A line that makes a call the trek follows ends in `→`; the line already says what it calls, so
 the arrow carries no text, except a hop into another repo, which names it (`↯ api`). Into takes
 the call on the cursor's line, and the first not yet visited when that line makes none, so a
 step opens ready to enter its first call. A call whose evidence points at no line of the step has no arrow; next and into still reach it.
@@ -175,27 +175,27 @@ step opens ready to enter its first call. A call whose evidence points at no lin
 Context steps aren't stops: next and prev pass over them. The narration of the step they explain
 names the background with the reason to look ("the button was drawn by renderOrder, which put the
 order id and amount on it"), and the winbar says "context available"; the overview names the key. The key opens the
-context code in a float over the step, each piece under its reason, so the tour stays put and
+context code in a float over the step, each piece under its reason, so the trek stays put and
 closing the float is the way back; enter on a piece opens it as a step. Details list them too.
 
 ## Editor screens
 
-Neovim and VS Code side by side, in the review page for Step 5c. Neovim draws the tour in the
+Neovim and VS Code side by side, in the review page for Step 5c. Neovim draws the trek in the
 user's own windows, with virtual lines, the winbar, and floats, and no sidebar; quitting puts back
 what each window showed. VS Code gives an extension no styled room between lines of code, so its
 narration, flag, and where next goes open the srctrek sidebar's Stop view, above the call stack
 and details; the line above the step holds a row of actions (the stop, its flag, its context, and
-next), and the sidebar also lists the tours.
+next), and the sidebar also lists the treks.
 
 | Screen           | Neovim                                                            | VS Code                                                                      |
 | ---------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Choosing a tour  | in the terminal: `trek` opens the chosen tour with `:Trek <name>` | the srctrek view: tours with their status                                    |
-| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys  | a tour tab                                                                   |
+| Choosing a trek  | in the terminal: `trek` opens the chosen trek with `:Trek <name>` | the srctrek view: treks with their status                                    |
+| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys  | a trek tab                                                                   |
 | A step           | narration and high flag as virtual lines; values at the           | narration and flag atop the Stop view, actions above the step; values inline |
 |                  | ends of their lines; position and stack in the winbar             | decorations; the call stack in the Stop view                                 |
 | Details          | a float: came from, flags, values, context, notes                 | the rest of the Stop view                                                    |
 | Into, of several | the call on the cursor's line, else the first not visited         | the same                                                                     |
-| The end          | a float: the outcome, every flag to jump to                       | the tour tab: the outcome, every flag to jump to                             |
+| The end          | a float: the outcome, every flag to jump to                       | the trek tab: the outcome, every flag to jump to                             |
 | Asking           | a prompt; the answer in a float with its citations                | an input box; the answer in the sidebar's Notes                              |
 
 Answers to questions are saved
@@ -203,7 +203,7 @@ on the step as notes, which details show from then on.
 
 ### Keys
 
-While a tour is open; every key can be changed or turned off, and in Neovim each action is also a
+While a trek is open; every key can be changed or turned off, and in Neovim each action is also a
 command (`:TrekNext`) and a Lua function.
 
 | Action              | Neovim                     | VS Code                      |
@@ -216,24 +216,24 @@ command (`:TrekNext`) and a Lua function.
 | Details             | `<leader>tt`               | the sidebar's Stop view      |
 | Show or hide values | `<leader>tv`               | Srctrek: Show or Hide Values |
 | Ask (later)         | `<leader>ta`               | Srctrek: Ask                 |
-| Quit the tour       | `<leader>tq`               | `Escape` in the end tab      |
+| Quit the trek       | `<leader>tq`               | `Escape` in the end tab      |
 
-In VS Code the keys step a tour only while no debug session runs.
+In VS Code the keys step a trek only while no debug session runs.
 
 ## Terminal screens
 
 In the review page for Step 5d. Colours are the terminal's own: green, yellow, red, blue, and
 dim, in the roles of the visual language.
 
-- **Home:** the change at the top, then the change's tour with where it stands, repos the agent
-  proposed (they wait on the user), and every other tour with its state. Enter opens the selected
-  tour in the editor `SRCTREK_EDITOR` names.
-- **The change's tour, by state:** building (enter watches it), ready, stale (with how many steps
+- **Home:** the change at the top, then the change's trek with where it stands, repos the agent
+  proposed (they wait on the user), and every other trek with its state. Enter opens the selected
+  trek in the editor `SRCTREK_EDITOR` names.
+- **The change's trek, by state:** building (enter watches it), ready, stale (with how many steps
   changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
   repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
-  (how to set `SRCTREK_AGENT`), nothing to tour. With `--code`, the code's triggers, each with
-  its tour's state.
-- **Build view,** a screen of its own opened from a building tour: the overview as soon as the
+  (how to set `SRCTREK_AGENT`), nothing to trek. With `--code`, the code's triggers, each with
+  its trek's state.
+- **Build view,** a screen of its own opened from a building trek: the overview as soon as the
   agent starts, steps as they arrive grouped by repo with hops between, what the agent is reading,
   rejected rounds with their problems, and repos it proposed.
 - **Route map:** one lane per repo, steps in the order they run, hops crossing between lanes,

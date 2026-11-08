@@ -65,7 +65,7 @@ async function defaultBranch(dir: string): Promise<string> {
 
 /**
  * Brings a cached clone's default branch up to date, plus extra refs such as a pull request's
- * head; nothing else, since a host may have thousands of branches a tour never reads.
+ * head; nothing else, since a host may have thousands of branches a trek never reads.
  */
 export async function fetchRefs(dir: string, refs: string[] = []): Promise<void> {
   const wanted = [`refs/heads/${await defaultBranch(dir)}`, ...refs]

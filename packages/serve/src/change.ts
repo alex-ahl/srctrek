@@ -3,15 +3,15 @@ import {
   ErrorCode,
   type LogResult,
   type ResolvedChange,
-  type ToursResult,
+  type TreksResult,
   agentCommand,
-  buildChangeTour,
+  buildChangeTrek,
   buildLogTail,
   directoryIn,
-  loadTourEntries,
+  loadTrekEntries,
   readChangeArguments,
   resolveChange,
-  tourStatus,
+  trekStatus,
 } from "@srctrek/core"
 import { RequestError } from "./errors"
 
@@ -28,16 +28,16 @@ export async function changeNow(cwd: string, args: string[]): Promise<ResolvedCh
   }
 }
 
-/** Every saved tour in `cwd`, and where the change's tour stands. */
-export async function toursIn(cwd: string, args: string[]): Promise<ToursResult> {
+/** Every saved trek in `cwd`, and where the change's trek stands. */
+export async function treksIn(cwd: string, args: string[]): Promise<TreksResult> {
   const change = await changeNow(cwd, args)
-  const [status, tours] = await Promise.all([tourStatus(cwd, change), loadTourEntries(cwd)])
+  const [status, treks] = await Promise.all([trekStatus(cwd, change), loadTrekEntries(cwd)])
 
-  return { change: status, tours }
+  return { change: status, treks }
 }
 
-/** Starts the agent on the change's tour, building it or updating it when it's stale. */
-export async function buildTour(cwd: string, args: string[]): Promise<BuildResult> {
+/** Starts the agent on the change's trek, building it or updating it when it's stale. */
+export async function buildTrek(cwd: string, args: string[]): Promise<BuildResult> {
   const agent = agentCommand()
   if (agent === undefined) {
     const message = "no agent: set SRCTREK_AGENT to the command that runs your agent headless"
@@ -45,12 +45,12 @@ export async function buildTour(cwd: string, args: string[]): Promise<BuildResul
   }
 
   const change = await changeNow(cwd, args)
-  await buildChangeTour(cwd, args, change, agent)
+  await buildChangeTrek(cwd, args, change, agent)
 
-  return { change: await tourStatus(cwd, change) }
+  return { change: await trekStatus(cwd, change) }
 }
 
-/** The end of the build log of the tour saved as `name`. */
+/** The end of the build log of the trek saved as `name`. */
 export async function logOf(cwd: string, name: string, lines = LOG_LINES): Promise<LogResult> {
   return { lines: await buildLogTail(cwd, name, lines) }
 }

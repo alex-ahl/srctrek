@@ -32,9 +32,9 @@ a write, an emitted event) in execution order.
 - **Any agent.** Neovim and VS Code (and its forks) get full editor integration; any other
   editor gets the terminal view and opens steps at their line.
 
-## The tour on screen
+## The trek on screen
 
-- **Next and the narration are the whole tour.** A developer who only steps to the next stop and
+- **Next and the narration are the whole trek.** A developer who only steps to the next stop and
   reads each step's narration follows the flow and sees what's likely wrong.
 - **The narration holds what that takes:** the step's summary, a likely-wrong flag, and short tags
   such as risky.

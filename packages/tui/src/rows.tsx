@@ -1,24 +1,24 @@
-import type { ProposedRepo, TourEntry, TourStatus, TriggerTour } from "@srctrek/core"
+import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
 
 /**
  * A line in the home screen's list: a repo the agent proposes adding, a trigger found in the
- * code, or a saved tour.
+ * code, or a saved trek.
  */
 export type Row =
   | { kind: "proposal"; proposal: ProposedRepo }
-  | { kind: "trigger"; found: TriggerTour }
-  | { kind: "tour"; entry: TourEntry }
+  | { kind: "trigger"; found: TriggerTrek }
+  | { kind: "trek"; entry: TrekEntry }
 
 const SELECTED = "#7dd3fc"
 const MUTED = "#7a7f99"
 
 /**
  * Proposed repos first, waiting on the user; then the triggers found for the change, when
- * there are any; then the saved tours.
+ * there are any; then the saved treks.
  */
 export function rowsOf(
-  entries: TourEntry[],
-  status: TourStatus | undefined,
+  entries: TrekEntry[],
+  status: TrekStatus | undefined,
   proposals: ProposedRepo[],
 ): Row[] {
   const triggers = status?.kind === "triggers" ? status.triggers : []
@@ -26,11 +26,11 @@ export function rowsOf(
   return [
     ...proposals.map((proposal): Row => ({ kind: "proposal", proposal })),
     ...triggers.map((found): Row => ({ kind: "trigger", found })),
-    ...entries.map((entry): Row => ({ kind: "tour", entry })),
+    ...entries.map((entry): Row => ({ kind: "trek", entry })),
   ]
 }
 
-function describeEntry(entry: TourEntry): string {
+function describeEntry(entry: TrekEntry): string {
   if (!entry.valid) {
     return `invalid: ${entry.problem}`
   }
@@ -39,18 +39,18 @@ function describeEntry(entry: TourEntry): string {
   return `${entry.steps} steps${flags}`
 }
 
-// Where a trigger's tour stands, in a word or two.
-const TOUR_STATE: Partial<Record<TourStatus["kind"], string>> = {
-  ready: "toured",
+// Where a trigger's trek stands, in a word or two.
+const TREK_STATE: Partial<Record<TrekStatus["kind"], string>> = {
+  ready: "trek ready",
   building: "building…",
   failed: "build failed",
-  missing: "not toured yet",
+  missing: "no trek yet",
 }
 
-function describeTrigger({ trigger, tour }: TriggerTour): string {
+function describeTrigger({ trigger, trek }: TriggerTrek): string {
   const { file, line } = trigger.evidence
 
-  return `${trigger.kind} · ${file}:${line} · ${TOUR_STATE[tour.kind] ?? ""}`
+  return `${trigger.kind} · ${file}:${line} · ${TREK_STATE[trek.kind] ?? ""}`
 }
 
 function RowLines({
@@ -108,5 +108,5 @@ export function rowKey(row: Row): string {
     return `proposal:${row.proposal.name}`
   }
 
-  return row.kind === "trigger" ? `trigger:${row.found.trigger.name}` : `tour:${row.entry.name}`
+  return row.kind === "trigger" ? `trigger:${row.found.trigger.name}` : `trek:${row.entry.name}`
 }

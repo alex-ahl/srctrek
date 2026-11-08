@@ -1,5 +1,5 @@
 import { type ChildProcess, spawn } from "node:child_process"
-import type { SessionView, ToursResult } from "@srctrek/core"
+import type { SessionView, TreksResult } from "@srctrek/core"
 import {
   type MessageConnection,
   StreamMessageReader,
@@ -45,12 +45,12 @@ export class TrekClient {
     })
   }
 
-  tours(): Promise<ToursResult> {
-    return this.connection.sendRequest("tours")
+  treks(): Promise<TreksResult> {
+    return this.connection.sendRequest("treks")
   }
 
-  open(tour: string): Promise<SessionView> {
-    return this.connection.sendRequest("open", { tour })
+  open(trek: string): Promise<SessionView> {
+    return this.connection.sendRequest("open", { trek })
   }
 
   move(move: Move, params?: object): Promise<SessionView> {

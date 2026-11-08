@@ -1,7 +1,7 @@
 {
   "name": "srctrek-vscode",
   "displayName": "srctrek",
-  "description": "Step through a srctrek tour of a change, as a debugger session for code you haven't run.",
+  "description": "Step through a trek of a change, as a debugger session for code you haven't run.",
   "version": "0.0.0",
   "private": true,
   "publisher": "srctrek",
@@ -16,8 +16,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "srctrek.openTour",
-        "title": "Srctrek: Open Tour…"
+        "command": "srctrek.openTrek",
+        "title": "Srctrek: Open Trek…"
       },
       {
         "command": "srctrek.next",
@@ -52,13 +52,13 @@
         "title": "Srctrek: Show or Hide Values"
       },
       {
-        "command": "srctrek.refreshTours",
-        "title": "Srctrek: Refresh Tours",
+        "command": "srctrek.refreshTreks",
+        "title": "Srctrek: Refresh Treks",
         "icon": "$(refresh)"
       },
       {
         "command": "srctrek.quit",
-        "title": "Srctrek: End the Tour"
+        "title": "Srctrek: End the Trek"
       }
     ],
     "viewsContainers": {
@@ -73,8 +73,8 @@
     "views": {
       "srctrek": [
         {
-          "id": "srctrek.tours",
-          "name": "Tours",
+          "id": "srctrek.treks",
+          "name": "Treks",
           "initialSize": 1
         },
         {
@@ -88,8 +88,8 @@
     "menus": {
       "view/title": [
         {
-          "command": "srctrek.refreshTours",
-          "when": "view == srctrek.tours",
+          "command": "srctrek.refreshTreks",
+          "when": "view == srctrek.treks",
           "group": "navigation"
         }
       ]
@@ -139,7 +139,7 @@
       {
         "command": "srctrek.quit",
         "key": "escape",
-        "when": "activeWebviewPanelId == 'srctrek.tour' && srctrek.atEnd"
+        "when": "activeWebviewPanelId == 'srctrek.trek' && srctrek.atEnd"
       }
     ]
   },

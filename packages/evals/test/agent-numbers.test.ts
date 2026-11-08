@@ -7,7 +7,7 @@ describe("agentNumbers", () => {
       cost: 0.58,
       turns: 34,
       queued: 0,
-      result: "saved the tour",
+      result: "saved the trek",
       usage: { input: 26, cached: 390329, output: 10496, searches: 0 },
       steps: [{ tokens: 5 }],
       empty: { searches: 0 },

@@ -1,4 +1,4 @@
-import type { SessionView, StepView, TourEntry } from "@srctrek/core"
+import type { SessionView, StepView, TrekEntry } from "@srctrek/core"
 import * as vscode from "vscode"
 import { type Arrows, createArrows } from "./arrows"
 import { type ChangeMarks, createChangeMarks } from "./change-marks"
@@ -7,12 +7,12 @@ import { type InlineValues, createInlineValues } from "./inline-values"
 import { type StepLens, createStepLens } from "./step-lens"
 import { isNewFile, stepTags } from "./step-text"
 import { type StopView, createStopView } from "./stop-view"
-import { type TourTab, createTourTab } from "./tour-tab"
-import { createToursView } from "./tours-view"
-import { NOWHERE, callAt, lineAbove, placeOf, sameView, statusText, tourSummary } from "./view"
+import { type TrekTab, createTrekTab } from "./trek-tab"
+import { createTreksView } from "./treks-view"
+import { NOWHERE, callAt, lineAbove, placeOf, sameView, statusText, trekSummary } from "./view"
 
-// The open tour's connection and where it is, at the edge as a server's current state is; one
-// tour at a time.
+// The open trek's connection and where it is, at the edge as a server's current state is; one
+// trek at a time.
 let client: TrekClient | undefined
 let current: SessionView | undefined
 let stepTint: vscode.TextEditorDecorationType | undefined
@@ -22,7 +22,7 @@ let changeMarks: ChangeMarks | undefined
 let decorations: vscode.TextEditorDecorationType[] = []
 let status: vscode.StatusBarItem | undefined
 let stepLens: StepLens | undefined
-let tourTab: TourTab | undefined
+let trekTab: TrekTab | undefined
 let stopView: StopView | undefined
 
 function serveCommand(): string[] {
@@ -46,7 +46,7 @@ function clearDecorations(): void {
   }
 }
 
-// VS Code counts the empty line after a file's last newline; the tour doesn't.
+// VS Code counts the empty line after a file's last newline; the trek doesn't.
 function isNewFileIn(document: vscode.TextDocument, view: StepView): boolean {
   const last = document.lineAt(document.lineCount - 1)
   const lines = last.isEmptyOrWhitespace ? document.lineCount - 1 : document.lineCount
@@ -70,8 +70,8 @@ async function showStep(view: StepView): Promise<void> {
   arrows?.show(editor, view)
   values?.show(editor, view)
   changeMarks?.show(editor, view, newFile)
-  if (view.tour_copy) {
-    // the tour's version of a file, kept in trek's cache, isn't for editing
+  if (view.trek_copy) {
+    // the trek's version of a file, kept in srctrek's cache, isn't for editing
     await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
   }
 
@@ -83,7 +83,7 @@ async function showStep(view: StepView): Promise<void> {
 
 async function show(view: SessionView): Promise<void> {
   current = view
-  // Escape in the tour tab ends the tour only at its end, not on the overview
+  // Escape in the trek tab ends the trek only at its end, not on the overview
   await vscode.commands.executeCommand("setContext", "srctrek.atEnd", view.kind === "end")
   await stopView?.show(view.kind === "step" ? view : null)
   if (status !== undefined) {
@@ -91,71 +91,71 @@ async function show(view: SessionView): Promise<void> {
     status.show()
   }
   if (view.kind === "step") {
-    tourTab?.hide()
+    trekTab?.hide()
     await showStep(view)
     return
   }
 
   stepLens?.show(null)
   clearDecorations()
-  tourTab?.show(view)
+  trekTab?.show(view)
 }
 
-function pickItem(entry: TourEntry): vscode.QuickPickItem {
+function pickItem(entry: TrekEntry): vscode.QuickPickItem {
   if (!entry.valid) {
     return { label: entry.name, description: entry.problem }
   }
-  return { label: entry.name, description: entry.title, detail: tourSummary(entry) }
+  return { label: entry.name, description: entry.title, detail: trekSummary(entry) }
 }
 
 function startClient(): TrekClient {
   const folder = vscode.workspace.workspaceFolders?.[0]
   if (folder === undefined) {
-    throw new Error("open the folder the tours were built in first")
+    throw new Error("open the folder the treks were built in first")
   }
   return new TrekClient(serveCommand(), folder.uri.fsPath)
 }
 
-// The saved tours, from a trek serve started for the asking, so the list works with no tour open.
-async function listTours(): Promise<readonly TourEntry[]> {
+// The saved treks, from a trek serve started for the asking, so the list works with no trek open.
+async function listTreks(): Promise<readonly TrekEntry[]> {
   const listing = startClient()
   try {
     await listing.initialize()
-    return (await listing.tours()).tours
+    return (await listing.treks()).treks
   } finally {
     listing.close()
   }
 }
 
-async function pickTour(running: TrekClient): Promise<string | undefined> {
-  const { tours } = await running.tours()
-  const picked = await vscode.window.showQuickPick(tours.map(pickItem), {
-    placeHolder: "Tour to open",
+async function pickTrek(running: TrekClient): Promise<string | undefined> {
+  const { treks } = await running.treks()
+  const picked = await vscode.window.showQuickPick(treks.map(pickItem), {
+    placeHolder: "Trek to open",
   })
   return picked?.label
 }
 
-// Given a tour's name, as a test or a keybinding can, it opens that one without asking.
-async function openTour(name?: unknown): Promise<SessionView | undefined> {
+// Given a trek's name, as a test or a keybinding can, it opens that one without asking.
+async function openTrek(name?: unknown): Promise<SessionView | undefined> {
   client?.close()
   client = startClient()
   await client.initialize()
-  const tour = typeof name === "string" ? name : await pickTour(client)
-  if (tour === undefined) {
+  const trek = typeof name === "string" ? name : await pickTrek(client)
+  if (trek === undefined) {
     return undefined
   }
 
   await vscode.commands.executeCommand("setContext", "srctrek.open", true)
   // opens srctrek's sidebar on the stop, as starting a debug session opens Run and Debug
   await vscode.commands.executeCommand("srctrek.stop.focus")
-  const view = await client.open(tour)
+  const view = await client.open(trek)
   await show(view)
   return view
 }
 
 async function move(to: Move, params?: object): Promise<SessionView | undefined> {
   if (client === undefined) {
-    void vscode.window.showWarningMessage("srctrek: no tour is open; run Srctrek: Open Tour…")
+    void vscode.window.showWarningMessage("srctrek: no trek is open; run Srctrek: Open Trek…")
     return undefined
   }
 
@@ -185,17 +185,17 @@ function into(): Promise<SessionView | undefined> {
   return move("into", target === undefined ? undefined : { target })
 }
 
-// Back to the stop the tour is on, without moving the tour.
+// Back to the stop the trek is on, without moving the trek.
 async function showCurrent(): Promise<SessionView | undefined> {
   if (current === undefined) {
-    void vscode.window.showWarningMessage("srctrek: no tour is open; run Srctrek: Open Tour…")
+    void vscode.window.showWarningMessage("srctrek: no trek is open; run Srctrek: Open Trek…")
     return undefined
   }
   await show(current)
   return current
 }
 
-// The stop's context code, each piece under its reason, in the Stop view; the tour stays where it
+// The stop's context code, each piece under its reason, in the Stop view; the trek stays where it
 // is.
 async function showContext(): Promise<void> {
   if (current?.kind !== "step") {
@@ -223,14 +223,14 @@ async function quit(): Promise<void> {
   current = undefined
   status?.hide()
   stepLens?.show(null)
-  tourTab?.hide()
+  trekTab?.hide()
   await stopView?.show(null)
   clearDecorations()
   await vscode.commands.executeCommand("setContext", "srctrek.open", false)
 }
 
 // A command that reports a failure instead of throwing it into VS Code's log. A move or an open
-// answers with the view it left the tour on, for scripts and tests driving the tour.
+// answers with the view it left the trek on, for scripts and tests driving the trek.
 function command(name: string, run: (argument?: unknown) => Promise<unknown>): vscode.Disposable {
   return vscode.commands.registerCommand(name, (argument?: unknown) =>
     run(argument).catch(reportFailure),
@@ -255,23 +255,23 @@ export function activate(context: vscode.ExtensionContext): void {
   const goTo = (step: string): void => {
     move("goto", { step }).catch(reportFailure)
   }
-  const tab = createTourTab(goTo)
-  tourTab = tab
+  const tab = createTrekTab(goTo)
+  trekTab = tab
   const stop = createStopView(goTo)
   stopView = stop
-  const tours = createToursView(listTours)
+  const treks = createTreksView(listTreks)
   context.subscriptions.push(
     ...decorations,
     status,
     lens,
     tab,
     stop,
-    tours,
-    command("srctrek.refreshTours", () => {
-      tours.refresh()
+    treks,
+    command("srctrek.refreshTreks", () => {
+      treks.refresh()
       return Promise.resolve()
     }),
-    command("srctrek.openTour", openTour),
+    command("srctrek.openTrek", openTrek),
     command("srctrek.next", () => move("next")),
     command("srctrek.previous", () => move("prev")),
     command("srctrek.over", () => move("over")),

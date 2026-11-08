@@ -9,12 +9,12 @@ describe("the editor protocol's requests", () => {
     expect(isMethod("toString")).toBe(false)
   })
 
-  test("takes a tour by name, with trek's arguments for the change as it is now", () => {
-    expect(RequestParams.open.safeParse({ tour: "feature-refunds" }).success).toBe(true)
-    expect(RequestParams.open.safeParse({ tour: "pr-12", args: ["main...feature"] }).success).toBe(
+  test("takes a trek by name, with trek's arguments for the change as it is now", () => {
+    expect(RequestParams.open.safeParse({ trek: "feature-refunds" }).success).toBe(true)
+    expect(RequestParams.open.safeParse({ trek: "pr-12", args: ["main...feature"] }).success).toBe(
       true,
     )
-    expect(RequestParams.open.safeParse({ tour: "" }).success).toBe(false)
+    expect(RequestParams.open.safeParse({ trek: "" }).success).toBe(false)
   })
 
   test("takes moves without params, and into with an optional target", () => {

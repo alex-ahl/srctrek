@@ -4,7 +4,7 @@ import {
   type SteppingSession,
   currentStep,
   openSession,
-  parseTour,
+  parseTrek,
   stepBack,
   stepInto,
   stepNext,
@@ -13,9 +13,9 @@ import {
   stepTo,
 } from "../../src"
 
-const fixturePath = join(import.meta.dir, "../fixtures/refund-tour.json")
-const tour = parseTour(await Bun.file(fixturePath).json(), fixturePath)
-const opened = openSession(tour)
+const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
+const trek = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
+const opened = openSession(trek)
 
 // Where the session stands: the current step's id, or "overview" or "end".
 function at(session: SteppingSession): string {
@@ -24,7 +24,7 @@ function at(session: SteppingSession): string {
 
 const on = (id: string) => stepTo(opened, id)
 
-describe("moving in tour order", () => {
+describe("moving in trek order", () => {
   test("opens at the overview, and goes back to it from the first step", () => {
     expect(at(opened)).toBe("overview")
     expect(at(stepNext(opened))).toBe("s1")
@@ -51,7 +51,7 @@ describe("moving in tour order", () => {
     expect(at(stepBack(on("s10")))).toBe("s8")
   })
 
-  test("stays put when asked for a step the tour doesn't have", () => {
+  test("stays put when asked for a step the trek doesn't have", () => {
     expect(at(stepTo(on("s5"), "s99"))).toBe("s5")
   })
 

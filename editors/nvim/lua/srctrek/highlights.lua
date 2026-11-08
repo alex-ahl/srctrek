@@ -23,7 +23,7 @@ local FOREGROUND = {
   SrctrekUnchanged = { group = "Comment" },
   SrctrekFlagHigh = { group = "DiagnosticError" },
   SrctrekPosition = { group = "Normal", bold = true },
-  SrctrekTourCopy = { group = "DiagnosticHint" },
+  SrctrekTrekCopy = { group = "DiagnosticHint" },
   SrctrekRepo = { group = "Directory" },
   SrctrekSeparator = { group = "NonText" },
   SrctrekStackFrame = { group = "Comment" },
@@ -116,7 +116,7 @@ local function define_mixed()
   vim.api.nvim_set_hl(0, "SrctrekBandEdge", { fg = accent, default = true })
   vim.api.nvim_set_hl(0, "SrctrekBandPadEdge", { fg = accent, default = true })
   vim.api.nvim_set_hl(0, "SrctrekBandPadEdgeStep", { fg = accent, bg = tint, default = true })
-  -- context steps are the tour's commentary, as the band is
+  -- context steps are the trek's commentary, as the band is
   vim.api.nvim_set_hl(0, "SrctrekContext", { fg = accent, default = true })
   vim.api.nvim_set_hl(0, "SrctrekBadge", { fg = readable_on(accent, bg, fg), bg = accent, bold = true, default = true })
 end

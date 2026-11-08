@@ -63,7 +63,7 @@ export async function buildFixture(name: string, { asReviewer = false } = {}): P
 
 /**
  * Commits each repo's follow-up, where the fixture has one (`<repo>/followup.patch`): a later
- * commit on the work's branch, which leaves a tour of it stale. The repos it touched, by name.
+ * commit on the work's branch, which leaves a trek of it stale. The repos it touched, by name.
  */
 export async function applyFollowups(fixture: Fixture): Promise<string[]> {
   const touched = await Promise.all(

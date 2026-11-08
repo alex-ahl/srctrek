@@ -2,20 +2,20 @@
 
 ## What it is
 
-The MCP server `trek mcp` runs over stdin and stdout, for the agent that builds a tour.
+The MCP server `trek mcp` runs over stdin and stdout, for the agent that builds a trek.
 
 ## What it does, and does not
 
 Does: open a change (`open_change`, with `trek`'s own arguments), let the agent read it at
-its exact revisions (`list_files`, `read_file`, `search`, `diff`), and build a tour of it
-(`start_tour`, `add_steps`, `finish_tour`), update a saved tour after the change moves on
-(`update_tour`), and propose repos the route leads into
-(`propose_repo`), recorded for the user to add or dismiss. The guide for building a tour comes as the
-`tour_guide` tool and the `build_tour` prompt, and the server's instructions tell the agent
+its exact revisions (`list_files`, `read_file`, `search`, `diff`), and build a trek of it
+(`start_trek`, `add_steps`, `finish_trek`), update a saved trek after the change moves on
+(`update_trek`), and propose repos the route leads into
+(`propose_repo`), recorded for the user to add or dismiss. The guide for building a trek comes as the
+`trek_guide` tool and the `build_trek` prompt, and the server's instructions tell the agent
 to read it first, so asking in plain words works. Tool descriptions, instructions, and the
 guide come from `packages/core/prompts/`.
 
-Does not: read the working tree, hold tour logic, or draw anything. Core resolves and reads;
+Does not: read the working tree, hold trek logic, or draw anything. Core resolves and reads;
 this package only speaks MCP.
 
 ## Where it fits

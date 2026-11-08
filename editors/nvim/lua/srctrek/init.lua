@@ -1,7 +1,7 @@
--- srctrek for Neovim: step through a tour with the editor following.
---   :Trek <tour>   a tour saved in Neovim's working directory, by name
--- Tours are loaded and stepped by `trek serve`, started in Neovim's working directory.
--- Default keys while a tour is open (configurable, see DEFAULT_KEYS below):
+-- srctrek for Neovim: step through a trek with the editor following.
+--   :Trek <trek>   a trek saved in Neovim's working directory, by name
+-- Treks are loaded and stepped by `trek serve`, started in Neovim's working directory.
+-- Default keys while a trek is open (configurable, see DEFAULT_KEYS below):
 --   ]t / [t next / previous step   <leader>tn step over   <leader>tc back to the current step
 --   <leader>ti step into           <leader>to step out    <leader>tx context code
 --   <leader>tt details (overview before step 1)               <leader>tq quit
@@ -10,7 +10,7 @@
 -- :TrekCurrent, :TrekContext, :TrekDetails, :TrekValues, :TrekQuit) and a function on this
 -- module. Each step fires `User SrctrekStep` with { path, shown, line, repo } for file
 -- explorers or user config to follow: `path` is the file in the user's project, `shown` the
--- file opened (the tour's copy when the user's file differs).
+-- file opened (the trek's copy when the user's file differs).
 local context_code = require("srctrek.context_code")
 local details = require("srctrek.details")
 local inline_values = require("srctrek.inline_values")
@@ -28,8 +28,8 @@ require("srctrek.highlights").setup()
 
 local actions = require("srctrek.actions")
 
--- Keys are active only while a tour is open. Set them with require("srctrek").setup({ keys
--- = { next = "]w" } }) or vim.g.srctrek = { keys = … } (read when a tour starts, so it
+-- Keys are active only while a trek is open. Set them with require("srctrek").setup({ keys
+-- = { next = "]w" } }) or vim.g.srctrek = { keys = … } (read when a trek starts, so it
 -- works whatever the load order); `false` turns one key, or all of them, off. Commands and
 -- the functions on this module work regardless. `cmd` is how to start trek serve.
 local DEFAULT_KEYS = {
@@ -99,7 +99,7 @@ function M.quit()
   winbar.restore()
   unbind_keys(active_keys)
   active_keys = {}
-  vim.api.nvim_create_augroup("srctrek_tour", { clear = true })
+  vim.api.nvim_create_augroup("srctrek_trek", { clear = true })
   state.view = nil
   server.stop()
 end
@@ -116,7 +116,7 @@ local function when_open(fn)
     elseif state.opening then
       say("still opening " .. state.opening .. "…")
     else
-      vim.notify("srctrek: no tour is open; start one with :Trek <tour>", vim.log.levels.WARN)
+      vim.notify("srctrek: no trek is open; start one with :Trek <trek>", vim.log.levels.WARN)
     end
   end
 end
@@ -133,12 +133,12 @@ M.values = when_open(inline_values.toggle)
 
 local function watch_cursor()
   vim.api.nvim_create_autocmd({ "CursorMoved", "BufWinEnter" }, {
-    group = vim.api.nvim_create_augroup("srctrek_tour", { clear = true }),
+    group = vim.api.nvim_create_augroup("srctrek_trek", { clear = true }),
     callback = winbar.follow_cursor,
   })
 end
 
-local function bind_tour_keys()
+local function bind_trek_keys()
   if next(active_keys) ~= nil then
     unbind_keys(active_keys)
   end
@@ -156,7 +156,7 @@ local function opened(overview)
   navigation.show(overview)
 end
 
--- A tour that didn't open leaves no keys behind, unless another tour is still open.
+-- A trek that didn't open leaves no keys behind, unless another trek is still open.
 local function not_opened()
   state.opening = nil
   if not state.view then
@@ -165,14 +165,14 @@ local function not_opened()
   end
 end
 
--- The tour's keys are bound at once, so keys pressed while it opens reach srctrek rather than
+-- The trek's keys are bound at once, so keys pressed while it opens reach srctrek rather than
 -- Neovim's own commands.
 function M.start(name)
   state.opening = name
-  bind_tour_keys()
+  bind_trek_keys()
   say("opening " .. name .. "…")
   server.start(settings().cmd, function()
-    server.request("open", { tour = name }, opened, not_opened)
+    server.request("open", { trek = name }, opened, not_opened)
   end, not_opened)
 end
 

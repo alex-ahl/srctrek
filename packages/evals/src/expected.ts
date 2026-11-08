@@ -12,7 +12,7 @@ const ExpectedSchema = z.object({
     Place.extend({
       lines: z.tuple([z.number().int().positive(), z.number().int().positive()]),
       note: z.string().optional(),
-      // plumbing or evidence a good tour may leave out; skipping it isn't a miss
+      // plumbing or evidence a good trek may leave out; skipping it isn't a miss
       optional: z.boolean().optional(),
     }),
   ),
@@ -21,7 +21,7 @@ const ExpectedSchema = z.object({
   ),
   bugs: z.array(z.object({ summary: z.string(), files: z.array(Line).min(1) })),
   // the call stack under every step that shows `at`, outermost frame first, by file; a frame
-  // a good tour may leave out is optional
+  // a good trek may leave out is optional
   stacks: z
     .array(
       z.object({
@@ -31,12 +31,12 @@ const ExpectedSchema = z.object({
       }),
     )
     .default([]),
-  // repos beside the route that a tour shouldn't step into, by folder
+  // repos beside the route that a trek shouldn't step into, by folder
   decoys: z.array(z.string()).default([]),
 })
 
 /**
- * What a good tour of a fixture does: the route it walks, the links it cites, the bugs it
+ * What a good trek of a fixture does: the route it walks, the links it cites, the bugs it
  * finds, the stacks it shows, the decoys it stays out of. Repos are named by their fixture
  * folder.
  */

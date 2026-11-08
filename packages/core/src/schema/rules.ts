@@ -1,7 +1,7 @@
 // Rules that span steps, which no single step's schema can check. Each returns its problems
-// rather than throwing, so one tour reports every problem at once.
+// rather than throwing, so one trek reports every problem at once.
 import { callStacks } from "./stacks"
-import type { Tour, TourStep } from "./tour"
+import type { Trek, TrekStep } from "./trek"
 
 type Path = (string | number)[]
 type Issue = { path: Path; message: string }
@@ -21,22 +21,22 @@ function repeated<T>(items: T[], key: (item: T) => string): { item: T; index: nu
     .filter(({ item, index }) => appearsEarlier(item, index))
 }
 
-function duplicateRepoNames(tour: Tour): Issue[] {
-  return repeated(tour.repos, (r) => r.name).map(({ item, index }) => ({
+function duplicateRepoNames(trek: Trek): Issue[] {
+  return repeated(trek.repos, (r) => r.name).map(({ item, index }) => ({
     path: ["repos", index, "name"],
     message: `duplicate repo name ${item.name}`,
   }))
 }
 
-function duplicateStepIds(tour: Tour): Issue[] {
-  return repeated(tour.steps, (s) => s.id).map(({ item, index }) => ({
+function duplicateStepIds(trek: Trek): Issue[] {
+  return repeated(trek.steps, (s) => s.id).map(({ item, index }) => ({
     path: ["steps", index, "id"],
     message: `duplicate step id ${item.id}`,
   }))
 }
 
 // Every repo a step names: its own, then each one its evidence cites.
-function reposNamedBy(step: TourStep, i: number): { repo: string; path: Path }[] {
+function reposNamedBy(step: TrekStep, i: number): { repo: string; path: Path }[] {
   const own = { repo: step.repo, path: ["steps", i, "repo"] }
   const cited = (step.via?.cites ?? []).map((cite, j) => ({
     repo: cite.repo,
@@ -46,10 +46,10 @@ function reposNamedBy(step: TourStep, i: number): { repo: string; path: Path }[]
   return [own, ...cited]
 }
 
-function unknownRepos(tour: Tour): Issue[] {
-  const known = new Set(tour.repos.map((r) => r.name))
+function unknownRepos(trek: Trek): Issue[] {
+  const known = new Set(trek.repos.map((r) => r.name))
 
-  return tour.steps
+  return trek.steps
     .flatMap(reposNamedBy)
     .filter(({ repo }) => !known.has(repo))
     .map(({ repo, path }) => ({ path, message: `unknown repo ${repo}` }))
@@ -58,7 +58,7 @@ function unknownRepos(tour: Tour): Issue[] {
 type NamedStep = { id: string; path: Path; message: string }
 
 // Every step a step names by id: where execution came from, and the step it explains.
-function stepsNamedBy(step: TourStep, i: number): NamedStep[] {
+function stepsNamedBy(step: TrekStep, i: number): NamedStep[] {
   const named = (id: string | undefined, path: Path, message: string): NamedStep[] =>
     id === undefined ? [] : [{ id, path: ["steps", i, ...path], message }]
 
@@ -68,10 +68,10 @@ function stepsNamedBy(step: TourStep, i: number): NamedStep[] {
   ]
 }
 
-function danglingStepIds(tour: Tour): Issue[] {
-  const ids = new Set(tour.steps.map((s) => s.id))
+function danglingStepIds(trek: Trek): Issue[] {
+  const ids = new Set(trek.steps.map((s) => s.id))
 
-  return tour.steps
+  return trek.steps
     .flatMap(stepsNamedBy)
     .filter(({ id }) => !ids.has(id))
     .map(({ path, message }) => ({ path, message }))
@@ -79,7 +79,7 @@ function danglingStepIds(tour: Tour): Issue[] {
 
 // A context step explains another step and isn't executed: it names the step it explains,
 // never where execution came from, and cites why it belongs there.
-function contextLinks(step: TourStep, i: number): Issue[] {
+function contextLinks(step: TrekStep, i: number): Issue[] {
   return [
     ...issueIf(
       step.for === undefined,
@@ -97,7 +97,7 @@ function contextLinks(step: TourStep, i: number): Issue[] {
 
 // Every executed step after the first is a link: it names where execution came from, and
 // cites its evidence.
-function executionLinks(step: TourStep, i: number): Issue[] {
+function executionLinks(step: TrekStep, i: number): Issue[] {
   return [
     ...issueIf(
       step.for !== undefined,
@@ -113,17 +113,17 @@ function executionLinks(step: TourStep, i: number): Issue[] {
   ]
 }
 
-function linksByKind(tour: Tour): Issue[] {
-  return tour.steps.flatMap((step, i) =>
+function linksByKind(trek: Trek): Issue[] {
+  return trek.steps.flatMap((step, i) =>
     step.kind === "context" ? contextLinks(step, i) : executionLinks(step, i),
   )
 }
 
 // Execution never comes from a context step, which isn't executed.
-function executionFromContext(tour: Tour): Issue[] {
-  const context = new Set(tour.steps.filter((s) => s.kind === "context").map((s) => s.id))
+function executionFromContext(trek: Trek): Issue[] {
+  const context = new Set(trek.steps.filter((s) => s.kind === "context").map((s) => s.id))
 
-  return tour.steps.flatMap((step, i) =>
+  return trek.steps.flatMap((step, i) =>
     issueIf(
       step.from !== undefined && context.has(step.from),
       ["steps", i, "from"],
@@ -134,10 +134,10 @@ function executionFromContext(tour: Tour): Issue[] {
 
 // Steps are in execution order, so execution comes from a step before this one; the call
 // stacks are worked out in one pass on that.
-function fromLaterSteps(tour: Tour): Issue[] {
-  const position = new Map(tour.steps.map((s, i) => [s.id, i]))
+function fromLaterSteps(trek: Trek): Issue[] {
+  const position = new Map(trek.steps.map((s, i) => [s.id, i]))
 
-  return tour.steps.flatMap((step, i) =>
+  return trek.steps.flatMap((step, i) =>
     issueIf(
       (position.get(step.from ?? "") ?? -1) >= i,
       ["steps", i, "from"],
@@ -148,10 +148,10 @@ function fromLaterSteps(tour: Tour): Issue[] {
 
 // A return goes back to code a step on the call stack showed. A value handed on to another
 // function is a call; code that runs later is a hop.
-function misplacedReturns(tour: Tour): Issue[] {
-  const misplaced = new Set(callStacks(tour.steps).misplacedReturns)
+function misplacedReturns(trek: Trek): Issue[] {
+  const misplaced = new Set(callStacks(trek.steps).misplacedReturns)
 
-  return tour.steps.flatMap((step, i) =>
+  return trek.steps.flatMap((step, i) =>
     issueIf(
       misplaced.has(step.id),
       ["steps", i, "kind"],
@@ -162,12 +162,12 @@ function misplacedReturns(tour: Tour): Issue[] {
 
 // A link to a step in another repo crosses repos, whether execution came from it or a
 // context step explains it; its evidence must cite both repos, or the link must admit it is
-// a guess. Tour order can't stand in for the link: async work (a queue consumer) runs after
+// a guess. Trek order can't stand in for the link: async work (a queue consumer) runs after
 // unrelated steps.
-function oneSidedCrossRepoLinks(tour: Tour): Issue[] {
-  const byId = new Map(tour.steps.map((s) => [s.id, s]))
+function oneSidedCrossRepoLinks(trek: Trek): Issue[] {
+  const byId = new Map(trek.steps.map((s) => [s.id, s]))
 
-  return tour.steps.flatMap((step, i) => {
+  return trek.steps.flatMap((step, i) => {
     const linkedId = step.from ?? step.for
     const linked = linkedId === undefined ? undefined : byId.get(linkedId)
     const crossesRepos = linked !== undefined && linked.repo !== step.repo
@@ -186,7 +186,7 @@ function oneSidedCrossRepoLinks(tour: Tour): Issue[] {
   })
 }
 
-export const tourRules = [
+export const trekRules = [
   duplicateRepoNames,
   duplicateStepIds,
   unknownRepos,

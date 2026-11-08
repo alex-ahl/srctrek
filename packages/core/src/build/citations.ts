@@ -2,7 +2,7 @@ import type { ResolvedChange } from "../change/resolve"
 import { readFileAt } from "../git/read"
 import { splitLines } from "../read/files"
 import { describeRepo } from "../read/repo"
-import type { TourStep } from "../schema/tour"
+import type { TrekStep } from "../schema/trek"
 import type { SubmittedStep } from "./complete"
 
 /**
@@ -44,7 +44,7 @@ export async function placeProblem(
 
 // Every place the step relies on: where it starts and ends, each piece of evidence, and the
 // line of each predicted value.
-function placesOf(step: SubmittedStep | TourStep): Place[] {
+function placesOf(step: SubmittedStep | TrekStep): Place[] {
   const at = (line: number, how: string): Place => ({ repo: step.repo, file: step.file, line, how })
   const range = [at(step.start_line, "starts at"), at(step.end_line, "ends at")]
   const evidence = (step.via?.cites ?? []).map((cite): Place => ({ ...cite, how: "cites" }))
@@ -61,7 +61,7 @@ function placesOf(step: SubmittedStep | TourStep): Place[] {
  */
 export async function citationProblems(
   change: ResolvedChange,
-  step: SubmittedStep | TourStep,
+  step: SubmittedStep | TrekStep,
 ): Promise<string[]> {
   const problems = await Promise.all(placesOf(step).map((place) => placeProblem(change, place)))
 

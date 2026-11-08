@@ -9,7 +9,7 @@ import { type RepoEntry, folderName, isRemote } from "./entry"
 import type { PullRequest } from "./pull-request"
 
 /**
- * A repo on the route without changes: the tour's record of it (no range), and `dir`, where
+ * A repo on the route without changes: the trek's record of it (no range), and `dir`, where
  * its git data is read from.
  */
 export type UnchangedRepo = { name: string; source: string; revision: string; dir: string }
@@ -85,10 +85,10 @@ async function fetchedEnds(dir: string, spec: RangeSpec): Promise<RangeSpec> {
 }
 
 /**
- * Resolves an entry to the commit the tour reads. A local path is relative to `baseDir` (the
+ * Resolves an entry to the commit the trek reads. A local path is relative to `baseDir` (the
  * folder the entry was written for); a URL is read from its cached clone. Without a revision,
  * the repo's base branch is used; without a name, the repo is named after its folder. The
- * source is kept as written, so a tour that records it stays valid on other machines.
+ * source is kept as written, so a trek that records it stays valid on other machines.
  */
 export async function resolveUnchangedRepo(
   baseDir: string,

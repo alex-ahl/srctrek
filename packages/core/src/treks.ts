@@ -1,17 +1,17 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { z } from "zod"
-import { type Tour, TourSchema } from "./schema/tour"
+import { type Trek, TrekSchema } from "./schema/trek"
 
-export const TOURS_DIR = join(".srctrek", "tours")
+export const TREKS_DIR = join(".srctrek", "treks")
 
-export class TourValidationError extends Error {
+export class TrekValidationError extends Error {
   constructor(
     readonly source: string,
     readonly issues: string[],
   ) {
-    super(`${source} is not a valid tour:\n${issues.map((i) => `  - ${i}`).join("\n")}`)
-    this.name = "TourValidationError"
+    super(`${source} is not a valid trek:\n${issues.map((i) => `  - ${i}`).join("\n")}`)
+    this.name = "TrekValidationError"
   }
 }
 
@@ -38,7 +38,7 @@ function stepId(data: unknown, index: number): string | undefined {
 // reader knows the step by.
 function describePath(path: PropertyKey[], data: unknown): string {
   if (path.length === 0) {
-    return "tour"
+    return "trek"
   }
 
   const [head, index, ...rest] = path
@@ -55,38 +55,38 @@ function describeIssues(error: z.ZodError, data: unknown): string[] {
   return error.issues.map((issue) => `${describePath(issue.path, data)}: ${issue.message}`)
 }
 
-/** Throws TourValidationError naming `source` when `data` isn't a valid tour. */
-export function parseTour(data: unknown, source: string): Tour {
-  const result = TourSchema.safeParse(data)
+/** Throws TrekValidationError naming `source` when `data` isn't a valid trek. */
+export function parseTrek(data: unknown, source: string): Trek {
+  const result = TrekSchema.safeParse(data)
   if (!result.success) {
-    throw new TourValidationError(source, describeIssues(result.error, data))
+    throw new TrekValidationError(source, describeIssues(result.error, data))
   }
 
   return result.data
 }
 
-function isTourName(name: string): boolean {
+function isTrekName(name: string): boolean {
   return /^[a-z0-9][a-z0-9-]*$/.test(name)
 }
 
-function assertTourName(name: string): void {
-  if (!isTourName(name)) {
-    throw new Error(`tour name must be lowercase letters, digits and dashes: ${name}`)
+function assertTrekName(name: string): void {
+  if (!isTrekName(name)) {
+    throw new Error(`trek name must be lowercase letters, digits and dashes: ${name}`)
   }
 }
 
-export function tourPath(root: string, name: string): string {
-  assertTourName(name)
-  return join(root, TOURS_DIR, `${name}.json`)
+export function trekPath(root: string, name: string): string {
+  assertTrekName(name)
+  return join(root, TREKS_DIR, `${name}.json`)
 }
 
-/** Validates before writing, so an invalid tour never lands on disk. */
-export async function saveTour(root: string, name: string, tour: Tour): Promise<string> {
-  const path = tourPath(root, name)
-  parseTour(tour, path)
+/** Validates before writing, so an invalid trek never lands on disk. */
+export async function saveTrek(root: string, name: string, trek: Trek): Promise<string> {
+  const path = trekPath(root, name)
+  parseTrek(trek, path)
 
-  await mkdir(join(root, TOURS_DIR), { recursive: true })
-  await writeFile(path, JSON.stringify(tour, null, 2) + "\n")
+  await mkdir(join(root, TREKS_DIR), { recursive: true })
+  await writeFile(path, JSON.stringify(trek, null, 2) + "\n")
 
   return path
 }
@@ -95,21 +95,21 @@ async function readJson(path: string): Promise<unknown> {
   try {
     return JSON.parse(await readFile(path, "utf8"))
   } catch (error) {
-    throw new TourValidationError(path, [`not readable as JSON: ${String(error)}`])
+    throw new TrekValidationError(path, [`not readable as JSON: ${String(error)}`])
   }
 }
 
-export async function loadTour(path: string): Promise<Tour> {
-  return parseTour(await readJson(path), path)
+export async function loadTrek(path: string): Promise<Trek> {
+  return parseTrek(await readJson(path), path)
 }
 
-/** Names of saved tours under `root`, sorted; files whose names aren't tour names are skipped. */
-export async function listTours(root: string): Promise<string[]> {
-  const files = await readdir(join(root, TOURS_DIR)).catch(() => [])
+/** Names of saved treks under `root`, sorted; files whose names aren't trek names are skipped. */
+export async function listTreks(root: string): Promise<string[]> {
+  const files = await readdir(join(root, TREKS_DIR)).catch(() => [])
 
   return files
     .filter((f) => f.endsWith(".json"))
     .map((f) => f.slice(0, -".json".length))
-    .filter(isTourName)
+    .filter(isTrekName)
     .sort()
 }

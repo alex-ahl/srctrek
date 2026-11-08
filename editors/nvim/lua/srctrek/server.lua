@@ -1,5 +1,5 @@
--- The connection to `trek serve`, which loads tours and answers every move with the view to
--- draw. One server per Neovim, started in its working directory, where the tours were built.
+-- The connection to `trek serve`, which loads treks and answers every move with the view to
+-- draw. One server per Neovim, started in its working directory, where the treks were built.
 local M = {}
 
 local PROTOCOL_VERSION = 1

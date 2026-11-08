@@ -2,16 +2,16 @@ import { describe, expect, test } from "bun:test"
 import { realpath } from "node:fs/promises"
 import { join } from "node:path"
 import { ErrorCode, PROTOCOL_VERSION } from "@srctrek/core"
-import { changeOf, makeBranchRepo, saveTourOf } from "../../core/test/support/branch"
+import { changeOf, makeBranchRepo, saveTrekOf } from "../../core/test/support/branch"
 import { type ServeState, answerRequest, newServeState } from "../src/requests"
 
 const client = { name: "test", version: "0" }
 
-// A repo on a feature branch with its one-step tour saved as "refunds", and trek serve's
+// A repo on a feature branch with its one-step trek saved as "refunds", and trek serve's
 // state there once initialized.
 async function initialized(): Promise<{ dir: string; state: ServeState }> {
   const dir = await makeBranchRepo()
-  await saveTourOf(dir, await changeOf(dir), "refunds")
+  await saveTrekOf(dir, await changeOf(dir), "refunds")
   const params = { protocol_version: PROTOCOL_VERSION, client }
   const { state } = await answerRequest(newServeState(dir), "initialize", params)
 
@@ -51,19 +51,19 @@ describe("answering requests", () => {
     expect(errorCode((await answerRequest(state, "goto", {})).answer)).toBe(-32602)
   })
 
-  test("refuses moves before a tour is open, and tours that aren't saved", async () => {
+  test("refuses moves before a trek is open, and treks that aren't saved", async () => {
     const { state } = await initialized()
 
-    expect(errorCode((await answerRequest(state, "next", undefined)).answer)).toBe(ErrorCode.noTour)
-    expect(errorCode((await answerRequest(state, "open", { tour: "nope" })).answer)).toBe(
-      ErrorCode.noTour,
+    expect(errorCode((await answerRequest(state, "next", undefined)).answer)).toBe(ErrorCode.noTrek)
+    expect(errorCode((await answerRequest(state, "open", { trek: "nope" })).answer)).toBe(
+      ErrorCode.noTrek,
     )
   })
 
-  test("opens a tour at its overview, then steps to its first step in the repo's checkout", async () => {
+  test("opens a trek at its overview, then steps to its first step in the repo's checkout", async () => {
     const { dir, state } = await initialized()
 
-    const opened = await answerRequest(state, "open", { tour: "refunds" })
+    const opened = await answerRequest(state, "open", { trek: "refunds" })
     const first = await answerRequest(opened.state, "next", undefined)
 
     expect(opened.answer).toMatchObject({ result: { kind: "overview", count: 1 } })
@@ -72,9 +72,9 @@ describe("answering requests", () => {
     })
   })
 
-  test("refuses a step the tour doesn't have, and stays where it was", async () => {
+  test("refuses a step the trek doesn't have, and stays where it was", async () => {
     const { state } = await initialized()
-    const opened = await answerRequest(state, "open", { tour: "refunds" })
+    const opened = await answerRequest(state, "open", { trek: "refunds" })
 
     const missing = await answerRequest(opened.state, "goto", { step: "s9" })
 

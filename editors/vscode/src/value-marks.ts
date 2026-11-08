@@ -1,7 +1,7 @@
 import type { StepView } from "@srctrek/core"
 
 // Predicted values at the end of the lines they belong to, like a debugger's inline values:
-// `name ≈ value`, as nothing runs, and `name ≈? value` when the tour doubts it. Long values are
+// `name ≈ value`, as nothing runs, and `name ≈? value` when the trek doubts it. Long values are
 // cut so the line stays readable.
 
 type PredictedValue = StepView["predicted_values"][number]
@@ -25,7 +25,7 @@ function valueText(value: PredictedValue): string {
   return `${subject} ${sign} ${shortened(value.value)}`
 }
 
-// Each line's values in the order the tour lists them, the later ones after a comma.
+// Each line's values in the order the trek lists them, the later ones after a comma.
 export function valueMarks(view: StepView): ValueMark[] {
   const seen = new Set<number>()
   return view.predicted_values.map((value) => {

@@ -7,7 +7,7 @@ export const ref: StepRef = {
   repo: "app",
   file: "main.ts",
   path: "/app/main.ts",
-  tour_copy: false,
+  trek_copy: false,
   own_path: null,
   start_line: 1,
   end_line: 3,

@@ -1,4 +1,4 @@
-Add steps to the tour, in execution order from trigger to outcome. Each step is a stop in one file:
+Add steps to the trek, in execution order from trigger to outcome. Each step is a stop in one file:
 
 - `id`: executed steps in order as "s1", "s2", …; a context step takes the id of the step it explains plus a letter, as "s8a" and "s8b" for s8.
 - `repo` (a name from open_change), `file`, `start_line` and `end_line` (the lines this stop covers, numbered as read_file shows them).
@@ -11,4 +11,4 @@ Add steps to the tour, in execution order from trigger to outcome. Each step is 
 - `trivial`: true for a step worth skipping. `uncertain`: `{ severity, note }` for a risk the reader should know (high: likely wrong behaviour; medium: risky; low: worth knowing).
 - `predicted_values`: `{ name, value, line, role, uncertain? }`, role argument, assignment, or return, each on a line inside the step. Use the example scenario's values and keep their names the same across steps, so the reader can follow one value from where it's made to where it's used. Give values first to what decides where the flow goes (the branch taken, the handler picked), then to what it carries on (which record, which amount), each as short as the reader needs it, setup lines included; leave out values that only restate the code, such as a field passed straight through or a default left as it is. Mark a value you doubt `uncertain`.
 
-Every line a step relies on (its first and last line, each citation, each value's line) is checked against the code: it must exist and not be blank. Steps are added all or none: when any has a problem, every problem comes back and nothing is added. Sending a step with an id already in the tour replaces it.
+Every line a step relies on (its first and last line, each citation, each value's line) is checked against the code: it must exist and not be blank. Steps are added all or none: when any has a problem, every problem comes back and nothing is added. Sending a step with an id already in the trek replaces it.

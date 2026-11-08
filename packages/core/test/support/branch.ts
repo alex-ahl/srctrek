@@ -1,12 +1,12 @@
 import {
   type ResolvedChange,
   addSteps,
-  draftToTour,
+  draftToTrek,
   newDraft,
   parseRange,
   resolveChange,
   runGit,
-  saveTour,
+  saveTrek,
 } from "../../src"
 import { commit, makeRepo } from "./repo"
 import { makeCacheDir } from "./remote"
@@ -35,8 +35,8 @@ export async function changeOf(
   return resolveChange(dir, args, await makeCacheDir())
 }
 
-/** Saves a one-step tour of the change as `name`, as an agent would through trek mcp. */
-export async function saveTourOf(dir: string, change: ResolvedChange, name: string): Promise<void> {
+/** Saves a one-step trek of the change as `name`, as an agent would through trek mcp. */
+export async function saveTrekOf(dir: string, change: ResolvedChange, name: string): Promise<void> {
   const header = {
     title: "t",
     overview: "o",
@@ -59,8 +59,8 @@ export async function saveTourOf(dir: string, change: ResolvedChange, name: stri
 
   const { draft, problems } = await addSteps(newDraft(change, header), [step])
   if (problems.length > 0) {
-    throw new Error(`the test tour has problems: ${problems.join("; ")}`)
+    throw new Error(`the test trek has problems: ${problems.join("; ")}`)
   }
 
-  await saveTour(dir, name, draftToTour(draft))
+  await saveTrek(dir, name, draftToTrek(draft))
 }

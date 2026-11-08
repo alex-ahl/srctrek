@@ -1,21 +1,21 @@
 import { join } from "node:path"
 import type { LineChange } from "../git/diff"
-import type { Tour, TourStep } from "../schema/tour"
+import type { Trek, TrekStep } from "../schema/trek"
 import { enteredFrom, stepNext } from "./moves"
 import { type SteppingSession, currentStep } from "./session"
 
-/** The user's own checkout of a repo, and the files the tour visits that are the same there. */
+/** The user's own checkout of a repo, and the files the trek visits that are the same there. */
 export type OwnCheckout = { readonly root: string; readonly files: ReadonlySet<string> }
 
-/** What a view needs from outside the tour: where each repo is checked out, and git's facts. */
+/** What a view needs from outside the trek: where each repo is checked out, and git's facts. */
 export type ViewContext = {
-  // the folder each repo is checked out in at the tour's revision, by repo name
+  // the folder each repo is checked out in at the trek's revision, by repo name
   readonly roots: ReadonlyMap<string, string>
   // the user's own checkout of each repo that has one, by repo name
   readonly own: ReadonlyMap<string, OwnCheckout>
   // the lines the change touches, by repo and file
   readonly changedLines: ReadonlyMap<string, ReadonlyMap<string, ReadonlyMap<number, LineChange>>>
-  // the steps whose file differs now from the version the tour describes
+  // the steps whose file differs now from the version the trek describes
   readonly stale: ReadonlySet<string>
 }
 
@@ -24,15 +24,15 @@ export type StepRef = {
   id: string
   repo: string
   file: string
-  // the user's own file when it's the tour's version, else the tour's copy of it
+  // the user's own file when it's the trek's version, else the trek's copy of it
   path: string
-  tour_copy: boolean
-  // where the file lives in the user's checkout, even when `path` is the tour's copy; null for a
+  trek_copy: boolean
+  // where the file lives in the user's checkout, even when `path` is the trek's copy; null for a
   // repo the user has no checkout of
   own_path: string | null
   start_line: number
   end_line: number
-  // the function, route, or handler the step shows; null when the tour doesn't name it
+  // the function, route, or handler the step shows; null when the trek doesn't name it
   name: string | null
   summary: string
 }
@@ -53,7 +53,7 @@ export type CameFrom = StepRef & {
 
 /**
  * Where next leads from a step: into one of its calls (`line` makes it), across a hop it starts,
- * back to a caller, on to another step, or to the end of the tour (`to` null).
+ * back to a caller, on to another step, or to the end of the trek (`to` null).
  */
 export type NextStop = {
   how: "into" | "hop" | "back" | "on" | "end"
@@ -75,48 +75,48 @@ export type StepView = StepRef & {
   kind: "step"
   number: number
   count: number
-  step_kind: TourStep["kind"]
+  step_kind: TrekStep["kind"]
   details: string
   changed: boolean
   stale: boolean
   changed_lines: { line: number; change: LineChange }[]
-  flag: TourStep["uncertain"] | null
-  predicted_values: NonNullable<TourStep["predicted_values"]>
+  flag: TrekStep["uncertain"] | null
+  predicted_values: NonNullable<TrekStep["predicted_values"]>
   // outermost first, back across every hop whose caller waits for it; empty on a context step
   stack: Frame[]
   // what started this stack when it begins at a hop nobody waits on, such as a queued message
   started_by: StepRef | null
   calls: Call[]
   context: StepRef[]
-  notes: NonNullable<TourStep["notes"]>
+  notes: NonNullable<TrekStep["notes"]>
   // null for the first step, which came from the trigger
   came_from: CameFrom | null
   next: NextStop
 }
 
-export type OverviewView = Pick<Tour, "title" | "overview" | "trigger" | "outcome"> & {
+export type OverviewView = Pick<Trek, "title" | "overview" | "trigger" | "outcome"> & {
   kind: "overview"
   count: number
-  // the repos the tour goes through, by name
+  // the repos the trek goes through, by name
   repos: string[]
   // how many steps carry a flag of each severity
-  flags: Record<NonNullable<TourStep["uncertain"]>["severity"], number>
+  flags: Record<NonNullable<TrekStep["uncertain"]>["severity"], number>
 }
 
-/** A flagged step, for the end of a tour: its stop number and what its flag says. */
-export type FlaggedStep = StepRef & { number: number } & NonNullable<TourStep["uncertain"]>
+/** A flagged step, for the end of a trek: its stop number and what its flag says. */
+export type FlaggedStep = StepRef & { number: number } & NonNullable<TrekStep["uncertain"]>
 
-export type EndView = Pick<Tour, "title" | "outcome"> & {
+export type EndView = Pick<Trek, "title" | "outcome"> & {
   kind: "end"
   count: number
-  // every flag in the tour, most severe first, then in tour order
+  // every flag in the trek, most severe first, then in trek order
   flags: FlaggedStep[]
 }
 
 /** What a front-end draws for the session as it stands, ready to render. */
 export type SessionView = OverviewView | StepView | EndView
 
-// Where the editor opens a file: the user's own when it's the tour's version, else the tour's
+// Where the editor opens a file: the user's own when it's the trek's version, else the trek's
 // copy.
 function placeOf(repo: string, file: string, context: ViewContext) {
   const own = context.own.get(repo)
@@ -125,12 +125,12 @@ function placeOf(repo: string, file: string, context: ViewContext) {
 
   return {
     path: join(root, file),
-    tour_copy: !isOwn,
+    trek_copy: !isOwn,
     own_path: own === undefined ? null : join(own.root, file),
   }
 }
 
-function refOf(step: TourStep, context: ViewContext): StepRef {
+function refOf(step: TrekStep, context: ViewContext): StepRef {
   return {
     id: step.id,
     repo: step.repo,
@@ -148,11 +148,11 @@ function refOf(step: TourStep, context: ViewContext): StepRef {
 // an event) runs on its own, so the frames end there and `started_by` names its cause instead.
 function framesOf(
   session: SteppingSession,
-  step: TourStep,
+  step: TrekStep,
   context: ViewContext,
 ): { stack: Frame[]; started_by: StepRef | null } {
   const { stacks, beneath, answeredHops } = session.stacks
-  const byId = new Map(session.tour.steps.map((s) => [s.id, s]))
+  const byId = new Map(session.trek.steps.map((s) => [s.id, s]))
   let startedBy: string | undefined
 
   const chain = (id: string): readonly string[] => {
@@ -177,22 +177,22 @@ function framesOf(
 
 // The step's place among the stops, the executed steps; a context step takes the place of the
 // step it explains.
-function stopNumber(session: SteppingSession, step: TourStep): number {
-  const { steps } = session.tour
+function stopNumber(session: SteppingSession, step: TrekStep): number {
+  const { steps } = session.trek
   const stop = step.kind === "context" ? steps.find((s) => s.id === step.for) : step
   const upTo = steps.slice(0, stop === undefined ? 0 : steps.indexOf(stop) + 1)
 
   return upTo.filter((s) => session.executed.has(s.id)).length
 }
 
-function changedLinesOf(step: TourStep, context: ViewContext): StepView["changed_lines"] {
+function changedLinesOf(step: TrekStep, context: ViewContext): StepView["changed_lines"] {
   const lines = context.changedLines.get(step.repo)?.get(step.file) ?? new Map<number, LineChange>()
 
   return [...lines].map(([line, change]) => ({ line, change }))
 }
 
 // The line of `step` that the evidence for entering `entered` points at.
-function callLine(step: TourStep, entered: TourStep): number | null {
+function callLine(step: TrekStep, entered: TrekStep): number | null {
   const inStep = (cite: { repo: string; file: string; line: number }) =>
     cite.repo === step.repo &&
     cite.file === step.file &&
@@ -202,9 +202,9 @@ function callLine(step: TourStep, entered: TourStep): number | null {
   return entered.via?.cites.find(inStep)?.line ?? null
 }
 
-function cameFrom(session: SteppingSession, step: TourStep, context: ViewContext): CameFrom | null {
+function cameFrom(session: SteppingSession, step: TrekStep, context: ViewContext): CameFrom | null {
   const relation = step.kind === "context" ? "for" : "from"
-  const earlier = session.tour.steps.find((s) => s.id === step[relation])
+  const earlier = session.trek.steps.find((s) => s.id === step[relation])
   if (earlier === undefined) {
     return null
   }
@@ -223,7 +223,7 @@ function cameFrom(session: SteppingSession, step: TourStep, context: ViewContext
   }
 }
 
-function howNextLeaves(step: TourStep, next: TourStep): NextStop["how"] {
+function howNextLeaves(step: TrekStep, next: TrekStep): NextStop["how"] {
   if (next.kind === "return") {
     return "back"
   }
@@ -233,7 +233,7 @@ function howNextLeaves(step: TourStep, next: TourStep): NextStop["how"] {
   return next.kind === "hop" ? "hop" : "into"
 }
 
-function nextOf(session: SteppingSession, step: TourStep, context: ViewContext): NextStop {
+function nextOf(session: SteppingSession, step: TrekStep, context: ViewContext): NextStop {
   const next = currentStep(stepNext(session))
   if (next === undefined) {
     return { how: "end", to: null, line: null }
@@ -245,9 +245,9 @@ function nextOf(session: SteppingSession, step: TourStep, context: ViewContext):
   return { how, to: refOf(next, context), line }
 }
 
-function stepView(session: SteppingSession, step: TourStep, context: ViewContext): StepView {
-  const { steps } = session.tour
-  const ref = (s: TourStep) => refOf(s, context)
+function stepView(session: SteppingSession, step: TrekStep, context: ViewContext): StepView {
+  const { steps } = session.trek
+  const ref = (s: TrekStep) => refOf(s, context)
 
   return {
     ...ref(step),
@@ -277,19 +277,19 @@ function stepView(session: SteppingSession, step: TourStep, context: ViewContext
 const SEVERITY_ORDER = { high: 0, medium: 1, low: 2 }
 
 function flagsOf(session: SteppingSession, context: ViewContext): FlaggedStep[] {
-  const flagged = session.tour.steps.flatMap((step) =>
+  const flagged = session.trek.steps.flatMap((step) =>
     step.uncertain === undefined
       ? []
       : [{ ...refOf(step, context), number: stopNumber(session, step), ...step.uncertain }],
   )
 
-  // a stable sort, so steps of one severity stay in tour order
+  // a stable sort, so steps of one severity stay in trek order
   return flagged.toSorted((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
 }
 
 /** The view of the session as it stands: its overview, its current step, or its end. */
 export function sessionView(session: SteppingSession, context: ViewContext): SessionView {
-  const { tour } = session
+  const { trek } = session
   const count = session.executed.size
   const step = currentStep(session)
   if (step !== undefined) {
@@ -299,17 +299,17 @@ export function sessionView(session: SteppingSession, context: ViewContext): Ses
   if (session.at.kind === "end") {
     return {
       kind: "end",
-      title: tour.title,
-      outcome: tour.outcome,
+      title: trek.title,
+      outcome: trek.outcome,
       count,
       flags: flagsOf(session, context),
     }
   }
 
-  const { title, overview, trigger, outcome } = tour
-  const repos = tour.repos.map((repo) => repo.name)
+  const { title, overview, trigger, outcome } = trek
+  const repos = trek.repos.map((repo) => repo.name)
   const severityCount = (severity: string) =>
-    tour.steps.filter((s) => s.uncertain?.severity === severity).length
+    trek.steps.filter((s) => s.uncertain?.severity === severity).length
   const flags = {
     high: severityCount("high"),
     medium: severityCount("medium"),

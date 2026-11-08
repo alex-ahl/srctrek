@@ -1,15 +1,15 @@
 import { writeFile } from "node:fs/promises"
 import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
 import { type LineChange, changedLines } from "../git/diff"
-import type { Tour } from "../schema/tour"
+import type { Trek } from "../schema/trek"
 
 type LinesByFile = Record<string, Record<string, string>>
 
 /** Changed lines by repo, file, and line number, as the Neovim plugin reads them. */
 export type ChangedLinesFile = Record<string, LinesByFile>
 
-function filesVisited(tour: Tour, repo: string): string[] {
-  const files = tour.steps.filter((step) => step.repo === repo).map((step) => step.file)
+function filesVisited(trek: Trek, repo: string): string[] {
+  const files = trek.steps.filter((step) => step.repo === repo).map((step) => step.file)
 
   return [...new Set(files)]
 }
@@ -30,20 +30,20 @@ async function linesOfFiles(repo: RepoWithRange, files: string[]): Promise<Lines
   return Object.fromEntries(entries)
 }
 
-/** Writes the changed-lines file beside a saved tour: `<name>.changed.json`. */
+/** Writes the changed-lines file beside a saved trek: `<name>.changed.json`. */
 export async function saveChangedLines(
   change: ResolvedChange,
-  tour: Tour,
-  tourPath: string,
+  trek: Trek,
+  trekPath: string,
 ): Promise<void> {
   const repos = change.repos.filter(hasRange)
   const entries = await Promise.all(
     repos.map(async (repo): Promise<[string, LinesByFile]> => {
-      const files = await linesOfFiles(repo, filesVisited(tour, repo.name))
+      const files = await linesOfFiles(repo, filesVisited(trek, repo.name))
       return [repo.name, files]
     }),
   )
   const file: ChangedLinesFile = Object.fromEntries(entries)
 
-  await writeFile(tourPath.replace(/\.json$/, ".changed.json"), JSON.stringify(file) + "\n")
+  await writeFile(trekPath.replace(/\.json$/, ".changed.json"), JSON.stringify(file) + "\n")
 }

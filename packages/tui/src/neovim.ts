@@ -27,7 +27,7 @@ export function serveCommand(): string[] {
 // A JSON string is a Lua string literal too, for anything without control characters.
 const luaList = (items: string[]) => `{ ${items.map((item) => JSON.stringify(item)).join(", ")} }`
 
-export function neovimArgs(tourName: string, pluginDir: string | null, serve: string[]): string[] {
+export function neovimArgs(trekName: string, pluginDir: string | null, serve: string[]): string[] {
   // -c runs after the user's config, so a plugin manager that resets the runtimepath at
   // startup can't drop the checkout's plugin directory, and the user's settings are kept.
   const loadPlugin = pluginDir
@@ -35,15 +35,15 @@ export function neovimArgs(tourName: string, pluginDir: string | null, serve: st
     : []
   const useServe = `lua vim.g.srctrek = vim.tbl_deep_extend("force", vim.g.srctrek or {}, { cmd = ${luaList(serve)} })`
 
-  return ["nvim", ...loadPlugin, "-c", useServe, "-c", `Trek ${tourName}`]
+  return ["nvim", ...loadPlugin, "-c", useServe, "-c", `Trek ${trekName}`]
 }
 
-/** Hands the terminal to Neovim for the tour, and takes it back when Neovim exits. */
-export async function openInNeovim(renderer: CliRenderer, tourName: string): Promise<void> {
+/** Hands the terminal to Neovim for the trek, and takes it back when Neovim exits. */
+export async function openInNeovim(renderer: CliRenderer, trekName: string): Promise<void> {
   const pluginDir = checkoutPluginDir()
   await renderer.suspend()
 
-  const nvim = Bun.spawn(neovimArgs(tourName, pluginDir, serveCommand()), {
+  const nvim = Bun.spawn(neovimArgs(trekName, pluginDir, serveCommand()), {
     stdio: ["inherit", "inherit", "inherit"],
   })
   await nvim.exited

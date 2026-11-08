@@ -1,13 +1,13 @@
-import changeOpening from "../prompts/build_tour/change.md" with { type: "text" }
-import codeOpening from "../prompts/build_tour/code.md" with { type: "text" }
-import method from "../prompts/build_tour/method.md" with { type: "text" }
+import changeOpening from "../prompts/build_trek/change.md" with { type: "text" }
+import codeOpening from "../prompts/build_trek/code.md" with { type: "text" }
+import method from "../prompts/build_trek/method.md" with { type: "text" }
 import findTriggers from "../prompts/find_triggers.md" with { type: "text" }
 import { readOptions } from "./change/options"
 
 /** Every part the guide is made from, for the prompt hash. */
 export const GUIDE_PARTS = { changeOpening, codeOpening, method, findTriggers }
 
-/** Whether `trek`'s `args` ask for the code's triggers (plain --code) rather than a tour. */
+/** Whether `trek`'s `args` ask for the code's triggers (plain --code) rather than a trek. */
 export function findsTriggers(args: string[]): boolean {
   const { code } = readOptions(args)
 
@@ -15,11 +15,11 @@ export function findsTriggers(args: string[]): boolean {
 }
 
 /**
- * The guide for what `trek`'s `args` ask for: a tour of a change (none means the branch), a
- * tour of code as it is from the user's trigger, or, with plain --code, finding the triggers
+ * The guide for what `trek`'s `args` ask for: a trek of a change (none means the branch), a
+ * trek of code as it is from the user's trigger, or, with plain --code, finding the triggers
  * the user can choose from.
  */
-export function buildTourPrompt(args: string[]): string {
+export function buildTrekPrompt(args: string[]): string {
   const { code } = readOptions(args)
   const withArgs = (text: string) => text.replace("{{args}}", JSON.stringify(args))
   if (code === undefined) {

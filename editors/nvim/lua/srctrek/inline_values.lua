@@ -1,5 +1,5 @@
 -- Predicted values at the end of the lines they belong to, like a debugger's inline values:
--- `name ≈ value`, as nothing runs, and `name ≈? value` in the warning colour when the tour doubts
+-- `name ≈ value`, as nothing runs, and `name ≈? value` in the warning colour when the trek doubts
 -- it. Long values are cut so the line stays readable; details show them whole.
 local state = require("srctrek.state")
 
@@ -23,7 +23,7 @@ local function describe(value)
   return string.format("%s %s %s", subject, sign, shortened(value.value))
 end
 
--- Each line's values, in the order the tour lists them, each in its own colour.
+-- Each line's values, in the order the trek lists them, each in its own colour.
 local function by_line(values)
   local lines = {}
   for _, value in ipairs(values) do

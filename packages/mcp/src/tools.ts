@@ -2,9 +2,9 @@ import {
   SubmittedStepSchema,
   ProposedRepoSchema,
   TOOL_DESCRIPTIONS,
-  TourHeaderSchema,
+  TrekHeaderSchema,
   TriggerSchema,
-  buildTourPrompt,
+  buildTrekPrompt,
   changeFiles,
   changePatch,
   listFiles,
@@ -155,7 +155,7 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
   )
 }
 
-/** The tools an agent builds a tour with: the guide, then start, add checked steps, finish. */
+/** The tools an agent builds a trek with: the guide, then start, add checked steps, finish. */
 export function registerBuildTools(server: McpServer, cell: SessionCell, report: Report): void {
   // The agent's answer, also written to the build's log, so the log shows what it was told.
   const tell = async (answer: string) => {
@@ -168,17 +168,17 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
   }
 
   server.registerTool(
-    "tour_guide",
+    "trek_guide",
     {
-      description: TOOL_DESCRIPTIONS.tour_guide,
+      description: TOOL_DESCRIPTIONS.trek_guide,
       inputSchema: z.object({ change: z.string().optional() }),
     },
-    ({ change }) => answered(report, "tour_guide")(buildTourPrompt(wordsOf(change))),
+    ({ change }) => answered(report, "trek_guide")(buildTrekPrompt(wordsOf(change))),
   )
 
   server.registerTool(
-    "start_tour",
-    { description: TOOL_DESCRIPTIONS.start_tour, inputSchema: TourHeaderSchema },
+    "start_trek",
+    { description: TOOL_DESCRIPTIONS.start_trek, inputSchema: TrekHeaderSchema },
     async (header) => {
       cell.session = start(cell.session, header)
 
@@ -201,14 +201,14 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
       const added = steps.map((step) => step.id).join(", ")
       const all = draftStepIds(cell.session).join(", ")
 
-      return tell(`added ${added}; the tour has ${all}`)
+      return tell(`added ${added}; the trek has ${all}`)
     },
   )
 
   server.registerTool(
-    "finish_tour",
+    "finish_trek",
     {
-      description: TOOL_DESCRIPTIONS.finish_tour,
+      description: TOOL_DESCRIPTIONS.finish_trek,
       inputSchema: z.object({
         name: z.string(),
         title: z.string().min(1).optional(),
@@ -227,8 +227,8 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
   )
 
   server.registerTool(
-    "update_tour",
-    { description: TOOL_DESCRIPTIONS.update_tour, inputSchema: z.object({ name: z.string() }) },
+    "update_trek",
+    { description: TOOL_DESCRIPTIONS.update_trek, inputSchema: z.object({ name: z.string() }) },
     async ({ name }) => {
       const updating = await apply(cell, (session) => update(session, name))
       return tell(updateStartedAnswer(name, updating))

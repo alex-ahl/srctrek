@@ -6,7 +6,7 @@ import { reportFor } from "./report"
 import { newSession } from "./session"
 import { registerBuildTools, registerReadTools } from "./tools"
 
-/** `trek mcp`: an MCP server over stdin and stdout for the agent that builds a tour. */
+/** `trek mcp`: an MCP server over stdin and stdout for the agent that builds a trek. */
 export async function startMcpServer(cwd: string): Promise<void> {
   const server = new McpServer(
     { name: "srctrek", version: TRAIL_VERSION },

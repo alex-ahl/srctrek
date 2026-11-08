@@ -2,10 +2,10 @@ import { describe, expect, test } from "bun:test"
 import {
   type ResolvedChange,
   type SubmittedStep,
-  type Tour,
+  type Trek,
   addSteps,
   carryOver,
-  draftToTour,
+  draftToTrek,
   newDraft,
   stepIds,
 } from "../../src"
@@ -21,8 +21,8 @@ const header = {
   author: { model: "m" },
 }
 
-// A two-step tour: s1 in total.ts, s2 in pay.ts, citing total.ts as where it came from.
-async function tourOf(change: ResolvedChange): Promise<Tour> {
+// A two-step trek: s1 in total.ts, s2 in pay.ts, citing total.ts as where it came from.
+async function trekOf(change: ResolvedChange): Promise<Trek> {
   const repo = change.repos[0]?.name ?? ""
   const s1: SubmittedStep = {
     id: "s1",
@@ -46,35 +46,35 @@ async function tourOf(change: ResolvedChange): Promise<Tour> {
   const { draft, problems } = await addSteps(newDraft(change, header), [s1, s2])
   expect(problems).toEqual([])
 
-  return draftToTour(draft)
+  return draftToTrek(draft)
 }
 
-async function repoWithTour() {
+async function repoWithTrek() {
   const dir = await makeBranchRepo()
   await commit(dir, "total.ts", "export const total = 250\n")
   await commit(dir, "pay.ts", "pay(total)\n")
-  return { dir, tour: await tourOf(await changeOf(dir)) }
+  return { dir, trek: await trekOf(await changeOf(dir)) }
 }
 
 describe("carryOver", () => {
   test("keeps every step whose files are unchanged, at the new commits", async () => {
-    const { dir, tour } = await repoWithTour()
+    const { dir, trek } = await repoWithTrek()
     await commit(dir, "README.md", "more docs\n")
     const change = await changeOf(dir)
 
-    const { draft, redo } = await carryOver(tour, change)
+    const { draft, redo } = await carryOver(trek, change)
 
     expect(redo).toEqual([])
     expect(stepIds(draft)).toEqual(["s1", "s2"])
-    expect(draftToTour(draft).repos[0]?.revision).toBe(change.repos[0]?.revision)
+    expect(draftToTrek(draft).repos[0]?.revision).toBe(change.repos[0]?.revision)
     expect(draft.header.title).toBe("t")
   })
 
   test("redoes a step whose file changed, and one citing a file that changed", async () => {
-    const { dir, tour } = await repoWithTour()
+    const { dir, trek } = await repoWithTrek()
     await commit(dir, "total.ts", "export const total = 300\n")
 
-    const { draft, redo } = await carryOver(tour, await changeOf(dir))
+    const { draft, redo } = await carryOver(trek, await changeOf(dir))
 
     expect(stepIds(draft)).toEqual([])
     expect(redo.map(({ step, why }) => [step.id, why])).toEqual([
@@ -84,10 +84,10 @@ describe("carryOver", () => {
   })
 
   test("redoes a step in a repo that isn't open any more", async () => {
-    const { dir, tour } = await repoWithTour()
+    const { dir, trek } = await repoWithTrek()
     const elsewhere = {
-      ...tour,
-      steps: tour.steps.map((step) => ({ ...step, repo: "payments" })),
+      ...trek,
+      steps: trek.steps.map((step) => ({ ...step, repo: "payments" })),
     }
 
     const { redo } = await carryOver(elsewhere, await changeOf(dir))

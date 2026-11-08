@@ -158,7 +158,7 @@ local function flag_counts(flags)
   return #counted > 0 and table.concat(counted, " · ") or "none"
 end
 
--- The keys this tour has, as configured; turned-off ones aren't listed.
+-- The keys this trek has, as configured; turned-off ones aren't listed.
 local function key_lines(doc)
   for _, action in ipairs(actions) do
     local key = state.keys[action.name]
@@ -188,10 +188,10 @@ local function overview(view)
   popup.document(doc, view.title)
 end
 
--- The outcome, then every flag in the tour, most severe first; enter on one goes to its step.
+-- The outcome, then every flag in the trek, most severe first; enter on one goes to its step.
 local function finish(view)
   local doc = new_doc()
-  doc.add("End of tour", nil, "SrctrekHeading")
+  doc.add("End of trek", nil, "SrctrekHeading")
   doc.extend(vim.split(view.outcome, "\n"))
   doc.add("")
   if #view.flags == 0 then
@@ -205,11 +205,11 @@ local function finish(view)
     doc.add("    " .. flag.note, go_to(flag.id))
   end
   doc.add("")
-  doc.add("enter on a flag goes to its step · [t last step · <leader>tq ends the tour", nil, "SrctrekUnchanged")
+  doc.add("enter on a flag goes to its step · [t last step · <leader>tq ends the trek", nil, "SrctrekUnchanged")
   popup.document(doc, view.title)
 end
 
--- Details for wherever the tour is: the overview, a step, or the end.
+-- Details for wherever the trek is: the overview, a step, or the end.
 function M.show()
   local view = state.view
   if view.kind == "overview" then

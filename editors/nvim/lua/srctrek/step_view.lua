@@ -7,10 +7,10 @@ local text = require("srctrek.text")
 
 local M = {}
 
--- The tour's copies whose diagnostics are hidden, to show again when the tour ends.
+-- The trek's copies whose diagnostics are hidden, to show again when the trek ends.
 local quieted = {}
 
--- A copy in trek's cache has no dependencies installed, so a language server flags every import;
+-- A copy in srctrek's cache has no dependencies installed, so a language server flags every import;
 -- the errors can't be acted on in a read-only copy. The user's own files keep theirs.
 local function quiet_diagnostics(buf)
   if not quieted[buf] then
@@ -90,7 +90,7 @@ local function mark_lines(buf, view, first, last, new_file)
 end
 
 -- The narration sits on a band across the window, from its left edge, so it reads as the
--- tour's commentary on the code rather than a line of it. Virtual lines don't wrap, so the text
+-- trek's commentary on the code rather than a line of it. Virtual lines don't wrap, so the text
 -- is wrapped here, at a width that reads easily however wide the window is.
 local READABLE_WIDTH = 90
 local MAX_LINES = 6
@@ -139,7 +139,7 @@ end
 local function where_next(view)
   local next = view.next
   if next.how == "end" then
-    return "next: the end of the tour"
+    return "next: the end of the trek"
   end
   local to = next_label(next.to)
   if next.how == "into" then
@@ -224,7 +224,7 @@ local function narration(view, layout)
 end
 
 -- The line itself says what it calls; only a hop into another repo says where it goes, and a
--- link matched only by name gets a ?, since the tour can't prove this line makes the call.
+-- link matched only by name gets a ?, since the trek can't prove this line makes the call.
 local function marker(view, call)
   local arrow = call.repo == view.repo and "→" or ("↯ " .. call.repo)
   return call.guessed and (arrow .. "?") or arrow
@@ -299,8 +299,8 @@ function M.show(view)
   vim.api.nvim_set_current_win(win)
   vim.cmd("edit " .. vim.fn.fnameescape(view.path))
   local buf = vim.api.nvim_get_current_buf()
-  -- the tour's copy lives in trek's cache, where an edit would be lost
-  if view.tour_copy then
+  -- the trek's copy lives in srctrek's cache, where an edit would be lost
+  if view.trek_copy then
     vim.bo[buf].readonly = true
     vim.bo[buf].modifiable = false
     quiet_diagnostics(buf)

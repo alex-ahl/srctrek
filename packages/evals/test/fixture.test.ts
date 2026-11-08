@@ -4,7 +4,7 @@ import {
   blobAt,
   changedFiles,
   citationProblems,
-  parseTour,
+  parseTrek,
   resolveRange,
   parseRange,
   runGit,
@@ -12,8 +12,8 @@ import {
 import { buildFixture } from "../src/fixture"
 
 const refund = await buildFixture("refund")
-const tourPath = join(import.meta.dir, "../../core/test/fixtures/refund-tour.json")
-const tour = parseTour(await Bun.file(tourPath).json(), tourPath)
+const trekPath = join(import.meta.dir, "../../core/test/fixtures/refund-trek.json")
+const trek = parseTrek(await Bun.file(trekPath).json(), trekPath)
 
 function repoDir(name: string): string {
   const dir = refund.repos[name]
@@ -45,9 +45,9 @@ describe("buildFixture", () => {
   })
 })
 
-describe("the refund tour against its fixture", () => {
+describe("the refund trek against its fixture", () => {
   test("every step's blob id matches its file at feature", async () => {
-    for (const step of tour.steps) {
+    for (const step of trek.steps) {
       expect({
         step: step.id,
         blob: await blobAt(repoDir(step.repo), "feature", step.file),
@@ -65,7 +65,7 @@ describe("the refund tour against its fixture", () => {
       dir,
       revision: "feature",
     }))
-    const problems = await Promise.all(tour.steps.map((step) => citationProblems({ repos }, step)))
+    const problems = await Promise.all(trek.steps.map((step) => citationProblems({ repos }, step)))
 
     expect(problems.flat()).toEqual([])
   })

@@ -1,17 +1,17 @@
 import { expect, test } from "bun:test"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
-import type { TourEntry } from "@srctrek/core"
+import type { TrekEntry } from "@srctrek/core"
 
 const noop = () => undefined
 
 test("renders the empty state", async () => {
   const frame = await renderFrame(<App entries={[]} onOpen={noop} onQuit={noop} />)
-  expect(frame).toContain("No tours in .srctrek/tours")
+  expect(frame).toContain("No treks in .srctrek/treks")
 })
 
-test("lists valid and invalid tours", async () => {
-  const entries: TourEntry[] = [
+test("lists valid and invalid treks", async () => {
+  const entries: TrekEntry[] = [
     {
       name: "refund",
       path: "/t/refund.json",
@@ -33,7 +33,7 @@ test("lists valid and invalid tours", async () => {
   expect(frame).toContain("broken · invalid: steps.1.via: missing evidence")
 })
 
-const refund: TourEntry = {
+const refund: TrekEntry = {
   name: "feature-refunds",
   path: "/t/feature-refunds.json",
   valid: true,
@@ -41,13 +41,13 @@ const refund: TourEntry = {
   steps: 12,
   highFlags: 0,
 }
-const other: TourEntry = { ...refund, name: "older", title: "An older tour" }
+const other: TrekEntry = { ...refund, name: "older", title: "An older trek" }
 
-test("says a tour of the change is being built", async () => {
+test("says a trek of the change is being built", async () => {
   const status = {
     kind: "building" as const,
     name: "feature-refunds",
-    logTail: ['trek: started "Refund orders"', "trek: added s1, s2; the tour has s1, s2"],
+    logTail: ['trek: started "Refund orders"', "trek: added s1, s2; the trek has s1, s2"],
   }
   const frame = await renderFrame(
     <App
@@ -62,7 +62,7 @@ test("says a tour of the change is being built", async () => {
     12,
   )
   expect(frame).toContain("Building feature-refunds… your agent is on it")
-  expect(frame).toContain("  trek: added s1, s2; the tour has s1, s2")
+  expect(frame).toContain("  trek: added s1, s2; the trek has s1, s2")
   expect(frame).toContain("· l log ·")
   expect(frame).not.toContain("b build")
 })
@@ -79,7 +79,7 @@ test("shows why a build failed, and offers to build again", async () => {
   expect(frame).toContain("· b build ·")
 })
 
-test("says how to have trek build tours when no agent is set", async () => {
+test("says how to have trek build treks when no agent is set", async () => {
   const status = { kind: "missing" as const, name: "feature-refunds" }
   const frame = await renderFrame(
     <App entries={[]} onOpen={noop} onQuit={noop} status={status} />,
@@ -90,34 +90,34 @@ test("says how to have trek build tours when no agent is set", async () => {
   expect(frame).not.toContain("b build")
 })
 
-test("picks out the change's tour once it's ready", async () => {
+test("picks out the change's trek once it's ready", async () => {
   const status = { kind: "ready" as const, name: "feature-refunds" }
   const frame = await renderFrame(
     <App entries={[other, refund]} onOpen={noop} onQuit={noop} status={status} />,
     100,
     14,
   )
-  expect(frame).toContain("This change's tour: feature-refunds")
+  expect(frame).toContain("This change's trek: feature-refunds")
   expect(frame).toContain("▶ Refund orders")
-  expect(frame).not.toContain("▶ An older tour")
+  expect(frame).not.toContain("▶ An older trek")
 })
 
-test("says there's nothing to tour when the change has no commits, and offers no build", async () => {
+test("says there's nothing to trek when the change has no commits, and offers no build", async () => {
   const status = { kind: "empty" as const, name: "master" }
   const frame = await renderFrame(
     <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
     120,
     8,
   )
-  expect(frame).toContain("This change has no commits, so there's nothing to tour.")
+  expect(frame).toContain("This change has no commits, so there's nothing to trek.")
   expect(frame).not.toContain("b build")
 })
 
-test("shows as many tours as fit, each on its own two lines, and says which", async () => {
+test("shows as many treks as fit, each on its own two lines, and says which", async () => {
   const many = Array.from({ length: 24 }, (_, i) => ({
     ...refund,
     name: `t${i}`,
-    title: `Tour ${i}`,
+    title: `Trek ${i}`,
   }))
   const status = { kind: "empty" as const, name: "master" }
   const frame = await renderFrame(
@@ -125,14 +125,14 @@ test("shows as many tours as fit, each on its own two lines, and says which", as
     120,
     24,
   )
-  expect(frame).toContain("▶ Tour 0")
+  expect(frame).toContain("▶ Trek 0")
   expect(frame).toContain("    t0 · 12 steps")
   expect(frame).toContain("    t4 · 12 steps")
   expect(frame).toContain("1–5 of 24 · ↑/↓ choose")
-  expect(frame).not.toContain("Tour 5")
+  expect(frame).not.toContain("Trek 5")
 })
 
-test("lists the triggers found as rows to pick, each saying where its tour stands", async () => {
+test("lists the triggers found as rows to pick, each saying where its trek stands", async () => {
   const trigger = (name: string, line: number) => ({
     kind: "event" as const,
     name,
@@ -144,11 +144,11 @@ test("lists the triggers found as rows to pick, each saying where its tour stand
     triggers: [
       {
         trigger: trigger("a persona answers an @-mention", 311),
-        tour: { kind: "missing" as const, name: "a-persona-answers-an-mention" },
+        trek: { kind: "missing" as const, name: "a-persona-answers-an-mention" },
       },
       {
         trigger: trigger("a reply times out", 91),
-        tour: { kind: "ready" as const, name: "a-reply-times-out" },
+        trek: { kind: "ready" as const, name: "a-reply-times-out" },
       },
     ],
   }
@@ -157,14 +157,14 @@ test("lists the triggers found as rows to pick, each saying where its tour stand
     120,
     16,
   )
-  expect(frame).toContain("Found 2 ways into this code. Pick one to tour it.")
+  expect(frame).toContain("Found 2 ways into this code. Pick one to trek it.")
   expect(frame).toContain("▶ a persona answers an @-mention")
-  expect(frame).toContain("    event · bot.py:311 · not toured yet")
-  expect(frame).toContain("    event · bot.py:91 · toured")
-  expect(frame).toContain("enter build its tour")
+  expect(frame).toContain("    event · bot.py:311 · no trek yet")
+  expect(frame).toContain("    event · bot.py:91 · trek ready")
+  expect(frame).toContain("enter build its trek")
 })
 
-test("says a stale tour is out of date, how much changed, and offers to update it", async () => {
+test("says a stale trek is out of date, how much changed, and offers to update it", async () => {
   const status = { kind: "stale" as const, name: "feature-refunds", staleSteps: 3, steps: 12 }
   const frame = await renderFrame(
     <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
@@ -173,7 +173,7 @@ test("says a stale tour is out of date, how much changed, and offers to update i
   )
 
   expect(frame).toContain(
-    "This change's tour feature-refunds is out of date: 3 of 12 steps cite files changed since it was built.  b: update it",
+    "This change's trek feature-refunds is out of date: 3 of 12 steps cite files changed since it was built.  b: update it",
   )
   expect(frame).toContain("b update")
 })

@@ -53,8 +53,8 @@ describe("snapshotWorkingTree", () => {
   test("leaves srctrek's own folder as HEAD has it", async () => {
     const dir = await makeRepo()
     const head = await runGit(dir, ["rev-parse", "HEAD"])
-    await mkdir(join(dir, ".srctrek/tours"), { recursive: true })
-    await writeFile(join(dir, ".srctrek/tours/a.json"), "{}\n")
+    await mkdir(join(dir, ".srctrek/treks"), { recursive: true })
+    await writeFile(join(dir, ".srctrek/treks/a.json"), "{}\n")
 
     expect(await snapshotWorkingTree(dir)).toBe(head)
   })
@@ -62,8 +62,8 @@ describe("snapshotWorkingTree", () => {
   test("works when .srctrek is ignored or committed", async () => {
     const ignoring = await makeRepo()
     await commit(ignoring, ".gitignore", ".srctrek\n")
-    await mkdir(join(ignoring, ".srctrek/tours"), { recursive: true })
-    await writeFile(join(ignoring, ".srctrek/tours/a.json"), "{}\n")
+    await mkdir(join(ignoring, ".srctrek/treks"), { recursive: true })
+    await writeFile(join(ignoring, ".srctrek/treks/a.json"), "{}\n")
     expect(await snapshotWorkingTree(ignoring)).toBe(await runGit(ignoring, ["rev-parse", "HEAD"]))
 
     const committing = await makeRepo()

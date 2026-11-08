@@ -5,7 +5,7 @@ import { ErrorCode, PROTOCOL_VERSION, runGit } from "@srctrek/core"
 import { commit, makeRepo } from "../../core/test/support/repo"
 import { tempDir } from "../../core/test/support/temp"
 import { ServeTestClient } from "./serve-client"
-import { repoWithTour } from "./support/pay-tour"
+import { repoWithTrek } from "./support/pay-trek"
 
 let client: ServeTestClient | undefined
 
@@ -34,11 +34,11 @@ describe("trek serve, as an editor sees it", () => {
     })
   })
 
-  test("steps through a tour: overview, each step in its checkout, then the end", async () => {
-    const dir = await repoWithTour()
+  test("steps through a trek: overview, each step in its checkout, then the end", async () => {
+    const dir = await repoWithTrek()
     const serve = await serving(dir)
 
-    expect(await serve.request("open", { tour: "pay" })).toMatchObject({
+    expect(await serve.request("open", { trek: "pay" })).toMatchObject({
       kind: "overview",
       count: 3,
     })
@@ -54,8 +54,8 @@ describe("trek serve, as an editor sees it", () => {
   })
 
   test("steps into a call, over it, and out of it by the call stack", async () => {
-    const serve = await serving(await repoWithTour())
-    await serve.request("open", { tour: "pay" })
+    const serve = await serving(await repoWithTrek())
+    await serve.request("open", { trek: "pay" })
     await serve.request("goto", { step: "s1" })
 
     const into = await serve.request("into")
@@ -66,11 +66,11 @@ describe("trek serve, as an editor sees it", () => {
   })
 
   test("answers requests sent together in the order they were sent", async () => {
-    const serve = await serving(await repoWithTour())
+    const serve = await serving(await repoWithTrek())
 
     // open reads git, so the moves sent right behind it arrive while it's still working
     const views = await Promise.all([
-      serve.request("open", { tour: "pay" }),
+      serve.request("open", { trek: "pay" }),
       serve.request("next"),
       serve.request("next"),
     ])
@@ -79,11 +79,11 @@ describe("trek serve, as an editor sees it", () => {
   })
 
   test("refuses what it can't do with the protocol's codes, keeping its place", async () => {
-    const serve = await serving(await repoWithTour())
+    const serve = await serving(await repoWithTrek())
 
-    expect(await serve.errorCode("next")).toBe(ErrorCode.noTour)
-    expect(await serve.errorCode("open", { tour: "nope" })).toBe(ErrorCode.noTour)
-    await serve.request("open", { tour: "pay" })
+    expect(await serve.errorCode("next")).toBe(ErrorCode.noTrek)
+    expect(await serve.errorCode("open", { trek: "nope" })).toBe(ErrorCode.noTrek)
+    await serve.request("open", { trek: "pay" })
     await serve.request("next")
     expect(await serve.errorCode("goto", { step: "s9" })).toBe(ErrorCode.unknownStep)
     expect(await serve.errorCode("goto", {})).toBe(-32602)
@@ -94,15 +94,15 @@ describe("trek serve, as an editor sees it", () => {
   test("refuses moves until initialized", async () => {
     client = new ServeTestClient(await tempDir("serve-"))
 
-    expect(await client.errorCode("open", { tour: "pay" })).toBe(ErrorCode.notInitialized)
+    expect(await client.errorCode("open", { trek: "pay" })).toBe(ErrorCode.notInitialized)
   })
 
   test("marks steps stale against the change as it is now, from trek's arguments", async () => {
-    const dir = await repoWithTour()
+    const dir = await repoWithTrek()
     await commit(dir, "pay.ts", "export function pay() {\n  return 300\n}\n")
     const serve = await serving(dir)
 
-    await serve.request("open", { tour: "pay", args: [] })
+    await serve.request("open", { trek: "pay", args: [] })
 
     expect(await serve.request("goto", { step: "s1" })).toMatchObject({ stale: false })
     expect(await serve.request("next")).toMatchObject({ id: "s2", stale: true })
@@ -124,8 +124,8 @@ function linesOf(answer: unknown): string[] {
   return Array.isArray(lines) ? lines.filter((line) => typeof line === "string") : []
 }
 
-// A repo on branch feature with one commit and no tour of it yet.
-async function repoWithoutTour(): Promise<string> {
+// A repo on branch feature with one commit and no trek of it yet.
+async function repoWithoutTrek(): Promise<string> {
   const dir = await makeRepo()
   await runGit(dir, ["switch", "--quiet", "-c", "feature"])
   await commit(dir, "pay.ts", "export function pay() {\n  return 250\n}\n")
@@ -141,39 +141,39 @@ async function servingWithAgent(dir: string, agent: string): Promise<ServeTestCl
   return client
 }
 
-describe("trek serve, for the editor's list of tours", () => {
-  test("lists the saved tours, and where the change's tour stands", async () => {
-    const serve = await serving(await repoWithTour())
+describe("trek serve, for the editor's list of treks", () => {
+  test("lists the saved treks, and where the change's trek stands", async () => {
+    const serve = await serving(await repoWithTrek())
 
-    const answer = await serve.request("tours")
+    const answer = await serve.request("treks")
 
     expect(answer).toMatchObject({
       change: { kind: "ready" },
-      tours: [{ name: "pay", valid: true, title: "Pay", steps: 3 }],
+      treks: [{ name: "pay", valid: true, title: "Pay", steps: 3 }],
     })
   })
 
   test("refuses to build without an agent, saying how to set one", async () => {
-    const serve = await servingWithAgent(await repoWithoutTour(), "")
+    const serve = await servingWithAgent(await repoWithoutTrek(), "")
 
     expect(await serve.errorCode("build")).toBe(ErrorCode.noAgent)
   })
 
-  test("starts the agent on the change's tour, and shows its log", async () => {
-    const serve = await servingWithAgent(await repoWithoutTour(), "sleep 1 && echo working on")
+  test("starts the agent on the change's trek, and shows its log", async () => {
+    const serve = await servingWithAgent(await repoWithoutTrek(), "sleep 1 && echo working on")
 
     const started = await serve.request("build")
     expect(started).toMatchObject({ change: { kind: "building", name: "feature" } })
 
     await Bun.sleep(1500)
-    const log = await serve.request("log", { tour: "feature" })
+    const log = await serve.request("log", { trek: "feature" })
     expect(linesOf(log).join("\n")).toContain("working on")
   })
 
   test("refuses trek arguments it can't read", async () => {
-    const serve = await serving(await repoWithTour())
+    const serve = await serving(await repoWithTrek())
 
-    expect(await serve.errorCode("tours", { args: ["../nowhere"] })).toBe(
+    expect(await serve.errorCode("treks", { args: ["../nowhere"] })).toBe(
       ErrorCode.unreadableChange,
     )
   })

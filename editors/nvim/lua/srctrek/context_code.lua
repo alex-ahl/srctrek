@@ -1,5 +1,5 @@
 -- The step's context code (contracts, types, where its data came from) in a float over the
--- step, each piece under its reason. The tour stays where it is, so q is the way back; enter on
+-- step, each piece under its reason. The trek stays where it is, so q is the way back; enter on
 -- a piece opens it as a step of its own.
 local popup = require("srctrek.popup")
 local server = require("srctrek.server")
@@ -8,7 +8,7 @@ local text = require("srctrek.text")
 
 local M = {}
 
--- Where the piece lives, in full: its repo and its path there, so it can be found without the tour.
+-- Where the piece lives, in full: its repo and its path there, so it can be found without the trek.
 local function label(ref)
   -- "repo: path", so the repo doesn't read as a folder
   local place = string.format("%s: %s:%d", ref.repo, ref.file, ref.start_line)

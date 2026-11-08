@@ -1,9 +1,9 @@
 -- Drives the Neovim plugin as a user would, for nvim.test.ts: runs each action in
--- $DRIVE_ACTIONS (comma-separated; "start:<tour>" opens one, "cursor:<line>" moves the cursor,
+-- $DRIVE_ACTIONS (comma-separated; "start:<trek>" opens one, "cursor:<line>" moves the cursor,
 -- "winbar:<text>" sets the window's own winbar, "userfloat" opens another plugin's float,
 -- "edit:<file>" opens a file of the user's own, "type:<text>" replaces its first line unsaved,
 -- "nohidden" turns 'hidden' off, "enter:<text>" presses enter on the popup line holding <text>,
--- "goto:<step>" jumps the tour to a step by id, "columns:<n>" sets the screen's width),
+-- "goto:<step>" jumps the trek to a step by id, "columns:<n>" sets the screen's width),
 -- waits
 -- for the server's answer, and writes what the screen shows after each to $DRIVE_OUT as JSON.
 local srctrek = require("srctrek")
@@ -114,7 +114,7 @@ end
 
 local function run(action)
   local view, notified, message = state.view, #notices, last_message()
-  local tour = action:match("^start:(.+)$")
+  local trek = action:match("^start:(.+)$")
   local line = action:match("^cursor:(%d+)$")
   local own_winbar = action:match("^winbar:(.+)$")
   local own_file = action:match("^edit:(.+)$")
@@ -155,8 +155,8 @@ local function run(action)
   elseif action == "userfloat" then
     open_user_float()
     return
-  elseif tour then
-    srctrek.start(tour)
+  elseif trek then
+    srctrek.start(trek)
   else
     srctrek[action]()
   end

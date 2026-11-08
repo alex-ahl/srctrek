@@ -2,27 +2,27 @@
 
 Newest first. Each entry: the decision, then why.
 
-## 2026-11-03 — A tour loses nothing of the user's, and has no tab
+## 2026-11-03 — A trek loses nothing of the user's, and has no tab
 
-A tour borrows the user's own windows and gives them back on quit: each window returns to its
-file, cursor, and scroll, and a buffer the tour replaces stays loaded while it runs. Nothing a
-tour does may throw away unsaved changes, undo history, or a setting.
+A trek borrows the user's own windows and gives them back on quit: each window returns to its
+file, cursor, and scroll, and a buffer the trek replaces stays loaded while it runs. Nothing a
+trek does may throw away unsaved changes, undo history, or a setting.
 
-The tour's own tab was dropped: the badge, the band, and the tint already say a tour is on,
+The trek's own tab was dropped: the badge, the band, and the tint already say a trek is on,
 `<leader>tc` goes back to it, and the tab's label was a file path. What it protected, the
 user's windows, is restored directly instead. Opening a second Neovim was rejected: Neovim can't
 open a terminal itself without assuming the user's terminal or multiplexer, and the user would
-lose their buffers and language servers beside the tour.
+lose their buffers and language servers beside the trek.
 
 ## 2026-11-03 — Step into follows the cursor; calls are marked at their line
 
-A line making a call the tour follows ends in `→`, and step into takes the call on the cursor's
+A line making a call the trek follows ends in `→`, and step into takes the call on the cursor's
 line, else the first not yet visited. The editors' keys stay their own: Neovim keeps its
 defaults, and users map the debugger's keys if they want them.
 
 Readers couldn't tell when a step had somewhere to go, or which call into would take. Placing
 the cursor is how a debugger picks one call among several, so no picker or "next call"
-marker is needed; the arrow says only what the code can't, that the tour goes there. The line
+marker is needed; the arrow says only what the code can't, that the trek goes there. The line
 comes from the entered step's evidence, which every link already cites.
 
 ## 2026-11-03 — The terminal keeps OpenTUI
@@ -42,7 +42,7 @@ The terminal's stepping view is for anyone, started with `s` from the home scree
 map, not only for editors without a plugin. The editor stays the main place to step. Refines
 "The editor is where you step; the TUI is for everything around it" from 2026-10-22.
 
-A quick look at a tour, or at one step from the route map, shouldn't need the editor opened and
+A quick look at a trek, or at one step from the route map, shouldn't need the editor opened and
 pointed at the right checkout; the terminal already shows the route and the code.
 
 ## 2026-11-03 — Neovim keeps to the user's windows; VS Code steps with the debugger's keys
@@ -70,9 +70,9 @@ current frame.
 
 ## 2026-11-03 — A session starts from the terminal or the editor
 
-The terminal's home screen opens a tour in the editor `SRCTREK_EDITOR` names; nothing is
+The terminal's home screen opens a trek in the editor `SRCTREK_EDITOR` names; nothing is
 detected, and without it `$EDITOR` opens the step at its line. Editors can also list the saved
-tours with their status, open one, and start a build, through requests the protocol gains in
+treks with their status, open one, and start a build, through requests the protocol gains in
 Milestone 6.
 
 The home screen can open Neovim but not VS Code, and most beta testers use VS Code and rarely
@@ -92,18 +92,18 @@ With one client per process, every change to the session follows a request from 
 so an answer is enough, and a client needn't match pushed messages to what it sent. Core fits
 nothing to what a client can draw, so capabilities would go unread.
 
-## 2026-11-02 — The call stack comes from the tour's links
+## 2026-11-02 — The call stack comes from the trek's links
 
 Each step's call stack is worked out from `from` and its kind: a call goes on top of the step
 it came from, a hop starts a new stack, and a return comes back to a frame on the stack. A
 return that comes back to no frame is rejected, and code that runs later in response to
-something (an event handler, a timer, a callback) is a hop. `next` keeps tour order; step
+something (an event handler, a timer, a callback) is a hop. `next` keeps trek order; step
 over and step out skip by the stack. `calls` is gone: a step's calls are the steps that come
 from it as calls. Replaces "`calls` lists every step a step steps into" from 2026-10-30.
 
 A stack made from how the reader moved shows nothing when they reach a step with next, so
 the editor would show a wrong one. Worked out from the links, it answers "how did I get
-here" the same way whatever the route, across hops too. Checked on the tours built so far:
+here" the same way whatever the route, across hops too. Checked on the treks built so far:
 the misuses found were returns to code no frame was in, which validation now catches, and
 one event handler labelled a call, which the guide now covers. Two fields describing the
 same calls could disagree; one function reached from two callers is the case `calls` covered
@@ -119,37 +119,37 @@ A context step has no caller, so requiring `from` made it claim one, and the ste
 then claimed to come from code that never ran. With one id in `calls`, a handler calling five
 helpers could offer only one of them for step into.
 
-## 2026-10-28 — The user chooses what a tour of code is about
+## 2026-10-28 — The user chooses what a trek of code is about
 
-A tour of code as it is follows the trigger the user names. With no trigger named, the agent
+A trek of code as it is follows the trigger the user names. With no trigger named, the agent
 finds the code's triggers (routes, commands, handlers, jobs), records each with the line that
-proves it, and builds nothing; the user picks one to tour.
+proves it, and builds nothing; the user picks one to trek.
 
 What a newcomer needs to see first depends on why they're looking, which the agent can't
-know; a tour of the wrong path costs minutes of agent time and the reader's attention. The
+know; a trek of the wrong path costs minutes of agent time and the reader's attention. The
 list of triggers is useful on its own, as a map of how the code is used.
 
-## 2026-10-27 — Asking in plain words builds a tour
+## 2026-10-27 — Asking in plain words builds a trek
 
-A user asks their agent for a tour in their own words; no command or tool name to learn.
+A user asks their agent for a trek in their own words; no command or tool name to learn.
 `trek mcp` tells the agent at connection, through MCP server instructions, to read the
-tour guide first, and the guide is a tool as well as a prompt. The `build_tour` prompt stays
+trek guide first, and the guide is a tool as well as a prompt. The `build_trek` prompt stays
 for agents that show prompts as commands.
 
 A guide offered only as a prompt reaches the agent only when the user picks it, and some
-agents don't show prompts at all; without the guide, tours come out unguided.
+agents don't show prompts at all; without the guide, treks come out unguided.
 
 ## 2026-10-26 — Uncommitted work only when asked for
 
 `trek` follows committed work by default. `--uncommitted` includes edits, staged or not,
 and new files git doesn't ignore, by snapshotting the working tree as a commit on top of HEAD
-and using it as the range's head. It comes with Milestone 3, when tours of work in progress
+and using it as the range's head. It comes with Milestone 3, when treks of work in progress
 are built before it's committed.
 
-Tours cite exact commits and file versions; uncommitted edits have neither, so by default a
-tour can't silently describe code that changes on the next save. A snapshot commit keeps that
+Treks cite exact commits and file versions; uncommitted edits have neither, so by default a
+trek can't silently describe code that changes on the next save. A snapshot commit keeps that
 guarantee when the user asks for work in progress: everything downstream reads it like any
-commit, and further edits mark the tour stale.
+commit, and further edits mark the trek stale.
 
 ## 2026-10-26 — Predicted values sit on their lines
 
@@ -168,7 +168,7 @@ code reads more like fact than one in a popup.
 
 Values beside the code they describe read like a debugger session, which is the product's
 model; a separate list makes the reader match names to lines. The line comes from the agent
-that builds the tour, which already reads those lines, and validation keeps it inside the
+that builds the trek, which already reads those lines, and validation keeps it inside the
 step.
 
 ## 2026-10-25 — Repos are named in the repos list; the agent proposes the rest
@@ -184,7 +184,7 @@ ecosystem in core would always be incomplete.
 
 ## 2026-10-25 — Foundation first, then a design pass; VS Code and Neovim together in version 1
 
-Order: git (2), tour building (3), core process and protocol (4), a front-end design pass
+Order: git (2), trek building (3), core process and protocol (4), a front-end design pass
 (5), the VS Code extension and the Neovim plugin side by side on the protocol (6), the TUI
 to the design (7), and a GUI only if beta testers want it (8). Beta testers get the binary
 and a .vsix package after milestone 6.
@@ -197,10 +197,10 @@ milestone. The Neovim prototype keeps working meanwhile.
 
 ## 2026-10-24 — The .srctrek folder is committed, not ignored
 
-The .srctrek folder belongs in the repo: the repos list for the whole team, and tours that travel
-with a change. Committed tours must be portable, so repo sources are relative paths or URLs,
+The .srctrek folder belongs in the repo: the repos list for the whole team, and treks that travel
+with a change. Committed treks must be portable, so repo sources are relative paths or URLs,
 never absolute local paths. This repo ignores the folder until srctrek writes portable
-tours; then the ignore goes.
+treks; then the ignore goes.
 
 ## 2026-10-24 — Repos without changes: listed simply, or added while building
 
@@ -210,14 +210,14 @@ While building, the agent can ask to add a repo it finds on the route; once the 
 approves, it's appended to the list. A workspace format was the alternative; a list of lines
 needs nothing to learn.
 
-## 2026-10-23 — Failed rules go back to the builder; saved tours are trusted
+## 2026-10-23 — Failed rules go back to the builder; saved treks are trusted
 
 A failed rule while building goes back to the agent, which cites the missing evidence or marks
 the link guessed; after about three rounds the build stops with the failures shown. No
 auto-fixing: it would hide the agent's mistakes from it. The one exception is checks that read
 the code, which downgrade a link to guessed rather than reject. Saving checks every rule, so a
-saved tour that fails to load is another format version (rebuild), stale (open with marked
-steps, update through the agent), unreachable, or a srctrek bug. Hand-written tours aren't
+saved trek that fails to load is another format version (rebuild), stale (open with marked
+steps, update through the agent), unreachable, or a srctrek bug. Hand-written treks aren't
 a case to design for.
 
 ## 2026-10-22 — Supported editors: Neovim, then VS Code and its forks
@@ -241,21 +241,21 @@ every protocol change then touches core and clients in one commit and one CI run
 plugin is mirrored into its own repo on release, because plugin managers install from a
 repo root. The VS Code extension needs no mirror.
 
-## 2026-10-22 — `trek` builds tours by launching the user's agent; existing code in version 1
+## 2026-10-22 — `trek` builds treks by launching the user's agent; existing code in version 1
 
-With no tour for a change, `trek` runs the user's agent headless with `trek mcp` attached,
-the same mechanism as asking from the editor. Without a change, it builds a tour of existing
-code from a trigger the user picks among the agent's proposals. Both join version 1. Any tour,
+With no trek for a change, `trek` runs the user's agent headless with `trek mcp` attached,
+the same mechanism as asking from the editor. Without a change, it builds a trek of existing
+code from a trigger the user picks among the agent's proposals. Both join version 1. Any trek,
 however built, is validated on load.
 
 This restores the one-command flow that building through MCP gave up, still without a model
 call of srctrek's own, and covers the onboarding case: a repo the user doesn't know. Moves
-"tours of existing code" from the roadmap into version 1.
+"treks of existing code" from the roadmap into version 1.
 
 ## 2026-10-22 — The editor is where you step; the TUI is for everything around it
 
-The Neovim plugin is the main surface for following a tour. The TUI covers the rest: a home
-screen of tours and PRs awaiting review, a live view while a tour is built, a route map of
+The Neovim plugin is the main surface for following a trek. The TUI covers the rest: a home
+screen of treks and PRs awaiting review, a live view while a trek is built, a route map of
 the whole trek, and a fallback stepping view for editors without a plugin. Core runs as a
 long-lived `trek` process that editor plugins talk to over JSON on stdio.
 
@@ -279,27 +279,27 @@ evidence on both sides or is marked guessed, enforced by validation. In the qual
 reviewer flagged 13 of 20 steps, so the real bug read like a CORS note, and it cited one side
 of a topic-name match across repos without marking it guessed.
 
-## 2026-10-21 — Tours are built by the user's agent, through MCP
+## 2026-10-21 — Treks are built by the user's agent, through MCP
 
 `trek mcp` is an MCP server. It resolves repos and ranges, serves git-backed read tools at
-the tour's revisions, serves the schema and prompts, and validates the tour the agent
+the trek's revisions, serves the schema and prompts, and validates the trek the agent
 submits. srctrek makes no model call of its own in version 1.
 
 srctrek's users already work with an agent, and that agent already has an exploration
 loop, repo access, and a code host CLI; building a second loop is most of Milestone 3 and
 asks users for an API key. Replaces the earlier decision that srctrek calls a model API
-itself; that becomes a provider-neutral standalone builder in `docs/ROADMAP.md`. Costs: tour quality depends on
+itself; that becomes a provider-neutral standalone builder in `docs/ROADMAP.md`. Costs: trek quality depends on
 the user's agent, and evals drive an agent headless.
 
 ## 2026-10-20 — Version 1 scope
 
-- Reviewer tours only: an independent reading of a change.
+- Reviewer treks only: an independent reading of a change.
 - Local paths and ranges, plus GitHub PR URLs.
-- Neovim follows the tour, with the step's range highlighted; other editors open a step
+- Neovim follows the trek, with the step's range highlighted; other editors open a step
   with `e`.
 - Specs: contract files in the repos (OpenAPI, protobuf, AsyncAPI, GraphQL).
 
-Each cut keeps the core claim testable — cross-repo tours a reviewer can trust — with the
+Each cut keeps the core claim testable — cross-repo treks a reviewer can trust — with the
 least plumbing. Neovim first: it is the user's editor and the only one whose remote API can
 highlight a range. Everything deferred is in `docs/ROADMAP.md`.
 
@@ -315,12 +315,12 @@ host API is required.
 
 Each step records the call site, route, config line, or message name that leads to it, and
 links matched only by name are marked guessed. The reviewer can't run the code to check the
-tour, so the tour must be checkable by reading.
+trek, so the trek must be checkable by reading.
 
-## 2026-10-20 — The tour drives the editor
+## 2026-10-20 — The trek drives the editor
 
 Each step moves the user's editor to its file and lines, in a worktree checked out at the
-tour's revision; the TUI is the controller. Reading a document or a code panel was rejected:
+trek's revision; the TUI is the controller. Reading a document or a code panel was rejected:
 the point is a debugger session in the user's own editor. Without remote control in the
 editor, `e` opens the step instead.
 
@@ -332,7 +332,7 @@ out on the right branch. Replaces "multi-repo workspaces" as an optional Milesto
 
 ## 2026-10-20 — Trigger to outcome
 
-A tour follows the scenario from its trigger to its outcome, including unchanged code on
+A trek follows the scenario from its trigger to its outcome, including unchanged code on
 the path, collapsed by default. Steps have a kind (call, return, hop, context) so async and
 cross-process boundaries reset the call stack instead of faking a caller.
 
@@ -367,12 +367,12 @@ was not run by hand in Milestone 0.
 
 ## 2026-10-20 — Architecture: core plus front-ends
 
-A `core` package with no UI code; front-ends (`tui` now, `gui` later) only read tours from
+A `core` package with no UI code; front-ends (`tui` now, `gui` later) only read treks from
 core. Lets the GUI be added without touching core.
 
 ## 2026-10-20 — GUI later: local web front-end
 
-Served by the same binary (`trek --gui`), likely React, sharing core and the tour format.
+Served by the same binary (`trek --gui`), likely React, sharing core and the trek format.
 
 ## 2026-10-20 — TUI: OpenTUI with React
 

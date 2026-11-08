@@ -1,7 +1,7 @@
 # srctrek for VS Code
 
-Steps through a srctrek tour in VS Code and its forks: the narration for each stop in the
-sidebar, the tour's marks in the code, and step over, into, and out on the debugger's keys.
+Steps through a trek in VS Code and its forks: the narration for each stop in the
+sidebar, the trek's marks in the code, and step over, into, and out on the debugger's keys.
 Requires `trek`.
 
 ## Installing
@@ -19,7 +19,7 @@ or Finder doesn't see your shell's `PATH`; there, set the full path.
 
 ## Stepping
 
-- Open a tour with "Srctrek: Open Tour…", or click one under Tours in the srctrek sidebar (its
+- Open a trek with "Srctrek: Open Trek…", or click one under Treks in the srctrek sidebar (its
   icon is in the activity bar); its overview opens in a tab, with the keys and what the marks in
   the code mean.
 - The sidebar's Stop view starts with the stop's narration, its details, its flag, and where
@@ -29,8 +29,8 @@ or Finder doesn't see your shell's `PATH`; there, set the full path.
   "context" scrolls it to the context code, and "next" steps on.
 - In the code: a green or blue bar in the gutter beside each line the change adds or edits,
   predicted values at the ends of their lines (`name ≈ value`), and `→` on each line that makes
-  a call the tour follows (`→?` when guessed).
-- The end of the tour lists every flag, each a link to its stop.
+  a call the trek follows (`→?` when guessed).
+- The end of the trek lists every flag, each a link to its stop.
 
 | Key / command                | Action                                     |
 | ---------------------------- | ------------------------------------------ |
@@ -41,10 +41,10 @@ or Finder doesn't see your shell's `PATH`; there, set the full path.
 | Srctrek: Show Current Stop   | Back to the stop after you've moved off it |
 | Srctrek: Show Context        | Scroll the Stop view to the context code   |
 | Srctrek: Show or Hide Values | Show or hide predicted values              |
-| `Escape` on the end tab      | End the tour (also Srctrek: End the Tour)  |
+| `Escape` on the end tab      | End the trek (also Srctrek: End the Trek)  |
 
-The keys work while a tour is open and no debug session runs. On a Mac, the F-keys may need
+The keys work while a trek is open and no debug session runs. On a Mac, the F-keys may need
 `fn`, and `F11` shows the desktop unless that shortcut is turned off.
 
-A step opens your own file when it's the version the tour describes. A file you've changed since
-opens from the tour's copy, read-only.
+A step opens your own file when it's the version the trek describes. A file you've changed since
+opens from the trek's copy, read-only.

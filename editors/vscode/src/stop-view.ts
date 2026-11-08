@@ -28,7 +28,7 @@ async function codeOf(ranges: readonly CodeRange[]): Promise<Map<string, string[
       const document = await vscode.workspace.openTextDocument(vscode.Uri.file(range.path))
       code.set(rangeKey(range), linesOf(document, range))
     } catch {
-      // a file gone since the tour was built shows no code; its place still links
+      // a file gone since the trek was built shows no code; its place still links
     }
   }
   return code

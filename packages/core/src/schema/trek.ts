@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { tourRules } from "./rules"
+import { trekRules } from "./rules"
 
 export const FORMAT_VERSION = 1
 
@@ -44,7 +44,7 @@ const StepFields = z.object({
   file: nonEmpty,
   start_line: z.number().int().positive(),
   end_line: z.number().int().positive(),
-  // git blob id of the file at the tour's revision; a mismatch marks the step stale
+  // git blob id of the file at the trek's revision; a mismatch marks the step stale
   blob: z.string().regex(/^[0-9a-f]{40}$/),
   kind: z.enum(["call", "return", "hop", "context"]),
   changed: z.boolean(),
@@ -105,7 +105,7 @@ const Repo = z.object({
   range: nonEmpty.optional(),
 })
 
-const TourShape = z.object({
+const TrekShape = z.object({
   format_version: z.literal(FORMAT_VERSION),
   title: nonEmpty,
   created_at: z.iso.datetime(),
@@ -113,7 +113,7 @@ const TourShape = z.object({
   overview: nonEmpty,
   author: z.object({
     role: z.enum(["producer", "reviewer"]),
-    // absent when core built the tour itself
+    // absent when core built the trek itself
     agent: nonEmpty.optional(),
     model: nonEmpty,
   }),
@@ -127,26 +127,26 @@ const TourShape = z.object({
   steps: z.array(Step).min(1),
 })
 
-/** What the agent gives when it starts a tour; core adds the repos, steps, and bookkeeping. */
-export const TourHeaderSchema = TourShape.pick({
+/** What the agent gives when it starts a trek; core adds the repos, steps, and bookkeeping. */
+export const TrekHeaderSchema = TrekShape.pick({
   title: true,
   overview: true,
   trigger: true,
   outcome: true,
 }).extend({
-  sources: TourShape.shape.sources.default([]),
+  sources: TrekShape.shape.sources.default([]),
   author: z
     .object({ agent: nonEmpty.optional(), model: nonEmpty })
     .default({ model: "unspecified" }),
 })
 
-export type TourHeader = z.infer<typeof TourHeaderSchema>
+export type TrekHeader = z.infer<typeof TrekHeaderSchema>
 
-export type Tour = z.infer<typeof TourShape>
-export type TourStep = Tour["steps"][number]
+export type Trek = z.infer<typeof TrekShape>
+export type TrekStep = Trek["steps"][number]
 
-export const TourSchema = TourShape.superRefine((tour, ctx) => {
-  for (const rule of tourRules) {
-    for (const issue of rule(tour)) ctx.addIssue({ code: "custom", ...issue })
+export const TrekSchema = TrekShape.superRefine((trek, ctx) => {
+  for (const rule of trekRules) {
+    for (const issue of rule(trek)) ctx.addIssue({ code: "custom", ...issue })
   }
 })

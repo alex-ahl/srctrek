@@ -33,17 +33,17 @@ test("next names where it goes: a hop into another repo names the repo", () => {
 
   expect(whereNext(stepWith([], hop))).toBe("next: ↯ api: POST /refunds")
   expect(whereNext(stepWith([], { how: "end", to: null, line: null }))).toBe(
-    "next: the end of the tour",
+    "next: the end of the trek",
   )
 })
 
 test("the status bar carries the stop and the tags a reader should know", () => {
-  const view = stepWith([], toRefund, { changed: false, tour_copy: true, number: 2, count: 5 })
+  const view = stepWith([], toRefund, { changed: false, trek_copy: true, number: 2, count: 5 })
 
   expect(statusText(view, stepTags(view, false))).toBe(
-    "srctrek 2/5 · existing code · tour's version",
+    "srctrek 2/5 · existing code · trek's version",
   )
-  expect(stepTags({ ...view, changed: true }, true)).toEqual(["new file", "tour's version"])
+  expect(stepTags({ ...view, changed: true }, true)).toEqual(["new file", "trek's version"])
 })
 
 test("a file is new when the change adds every line of it", () => {

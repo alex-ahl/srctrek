@@ -6,7 +6,7 @@ import {
   loadTriggers,
   resolveChange,
   saveTriggers,
-  tourStatus,
+  trekStatus,
   triggerProblems,
 } from "../../src"
 import { makeBranchRepo } from "../support/branch"
@@ -57,14 +57,14 @@ describe("triggers", () => {
     const change = await codeOf(dir)
     const name = `${change.repos[0]?.name ?? ""}-code`.toLowerCase()
 
-    expect(await tourStatus(dir, change)).toEqual({ kind: "missing", name })
+    expect(await trekStatus(dir, change)).toEqual({ kind: "missing", name })
 
     const trigger = triggerAt(change.repos[0]?.name ?? "", 1)
     await saveTriggers(dir, name, change, [trigger])
-    expect(await tourStatus(dir, change)).toEqual({
+    expect(await trekStatus(dir, change)).toEqual({
       kind: "triggers",
       name,
-      triggers: [{ trigger, tour: { kind: "missing", name: "set-the-total" } }],
+      triggers: [{ trigger, trek: { kind: "missing", name: "set-the-total" } }],
     })
   })
 

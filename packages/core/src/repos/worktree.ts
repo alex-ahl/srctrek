@@ -8,7 +8,7 @@ import { defaultCacheDir } from "./cache"
 import { folderName } from "./entry"
 
 // The user's own checkout serves when it's at `commit` with no edits to tracked files.
-// Untracked files don't move any line the tour cites.
+// Untracked files don't move any line the trek cites.
 async function isCleanAt(dir: string, commit: string): Promise<boolean> {
   if (await isBare(dir)) {
     return false

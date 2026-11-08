@@ -14,45 +14,45 @@ import updateAs from "../prompts/update_as.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
-import finishTour from "../prompts/tools/finish_tour.md" with { type: "text" }
+import finishTrek from "../prompts/tools/finish_trek.md" with { type: "text" }
 import listFiles from "../prompts/tools/list_files.md" with { type: "text" }
 import openChange from "../prompts/tools/open_change.md" with { type: "text" }
 import proposeRepo from "../prompts/tools/propose_repo.md" with { type: "text" }
 import readFile from "../prompts/tools/read_file.md" with { type: "text" }
 import search from "../prompts/tools/search.md" with { type: "text" }
-import startTour from "../prompts/tools/start_tour.md" with { type: "text" }
+import startTrek from "../prompts/tools/start_trek.md" with { type: "text" }
 import recordTriggers from "../prompts/tools/record_triggers.md" with { type: "text" }
-import tourGuide from "../prompts/tools/tour_guide.md" with { type: "text" }
-import updateTour from "../prompts/tools/update_tour.md" with { type: "text" }
+import trekGuide from "../prompts/tools/trek_guide.md" with { type: "text" }
+import updateTrek from "../prompts/tools/update_trek.md" with { type: "text" }
 import updateStarted from "../prompts/answers/update_started.md" with { type: "text" }
 import type { ReadAt } from "./change/resolve"
-import type { TourStep } from "./schema/tour"
-import { GUIDE_PARTS, buildTourPrompt, findsTriggers } from "./guide"
+import type { TrekStep } from "./schema/trek"
+import { GUIDE_PARTS, buildTrekPrompt, findsTriggers } from "./guide"
 
-/** What each tool tells the agent building a tour, by tool name. */
+/** What each tool tells the agent building a trek, by tool name. */
 export const TOOL_DESCRIPTIONS = {
   open_change: openChange.trim(),
   list_files: listFiles.trim(),
   read_file: readFile.trim(),
   search: search.trim(),
   diff: diff.trim(),
-  start_tour: startTour.trim(),
+  start_trek: startTrek.trim(),
   add_steps: addSteps.trim(),
-  finish_tour: finishTour.trim(),
-  tour_guide: tourGuide.trim(),
+  finish_trek: finishTrek.trim(),
+  trek_guide: trekGuide.trim(),
   record_triggers: recordTriggers.trim(),
-  update_tour: updateTour.trim(),
+  update_trek: updateTrek.trim(),
   propose_repo: proposeRepo.trim(),
 }
 
 /** What an agent is told about the server when it connects. */
 export const SERVER_INSTRUCTIONS = serverInstructions.trim()
 
-/** Whether a build makes a new tour, or updates the saved one the change has moved on from. */
+/** Whether a build makes a new trek, or updates the saved one the change has moved on from. */
 export type BuildMode = "build" | "update"
 
-// What the agent does with the tour at the end: save it as `name`, or update the one saved
-// as `name`; finding triggers saves no tour.
+// What the agent does with the trek at the end: save it as `name`, or update the one saved
+// as `name`; finding triggers saves no trek.
 function closing(args: string[], name: string, mode: BuildMode): string {
   if (findsTriggers(args)) {
     return ""
@@ -63,18 +63,18 @@ function closing(args: string[], name: string, mode: BuildMode): string {
 
 /**
  * The instruction for an agent working with no one to ask: the guide for `args`, and, when it
- * builds or updates a tour rather than finding triggers, the name to save it as.
+ * builds or updates a trek rather than finding triggers, the name to save it as.
  */
 export function headlessBuildPrompt(
   args: string[],
   name: string,
   mode: BuildMode = "build",
 ): string {
-  return fill(buildHeadless, { guide: `${buildTourPrompt(args)}${closing(args, name, mode)}` })
+  return fill(buildHeadless, { guide: `${buildTrekPrompt(args)}${closing(args, name, mode)}` })
 }
 
-/** A step of a tour being updated, as the agent is shown it: with why, when it's to redo. */
-export type UpdateStep = Readonly<{ step: TourStep; why?: string | undefined }>
+/** A step of a trek being updated, as the agent is shown it: with why, when it's to redo. */
+export type UpdateStep = Readonly<{ step: TrekStep; why?: string | undefined }>
 
 // "keep s3  web src/actions.ts 8–12  The action calls requestRefund.", and for a step to redo,
 // why and what it said before, indented below.
@@ -88,7 +88,7 @@ function updateStepText({ step, why }: UpdateStep): string {
 }
 
 /**
- * What the agent is told when it starts updating a tour: the whole tour, compactly, each step
+ * What the agent is told when it starts updating a trek: the whole trek, compactly, each step
  * marked kept or to redo, so it knows the route without reading the repos again.
  */
 export function updateStartedAnswer(name: string, steps: readonly UpdateStep[]): string {
@@ -134,7 +134,7 @@ function flagText(name: string, readAt: ReadAt): string[] {
 }
 
 /**
- * What the agent is told when the repo it proposed is opened, so the tour can go on into it:
+ * What the agent is told when the repo it proposed is opened, so the trek can go on into it:
  * what it was read at, and what to flag when that's in doubt.
  */
 export function proposalOpenedAnswer(name: string, revision: string, readAt: ReadAt): string {
@@ -148,7 +148,7 @@ export function proposalUnopenedAnswer(name: string, reason: string): string {
   return proposalUnopened.trim().replace("{{name}}", name).replace("{{reason}}", reason)
 }
 
-/** Which prompts built a tour: a short hash of them all, recorded on every tour. */
+/** Which prompts built a trek: a short hash of them all, recorded on every trek. */
 export const PROMPT_HASH = createHash("sha256")
   .update(
     JSON.stringify({

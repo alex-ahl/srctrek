@@ -8,7 +8,7 @@ const EXTENSION = join(import.meta.dir, "..")
 const TREK = join(import.meta.dir, "../../../packages/cli/src/main.ts")
 const VSCODE = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
 // maximized, so a capture shows the editor at full size, and without the chat sidebar, which isn't
-// part of the tour
+// part of the trek
 const SETTINGS = {
   "window.newWindowDimensions": "maximized",
   "workbench.secondarySideBar.defaultVisibility": "hidden",

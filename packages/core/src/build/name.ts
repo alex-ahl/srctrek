@@ -2,7 +2,7 @@ import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/res
 import { checkedOutBranch, isSnapshot } from "../git/refs"
 import { pullRequestOfRef } from "../repos/pull-request"
 
-// Tour names are lowercase letters, digits, and dashes; long branch names are cut.
+// Trek names are lowercase letters, digits, and dashes; long branch names are cut.
 function slug(text: string): string {
   return text
     .toLowerCase()
@@ -32,22 +32,22 @@ async function headName(repo: RepoWithRange): Promise<string> {
   return head
 }
 
-// A tour of code as it is is named after its trigger, or after its first repo when the agent
+// A trek of code as it is is named after its trigger, or after its first repo when the agent
 // picks the trigger: "a-refund-request", "api-code".
-function codeTourName(change: ResolvedChange): string {
+function codeTrekName(change: ResolvedChange): string {
   const trigger = change.code?.trigger
   const named = trigger === undefined ? `${change.repos[0]?.name ?? "repo"}-code` : trigger
 
-  return slug(named) || "tour"
+  return slug(named) || "trek"
 }
 
-/** A name for a new tour, from the change's heads ("feature-refunds", "pr-12") or code tour. */
-export async function tourNameFor(change: ResolvedChange): Promise<string> {
+/** A name for a new trek, from the change's heads ("feature-refunds", "pr-12") or code trek. */
+export async function trekNameFor(change: ResolvedChange): Promise<string> {
   if (change.code !== undefined) {
-    return codeTourName(change)
+    return codeTrekName(change)
   }
 
   const names = await Promise.all(change.repos.filter(hasRange).map(headName))
 
-  return slug([...new Set(names)].join("-")) || "tour"
+  return slug([...new Set(names)].join("-")) || "trek"
 }

@@ -6,7 +6,7 @@ const frame = await renderFrame(
   <App entries={[]} onOpen={() => undefined} onQuit={() => undefined} />,
 )
 console.log(frame)
-if (!frame.includes("No tours")) {
+if (!frame.includes("No treks")) {
   console.error("smoke: expected text missing from frame")
   process.exit(1)
 }

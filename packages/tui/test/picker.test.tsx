@@ -1,6 +1,6 @@
 import { expect, mock, test } from "bun:test"
 import { App } from "../src/app"
-import type { TourEntry } from "@srctrek/core"
+import type { TrekEntry } from "@srctrek/core"
 import { pressEnterOn } from "./support/keys"
 
 const noop = () => undefined
@@ -9,7 +9,7 @@ const trigger = {
   name: "a reply times out",
   evidence: { repo: "bot", file: "bot.py", line: 91 },
 }
-const toured: TourEntry = {
+const withTrek: TrekEntry = {
   name: "a-reply-times-out",
   path: "/t/a-reply-times-out.json",
   valid: true,
@@ -18,11 +18,11 @@ const toured: TourEntry = {
   highFlags: 0,
 }
 
-function statusWith(tour: { kind: "missing" | "ready"; name: string }) {
-  return { kind: "triggers" as const, name: "bot-code", triggers: [{ trigger, tour }] }
+function statusWith(trek: { kind: "missing" | "ready"; name: string }) {
+  return { kind: "triggers" as const, name: "bot-code", triggers: [{ trigger, trek }] }
 }
 
-test("enter on a trigger not toured yet builds its tour", async () => {
+test("enter on a trigger with no trek yet builds its trek", async () => {
   const build = mock((_trigger: string) => undefined)
   const status = statusWith({ kind: "missing", name: "a-reply-times-out" })
 
@@ -33,13 +33,13 @@ test("enter on a trigger not toured yet builds its tour", async () => {
   expect(build).toHaveBeenCalledWith("a reply times out")
 })
 
-test("enter on a toured trigger opens its tour", async () => {
-  const open = mock((_entry: TourEntry) => undefined)
+test("enter on a trigger with a trek opens it", async () => {
+  const open = mock((_entry: TrekEntry) => undefined)
   const status = statusWith({ kind: "ready", name: "a-reply-times-out" })
 
   await pressEnterOn(
-    <App entries={[toured]} onOpen={open} onQuit={noop} status={status} onBuildTrigger={noop} />,
+    <App entries={[withTrek]} onOpen={open} onQuit={noop} status={status} onBuildTrigger={noop} />,
   )
 
-  expect(open).toHaveBeenCalledWith(toured)
+  expect(open).toHaveBeenCalledWith(withTrek)
 })

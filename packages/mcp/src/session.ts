@@ -6,16 +6,16 @@ import {
   type ResolvedChange,
   type ResolvedRepo,
   type SubmittedStep,
-  type Tour,
-  type TourHeader,
+  type Trek,
+  type TrekHeader,
   type UpdateStep,
   type Trigger,
-  TourValidationError,
+  TrekValidationError,
   addSteps,
   carryOver,
   directoryIn,
-  draftToTour,
-  loadTour,
+  draftToTrek,
+  loadTrek,
   newDraft,
   parseRepoEntry,
   proposalProblems,
@@ -24,11 +24,11 @@ import {
   resolveChange,
   saveChangedLines,
   saveProposal,
-  saveTour,
+  saveTrek,
   saveTriggers,
   stepIds,
-  tourNameFor,
-  tourPath,
+  trekNameFor,
+  trekPath,
   withChange,
   withRouteRepo,
   workBranches,
@@ -38,7 +38,7 @@ import {
 // Rejected rounds a draft may take before its build stops, so an agent can't loop on it.
 const MAX_REJECTED_ROUNDS = 3
 
-/** The change a tour is being built for, and the tour so far. Each tool needs the one before. */
+/** The change a trek is being built for, and the trek so far. Each tool needs the one before. */
 export type Session = Readonly<{
   cwd: string
   cacheDir?: string | undefined
@@ -50,7 +50,7 @@ export type Session = Readonly<{
 /** What a tool call leaves behind: the session after it, and its answer. */
 export type Outcome<T> = Readonly<{ session: Session; answer: T }>
 
-/** How finishing went: the saved tour's path, or why the tour isn't valid yet. */
+/** How finishing went: the saved trek's path, or why the trek isn't valid yet. */
 export type Finished = Readonly<{ saved: string } | { problems: string[] }>
 
 export function newSession(cwd: string, cacheDir?: string): Session {
@@ -67,7 +67,7 @@ function openChange(session: Session): ResolvedChange {
 
 function openDraft(session: Session): Draft {
   if (session.draft === undefined) {
-    throw new Error("no tour is started: call start_tour first")
+    throw new Error("no trek is started: call start_trek first")
   }
 
   return session.draft
@@ -84,7 +84,7 @@ export function repoIn(session: Session, name: string): ResolvedRepo {
   return repoNamed(openChange(session), name)
 }
 
-export function start(session: Session, header: TourHeader): Session {
+export function start(session: Session, header: TrekHeader): Session {
   return { ...session, draft: newDraft(openChange(session), header), rejectedRounds: 0 }
 }
 
@@ -118,16 +118,16 @@ export function draftStepIds(session: Session): string[] {
   return stepIds(openDraft(session))
 }
 
-// The saved tour's path, or the error saying why the tour isn't valid; other failures throw.
+// The saved trek's path, or the error saying why the trek isn't valid; other failures throw.
 async function saveOrInvalid(
   cwd: string,
   name: string,
-  tour: Tour,
-): Promise<{ path: string } | { invalid: TourValidationError }> {
+  trek: Trek,
+): Promise<{ path: string } | { invalid: TrekValidationError }> {
   try {
-    return { path: await saveTour(cwd, name, tour) }
+    return { path: await saveTrek(cwd, name, trek) }
   } catch (error) {
-    if (error instanceof TourValidationError) {
+    if (error instanceof TrekValidationError) {
       return { invalid: error }
     }
 
@@ -135,7 +135,7 @@ async function saveOrInvalid(
   }
 }
 
-/** What the agent may revise when it finishes a tour it updated. */
+/** What the agent may revise when it finishes a trek it updated. */
 export type Revised = {
   title?: string | undefined
   overview?: string | undefined
@@ -150,8 +150,8 @@ function revisedDraft(draft: Draft, revised: Revised): Draft {
 }
 
 /**
- * Saves the tour under `.srctrek/tours`, with its changed lines beside it, and any revised
- * title, overview, or outcome. A tour that fails the whole-tour rules is a rejected round, like
+ * Saves the trek under `.srctrek/treks`, with its changed lines beside it, and any revised
+ * title, overview, or outcome. A trek that fails the whole-trek rules is a rejected round, like
  * steps that fail theirs.
  */
 export async function finish(
@@ -160,36 +160,36 @@ export async function finish(
   revised: Revised = {},
 ): Promise<Outcome<Finished>> {
   const draft = revisedDraft(openDraft(session), revised)
-  const tour = draftToTour(draft)
+  const trek = draftToTrek(draft)
 
-  const result = await saveOrInvalid(session.cwd, name, tour)
+  const result = await saveOrInvalid(session.cwd, name, trek)
   if ("invalid" in result) {
     const rejected = reject(session, [result.invalid.message])
     return { session: rejected.session, answer: { problems: rejected.answer } }
   }
 
-  await saveChangedLines(draft.change, tour, result.path)
+  await saveChangedLines(draft.change, trek, result.path)
 
   return { session: { ...session, draft: undefined }, answer: { saved: result.path } }
 }
 
-/** How starting an update went: the old tour's steps in order, each to redo with why or kept. */
+/** How starting an update went: the old trek's steps in order, each to redo with why or kept. */
 export type Updating = readonly UpdateStep[]
 
 /**
- * Starts a draft from the saved tour `name`, carried over to the open change: its steps that
+ * Starts a draft from the saved trek `name`, carried over to the open change: its steps that
  * still hold, at the new commits, and those to redo.
  */
 export async function update(session: Session, name: string): Promise<Outcome<Updating>> {
   const change = openChange(session)
-  const tour = await loadTour(tourPath(session.cwd, name)).catch(() => undefined)
-  if (tour === undefined) {
-    throw new Error(`no valid saved tour named ${name}`)
+  const trek = await loadTrek(trekPath(session.cwd, name)).catch(() => undefined)
+  if (trek === undefined) {
+    throw new Error(`no valid saved trek named ${name}`)
   }
 
-  const { draft, redo } = await carryOver(tour, change)
+  const { draft, redo } = await carryOver(trek, change)
   const whyRedo = new Map(redo.map(({ step, why }) => [step.id, why]))
-  const answer = tour.steps.map((step) => ({ step, why: whyRedo.get(step.id) }))
+  const answer = trek.steps.map((step) => ({ step, why: whyRedo.get(step.id) }))
 
   return { session: { ...session, draft, rejectedRounds: 0 }, answer }
 }
@@ -209,12 +209,12 @@ export async function recordTriggers(session: Session, triggers: Trigger[]): Pro
     return { problems }
   }
 
-  return { saved: await saveTriggers(session.cwd, await tourNameFor(change), change, triggers) }
+  return { saved: await saveTriggers(session.cwd, await trekNameFor(change), change, triggers) }
 }
 
 /**
  * How a proposal went: refused for its problems, or recorded, and opened when it could be, so
- * the tour goes on into it.
+ * the trek goes on into it.
  */
 export type Proposed = Readonly<
   { problems: string[] } | { opened: ResolvedRepo; readAt: ReadAt } | { notOpened: string }

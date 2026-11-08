@@ -7,9 +7,9 @@ import {
   LONG_VALUE,
   repoWithEdit,
   repoWithLongNarration,
-  repoWithTour,
+  repoWithTrek,
   repoWithTwoCalls,
-} from "./support/pay-tour"
+} from "./support/pay-trek"
 
 const PLUGIN = join(import.meta.dir, "../../../editors/nvim")
 const DRIVER = join(import.meta.dir, "nvim-driver.lua")
@@ -87,8 +87,8 @@ async function drive(dir: string, actions: string[]): Promise<Screen[]> {
 }
 
 describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", () => {
-  test("opens a saved tour at its overview, then draws the step the server answers with", async () => {
-    const [overview, first] = await drive(await repoWithTour(), ["start:pay", "next"])
+  test("opens a saved trek at its overview, then draws the step the server answers with", async () => {
+    const [overview, first] = await drive(await repoWithTrek(), ["start:pay", "next"])
 
     expect(overview).toMatchObject({ view: "overview", notices: [] })
     for (const line of ["Outcome   paid", "Flags     1 likely wrong", "  ]t           next step"]) {
@@ -147,14 +147,14 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
     expect(opened).toMatchObject({ view: "step", file: "pay.ts", floats: 0 })
   }, 30_000)
 
-  test("cuts a long predicted value and marks one the tour doubts", async () => {
+  test("cuts a long predicted value and marks one the trek doubts", async () => {
     const [, step] = await drive(await repoWithLongNarration(), ["start:pay", "next"])
 
     expect(step?.values).toEqual([{ line: 1, text: `  total ≈? ${LONG_VALUE.slice(0, 39)}…` }])
   }, 30_000)
 
   test("draws a called step with its stack, high flag, and predicted values", async () => {
-    const [, , into, hidden] = await drive(await repoWithTour(), [
+    const [, , into, hidden] = await drive(await repoWithTrek(), [
       "start:pay",
       "next",
       "into",
@@ -173,7 +173,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
   }, 30_000)
 
   test("steps out to the end and back, and clears the editor on quit", async () => {
-    const [, , , out, end, back, quit] = await drive(await repoWithTour(), [
+    const [, , , out, end, back, quit] = await drive(await repoWithTrek(), [
       "start:pay",
       "next",
       "into",
@@ -186,7 +186,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
     expect(out).toMatchObject({ file: "main.ts", line: 2 })
     expect(out?.winbar).toContain(" srctrek   3/3  │  new file  │  ")
     expect(end).toMatchObject({ view: "end" })
-    expect(end?.float?.slice(0, 2)).toEqual(["End of tour", "paid"])
+    expect(end?.float?.slice(0, 2)).toEqual(["End of trek", "paid"])
     expect(end?.float).toContain("⚠ likely wrong · 2 · pay.ts:1 · pay")
     expect(back).toMatchObject({ view: "step", file: "main.ts", line: 2 })
     expect(quit).toMatchObject({ view: null, winbar: "", virt_lines: [], signs: [] })
@@ -207,7 +207,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
     ])
     expect(into).toMatchObject({ file: "send.ts", line: 1 })
     // the risky flag a reader stepping with next mustn't miss; the guessed link is in details
-    expect(onBand(into?.virt_lines)).toEqual(["▌ s  ● risky  ·  next: the end of the tour"])
+    expect(onBand(into?.virt_lines)).toEqual(["▌ s  ● risky  ·  next: the end of the trek"])
     // it was reached by a guessed link
     expect(into?.winbar).toContain("  │  guessed link  │  ")
   }, 30_000)
@@ -225,8 +225,8 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
     expect(into?.winbar).toContain("context available")
   }, 30_000)
 
-  test("opens the user's own file when it's the tour's version", async () => {
-    const dir = await repoWithTour()
+  test("opens the user's own file when it's the trek's version", async () => {
+    const dir = await repoWithTrek()
     const [, step] = await drive(dir, ["start:pay", "next"])
 
     expect(step).toMatchObject({
@@ -234,18 +234,18 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
       read_only: false,
       diagnostics: true,
     })
-    expect(step?.winbar).not.toContain("tour's version")
+    expect(step?.winbar).not.toContain("trek's version")
   }, 30_000)
 
-  test("opens the tour's copy, read-only, of a file the user has edited since", async () => {
-    const dir = await repoWithTour()
+  test("opens the trek's copy, read-only, of a file the user has edited since", async () => {
+    const dir = await repoWithTrek()
     await writeFile(join(dir, "main.ts"), "const total = pay() * 2\nconsole.log(total)\n")
     const [, step] = await drive(dir, ["start:pay", "next"])
 
-    // a copy in trek's cache has no dependencies installed, so its diagnostics are hidden
+    // a copy in srctrek's cache has no dependencies installed, so its diagnostics are hidden
     expect(step).toMatchObject({ file: "main.ts", read_only: true, diagnostics: false })
     expect(step?.path.startsWith(await realpath(dir))).toBe(false)
-    expect(step?.winbar).toContain("tour's version")
+    expect(step?.winbar).toContain("trek's version")
     // a file tree still follows to the user's own main.ts
     expect(step?.event).toMatchObject({
       path: join(await realpath(dir), "main.ts"),
@@ -254,7 +254,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
   }, 30_000)
 
   test("says in details where a step came from, with its evidence, and goes back there", async () => {
-    const [, , , details, back] = await drive(await repoWithTour(), [
+    const [, , , details, back] = await drive(await repoWithTrek(), [
       "start:pay",
       "next",
       "into",
@@ -269,7 +269,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
   }, 30_000)
 
   test("goes from a flag at the end to its step", async () => {
-    const [, , , flagged] = await drive(await repoWithTour(), [
+    const [, , , flagged] = await drive(await repoWithTrek(), [
       "start:pay",
       "goto:s3",
       "next",
@@ -281,7 +281,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
 
   test("says when a move has nowhere to go, and leaves the cursor where it is", async () => {
     // main's last line calls nothing
-    const [, , , stayed] = await drive(await repoWithTour(), [
+    const [, , , stayed] = await drive(await repoWithTrek(), [
       "start:pay",
       "goto:s3",
       "cursor:1",
@@ -296,13 +296,13 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
   }, 30_000)
 
   test("steps over a call to where the caller carries on", async () => {
-    const [, , over] = await drive(await repoWithTour(), ["start:pay", "next", "over"])
+    const [, , over] = await drive(await repoWithTrek(), ["start:pay", "next", "over"])
 
     expect(over).toMatchObject({ file: "main.ts", line: 2 })
   }, 30_000)
 
   test("says when the cursor leaves the step, and goes back to it", async () => {
-    const [, , away, back] = await drive(await repoWithTour(), [
+    const [, , away, back] = await drive(await repoWithTrek(), [
       "start:pay",
       "next",
       "cursor:2",
@@ -314,9 +314,9 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
     expect(back?.winbar).not.toContain("away")
   }, 30_000)
 
-  test("puts the user back on the file and line they had when the tour ends", async () => {
-    // the tour is on main.ts when it ends
-    const [, , , , quit] = await drive(await repoWithTour(), [
+  test("puts the user back on the file and line they had when the trek ends", async () => {
+    // the trek is on main.ts when it ends
+    const [, , , , quit] = await drive(await repoWithTrek(), [
       "edit:pay.ts",
       "cursor:2",
       "start:pay",
@@ -327,14 +327,14 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
     expect(quit).toMatchObject({ file: "pay.ts", line: 2, winbar: "" })
   }, 30_000)
 
-  test("leaves a fresh Neovim's window empty again when the tour ends", async () => {
-    const [, , , quit] = await drive(await repoWithTour(), ["start:pay", "next", "next", "quit"])
+  test("leaves a fresh Neovim's window empty again when the trek ends", async () => {
+    const [, , , quit] = await drive(await repoWithTrek(), ["start:pay", "next", "next", "quit"])
 
     expect(quit).toMatchObject({ file: "", first_line: "", winbar: "" })
   }, 30_000)
 
   test("keeps unsaved changes and undo history with 'hidden' off, and steps on", async () => {
-    const [, , , , stepped, quit] = await drive(await repoWithTour(), [
+    const [, , , , stepped, quit] = await drive(await repoWithTrek(), [
       "nohidden",
       "edit:pay.ts",
       "type:// mine",
@@ -348,7 +348,7 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
   }, 30_000)
 
   test("puts the window's own winbar back off a step and on quit", async () => {
-    const screens = await drive(await repoWithTour(), [
+    const screens = await drive(await repoWithTrek(), [
       "winbar:mine",
       "start:pay",
       "next",
@@ -363,17 +363,17 @@ describe.skipIf(Bun.which("nvim") === null)("the Neovim plugin on trek serve", (
   }, 30_000)
 
   test("closes its own popups on a move, and leaves other plugins' floats open", async () => {
-    const [, , moved] = await drive(await repoWithTour(), ["start:pay", "userfloat", "next"])
+    const [, , moved] = await drive(await repoWithTrek(), ["start:pay", "userfloat", "next"])
 
     // the overview's popup closed, the other plugin's float still open
     expect(moved).toMatchObject({ view: "step", user_float: true, floats: 1 })
   }, 30_000)
 
-  test("reports a tour the server can't find", async () => {
-    const [screen] = await drive(await repoWithTour(), ["start:nope"])
+  test("reports a trek the server can't find", async () => {
+    const [screen] = await drive(await repoWithTrek(), ["start:nope"])
 
     // and leaves no keys of its own behind
     expect(screen).toMatchObject({ view: null, next_key_ours: false })
-    expect(screen?.notices.join("\n")).toContain("no tour named nope")
+    expect(screen?.notices.join("\n")).toContain("no trek named nope")
   }, 30_000)
 })
