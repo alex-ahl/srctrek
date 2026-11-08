@@ -9,7 +9,7 @@ import * as vscode from "vscode"
 import { useTestServe } from "./serve"
 
 const execute = promisify(execFile)
-// the narration panel and the decorations draw after the command returns
+// the Stop view, the actions above the step, and the decorations draw after the command returns
 const SETTLE_MS = 800
 // a tour with more stops than this is a loop that never reaches its end
 const MOST_STOPS = 200

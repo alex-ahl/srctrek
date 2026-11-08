@@ -109,7 +109,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 - **Every action answers.** Opening a tour says so at once; a move with nowhere to go says so
   and leaves the cursor where it is.
 - **Next and the narration are the whole tour** (`docs/PRODUCT.md`): in Neovim, `]t` and the band
-  above the step; in VS Code, `F8` and the narration panel.
+  above the step; in VS Code, `F8` and the top of the sidebar's Stop view.
 - **Only what matters is inline.** A high flag shows under the narration; medium and low flags,
   context steps, and evidence are one key away, in details. The band holds the narration and,
   at its end, a medium or low flag (`● risky`) and where next goes (`next: into refund, line 11`),
@@ -123,7 +123,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 | Badge           | `codetrail` at the winbar's start                                                                                                                                                                                                                       |                                                                                          | info colour       | the debug toolbar                 |
 | The step        | tinted lines from the window's left edge, under the signs and line numbers too, with a bar in the gutter                                                                                                                                                |                                                                                          | mixed: text 8%    | `editor.rangeHighlightBackground` |
 | Current line    | `▶` in the gutter on the step's first line                                                                                                                                                                                                              |                                                                                          | `DiagnosticWarn`  | the debugger's current line       |
-| Narration       | a band across the window above the step, half a row of padding above and below, the lower half of the bottom row already the step's tint so the two read as one block; its text in the code's column, wrapped at about 90 characters, six lines at most | the step's summary                                                                       | mixed: info 22%   | the comment widget's own          |
+| Narration       | a band across the window above the step, half a row of padding above and below, the lower half of the bottom row already the step's tint so the two read as one block; its text in the code's column, wrapped at about 90 characters, six lines at most | the step's summary                                                                       | mixed: info 22%   | the sidebar's own                 |
 | Added line      | `+` in the gutter                                                                                                                                                                                                                                       |                                                                                          | `Added`           | `editorGutter.addedBackground`    |
 | Changed line    | `~` in the gutter                                                                                                                                                                                                                                       |                                                                                          | `Changed`         | `editorGutter.modifiedBackground` |
 | Existing code   | a muted tag beside the stop number in the winbar                                                                                                                                                                                                        | “existing code”                                                                          | `Comment`         | `descriptionForeground`           |
@@ -182,21 +182,21 @@ closing the float is the way back; enter on a piece opens it as a step. Details 
 
 Neovim and VS Code side by side, in the review page for Step 5c. Neovim draws the tour in the
 user's own windows, with virtual lines, the winbar, and floats, and no sidebar; quitting puts back
-what each window showed. VS Code lets an extension put
-wrapped text between lines of code only in a comment thread, so its narration and high flag sit in a
-read-only one, the narration panel, above the step, and a
-codetrail sidebar holds the tours, the route, the call stack, details, and notes.
+what each window showed. VS Code gives an extension no styled room between lines of code, so its
+narration, flag, and where next goes open the codetrail sidebar's Stop view, above the call stack
+and details; the line above the step holds a row of actions (the stop, its flag, its context, and
+next), and the sidebar also lists the tours.
 
-| Screen           | Neovim                                                              | VS Code                                                          |
-| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status                      |
-| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys    | an editor tab, the route in the sidebar                          |
-| A step           | narration and high flag as virtual lines; values at the             | narration and high flag in the narration panel; values as inline |
-|                  | ends of their lines; position and stack in the winbar               | decorations; call stack and route in the sidebar                 |
-| Details          | a float: came from, flags, values, context, notes                   | the sidebar's Details section; flags' full text on hover         |
-| Into, of several | the call on the cursor's line, else the first not visited           | the same                                                         |
-| The end          | a float: the outcome, every flag to jump to                         | the tour tab: the outcome, every flag to jump to                 |
-| Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes                  |
+| Screen           | Neovim                                                              | VS Code                                                                      |
+| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Choosing a tour  | in the terminal: `trail` opens the chosen tour with `:Trail <name>` | the codetrail view: tours with their status                                  |
+| Overview         | a float: the story, trigger, outcome, repos, flags, and the keys    | a tour tab                                                                   |
+| A step           | narration and high flag as virtual lines; values at the             | narration and flag atop the Stop view, actions above the step; values inline |
+|                  | ends of their lines; position and stack in the winbar               | decorations; the call stack in the Stop view                                 |
+| Details          | a float: came from, flags, values, context, notes                   | the rest of the Stop view                                                    |
+| Into, of several | the call on the cursor's line, else the first not visited           | the same                                                                     |
+| The end          | a float: the outcome, every flag to jump to                         | the tour tab: the outcome, every flag to jump to                             |
+| Asking           | a prompt; the answer in a float with its citations                  | an input box; the answer in the sidebar's Notes                              |
 
 Answers to questions are saved
 on the step as notes, which details show from then on.

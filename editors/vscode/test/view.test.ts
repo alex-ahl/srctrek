@@ -1,14 +1,14 @@
 import { expect, test } from "bun:test"
 import type { NextStop } from "@codetrail/core"
-import { callAt, callMarks, narrationLine, sameView } from "../src/view"
+import { callAt, callMarks, lineAbove, sameView } from "../src/view"
 import { call, stepWith } from "./support/views"
 
-test("the narration hangs below the line above the step", () => {
-  expect(narrationLine({ path: "a.ts", first: 12, last: 20 })).toBe(11)
+test("the actions sit on the line above the step", () => {
+  expect(lineAbove({ path: "a.ts", first: 12, last: 20 })).toBe(11)
 })
 
-test("on a file's first line the narration hangs below the step's first line", () => {
-  expect(narrationLine({ path: "a.ts", first: 0, last: 4 })).toBe(0)
+test("on a file's first line the actions sit on the step's first line", () => {
+  expect(lineAbove({ path: "a.ts", first: 0, last: 4 })).toBe(0)
 })
 
 const toPay: NextStop = { how: "into", to: null, line: 1 }

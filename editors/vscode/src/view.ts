@@ -8,20 +8,23 @@ export function placeOf(view: StepView): StepPlace {
   return { path: view.path, first: view.start_line - 1, last: view.end_line - 1 }
 }
 
-/** The line the narration sits below: the one above the step, or its first on a file's first line. */
-export function narrationLine(place: StepPlace): number {
+/**
+ * The line above the step, scrolled to so the actions drawn over its first line show; its first
+ * on a file's first line.
+ */
+export function lineAbove(place: StepPlace): number {
   return Math.max(place.first - 1, 0)
 }
 
-/** The status bar's text for wherever the tour is. */
-export function statusText(view: SessionView): string {
+/** The status bar's text for wherever the tour is; at a stop, its tags follow its number. */
+export function statusText(view: SessionView, tags: readonly string[] = []): string {
   if (view.kind === "overview") {
     return `codetrail · ${view.title}`
   }
   if (view.kind === "end") {
     return `codetrail · end of the tour`
   }
-  return `codetrail ${view.number}/${view.count}`
+  return [`codetrail ${String(view.number)}/${String(view.count)}`, ...tags].join(" · ")
 }
 
 /** An arrow at the end of a line that leads into another step, its line numbered from 0. */

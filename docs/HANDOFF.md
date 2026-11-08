@@ -130,6 +130,14 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   `@vscode/vsce`: the bundled extension, its manifest, and its icon, nothing else
   (`.vscodeignore`). It's packaged without a license or repository field, as the repo has neither
   yet; `@vscode/vsce-sign`'s postinstall, for signing a published extension, stays blocked.
+- VS Code's narration moved from the comment-thread panel above the step, whose frame VS Code fixes,
+  to the top of the Stop view, with the flag and where next goes; the Comments view no longer opens.
+  The line above the step holds a CodeLens row: `codetrail 2/5` and the flag open the Stop view,
+  `context` opens the context code, `next: … ▸` steps on. The step's tags moved to the status bar.
+  The Stop view is blocks split by a rule: the narration with its details, flag, and where next
+  goes; then the call stack (only with two frames or a "started by"), came from with each cited
+  line's code, context, and questions, under small uppercase labels. It leaves out what the status
+  bar, the actions, or the code already show: the stop number and the values.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

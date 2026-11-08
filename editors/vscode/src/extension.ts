@@ -3,11 +3,12 @@ import * as vscode from "vscode"
 import { type Arrows, createArrows } from "./arrows"
 import { type Move, TrailClient } from "./client"
 import { type InlineValues, createInlineValues } from "./inline-values"
-import { type Narration, createNarration } from "./narration"
+import { type StepLens, createStepLens } from "./step-lens"
+import { isNewFile, stepTags } from "./step-text"
 import { type StopView, createStopView } from "./stop-view"
 import { type TourTab, createTourTab } from "./tour-tab"
 import { createToursView } from "./tours-view"
-import { NOWHERE, callAt, narrationLine, placeOf, sameView, statusText, tourSummary } from "./view"
+import { NOWHERE, callAt, lineAbove, placeOf, sameView, statusText, tourSummary } from "./view"
 
 // The open tour's connection and where it is, at the edge as a server's current state is; one
 // tour at a time.
@@ -18,7 +19,7 @@ let arrows: Arrows | undefined
 let values: InlineValues | undefined
 let decorations: vscode.TextEditorDecorationType[] = []
 let status: vscode.StatusBarItem | undefined
-let narration: Narration | undefined
+let stepLens: StepLens | undefined
 let tourTab: TourTab | undefined
 let stopView: StopView | undefined
 
@@ -46,10 +47,20 @@ function clearDecorations(): void {
   }
 }
 
+// VS Code counts the empty line after a file's last newline; the tour doesn't.
+function isNewFileIn(document: vscode.TextDocument, view: StepView): boolean {
+  const last = document.lineAt(document.lineCount - 1)
+  const lines = last.isEmptyOrWhitespace ? document.lineCount - 1 : document.lineCount
+  return isNewFile(view, lines)
+}
+
 async function showStep(view: StepView): Promise<void> {
   const place = placeOf(view)
   const uri = vscode.Uri.file(place.path)
   const editor = await vscode.window.showTextDocument(uri, { preview: false })
+  if (status !== undefined) {
+    status.text = statusText(view, stepTags(view, isNewFileIn(editor.document, view)))
+  }
   const range = new vscode.Range(place.first, 0, place.last, 0)
   editor.selection = new vscode.Selection(place.first, 0, place.first, 0)
   clearDecorations()
@@ -63,9 +74,9 @@ async function showStep(view: StepView): Promise<void> {
     await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
   }
 
-  narration?.show(editor.document, view)
-  // from the line the narration hangs below, so it shows above the step rather than off the top
-  const shown = new vscode.Range(narrationLine(place), 0, place.last, 0)
+  stepLens?.show(view)
+  // from the line above, so the actions above the step show rather than sit off the top
+  const shown = new vscode.Range(lineAbove(place), 0, place.last, 0)
   editor.revealRange(shown, vscode.TextEditorRevealType.AtTop)
 }
 
@@ -84,7 +95,7 @@ async function show(view: SessionView): Promise<void> {
     return
   }
 
-  narration?.hide()
+  stepLens?.show(null)
   clearDecorations()
   tourTab?.show(view)
 }
@@ -224,7 +235,7 @@ async function quit(): Promise<void> {
   client = undefined
   current = undefined
   status?.hide()
-  narration?.hide()
+  stepLens?.show(null)
   tourTab?.hide()
   await stopView?.show(null)
   clearDecorations()
@@ -250,8 +261,8 @@ export function activate(context: vscode.ExtensionContext): void {
   values = inlineValues
   decorations = [stepTint, ...callArrows.types, inlineValues.type]
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
-  const panel = createNarration()
-  narration = panel
+  const lens = createStepLens()
+  stepLens = lens
   const goTo = (step: string): void => {
     move("goto", { step }).catch(reportFailure)
   }
@@ -263,7 +274,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     ...decorations,
     status,
-    panel,
+    lens,
     tab,
     stop,
     tours,

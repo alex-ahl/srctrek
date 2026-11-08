@@ -1,13 +1,13 @@
 import type { StepRef, StepView } from "@codetrail/core"
 
-// What the narration panel says, apart from VS Code: its header's tags and its body as markdown.
+// What a stop says besides its narration, apart from VS Code: where next goes, its tags, and the
+// actions on the line above it.
 
-const FLAG_HINTS: Record<string, string> = { medium: "● risky", low: "● worth knowing" }
-
-// Escapes what markdown would read as syntax, and keeps spaces as spaces so the text wraps.
-export function escapeMarkdown(text: string): string {
-  return text.replace(/[\\`*_{}[\]()#+\-.!|<>~]/g, "\\$&")
-}
+export const FLAG_WORDING = {
+  high: "⚠ likely wrong",
+  medium: "● risky",
+  low: "● worth knowing",
+} as const
 
 function labelOf(ref: StepRef | null): string {
   if (ref === null) {
@@ -45,33 +45,35 @@ function codeTag(view: StepView, newFile: boolean): string | null {
   return view.changed ? null : "existing code"
 }
 
-/** The header beside "codetrail": the stop, then what a reader should know about its code. */
-export function panelLabel(view: StepView, newFile: boolean): string {
+/** What a reader should know about the stop's code, for the status bar beside its number. */
+export function stepTags(view: StepView, newFile: boolean): string[] {
   const tags = [
-    `stop ${String(view.number)} of ${String(view.count)}`,
     codeTag(view, newFile),
     view.came_from?.guessed === true ? "guessed link" : null,
     view.context.length > 0 ? "context available" : null,
     view.tour_copy ? "tour's version" : null,
     view.stale ? "stale: file changed since" : null,
   ]
-  return tags.filter((tag) => tag !== null).join(" · ")
+  return tags.filter((tag) => tag !== null)
 }
 
-// A risky or worth-knowing flag, and where next goes: what a reader stepping with next alone
-// mustn't miss beyond the narration.
-function hints(view: StepView): string[] {
-  const flag = view.flag ? FLAG_HINTS[view.flag.severity] : undefined
-  const next = view.step_kind === "context" ? undefined : whereNext(view)
-  return [flag, next].filter((hint) => hint !== undefined)
-}
+/** An action on the line above the stop: its text, and the command a click runs. */
+export type Lens = { title: string; command: string }
 
-/** The panel's body: the narration, a high flag under it, then the hints. */
-export function panelBody(view: StepView): string {
-  const high = view.flag?.severity === "high" ? escapeMarkdown(`⚠ ${view.flag.note}`) : null
-  const footer = hints(view).map(escapeMarkdown).join("  ·  ")
-  const parts = [escapeMarkdown(view.summary), high, footer === "" ? null : `*${footer}*`]
-  return parts.filter((part) => part !== null).join("\n\n")
+/** The stop's number and flag, which open the Stop view, its context, and where next goes. */
+export function stepLenses(view: StepView): Lens[] {
+  const lenses = [
+    {
+      title: `codetrail ${String(view.number)}/${String(view.count)}`,
+      command: "codetrail.stop.focus",
+    },
+    view.flag ? { title: FLAG_WORDING[view.flag.severity], command: "codetrail.stop.focus" } : null,
+    view.context.length > 0 ? { title: "context", command: "codetrail.context" } : null,
+    view.step_kind === "context"
+      ? null
+      : { title: `${whereNext(view)} ▸`, command: "codetrail.next" },
+  ]
+  return lenses.filter((lens) => lens !== null)
 }
 
 /** Whether the change adds the file whole, so one tag says it rather than every line. */

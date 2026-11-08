@@ -134,8 +134,9 @@ code --install-extension editors/vscode/dist/codetrail.vsix
   icon is in the activity bar); its overview opens in a tab.
 - Step with `F8` and `Shift+F8`; `F10`, `F11`, and `Shift+F11` step over, into the call on the
   cursor's line, and out.
-- Each stop's narration shows in a panel above its code. VS Code also lists it in its Comments view,
-  which it opens by itself the first time.
+- Each stop's narration, flag, and where next goes head the sidebar's Stop view. The line above the
+  step holds its actions: the stop and its flag open the Stop view, "context" opens the context
+  code, and "next" steps on.
 - Predicted values show at the ends of their lines as `name ≈ value`; "Codetrail: Show or Hide
   Values" turns them off.
 - The sidebar's Stop view shows the stop's call stack, where it came from with the code

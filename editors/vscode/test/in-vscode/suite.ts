@@ -13,7 +13,7 @@ function editorAt(): { file: string; line: number } {
   return { file: basename(editor.document.uri.fsPath), line: editor.selection.active.line + 1 }
 }
 
-// VS Code draws the narration panel after the command that asked for it returns, and moves the
+// VS Code finishes drawing a stop after the command that asked for it returns, and can move the
 // cursor back to the step as it does; a reader's next key comes long after.
 const SETTLE_MS = 300
 
