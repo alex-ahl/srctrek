@@ -45,6 +45,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - `trek doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
 - Presenting: a tour walked through for a team, with large narration and the route map.
 - Web GUI served by the same binary (`trek --gui`).
+- **srctrek.nvim:** the Neovim plugin copied on each release to a repo of its own, installable by
+  URL from plugin managers; its source stays in `editors/nvim/`.
 - Several clients on one stepping session (the TUI's route map following the editor),
   through a local socket.
 
