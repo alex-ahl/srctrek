@@ -148,6 +148,11 @@ check`): "Codetrail: Open Tour…" lists the tours in a quick pick, `Alt+]` and 
   whole gets none, its "new file" tag says it. In the showcase, the change edits the payments file rather than adding it. The overview tab
   says once, under "On screen", what the bars, `≈`, `→`, and the actions above a stop mean, each
   beside a sample of how it looks.
+- VS Code's context code moved from VS Code's peek view, which an extension can't style and which
+  read like more of the same file, into the Stop view: under CONTEXT, each piece's reason, its
+  place (a link to it in the tour), and its code in a framed block, cut at 8 lines with a link to
+  the rest ("… 37 more lines"), so a large contract stays small. Show Context and `context` above
+  the step scroll the Stop view there.
 - The prototype's asking (`<leader>ta`) is gone: its prompt was written in the plugin, not in
   `packages/core/prompts/`. Asking comes back later through `trail serve`.
 - A guessed link shows where it's met: "guessed link" in the winbar of the step it reaches, `→?`

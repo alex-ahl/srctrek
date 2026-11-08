@@ -60,6 +60,9 @@ const SCRIPT = `
       vscode.postMessage({ open: link.dataset.open, line: Number(link.dataset.line) })
     }
   })
+  window.addEventListener("message", (event) => {
+    document.getElementById(event.data.scrollTo)?.scrollIntoView()
+  })
 `
 
 /** A whole page around `body`; `nonce` lets only the page's own script run. */

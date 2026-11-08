@@ -4,7 +4,7 @@ import { stopPageHtml } from "../src/stop-page"
 import { ref, stepWith } from "./support/views"
 
 const end: NextStop = { how: "end", to: null, line: null }
-const noCode = () => ""
+const noCode = () => []
 
 test("the page opens with the narration, its details, then the flag and where next goes", () => {
   const view = stepWith([], end, {
@@ -68,7 +68,7 @@ test("where the stop came from gives each cited line with its code, and says whe
     },
   })
 
-  const html = stopPageHtml(view, () => "send(total)", "n")
+  const html = stopPageHtml(view, () => ["  send(total)"], "n")
 
   expect(html).toContain('From <a href="#" data-goto="s1">stop 1 · main · main.ts:1</a>')
   expect(html).toContain("guessed: matched by name")
@@ -76,16 +76,38 @@ test("where the stop came from gives each cited line with its code, and says whe
   expect(html).toContain('data-line="9">api: routes.ts:9</a>')
 })
 
-test("context and questions get their own blocks; values stay in the code", () => {
+test("each piece of context shows its reason, where it is, and its code", () => {
+  const view = stepWith([], end, {
+    context: [{ ...ref, id: "s2a", name: "Refund", summary: "The shape a refund takes." }],
+  })
+
+  const html = stopPageHtml(view, () => ["type Refund = {", "  amount: number", "}"], "n")
+
+  expect(html).toContain('<section id="context"><h3>Context</h3>')
+  expect(html).toContain(
+    '<p>The shape a refund takes.</p><p class="place"><a href="#" data-goto="s2a">Refund · main.ts:1</a></p>',
+  )
+  expect(html).toContain('<pre class="code">type Refund = {\n  amount: number\n}</pre>')
+})
+
+test("a long piece of context shows its start and says how much is left", () => {
+  const view = stepWith([], end, { context: [{ ...ref, id: "s2a", start_line: 1, end_line: 45 }] })
+  const asked: number[] = []
+
+  const html = stopPageHtml(view, (range) => (asked.push(range.last), ["x"]), "n")
+
+  expect(asked).toEqual([8])
+  expect(html).toContain('<a href="#" data-goto="s2a">… 37 more lines</a>')
+})
+
+test("questions get their own block; values stay in the code", () => {
   const view = stepWith([], end, {
     predicted_values: [{ name: "pay", value: "250", line: 2, role: "return" }],
-    context: [{ ...ref, id: "s2a", name: "pay", summary: "returns a fixed amount" }],
     notes: [{ question: "Why 250?", answer: "A placeholder." }],
   })
 
   const html = stopPageHtml(view, noCode, "n")
 
-  expect(html).toContain('<a href="#" data-goto="s2a">pay · main.ts:1</a>')
   expect(html).toContain('<p class="question">Why 250?</p><p>A placeholder.</p>')
   expect(html).not.toContain("≈")
 })

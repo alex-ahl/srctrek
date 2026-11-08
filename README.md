@@ -143,8 +143,9 @@ code --install-extension editors/vscode/dist/codetrail.vsix
   Values" turns them off.
 - The sidebar's Stop view shows the stop's call stack, where it came from with the code
   each piece of evidence cites, its flag, values, context, details, and questions.
-- "Codetrail: Show Context" opens the stop's context code in a peek view over the step;
-  "Codetrail: Show Current Stop" goes back to the stop.
+- "Codetrail: Show Context", or `context` above the step, scrolls the Stop view to the context:
+  each piece's reason, where it is, and its code. "Codetrail: Show Current Stop" goes back to the
+  stop.
 - The end of the tour lists every flag, each a link to its stop. `Escape` there, or "Codetrail: End
   the Tour", ends it.
 

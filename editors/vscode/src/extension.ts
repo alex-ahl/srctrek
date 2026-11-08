@@ -198,7 +198,8 @@ async function showCurrent(): Promise<SessionView | undefined> {
   return current
 }
 
-// The stop's context code in VS Code's peek view over the step, so the tour stays where it is.
+// The stop's context code, each piece under its reason, in the Stop view; the tour stays where it
+// is.
 async function showContext(): Promise<void> {
   if (current?.kind !== "step") {
     vscode.window.setStatusBarMessage("codetrail: context is shown at a stop", 3000)
@@ -209,23 +210,8 @@ async function showContext(): Promise<void> {
     return
   }
 
-  const step = current
-  await show(step)
-  const locations = step.context.map(
-    (ref) =>
-      new vscode.Location(
-        vscode.Uri.file(ref.path),
-        new vscode.Range(ref.start_line - 1, 0, ref.end_line - 1, 0),
-      ),
-  )
-  const place = placeOf(step)
-  await vscode.commands.executeCommand(
-    "editor.action.peekLocations",
-    vscode.Uri.file(place.path),
-    new vscode.Position(place.first, 0),
-    locations,
-    "peek",
-  )
+  await vscode.commands.executeCommand("codetrail.stop.focus")
+  stopView?.reveal("context")
 }
 
 function toggleValues(): Promise<void> {

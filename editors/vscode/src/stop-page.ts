@@ -7,8 +7,30 @@ import { FLAG_WORDING, whereNext } from "./step-text"
 // steps, and questions, each a block of its own. What the status bar, the actions above the step,
 // or the code already show (the stop number, the values) isn't repeated.
 
-/** The code on a cited line, read by the caller, so the evidence reads without opening it. */
-export type CodeAt = (cite: Cite) => string
+/** Lines of a file, numbered from 1, both ends included. */
+export type CodeRange = { path: string; first: number; last: number }
+
+/** The code in a range, read by the caller, as the page itself reads no files. */
+export type CodeAt = (range: CodeRange) => readonly string[]
+
+// A context piece longer than this shows its start, so a large contract doesn't take over the
+// view; the rest is a click away.
+const MOST_CONTEXT_LINES = 8
+
+function citeRange(cite: Cite): CodeRange {
+  return { path: cite.path, first: cite.line, last: cite.line }
+}
+
+function contextRange(ref: StepRef): CodeRange {
+  const last = Math.min(ref.end_line, ref.start_line + MOST_CONTEXT_LINES - 1)
+  return { path: ref.path, first: ref.start_line, last }
+}
+
+/** Every range the page shows code from: each cited line, and each context piece. */
+export function codeRangesOf(view: StepView): CodeRange[] {
+  const cites = view.came_from?.cites.map(citeRange) ?? []
+  return [...cites, ...view.context.map(contextRange)]
+}
 
 function placeText(ref: StepRef): string {
   const short = ref.file.split("/").slice(-2).join("/")
@@ -19,8 +41,9 @@ function refText(ref: StepRef): string {
   return escapeHtml(ref.name === null ? placeText(ref) : `${ref.name} · ${placeText(ref)}`)
 }
 
-function section(label: string, content: string): string {
-  return `<section><h3>${label}</h3>${content}</section>`
+function section(label: string, content: string, id?: string): string {
+  const anchor = id === undefined ? "" : ` id="${id}"`
+  return `<section${anchor}><h3>${label}</h3>${content}</section>`
 }
 
 // Newest on top, as a debugger lists frames; the stop's own frame is the top one. A stack of the
@@ -57,7 +80,8 @@ function citeItem(view: StepView, cite: Cite, codeAt: CodeAt): string {
     cite.line,
     escapeHtml(`${repo}${cite.file}:${String(cite.line)}`),
   )
-  return `<li>${where} <code>${escapeHtml(codeAt(cite))}</code></li>`
+  const code = codeAt(citeRange(cite))[0]?.trim() ?? ""
+  return `<li>${where} <code>${escapeHtml(code)}</code></li>`
 }
 
 function cameFromSection(view: StepView, codeAt: CodeAt): string {
@@ -87,15 +111,29 @@ function nextLine(view: StepView): string {
   return view.step_kind === "context" ? "" : `<p class="muted">${escapeHtml(whereNext(view))}</p>`
 }
 
-function contextSection(view: StepView): string {
+// Each piece's reason, then where it is, then its code, as the narration explains a step above
+// its code.
+function contextPiece(ref: StepRef, codeAt: CodeAt): string {
+  const code = codeAt(contextRange(ref)).join("\n")
+  const hidden = ref.end_line - contextRange(ref).last
+  const more =
+    hidden > 0 ? `<p class="more">${gotoLink(ref.id, `… ${String(hidden)} more lines`)}</p>` : ""
+  return [
+    `<div class="piece">`,
+    `<p>${escapeHtml(ref.summary)}</p>`,
+    `<p class="place">${gotoLink(ref.id, refText(ref))}</p>`,
+    `<pre class="code">${escapeHtml(code)}</pre>`,
+    more,
+    "</div>",
+  ].join("")
+}
+
+function contextSection(view: StepView, codeAt: CodeAt): string {
   if (view.context.length === 0) {
     return ""
   }
-  const items = view.context.map(
-    (ref) =>
-      `<li>${gotoLink(ref.id, refText(ref))} <span class="muted">${escapeHtml(ref.summary)}</span></li>`,
-  )
-  return section("Context", `<ul class="rows">${items.join("")}</ul>`)
+  const pieces = view.context.map((ref) => contextPiece(ref, codeAt))
+  return section("Context", pieces.join(""), "context")
 }
 
 function questionsSection(view: StepView): string {
@@ -127,6 +165,12 @@ const STYLE = `
   ul.rows li { padding: 0.1em 0; }
   code { font-size: var(--vscode-editor-font-size); color: var(--vscode-descriptionForeground); }
   .question { font-weight: 600; }
+  .piece + .piece { margin-top: 1em; }
+  .place, .more { font-size: 11px; }
+  pre.code { margin: 0.3em 0 0; padding: 0.5em 0.6em; overflow-x: auto; border-radius: 3px;
+    font-family: var(--vscode-editor-font-family); font-size: var(--vscode-editor-font-size);
+    background: var(--vscode-textCodeBlock-background);
+    border-left: 2px solid var(--vscode-textLink-foreground); }
 `
 
 /** The page for a stop, or a line saying how to start when the tour isn't on one. */
@@ -138,7 +182,7 @@ export function stopPageHtml(view: StepView | null, codeAt: CodeAt, nonce: strin
     leadSection(view),
     stackSection(view),
     cameFromSection(view, codeAt),
-    contextSection(view),
+    contextSection(view, codeAt),
     questionsSection(view),
   ]
   return pageHtml(body.join("\n"), nonce, STYLE)

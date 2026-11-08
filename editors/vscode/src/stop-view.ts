@@ -1,24 +1,34 @@
 import { randomBytes } from "node:crypto"
-import type { Cite, StepView } from "@codetrail/core"
+import type { StepView } from "@codetrail/core"
 import * as vscode from "vscode"
 import { isPageMessage } from "./page"
-import { stopPageHtml } from "./stop-page"
+import { type CodeRange, codeRangesOf, stopPageHtml } from "./stop-page"
 
-export type StopView = { show: (view: StepView | null) => Promise<void> }
-
-function citeKey(cite: Cite): string {
-  return `${cite.path}:${String(cite.line)}`
+export type StopView = {
+  show: (view: StepView | null) => Promise<void>
+  // scrolls the page to one of its blocks, by its id
+  reveal: (block: string) => void
 }
 
-// Each cited line's code, read before the page is drawn, as the page itself reads no files.
-async function codeOfCites(cites: readonly Cite[]): Promise<Map<string, string>> {
-  const code = new Map<string, string>()
-  for (const cite of cites) {
+function rangeKey(range: CodeRange): string {
+  return `${range.path}:${String(range.first)}-${String(range.last)}`
+}
+
+function linesOf(document: vscode.TextDocument, range: CodeRange): string[] {
+  const last = Math.min(range.last, document.lineCount)
+  const numbers = Array.from({ length: last - range.first + 1 }, (_, index) => range.first + index)
+  return numbers.map((line) => document.lineAt(line - 1).text)
+}
+
+// The code the page shows, read before it's drawn, as the page itself reads no files.
+async function codeOf(ranges: readonly CodeRange[]): Promise<Map<string, string[]>> {
+  const code = new Map<string, string[]>()
+  for (const range of ranges) {
     try {
-      const document = await vscode.workspace.openTextDocument(vscode.Uri.file(cite.path))
-      code.set(citeKey(cite), document.lineAt(cite.line - 1).text.trim())
+      const document = await vscode.workspace.openTextDocument(vscode.Uri.file(range.path))
+      code.set(rangeKey(range), linesOf(document, range))
     } catch {
-      // a file or line gone since the tour was built shows no code; its place still links
+      // a file gone since the tour was built shows no code; its place still links
     }
   }
   return code
@@ -36,13 +46,13 @@ async function openAt(path: string, line: number): Promise<void> {
 export function createStopView(goTo: (step: string) => void): StopView & vscode.Disposable {
   let webview: vscode.WebviewView | undefined
   let current: StepView | null = null
-  let code = new Map<string, string>()
+  let code = new Map<string, string[]>()
 
   const render = (): void => {
     if (webview === undefined) {
       return
     }
-    const codeAt = (cite: Cite): string => code.get(citeKey(cite)) ?? ""
+    const codeAt = (range: CodeRange): readonly string[] => code.get(rangeKey(range)) ?? []
     webview.webview.html = stopPageHtml(current, codeAt, randomBytes(16).toString("base64"))
   }
 
@@ -72,8 +82,11 @@ export function createStopView(goTo: (step: string) => void): StopView & vscode.
   return {
     show: async (view) => {
       current = view
-      code = await codeOfCites(view?.came_from?.cites ?? [])
+      code = await codeOf(view === null ? [] : codeRangesOf(view))
       render()
+    },
+    reveal: (block) => {
+      void webview?.webview.postMessage({ scrollTo: block })
     },
     dispose: () => {
       registration.dispose()
