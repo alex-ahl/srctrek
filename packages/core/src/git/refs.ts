@@ -32,6 +32,11 @@ export function isSnapshot(dir: string, commit: string): Promise<boolean> {
   return succeeds(dir, ["rev-parse", "--verify", "--quiet", `refs/srctrek/snapshots/${commit}`])
 }
 
+/** Whether the repo has `revision` as a commit. */
+export function hasCommit(dir: string, revision: string): Promise<boolean> {
+  return succeeds(dir, ["cat-file", "-e", `${revision}^{commit}`])
+}
+
 /** Whether the repo has `ref`, written in full: "refs/remotes/origin/feature". */
 export function hasRef(dir: string, ref: string): Promise<boolean> {
   return succeeds(dir, ["show-ref", "--verify", "--quiet", ref])

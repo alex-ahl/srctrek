@@ -206,3 +206,24 @@ test("says a trek that can't be read, with its problem, and offers to rebuild it
   expect(frame).toContain("   b rebuild it")
   expect(frame).toContain("b rebuild")
 })
+
+test("says a trek can't be opened, which repo, and how to fix it, with no key to press", async () => {
+  const status: TrekStatus = {
+    kind: "unreachable",
+    name: "feature-refunds",
+    unreachable: {
+      repo: "worker",
+      source: "../worker",
+      revision: "c".repeat(40),
+      reason: "missing",
+    },
+  }
+  const frame = await frameOf({ entries: [refund], status, onBuild: noop })
+
+  expect(frame).toContain(" ✕ can't open  feature-refunds")
+  expect(frame).toContain("   repo worker isn't at ../worker")
+  expect(frame).toContain("   clone it there to open this trek")
+  expect(frame).toContain("▶ feature-refunds   ✕ can't open")
+  expect(frame).not.toContain("b build")
+  expect(frame).not.toContain("enter open")
+})

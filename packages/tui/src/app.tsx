@@ -50,6 +50,13 @@ function addAction(proposal: ProposedRepo, props: Props, askLocation: (name: str
   return source === undefined ? () => askLocation(name) : () => onAddRepo(name)
 }
 
+// A trek opens unless it isn't valid, or it's the change's trek and names a repo not here.
+function opens(entry: TrekEntry, status: TrekStatus | undefined): boolean {
+  const unreachable = status?.kind === "unreachable" && status.name === entry.name
+
+  return entry.valid && !unreachable
+}
+
 // What enter does on a row: add a proposed repo; open a trek; on a trigger, open its trek or
 // build it.
 function pickAction(row: Row, props: Props, askLocation: (name: string) => void): Action {
@@ -59,7 +66,7 @@ function pickAction(row: Row, props: Props, askLocation: (name: string) => void)
   }
 
   if (row.kind === "trek") {
-    return row.entry.valid ? () => onOpen(row.entry) : undefined
+    return opens(row.entry, props.status) ? () => onOpen(row.entry) : undefined
   }
 
   const { trigger, trek } = row.found
@@ -121,7 +128,7 @@ function shownRows(visible: readonly ListLine[], total: number): string {
 
 // What enter, b, l, and d do here, for the footer; only keys that do something are listed.
 function keyHints(row: Row | undefined, status: TrekStatus | undefined, actions: RowActions) {
-  return footerKeys(enterLabel(row), {
+  return footerKeys(actions.pick === undefined ? undefined : enterLabel(row), {
     build: actions.build === undefined ? undefined : buildVerb(status),
     log: actions.showLog !== undefined,
     dismiss: actions.dismiss !== undefined,

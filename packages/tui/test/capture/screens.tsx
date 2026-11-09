@@ -158,6 +158,16 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
     name: "feature-refunds",
     problem: "format_version: Invalid input: expected 1",
   }),
+  "home-unreachable": home({
+    kind: "unreachable",
+    name: "feature-refunds",
+    unreachable: {
+      repo: "worker",
+      source: "../worker",
+      revision: "4f1c2a9e0b7d3c5a8e6f1b2d4c7a9e0f3b5d8c1a",
+      reason: "missing",
+    },
+  }),
   "home-missing": home({ kind: "missing", name: "feature-refunds" }),
   "home-no-agent": home({ kind: "missing", name: "feature-refunds" }, { agent: false }),
   "home-empty": home({ kind: "empty", name: "feature-refunds" }, { summary: emptySummary }),

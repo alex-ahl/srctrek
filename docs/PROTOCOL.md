@@ -41,8 +41,9 @@ branch's):
 | ------------------- | ------------------------------------------------------------------- |
 | `treks(args?)`      | Every saved trek (name, title, stops, likely-wrong flags, when it   |
 |                     | was built, whether it follows code as it is) and where the change's |
-|                     | trek stands: ready, built with an older guide, stale, unreadable,   |
-|                     | building, failed, missing                                           |
+|                     | trek stands: ready, built with an older guide, can't be opened (a   |
+|                     | local repo it names isn't there or lacks its commit), stale,        |
+|                     | unreadable, building, failed, missing                               |
 | `build(args?)`      | Starts the agent in `SRCTREK_AGENT` on the change's trek, or        |
 |                     | updates it when stale; answers where it stands once started         |
 | `log(trek, lines?)` | The end of a trek's build log                                       |

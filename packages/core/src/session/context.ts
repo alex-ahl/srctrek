@@ -3,9 +3,10 @@ import { join } from "node:path"
 import type { ResolvedChange } from "../change/resolve"
 import { staleStepIds } from "../build/stale"
 import { isBare } from "../git/base"
+import { hasCommit } from "../git/refs"
 import { type LineChange, changedLines } from "../git/diff"
 import { readFileAt } from "../git/read"
-import { GitError, runGit } from "../git/run"
+import { runGit } from "../git/run"
 import { defaultCacheDir, fetchRevision } from "../repos/cache"
 import { isRemote } from "../repos/entry"
 import { repoDir } from "../repos/resolve"
@@ -24,19 +25,6 @@ export class UnreachableRepoError extends Error {
     reason: string,
   ) {
     super(`repo ${repo} (${source}): ${reason}`)
-  }
-}
-
-async function hasCommit(dir: string, revision: string): Promise<boolean> {
-  try {
-    await runGit(dir, ["cat-file", "-e", `${revision}^{commit}`])
-    return true
-  } catch (error) {
-    if (error instanceof GitError) {
-      return false
-    }
-
-    throw error
   }
 }
 

@@ -1,6 +1,7 @@
 import { type ResolvedChange, hasRange } from "../change/resolve"
 import { buildLogTail, buildSavedTrek, buildState } from "./background"
 import { existingTrekFor } from "./existing"
+import { type UnreachableRepo, unreachableRepo } from "./reachable"
 import { staleStepIds } from "./stale"
 import { pathExists } from "../files"
 import { PROMPT_HASH } from "../prompts"
@@ -10,7 +11,8 @@ import { trekNameFor } from "./name"
 import { type Trigger, loadTriggers } from "./triggers"
 
 /**
- * Where a change's trek stands: saved and ready, or built with an older guide than today's;
+ * Where a change's trek stands: saved and ready, or built with an older guide than today's, or
+ * saved but unreachable, naming a local repo that can't be opened here;
  * stale, saved at commits the change has moved on from, with how many of its steps cite files
  * changed since; unreadable, saved under the change's name but not a valid trek, with its first
  * problem; being built or failed (each with the end of the build's log); missing, never built;
@@ -20,6 +22,7 @@ import { type Trigger, loadTriggers } from "./triggers"
 export type TrekStatus = Readonly<
   | { kind: "ready" | "older-guide" | "missing" | "empty"; name: string }
   | { kind: "unreadable"; name: string; problem: string }
+  | { kind: "unreachable"; name: string; unreachable: UnreachableRepo }
   | { kind: "stale"; name: string; staleSteps: number; steps: number }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
   | { kind: "triggers"; name: string; triggers: TriggerTrek[] }
@@ -116,10 +119,17 @@ async function savedStatus(
   return { kind: "stale", name, staleSteps, steps: saved.trek.steps.length }
 }
 
-// A trek of the change, ready unless the prompts that built it differ from today's guide; then
-// its rebuild, while one runs or after it failed, says more than the trek it replaces.
+// A trek of the change: unreachable when it names a repo that can't be opened here, as nothing
+// else matters until it can; else ready unless the prompts that built it differ from today's
+// guide, and then its rebuild, while one runs or after it failed, says more than the trek it
+// replaces.
 async function readyStatus(root: string, name: string): Promise<TrekStatus> {
   const trek = await loadTrek(trekPath(root, name))
+  const unreachable = await unreachableRepo(root, trek)
+  if (unreachable !== undefined) {
+    return { kind: "unreachable", name, unreachable }
+  }
+
   if (trek.prompt_hash === PROMPT_HASH) {
     return { kind: "ready", name }
   }

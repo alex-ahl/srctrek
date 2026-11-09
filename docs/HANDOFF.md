@@ -25,6 +25,10 @@
   `script`), presses the keys and then `q`, plays what it wrote through a headless terminal
   emulator, and saves the screen it showed as text and dark and light pictures, as Step 7b's
   capture does: the real binary and renderer, in about five seconds.
+- Step 7e: the change's trek can't be opened when a local repo it names isn't where it was, or
+  lacks the trek's commit; the home screen says which repo and where, enter leaves it alone, and
+  the footer no longer offers enter where it does nothing. Remote repos aren't checked: they're
+  fetched when the trek opens.
 
 ## 2026-11-03 — Milestone 6: the editors
 

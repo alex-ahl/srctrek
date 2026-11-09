@@ -45,3 +45,21 @@ test("enter on a trigger with a trek opens it", async () => {
 
   expect(open).toHaveBeenCalledWith(withTrek)
 })
+
+test("enter on the change's trek doesn't open it when a repo it names isn't here", async () => {
+  const open = mock((_entry: TrekEntry) => undefined)
+  const status = {
+    kind: "unreachable" as const,
+    name: "a-reply-times-out",
+    unreachable: {
+      repo: "worker",
+      source: "../worker",
+      revision: "c".repeat(40),
+      reason: "missing" as const,
+    },
+  }
+
+  await pressEnterOn(<App entries={[withTrek]} onOpen={open} onQuit={noop} status={status} />)
+
+  expect(open).not.toHaveBeenCalled()
+})

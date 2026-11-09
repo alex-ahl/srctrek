@@ -94,6 +94,20 @@ function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): Statu
   }
 }
 
+// What can't be opened and where it was looked for; fixing it is the user's, so no key acts on it.
+function unreachableBlock({ name, unreachable }: Of<"unreachable">): StatusBlock {
+  const { repo, source, revision, reason } = unreachable
+  const details =
+    reason === "missing"
+      ? [`repo ${repo} isn't at ${source}`, "clone it there to open this trek"]
+      : [
+          `repo ${repo} at ${source} has no commit ${revision.slice(0, 7)}`,
+          "fetch it there to open this trek",
+        ]
+
+  return { symbol: "✕", state: "can't open", colour: COLOUR.bad, name, details }
+}
+
 type NameOnly = "ready" | "older-guide" | "missing" | "empty"
 
 // The states that are a name and nothing more.
@@ -156,6 +170,10 @@ export function statusBlock(
       details: [status.problem],
       ...(canBuild ? { keys: "b rebuild it" } : {}),
     }
+  }
+
+  if (status.kind === "unreachable") {
+    return unreachableBlock(status)
   }
 
   if (status.kind === "triggers") {

@@ -26,11 +26,12 @@ export function enterLabel(row: Row | undefined): string {
 
 type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
 
-/** The footer's keys, in the order a person reaches for them; only those that act are listed. */
-export function footerKeys(enter: string, offered: Offered): KeyHint[] {
+/** The footer's keys, in the order a person reaches for them; only those that act are listed, so
+ * enter is left out where it does nothing. */
+export function footerKeys(enter: string | undefined, offered: Offered): KeyHint[] {
   return [
     { key: "↑/↓", does: "choose" },
-    { key: "enter", does: enter },
+    ...(enter === undefined ? [] : [{ key: "enter", does: enter }]),
     ...(offered.dismiss ? [{ key: "d", does: "dismiss" }] : []),
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
     ...(offered.log ? [{ key: "l", does: "log" }] : []),

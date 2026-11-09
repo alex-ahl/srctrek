@@ -186,4 +186,38 @@ describe("trekStatus", () => {
       problem: "format_version: Invalid input: expected 1",
     })
   })
+
+  test("can't be opened when it names a local repo that isn't there", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "my-refunds")
+    const trek = await loadTrek(join(dir, TREKS_DIR, "my-refunds.json"))
+    const worker = { name: "worker", source: "../no-worker-here", revision: "a".repeat(40) }
+    await editSavedTrek(dir, "my-refunds", "repos", [...trek.repos, worker])
+
+    expect(await trekStatus(dir, change)).toEqual({
+      kind: "unreachable",
+      name: "my-refunds",
+      unreachable: {
+        repo: "worker",
+        source: "../no-worker-here",
+        revision: "a".repeat(40),
+        reason: "missing",
+      },
+    })
+  })
+
+  test("can't be opened when a repo it names lacks the trek's commit", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "my-refunds")
+    const trek = await loadTrek(join(dir, TREKS_DIR, "my-refunds.json"))
+    const repos = trek.repos.map((repo) => ({ ...repo, revision: "b".repeat(40) }))
+    await editSavedTrek(dir, "my-refunds", "repos", repos)
+
+    expect(await trekStatus(dir, change)).toMatchObject({
+      kind: "unreachable",
+      unreachable: { reason: "no-commit", revision: "b".repeat(40) },
+    })
+  })
 })
