@@ -136,6 +136,7 @@ export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTrekFor } from "./build/existing"
 export { trekNameFor } from "./build/name"
 export type { UnreachableRepo } from "./build/reachable"
+export { trekState, type TrekState } from "./build/trek-state"
 export {
   BUILD_LOG_ENV,
   BUILD_LOG_PREFIX,

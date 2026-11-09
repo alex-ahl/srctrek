@@ -37,6 +37,11 @@ export function hasCommit(dir: string, revision: string): Promise<boolean> {
   return succeeds(dir, ["cat-file", "-e", `${revision}^{commit}`])
 }
 
+/** Whether `commit` is in `ref`'s history: merged into it, or where it is. */
+export function isAncestor(dir: string, commit: string, ref: string): Promise<boolean> {
+  return succeeds(dir, ["merge-base", "--is-ancestor", commit, ref])
+}
+
 /** Whether the repo has `ref`, written in full: "refs/remotes/origin/feature". */
 export function hasRef(dir: string, ref: string): Promise<boolean> {
   return succeeds(dir, ["show-ref", "--verify", "--quiet", ref])

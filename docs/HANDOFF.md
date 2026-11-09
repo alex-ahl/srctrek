@@ -32,6 +32,11 @@
 - Step 7f: a trek records, for each changed repo, the branch or pull request its range ended at
   (`head`), so the home screen can compare any trek with its branch now. Required: treks saved
   before it read as invalid until rebuilt.
+- Step 7g: core says where any saved trek stands against its branches now (`trekState`):
+  current; stale, with how many stops cite files changed since; done, its branch merged into the
+  base branch or gone, or the uncommitted work it showed committed since; can't open; or
+  unchecked for a remote repo or a pull request, which would need fetching. Local git only;
+  about 45 ms a trek.
 
 ## 2026-11-03 — Milestone 6: the editors
 
