@@ -10,9 +10,10 @@ export function agentCommand(): string | undefined {
 }
 
 /**
- * Starts the agent on the change's trek, under the name a new trek of it gets: updating the
- * trek already there when it's out of date, else building one. `args` are trek's own, which the
- * agent opens the change with.
+ * Starts the agent on the change's trek, under the name its status gives: updating the trek
+ * already there when it's out of date, else building one afresh, which replaces a trek built
+ * with an older guide or one that isn't valid. `args` are trek's own, which the agent opens the
+ * change with.
  */
 export async function buildChangeTrek(
   cwd: string,

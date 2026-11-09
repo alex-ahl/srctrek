@@ -177,3 +177,36 @@ test("says a stale trek is out of date, how much changed, and offers to update i
   )
   expect(frame).toContain("b update")
 })
+
+test("says a trek built with an older guide still opens, and offers to rebuild it", async () => {
+  const status = { kind: "older-guide" as const, name: "feature-refunds" }
+  const frame = await renderFrame(
+    <App entries={[refund]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
+    130,
+    10,
+  )
+
+  expect(frame).toContain(
+    "This change's trek feature-refunds was built with an older guide than today's.  b: rebuild it",
+  )
+  expect(frame).toContain("▶ Refund orders")
+  expect(frame).toContain("enter open in Neovim · b rebuild")
+})
+
+test("says a trek that can't be read, with its problem, and offers to rebuild it", async () => {
+  const status = {
+    kind: "unreadable" as const,
+    name: "feature-refunds",
+    problem: "format_version: Invalid input: expected 1",
+  }
+  const frame = await renderFrame(
+    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuild={noop} />,
+    130,
+    10,
+  )
+
+  expect(frame).toContain(
+    "This change's trek feature-refunds can't be read: format_version: Invalid input: expected 1.  b: rebuild it",
+  )
+  expect(frame).toContain("b rebuild")
+})

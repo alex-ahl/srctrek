@@ -35,10 +35,24 @@ function hasLog(status: TrekStatus | undefined): status is WithLog {
   return status?.kind === "building" || status?.kind === "failed"
 }
 
-// A build can start when the change has no trek yet, its last build failed, or its trek is out
-// of date and can be updated.
+// A build can start when the change has no trek yet, its last build failed, its trek is out of
+// date and can be updated, or its trek was built with an older guide or isn't valid and can be
+// rebuilt.
+const BUILDABLE: ReadonlySet<TrekStatus["kind"] | undefined> = new Set([
+  "missing",
+  "failed",
+  "stale",
+  "older-guide",
+  "unreadable",
+])
+
 function canStartBuild(status: TrekStatus | undefined): boolean {
-  return status?.kind === "missing" || status?.kind === "failed" || status?.kind === "stale"
+  return BUILDABLE.has(status?.kind)
+}
+
+// A trek built with an older guide still opens; rebuilding it is the user's call.
+function hasTrek(status: TrekStatus | undefined): boolean {
+  return status?.kind === "ready" || status?.kind === "older-guide"
 }
 
 // Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
@@ -65,7 +79,7 @@ function pickAction(row: Row, props: Props, askLocation: (name: string) => void)
   }
 
   const { trigger, trek } = row.found
-  if (trek.kind === "ready") {
+  if (hasTrek(trek)) {
     const entry = entries.find((e) => e.name === trek.name)
     return entry?.valid ? () => onOpen(entry) : undefined
   }
@@ -82,11 +96,16 @@ function logName(row: Row | undefined, status: TrekStatus | undefined): string |
   return hasLog(status) ? status.name : undefined
 }
 
-// What b does, when it does anything: "build" a trek, or "update" an out-of-date one.
+// What b does, when it does anything: "build" a trek, "update" an out-of-date one, or
+// "rebuild" one built with an older guide or that isn't valid.
 type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
 
 function buildVerb(status: TrekStatus | undefined): string {
-  return status?.kind === "stale" ? "update" : "build"
+  if (status?.kind === "stale") {
+    return "update"
+  }
+
+  return status?.kind === "older-guide" || status?.kind === "unreadable" ? "rebuild" : "build"
 }
 
 function footerKeys(enter: string, offered: Offered): string {
@@ -103,7 +122,7 @@ function enterLabel(row: Row | undefined): string {
     return "add to the repos list"
   }
 
-  const buildsTrigger = row?.kind === "trigger" && row.found.trek.kind !== "ready"
+  const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.found.trek)
 
   return buildsTrigger ? "build its trek" : "open in Neovim"
 }
@@ -145,7 +164,7 @@ export function App(props: Props) {
 
   // Until the user moves, the change's trek is the one picked out, once it's listed.
   const readyIndex = rows.findIndex(
-    (row) => status?.kind === "ready" && row.kind === "trek" && row.entry.name === status.name,
+    (row) => hasTrek(status) && row.kind === "trek" && row.entry.name === status?.name,
   )
   const selected = chosen ?? Math.max(readyIndex, 0)
   const row = rows[selected]

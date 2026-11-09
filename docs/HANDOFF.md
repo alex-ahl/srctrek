@@ -1,5 +1,14 @@
 # Handoff
 
+## 2026-11-09 — Milestone 7: the terminal
+
+**Done**
+
+- Step 7a: the change's trek can be built with an older guide (its prompt hash isn't today's),
+  which still opens, or unreadable (a file under its name that isn't a valid trek, such as one
+  from another format version), which `trek` no longer builds over unasked; the home screen
+  says which, and `b` rebuilds either, showing the build as it runs.
+
 ## 2026-11-03 — Milestone 6: the editors
 
 **Done**

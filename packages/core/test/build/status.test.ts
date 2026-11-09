@@ -1,10 +1,17 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { buildState, resolveChange, startBuild, trekStatus } from "../../src"
+import { TREKS_DIR, buildState, loadTrek, resolveChange, startBuild, trekStatus } from "../../src"
 import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
 import { commit } from "../support/repo"
 import { makeCacheDir } from "../support/remote"
+
+// Rewrites one field of a saved trek, as an older srctrek would have written it.
+async function editSavedTrek(dir: string, name: string, field: string, value: unknown) {
+  const path = join(dir, TREKS_DIR, `${name}.json`)
+  const trek = await loadTrek(path)
+  await writeFile(path, JSON.stringify({ ...trek, [field]: value }))
+}
 
 async function untilEnded(root: string, name: string): Promise<void> {
   for (let tries = 0; tries < 100 && (await buildState(root, name)) === "building"; tries++) {
@@ -140,5 +147,43 @@ describe("trekStatus", () => {
     await startBuild(dir, [], "feature-refunds", "sleep 1; true")
     expect((await trekStatus(dir, await changeOf(dir))).kind).toBe("building")
     await untilEnded(dir, "feature-refunds")
+  })
+
+  test("is built with an older guide when the prompts that built it differ from today's", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "my-refunds")
+    await editSavedTrek(dir, "my-refunds", "prompt_hash", "an-older-guide")
+
+    expect(await trekStatus(dir, change)).toEqual({ kind: "older-guide", name: "my-refunds" })
+  })
+
+  test("is building while a trek built with an older guide is rebuilt, and failed if that fails", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "my-refunds")
+    await editSavedTrek(dir, "my-refunds", "prompt_hash", "an-older-guide")
+
+    await startBuild(dir, [], "my-refunds", "sleep 0.3; echo 'cannot reach the server'; false")
+    expect((await trekStatus(dir, change)).kind).toBe("building")
+    await untilEnded(dir, "my-refunds")
+    expect(await trekStatus(dir, change)).toEqual({
+      kind: "failed",
+      name: "my-refunds",
+      logTail: ["cannot reach the server"],
+    })
+  })
+
+  test("is unreadable when the trek under the change's name isn't valid, not missing", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "feature-refunds")
+    await editSavedTrek(dir, "feature-refunds", "format_version", 2)
+
+    expect(await trekStatus(dir, change)).toEqual({
+      kind: "unreadable",
+      name: "feature-refunds",
+      problem: "format_version: Invalid input: expected 1",
+    })
   })
 })

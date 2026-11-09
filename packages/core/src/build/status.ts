@@ -1,20 +1,25 @@
 import { type ResolvedChange, hasRange } from "../change/resolve"
 import { buildLogTail, buildSavedTrek, buildState } from "./background"
-import { existingTrekFor, loadValid } from "./existing"
+import { existingTrekFor } from "./existing"
 import { staleStepIds } from "./stale"
 import { pathExists } from "../files"
-import { trekPath } from "../treks"
+import { PROMPT_HASH } from "../prompts"
+import type { Trek } from "../schema/trek"
+import { TrekValidationError, loadTrek, trekPath } from "../treks"
 import { trekNameFor } from "./name"
 import { type Trigger, loadTriggers } from "./triggers"
 
 /**
- * Where a change's trek stands: saved and ready; stale, saved at commits the change has moved
- * on from, with how many of its steps cite files changed since; being built or failed (each
- * with the end of the build's log); missing, never built; or empty: the change has no commits,
- * so nothing to trek. For code with no trigger named, the triggers found instead of a trek.
+ * Where a change's trek stands: saved and ready, or built with an older guide than today's;
+ * stale, saved at commits the change has moved on from, with how many of its steps cite files
+ * changed since; unreadable, saved under the change's name but not a valid trek, with its first
+ * problem; being built or failed (each with the end of the build's log); missing, never built;
+ * or empty: the change has no commits, so nothing to trek. For code with no trigger named, the
+ * triggers found instead of a trek.
  */
 export type TrekStatus = Readonly<
-  | { kind: "ready" | "missing" | "empty"; name: string }
+  | { kind: "ready" | "older-guide" | "missing" | "empty"; name: string }
+  | { kind: "unreadable"; name: string; problem: string }
   | { kind: "stale"; name: string; staleSteps: number; steps: number }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
   | { kind: "triggers"; name: string; triggers: TriggerTrek[] }
@@ -75,24 +80,60 @@ async function triggersStatus(root: string, change: ResolvedChange): Promise<Tre
   return buildStatus(root, name)
 }
 
-// A trek saved under the change's name that no longer covers it: built at older commits.
-async function staleStatus(
+type Saved = Readonly<{ trek: Trek } | { problem: string }>
+
+// The trek saved at `path`, or its first problem when it isn't a valid trek.
+async function loadSaved(path: string): Promise<Saved> {
+  try {
+    return { trek: await loadTrek(path) }
+  } catch (error) {
+    if (error instanceof TrekValidationError) {
+      return { problem: error.issues[0] ?? "invalid trek" }
+    }
+
+    throw error
+  }
+}
+
+// A trek saved under the change's name that doesn't cover it: built at older commits, or not a
+// valid trek at all, such as one from another format version.
+async function savedStatus(
   root: string,
   name: string,
   change: ResolvedChange,
 ): Promise<TrekStatus | undefined> {
   const path = trekPath(root, name)
-  const trek = (await pathExists(path)) ? await loadValid(path) : undefined
-  if (trek === undefined) {
+  if (!(await pathExists(path))) {
     return undefined
   }
 
-  const staleSteps = (await staleStepIds(trek, change)).length
-  return { kind: "stale", name, staleSteps, steps: trek.steps.length }
+  const saved = await loadSaved(path)
+  if ("problem" in saved) {
+    return { kind: "unreadable", name, problem: saved.problem }
+  }
+
+  const staleSteps = (await staleStepIds(saved.trek, change)).length
+  return { kind: "stale", name, staleSteps, steps: saved.trek.steps.length }
+}
+
+// A trek of the change, ready unless the prompts that built it differ from today's guide; then
+// its rebuild, while one runs or after it failed, says more than the trek it replaces.
+async function readyStatus(root: string, name: string): Promise<TrekStatus> {
+  const trek = await loadTrek(trekPath(root, name))
+  if (trek.prompt_hash === PROMPT_HASH) {
+    return { kind: "ready", name }
+  }
+
+  const state = await buildState(root, name)
+  if (state === "building" || state === "failed") {
+    return buildStatus(root, name)
+  }
+
+  return { kind: "older-guide", name }
 }
 
 // With no trek of the change as it is: a build under way or failed comes first, as it's what
-// the user last asked for; else the older trek, stale; else whatever building left.
+// the user last asked for; else the trek saved under its name; else whatever building left.
 async function changedStatus(
   root: string,
   change: ResolvedChange,
@@ -103,7 +144,7 @@ async function changedStatus(
     return buildStatus(root, name)
   }
 
-  return (await staleStatus(root, name, change)) ?? buildStatus(root, name)
+  return (await savedStatus(root, name, change)) ?? buildStatus(root, name)
 }
 
 /** The status of the change's trek, by the name a new trek of it would get. */
@@ -118,7 +159,7 @@ export async function trekStatus(root: string, change: ResolvedChange): Promise<
 
   const existing = await existingTrekFor(root, change)
   if (existing !== undefined) {
-    return { kind: "ready", name: existing }
+    return readyStatus(root, existing)
   }
 
   return changedStatus(root, change, await trekNameFor(change))

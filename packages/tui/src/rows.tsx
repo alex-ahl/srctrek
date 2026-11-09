@@ -42,6 +42,8 @@ function describeEntry(entry: TrekEntry): string {
 // Where a trigger's trek stands, in a word or two.
 const TREK_STATE: Partial<Record<TrekStatus["kind"], string>> = {
   ready: "trek ready",
+  "older-guide": "trek built with an older guide",
+  unreadable: "trek unreadable",
   building: "building…",
   failed: "build failed",
   missing: "no trek yet",
