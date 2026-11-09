@@ -1,0 +1,38 @@
+---
+const problems = [
+  "A change arrives as a flat list of files across one or more repos. Rebuilding the flow from that list — what triggers it, what runs next, where it ends — is the hard part.",
+  "The usual way to learn a flow is to run it and debug it. For a multi-repo feature that means getting every project, its services, and its data working locally first.",
+]
+---
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">The problem</p>
+    <h2>Code you didn't write, arriving as a list of files.</h2>
+    <ul>
+      {problems.map((problem) => <li>{problem}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  @media (min-width: 48rem) {
+    ul {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  li {
+    color: var(--text-muted);
+    border-left: 3px solid var(--amber);
+    padding-left: 1rem;
+  }
+</style>

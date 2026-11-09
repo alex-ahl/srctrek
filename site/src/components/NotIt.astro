@@ -1,0 +1,41 @@
+---
+const nots = [
+  "Not a summary or a review bot. You step through; nothing is concluded for you.",
+  "Not a real debugger. Values and paths are predicted from reading code, not observed.",
+  "Not tied to an editor, an agent, or a code host.",
+  "Not a tool for review comments or approvals.",
+]
+---
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">What it is not</p>
+    <ul>
+      {nots.map((not) => <li>{not}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  li {
+    color: var(--text-muted);
+    padding-left: 1.6rem;
+    position: relative;
+  }
+
+  li::before {
+    content: "×";
+    position: absolute;
+    left: 0.2rem;
+    color: var(--amber);
+    font-weight: 700;
+  }
+</style>

@@ -1,0 +1,115 @@
+/* Palette from docs/assets/srctrek-icon.svg. */
+:root {
+  --navy-deep: #070b24;
+  --navy: #0d1640;
+  --navy-light: #1c2f7a;
+  --indigo: #6b7cff;
+  --cyan: #36c6f4;
+  --mint: #5ff0c0;
+  --gold: #ffd24d;
+  --amber: #f5a623;
+
+  --route: linear-gradient(90deg, var(--indigo), var(--cyan) 45%, var(--mint) 80%, var(--gold));
+
+  --bg: #f6f7fc;
+  --bg-raised: #ffffff;
+  --text: #0d1640;
+  --text-muted: #4a5384;
+  --border: #d9ddf0;
+  --accent: #3a4fd6;
+  --code-bg: #eceffa;
+  --hero-glow: rgba(107, 124, 255, 0.16);
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --measure: 68rem;
+  --gutter: 1.25rem;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--navy-deep);
+    --bg-raised: #0b1236;
+    --text: #e6e9ff;
+    --text-muted: #9aa3d6;
+    --border: #1f2a66;
+    --accent: var(--cyan);
+    --code-bg: #121b4d;
+    --hero-glow: rgba(28, 47, 122, 0.7);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin-bottom: 1.5rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.2em;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  border-radius: 0.3rem;
+  padding: 0.1em 0.35em;
+}
+
+.wrap {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+section {
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+
+section + section {
+  border-top: 1px solid var(--border);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}

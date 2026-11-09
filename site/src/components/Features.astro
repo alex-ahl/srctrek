@@ -1,0 +1,70 @@
+---
+const features = [
+  {
+    title: "Whole flow, change highlighted",
+    body: "Unchanged code on the path is included and collapsed by default; changed code is where attention goes.",
+  },
+  {
+    title: "Across repos",
+    body: "One trek crosses repos and async boundaries — HTTP calls, queues, events — and each step names its repo.",
+  },
+  {
+    title: "No setup",
+    body: "Reads code and history from git, local or remote. Runs nothing.",
+  },
+  {
+    title: "Checkable",
+    body: "Every link from one step to the next cites the line that causes it. Predicted values are labeled as predicted; guessed links and risky spots are flagged.",
+  },
+  {
+    title: "Any agent",
+    body: "Your agent builds treks through trek mcp, a standard MCP server.",
+  },
+]
+---
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">What you get</p>
+    <h2>Follow the flow, not the file list.</h2>
+    <ul>
+      {
+        features.map((feature) => (
+          <li>
+            <h3>{feature.title}</h3>
+            <p>{feature.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  }
+
+  li {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    padding: 1.4rem;
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+</style>

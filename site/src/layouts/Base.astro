@@ -1,0 +1,31 @@
+---
+import globalCssUrl from "../styles/global.css?url"
+import iconUrl from "../../../docs/assets/srctrek-icon.svg?url"
+
+interface Props {
+  title: string
+  description: string
+}
+
+const { title, description } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={Astro.site} />
+    <meta name="theme-color" content="#070b24" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f7fc" media="(prefers-color-scheme: light)" />
+    <link rel="stylesheet" href={globalCssUrl} />
+    <link rel="icon" type="image/svg+xml" href={iconUrl} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

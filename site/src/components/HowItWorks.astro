@@ -1,0 +1,94 @@
+---
+const steps = [
+  {
+    title: "Pick a change",
+    body: "A git range or pull requests, across one or more repos — or work not yet committed.",
+    example: "trek main...HEAD ../gateway",
+  },
+  {
+    title: "Your agent builds the trek",
+    body: "Register trek mcp with your agent. It reads the change at its exact revisions and follows one example scenario from trigger to outcome.",
+    example: "Build a trek of this branch.",
+  },
+  {
+    title: "Step through it",
+    body: "In Neovim or VS Code: next and previous in execution order, step over, into, and out, with the narration and call stack for each stop.",
+    example: ":Trek pay",
+  },
+]
+---
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2>Three steps, no setup.</h2>
+    <ol>
+      {
+        steps.map((step) => (
+          <li>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+            <code>{step.example}</code>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 2rem;
+    counter-reset: step;
+  }
+
+  @media (min-width: 56rem) {
+    ol {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  li {
+    counter-increment: step;
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+  }
+
+  li::before {
+    content: counter(step);
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--navy-deep);
+    background: var(--cyan);
+  }
+
+  li:nth-child(1)::before {
+    background: var(--indigo);
+  }
+
+  li:nth-child(3)::before {
+    background: var(--gold);
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  code {
+    justify-self: start;
+  }
+</style>

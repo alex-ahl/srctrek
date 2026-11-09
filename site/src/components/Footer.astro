@@ -1,0 +1,65 @@
+---
+import { LICENSE_URL, REPO_URL } from "../links"
+
+const facts = [
+  { term: "Editors", detail: "Neovim, and VS Code and its forks" },
+  { term: "Status", detail: "Pre-release" },
+]
+---
+
+<footer>
+  <div class="wrap">
+    <dl>
+      {
+        facts.map((fact) => (
+          <div>
+            <dt>{fact.term}</dt>
+            <dd>{fact.detail}</dd>
+          </div>
+        ))
+      }
+      <div>
+        <dt>Source</dt>
+        <dd><a href={REPO_URL}>github.com/alex-ahl/srctrek</a></dd>
+      </div>
+      <div>
+        <dt>License</dt>
+        <dd><a href={LICENSE_URL}>MIT</a></dd>
+      </div>
+    </dl>
+    <span class="route" aria-hidden="true"></span>
+  </div>
+</footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--border);
+    padding-block: 3rem;
+  }
+
+  dl {
+    margin: 0 0 2.5rem;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  }
+
+  dt {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0.25rem 0 0;
+  }
+
+  .route {
+    display: block;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--route);
+  }
+</style>

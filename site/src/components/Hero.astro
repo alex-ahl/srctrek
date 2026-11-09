@@ -1,0 +1,114 @@
+---
+import iconUrl from "../../../docs/assets/srctrek-icon.svg?url"
+import Placeholder from "./Placeholder.astro"
+import { REPO_URL } from "../links"
+---
+
+<header class="hero">
+  <div class="wrap">
+    <nav class="brand">
+      <img src={iconUrl} width="36" height="36" alt="" />
+      <span>srctrek</span>
+      <span class="status">pre-release</span>
+    </nav>
+
+    <div class="layout">
+      <div class="pitch">
+        <h1>A debugger session for code you haven't run.</h1>
+        <p class="lede">
+          <code>trek</code> takes a change — a git range or pull requests, across one or more repos —
+          and follows one example scenario from its trigger to its outcome in execution order, moving
+          your editor to each step.
+        </p>
+        <div class="actions">
+          <a class="button" href={REPO_URL}>View on GitHub</a>
+          <span class="route" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <Placeholder label="Clip: a trek stepped in the editor and the TUI" />
+    </div>
+  </div>
+</header>
+
+<style>
+  .hero {
+    padding-block: 1.5rem clamp(3.5rem, 8vw, 6rem);
+    background: radial-gradient(ellipse at 20% 0%, var(--hero-glow), transparent 65%);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: clamp(3rem, 8vw, 5rem);
+  }
+
+  .brand img {
+    border-radius: 0.5rem;
+  }
+
+  .status {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--amber);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0.05rem 0.55rem;
+  }
+
+  .layout {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60rem) {
+    .layout {
+      grid-template-columns: 1fr 1.15fr;
+    }
+  }
+
+  h1 {
+    font-size: clamp(2.3rem, 5.5vw, 3.6rem);
+    margin-bottom: 1.25rem;
+  }
+
+  .lede {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    max-width: 36rem;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .button {
+    display: inline-block;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.6rem;
+    padding: 0.7rem 1.2rem;
+  }
+
+  .button:hover {
+    background: var(--accent);
+  }
+
+  .route {
+    flex: 1;
+    max-width: 10rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--route);
+  }
+</style>
