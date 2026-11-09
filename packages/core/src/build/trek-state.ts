@@ -9,6 +9,7 @@ import type { TrekEntry } from "../trek-entries"
 import { loadTrek } from "../treks"
 import { type UnreachableRepo, unreachableRepo } from "./reachable"
 import { staleStepIds } from "./stale"
+import { stopIds } from "./stops"
 
 /**
  * Where a saved trek stands against its branches now: current, where it left them; stale, a
@@ -81,9 +82,6 @@ async function repoState(root: string, repo: TrekRepo): Promise<RepoState> {
   const commit = await runGit(dir, ["rev-parse", "HEAD"])
   return { kind: "now", repo, dir, left: repo.revision, commit, uncommitted: false }
 }
-
-const stopIds = (trek: Trek) =>
-  new Set(trek.steps.filter((step) => step.kind !== "context").map((step) => step.id))
 
 type Now = Extract<RepoState, { kind: "now" }>
 

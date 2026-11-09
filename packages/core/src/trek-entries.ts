@@ -1,3 +1,4 @@
+import { stopIds } from "./build/stops"
 import type { RangeHead } from "./change/head"
 import { TrekValidationError, listTreks, loadTrek, trekPath } from "./treks"
 
@@ -26,8 +27,7 @@ async function loadEntry(root: string, name: string): Promise<TrekEntry> {
   try {
     const trek = await loadTrek(path)
     const highFlags = trek.steps.filter((s) => s.uncertain?.severity === "high").length
-    // stops, as the editors number them: context steps are opened from the step they explain
-    const steps = trek.steps.filter((s) => s.kind !== "context").length
+    const steps = stopIds(trek).size
 
     // a code trek reads every repo at a revision; a change trek has a range in at least one
     const code = trek.repos.every((repo) => repo.range === undefined)

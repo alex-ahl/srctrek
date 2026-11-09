@@ -76,7 +76,7 @@ type Valid = Extract<TrekEntry, { valid: true }>
 // What the change's own trek's status says beyond its word, when stale or unreachable.
 function statusDetail(status: TrekStatus): string | undefined {
   if (status.kind === "stale") {
-    return `${status.staleSteps} of ${count(status.steps, "step")} changed`
+    return `${status.staleStops} of ${count(status.stops, "step")} changed`
   }
 
   return status.kind === "unreachable" ? unreachableText(status.unreachable) : undefined

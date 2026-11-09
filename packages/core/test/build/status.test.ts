@@ -115,8 +115,8 @@ describe("trekStatus", () => {
     expect(await trekStatus(dir, await codeOf())).toEqual({
       kind: "stale",
       name: "a-refund-request",
-      staleSteps: 1,
-      steps: 1,
+      staleStops: 1,
+      stops: 1,
     })
   })
 
@@ -128,14 +128,14 @@ describe("trekStatus", () => {
     expect(await trekStatus(dir, await changeOf(dir))).toEqual({
       kind: "stale",
       name: "feature-refunds",
-      staleSteps: 0,
-      steps: 1,
+      staleStops: 0,
+      stops: 1,
     })
 
     await commit(dir, "app.ts", "const total = 300\n")
     expect(await trekStatus(dir, await changeOf(dir))).toMatchObject({
       kind: "stale",
-      staleSteps: 1,
+      staleStops: 1,
     })
   })
 

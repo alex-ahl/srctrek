@@ -41,11 +41,11 @@ function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
   }
 }
 
-function staleBlock({ name, staleSteps, steps }: Of<"stale">, canBuild: boolean): StatusBlock {
+function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean): StatusBlock {
   const changed =
-    staleSteps === 0
+    staleStops === 0
       ? "built at older commits, though none of its steps' files changed"
-      : `${staleSteps} of ${count(steps, "step")}' files changed since it was built`
+      : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
 
   return {
     symbol: "●",

@@ -44,9 +44,16 @@ test("names the change and its size in the title bar", async () => {
         repo: "web",
         base: "main",
         head: { kind: "branch", name: "feature/refunds", uncommitted: true },
+        mode: "since-branch-point",
         commits: 3,
       },
-      { repo: "api", base: "main", head: { kind: "pull", number: 12 }, commits: 1 },
+      {
+        repo: "api",
+        base: "main",
+        head: { kind: "pull", number: 12 },
+        mode: "since-branch-point",
+        commits: 1,
+      },
     ],
     unchanged: ["worker"],
     code: false,
@@ -57,6 +64,24 @@ test("names the change and its size in the title bar", async () => {
     " srctrek  web · main...feature/refunds + uncommitted  api · pr 12  + worker",
   )
   expect(frame).toContain("3 repos · 4 commits")
+})
+
+test("writes a direct range with two dots, as it was given", async () => {
+  const summary: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "HEAD~3",
+        head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+        mode: "direct",
+        commits: 3,
+      },
+    ],
+    unchanged: [],
+    code: false,
+  }
+
+  expect(await frameOf({ summary })).toContain(" srctrek  web · HEAD~3..feature/refunds ")
 })
 
 test("lists the treks in sections by what they're of, newest first, folding what can't be read", async () => {
@@ -87,6 +112,7 @@ test("puts treks of the change's branch with the change, and done treks folded a
         repo: "web",
         base: "main",
         head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+        mode: "since-branch-point",
         commits: 3,
       },
     ],
@@ -236,7 +262,7 @@ test("lists the triggers found as rows to pick, each saying where its trek stand
 })
 
 test("says a stale trek is out of date, how much changed, and offers to update it", async () => {
-  const status: TrekStatus = { kind: "stale", name: "feature-refunds", staleSteps: 3, steps: 12 }
+  const status: TrekStatus = { kind: "stale", name: "feature-refunds", staleStops: 3, stops: 12 }
   const frame = await frameOf({ status, onBuild: noop })
 
   expect(frame).toContain(" ● stale  feature-refunds")

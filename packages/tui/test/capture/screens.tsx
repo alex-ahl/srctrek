@@ -58,6 +58,7 @@ const summary: ChangeSummary = {
       repo: "web",
       base: "main",
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+      mode: "since-branch-point",
       commits: 9,
     },
   ],
@@ -157,7 +158,7 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
       "trek: stopped after 3 rejected rounds",
     ],
   }),
-  "home-stale": home({ kind: "stale", name: "feature-refunds", staleSteps: 4, steps: 19 }),
+  "home-stale": home({ kind: "stale", name: "feature-refunds", staleStops: 4, stops: 19 }),
   "home-older-guide": home({ kind: "older-guide", name: "feature-refunds" }),
   "home-unreadable": home({
     kind: "unreadable",

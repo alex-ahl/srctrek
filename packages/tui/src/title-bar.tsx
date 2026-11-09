@@ -13,11 +13,15 @@ function headLabel(head: RangeHead): string {
   return `${head.kind === "pull" ? "pr" : "mr"} ${head.number}`
 }
 
-// "web · main...feature/refunds", or "api · pr 12" for a pull request, whose base is the host's.
-function changedText({ repo, base, head }: ChangedRepoSummary): string {
-  return head.kind === "branch"
-    ? `${repo} · ${base}...${headLabel(head)}`
-    : `${repo} · ${headLabel(head)}`
+// "web · main...feature/refunds" from where the branch left main, "web · HEAD~3..HEAD" straight
+// from a commit, or "api · pr 12" for a pull request, whose base is the host's.
+function changedText({ repo, base, head, mode }: ChangedRepoSummary): string {
+  if (head.kind !== "branch") {
+    return `${repo} · ${headLabel(head)}`
+  }
+
+  const dots = mode === "direct" ? ".." : "..."
+  return `${repo} · ${base}${dots}${headLabel(head)}`
 }
 
 /** What the change is: each changed repo's range, then the repos it passes through. */

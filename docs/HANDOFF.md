@@ -48,6 +48,9 @@
   flags, and "built today 13:51"; the title column as wide as the longest title; proposals spread
   their source and reason past it, their keys at the end; the block says "15 steps · 3 repos"
   with the flag in red; srctrek bold in the text colour; the footer dimmed.
+- Step 7k: a stale trek counts stops, as every list does (`staleStops` of `stops`, shared through
+  `stopIds`), so the block and its row agree with the step counts beside them; the title bar
+  writes a direct range with two dots (`main..main`), as it was given.
 
 ## 2026-11-03 — Milestone 6: the editors
 
