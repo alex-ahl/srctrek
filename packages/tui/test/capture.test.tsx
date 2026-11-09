@@ -3,7 +3,7 @@ import { expect, test } from "bun:test"
 import { screenText } from "./capture/as-text"
 import { captureScreen } from "./capture/frame"
 import { DARK, LIGHT, dimmed, shownColour } from "./capture/palettes"
-import { playOutput } from "./capture/terminal"
+import { colourAnswers, playOutput } from "./capture/terminal"
 
 test("an ANSI colour and the terminal's default take the palette's colours", () => {
   expect(shownColour(RGBA.fromIndex(2), "fg", DARK)).toBe("#8fcf7a")
@@ -37,4 +37,14 @@ test("a program's output is played through an emulator, up to where it leaves it
   const frame = await playOutput(`${drawn}\x1b[?1049l`, 12, 2)
 
   expect(screenText(frame)).toBe("● ready\n  plain\n\nstyles:\n 0: 0-6 green bold\n")
+})
+
+test("the capture answers a program's colour queries as a terminal in its palette would", () => {
+  const asked = "\x1b]11;?\x07\x1b]10;?\x1b\\\x1b]4;2;?\x07"
+
+  expect(colourAnswers(asked, DARK)).toEqual([
+    "\x1b]11;rgb:1616/1818/1b1b\x07",
+    "\x1b]10;rgb:d3d3/d6d6/dada\x07",
+    "\x1b]4;2;rgb:8f8f/cfcf/7a7a\x07",
+  ])
 })

@@ -51,6 +51,11 @@
 - Step 7k: a stale trek counts stops, as every list does (`staleStops` of `stops`, shared through
   `stopIds`), so the block and its row agree with the step counts beside them; the title bar
   writes a direct range with two dots (`main..main`), as it was given.
+- Step 7j: the selected row is tinted instead of marked, as in the mockup: the home screen asks the
+  terminal for its default colours and moves the background 12% toward the text, so the band
+  reads in dark and light themes; a terminal that doesn't answer keeps the `▶`. The terminal
+  capture now runs trek live and answers its colour queries from each palette, so it shows what
+  a dark and a light terminal really get.
 
 ## 2026-11-03 — Milestone 6: the editors
 

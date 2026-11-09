@@ -3,6 +3,7 @@ import type { ChangeSummary, TrekEntry, TrekState, TrekStatus } from "@srctrek/c
 import type { ComponentProps } from "react"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
+import { tintOf } from "../src/theme"
 import { frameAfter } from "./support/keys"
 
 const noop = () => undefined
@@ -315,4 +316,19 @@ test("says a trek can't be opened, which repo, and how to fix it, with no key to
   expect(frame).toContain("▶ ✕ can't open   Refund orders   no worker at ../worker")
   expect(frame).not.toContain("b build")
   expect(frame).not.toContain("enter open")
+})
+
+test("tints the selected row instead of marking it, once the terminal's colours are known", async () => {
+  const entries = [refund, other]
+  const marked = await frameOf({ entries })
+  const tinted = await frameOf({ entries, tint: tintOf("#d3d6da", "#16181b") })
+
+  expect(marked).toContain("▶ Refund orders")
+  expect(tinted).not.toContain("▶")
+  expect(tinted).toContain("  Refund orders")
+})
+
+test("a tint moves the terminal's background a little toward its text, dark or light", () => {
+  expect(tintOf("#d3d6da", "#16181b").toInts()).toEqual([45, 47, 50, 255])
+  expect(tintOf("#24292f", "#ffffff").toInts()).toEqual([229, 229, 230, 255])
 })

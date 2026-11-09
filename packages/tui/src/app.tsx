@@ -1,4 +1,5 @@
 import type { ChangeSummary, ProposedRepo, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
+import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { useState } from "react"
 import { ChangeStatus } from "./change-status"
@@ -42,6 +43,8 @@ type Props = {
   states?: ReadonlyMap<string, TrekState> | undefined
   // the time "built today" is measured from; now, unless a test fixes it
   now?: Date | undefined
+  // the selected row's background, from the terminal's colours; absent, a marker shows it
+  tint?: RGBA | undefined
 }
 
 // Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
@@ -232,7 +235,7 @@ export function App(props: Props) {
   const shown = shownItems(lines.slice(start, end), items.length)
   const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
   const columns = columnsOf(visibleRows, width, { status, states, now })
-  const context = { width, now, columns, status, states }
+  const context = { width, now, columns, status, states, tint: props.tint }
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>

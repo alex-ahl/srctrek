@@ -1,6 +1,7 @@
 import { type CapturedFrame, type CapturedSpan, RGBA, TextAttributes } from "@opentui/core"
 import { Terminal, type IBufferCell } from "@xterm/headless"
-import { mkdtemp, readFile, rm } from "node:fs/promises"
+import type { Palette } from "./palettes"
+import { mkdtemp, open, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -22,48 +23,82 @@ export type TerminalRun = Readonly<{
   keys: readonly string[]
 }>
 
-// Long enough for the program to start, find its terminal unanswered, and draw.
+// Long enough for the program to start, ask the terminal about itself, and draw.
 const FIRST_DRAW_MS = 2000
 const KEY_GAP_MS = 600
 const QUIT_MS = 2000
 
 const quoted = (text: string) => `'${text.replaceAll("'", "'\\''")}'`
 
-// printf's octal escapes for every byte, so any key survives the shell's quoting.
-const printfOf = (text: string) =>
-  `printf '${[...new TextEncoder().encode(text)].map((byte) => `\\${byte.toString(8).padStart(3, "0")}`).join("")}'`
+// "rgb:1616/1818/1b1b": a colour as a terminal reports it, each channel in four hex digits.
+const reported = (hex: string) =>
+  `rgb:${[1, 3, 5].map((at) => hex.slice(at, at + 2).repeat(2)).join("/")}`
 
-// The keys as a shell pipeline's input: a pause for the first draw, each key after a gap, then q,
-// which trek quits on.
-function keyFeed(keys: readonly string[]): string {
-  const presses = [...keys.map((key) => KEYS[key] ?? key), "q"]
-  const steps = presses.map(
-    (press, i) => `sleep ${(i === 0 ? FIRST_DRAW_MS : KEY_GAP_MS) / 1000}; ${printfOf(press)}`,
-  )
+// The colour queries a program asks the terminal: one of its palette's colours (OSC 4), its
+// default text (OSC 10), its default background (OSC 11).
+// oxlint-disable-next-line no-control-regex -- terminal escape sequences are what it matches
+const QUERY = /\x1b\](4;(\d+)|10|11);\?(?:\x07|\x1b\\)/g
 
-  return `(${steps.join("; ")}; sleep ${QUIT_MS / 1000})`
+/** What a terminal in `palette` answers to every colour query in `output`. */
+export function colourAnswers(output: string, palette: Palette): string[] {
+  return [...output.matchAll(QUERY)].flatMap(([, which, index]) => {
+    if (which === "10" || which === "11") {
+      const colour = which === "10" ? palette.fg : palette.bg
+      return [`\x1b]${which};${reported(colour)}\x07`]
+    }
+
+    const colour = palette.ansi[Number(index)]
+    return colour === undefined ? [] : [`\x1b]4;${index};${reported(colour)}\x07`]
+  })
 }
 
 /**
- * Runs `command` in a pseudo-terminal of the given size, through macOS's `script`, presses the
- * keys and then q, and returns everything it wrote to the terminal. `script` needs a real pipe
- * for its input, so the keys come from a shell pipeline rather than from this process.
+ * Runs `command` in a pseudo-terminal of the given size, through macOS's `script`, as a terminal
+ * in `palette` would: it answers the program's colour queries, presses the keys and then q, and
+ * returns everything the program wrote. Its input comes from a FIFO this process keeps writing
+ * to, through cat, as `script` needs a pipe and won't take the FIFO itself.
  */
-export async function runInTerminal(run: TerminalRun): Promise<string> {
+export async function runInTerminal(run: TerminalRun, palette: Palette): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "trek-terminal-"))
-  const transcript = join(dir, "out")
-  const inner = `stty cols ${run.width} rows ${run.height}; cd ${quoted(run.cwd)} && exec ${run.command}`
-  // -F writes each output to the transcript at once, so nothing is lost when the run ends
-  const pipeline = `${keyFeed(run.keys)} | script -q -F ${quoted(transcript)} sh -c ${quoted(inner)}`
-  const shell = Bun.spawn(["sh", "-c", pipeline], {
-    stdin: "ignore",
-    stdout: "ignore",
-    stderr: "ignore",
-    env: { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor" },
-  })
-  await shell.exited
+  const fifo = join(dir, "input")
+  Bun.spawnSync(["mkfifo", fifo])
 
-  const output = await readFile(transcript, "utf8")
+  const inner = `stty cols ${run.width} rows ${run.height}; cd ${quoted(run.cwd)} && exec ${run.command}`
+  const shell = Bun.spawn(
+    ["sh", "-c", `cat < ${quoted(fifo)} | script -q /dev/null sh -c ${quoted(inner)}`],
+    {
+      stdin: "ignore",
+      stdout: "pipe",
+      stderr: "ignore",
+      env: { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor" },
+    },
+  )
+  const input = await open(fifo, "w")
+  const send = (text: string) => input.write(text)
+
+  let output = ""
+  let answered = 0
+  const reading = (async () => {
+    for await (const chunk of shell.stdout.pipeThrough(new TextDecoderStream())) {
+      output += chunk
+      const answers = colourAnswers(output, palette)
+      await Promise.all(answers.slice(answered).map(send))
+      answered = answers.length
+    }
+  })()
+
+  await Bun.sleep(FIRST_DRAW_MS)
+  for (const key of run.keys) {
+    await send(KEYS[key] ?? key)
+    await Bun.sleep(KEY_GAP_MS)
+  }
+  await send("q")
+
+  const stopping = setTimeout(() => shell.kill(), QUIT_MS)
+  await shell.exited
+  clearTimeout(stopping)
+  await reading
+  await input.close()
   await rm(dir, { recursive: true, force: true })
 
   return output

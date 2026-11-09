@@ -11,12 +11,13 @@ import {
   loadTrekEntries,
   trekStates,
 } from "@srctrek/core"
-import { createCliRenderer } from "@opentui/core"
-import { createRoot } from "@opentui/react"
+import { type RGBA, createCliRenderer } from "@opentui/core"
+import { createRoot, useRenderer } from "@opentui/react"
 import { useEffect, useState } from "react"
 import { App } from "./app"
 import { openInNeovim } from "./neovim"
 import { openInPager } from "./pager"
+import { tintOf } from "./theme"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
@@ -58,6 +59,22 @@ function Home(props: HomeProps) {
   const [status, setStatus] = useState(props.firstStatus)
   const [proposals, setProposals] = useState(props.firstProposals)
   const [states, setStates] = useState<ReadonlyMap<string, TrekState>>(new Map())
+  const [tint, setTint] = useState<RGBA | undefined>(undefined)
+  const renderer = useRenderer()
+
+  // The selected row's tint comes from the terminal's own colours, when it says what they are;
+  // a terminal that doesn't answer keeps the plain marker.
+  useEffect(() => {
+    const colours = renderer.getPalette({ timeout: 1000 })
+    void colours.then(
+      ({ defaultForeground, defaultBackground }) => {
+        if (defaultForeground !== null && defaultBackground !== null) {
+          setTint(tintOf(defaultForeground, defaultBackground))
+        }
+      },
+      () => undefined,
+    )
+  }, [renderer])
 
   // Each trek's state takes git calls, so the list is drawn first and the states fill in.
   useEffect(() => {
@@ -122,6 +139,7 @@ function Home(props: HomeProps) {
       onDismissRepo={(name) => void settle(dismissProposal(root, name))}
       summary={change?.summary}
       states={states}
+      tint={tint}
     />
   )
 }

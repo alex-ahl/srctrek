@@ -27,7 +27,9 @@ function spanDrawing(span: CapturedSpan, row: number, col: number, palette: Pale
   const background =
     bg === palette.bg
       ? []
-      : [`fill '${bg}' rectangle ${x},${y} ${x + span.width * CELL_WIDTH},${y + CELL_HEIGHT - 1}`]
+      : [
+          `stroke none fill '${bg}' rectangle ${x},${y} ${x + span.width * CELL_WIDTH},${y + CELL_HEIGHT - 1}`,
+        ]
   if (span.text.trim() === "") {
     return background
   }

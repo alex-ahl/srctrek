@@ -1,4 +1,4 @@
-import { TextAttributes } from "@opentui/core"
+import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
 import { type Columns, GAP, builtText, flagsText } from "./row-columns"
 import { type StateLabel, type States, detailOf, stateOf } from "./row-state"
@@ -49,10 +49,15 @@ export type RowContext = Readonly<{
   status: TrekStatus | undefined
   // where every other saved trek stands, as far as it's known yet
   states: States
+  // the selected row's background, when the terminal's colours are known
+  tint?: RGBA | undefined
 }>
 
-function Marker({ selected }: { selected: boolean }) {
-  return <span fg={COLOUR.accent}>{selected ? "▶ " : "  "}</span>
+// The selection's marker, where no tint shows it.
+function Marker({ selected, context }: { selected: boolean; context: RowContext }) {
+  const marked = selected && context.tint === undefined
+
+  return <span fg={COLOUR.accent}>{marked ? "▶ " : "  "}</span>
 }
 
 // The row's title in its column, bold when selected, cut to leave a gap before the next column.
@@ -92,7 +97,7 @@ function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRep
 
   return (
     <text fg={COLOUR.text}>
-      <Marker selected={selected} />
+      <Marker selected={selected} context={context} />
       <State label={PROPOSED} width={columns.state} />
       <span
         {...(selected ? { attributes: TextAttributes.BOLD } : {})}
@@ -110,7 +115,7 @@ function TriggerRow({ item: found, selected, context }: RowProps<TriggerTrek>) {
 
   return (
     <text fg={COLOUR.text}>
-      <Marker selected={selected} />
+      <Marker selected={selected} context={context} />
       <State label={statusBlock(trek, undefined, false)} width={columns.state} />
       <Title text={trigger.name} width={columns.title} selected={selected} />
       <span fg={COLOUR.dim}>{fit(where, rest(context))}</span>
@@ -125,7 +130,7 @@ function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
   if (!entry.valid) {
     return (
       <text fg={COLOUR.text}>
-        <Marker selected={selected} />
+        <Marker selected={selected} context={context} />
         <State label={label} width={columns.state} />
         <Title text={entry.name} width={columns.title} selected={selected} />
         <span fg={COLOUR.dim}>{fit(entry.problem, rest(context))}</span>
@@ -136,7 +141,7 @@ function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
   const built = columns.built === 0 ? "" : builtText(entry, context.now)
   return (
     <text fg={COLOUR.text}>
-      <Marker selected={selected} />
+      <Marker selected={selected} context={context} />
       <State label={label} width={columns.state} />
       <Title text={entry.title} width={columns.title} selected={selected} />
       <span fg={COLOUR.dim}>{detailOf(entry, status, states).padEnd(columns.detail)}</span>

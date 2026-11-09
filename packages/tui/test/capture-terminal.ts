@@ -1,6 +1,7 @@
 // Runs the built trek in a real pseudo-terminal, presses keys, and saves the screen it leaves, as
 // text with its colours (.txt) and as pictures in a dark and a light terminal's palette (.png):
-// the real binary, renderer, and escape codes, played through a terminal emulator.
+// the real binary, renderer, and escape codes, played through a terminal emulator. Each palette
+// gets a run of its own, the capture answering trek's colour queries as that terminal would.
 //
 //   bun packages/tui/test/capture-terminal.ts <out-prefix> [--cwd <dir>] [--size <W>x<H>]
 //     [--keys "<key> <key>…"] [-- <trek args>…]
@@ -36,11 +37,15 @@ const trek = resolve("dist/trek")
 const command = [trek, ...trekArgs].map((arg) => `'${arg.replaceAll("'", "'\\''")}'`).join(" ")
 const keys = values.keys.split(" ").filter(Boolean)
 
-const output = await runInTerminal({ command, cwd: resolve(values.cwd), width, height, keys })
-const frame = await playOutput(output, width, height)
+const run = { command, cwd: resolve(values.cwd), width, height, keys }
 
-await Bun.write(`${out}.txt`, screenText(frame))
-for (const palette of PALETTES) {
+// A run per palette, as the program sees the terminal's colours and may draw with them.
+for (const [i, palette] of PALETTES.entries()) {
+  const frame = await playOutput(await runInTerminal(run, palette), width, height)
+  if (i === 0) {
+    await Bun.write(`${out}.txt`, screenText(frame))
+  }
+
   await savePicture(frame, palette, `${out}-${palette.name}.png`)
 }
 

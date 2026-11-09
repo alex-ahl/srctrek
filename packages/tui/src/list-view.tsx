@@ -48,5 +48,10 @@ export function ListLineView({
     return <FoldView item={item} selected={isSelected} />
   }
 
-  return <RowView row={item.row} selected={isSelected} context={context} />
+  const row = <RowView row={item.row} selected={isSelected} context={context} />
+  if (!isSelected || context.tint === undefined) {
+    return row
+  }
+
+  return <box style={{ backgroundColor: context.tint }}>{row}</box>
 }
