@@ -12,6 +12,14 @@
   and state of the terminal, from sample data in `packages/tui/test/capture/screens.tsx`, at a
   wide and a narrow size, as text with its colours and as pictures in a dark and a light
   terminal's palette, for checking each screen against `docs/DESIGN.md`.
+- Step 7c: the home screen to the design, in the terminal's own colours (its default text and ANSI
+  colours, so it reads on light terminals too): a title bar with the change, the repos it passes
+  through, and its size (`summarizeChange`); where the change's trek stands as a block (the state
+  in its colour, then dim lines on why and the keys); proposed repos, triggers, and treks under
+  headings, one row each in columns sized to what they hold, treks newest first with state (known
+  for the change's trek and invalid ones), steps, flags, and when each was built (left out on a
+  narrow terminal); the footer's keys at the bottom. Trek entries carry when they were built and
+  whether they follow code as it is.
 
 ## 2026-11-03 — Milestone 6: the editors
 

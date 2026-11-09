@@ -1,6 +1,7 @@
-import type { InputRenderable } from "@opentui/core"
+import { type InputRenderable, RGBA } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useRef } from "react"
+import { COLOUR } from "./theme"
 
 type Props = {
   name: string
@@ -28,9 +29,23 @@ export function LocationInput({ name, onSubmit, onCancel }: Props) {
   }
 
   return (
-    <box flexDirection="row" style={{ flexShrink: 0 }}>
-      <text>{`Where does ${name} live? A path or URL, esc to cancel: `}</text>
-      <input ref={input} focused onSubmit={submit} style={{ flexGrow: 1 }} />
+    <box
+      flexDirection="row"
+      border={["top"]}
+      borderColor={COLOUR.dim}
+      style={{ paddingLeft: 1, paddingRight: 1, flexShrink: 0 }}
+    >
+      <text fg={COLOUR.text}>{`Where does ${name} live? A path or URL, esc to cancel: `}</text>
+      <input
+        ref={input}
+        focused
+        onSubmit={submit}
+        textColor={COLOUR.text}
+        focusedTextColor={COLOUR.text}
+        backgroundColor={RGBA.defaultBackground()}
+        focusedBackgroundColor={RGBA.defaultBackground()}
+        style={{ flexGrow: 1 }}
+      />
     </box>
   )
 }

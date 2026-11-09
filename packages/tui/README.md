@@ -8,9 +8,10 @@ The terminal controller for a trek, built with OpenTUI and React.
 
 Does: show a home screen of treks and PRs awaiting review, a live view while a trek is
 built, and a route map of the whole trek; and step through a trek with a code panel for
-editors without a plugin. Today: lists the treks in the .srctrek/treks folder and opens the chosen
-one in Neovim, and lists repos the agent proposed, for the user to add to the repos list or
-dismiss.
+editors without a plugin. Today: the home screen, in the terminal's own colours:
+the change and its repos, where the change's trek stands, repos the agent proposed (to add to
+the repos list or dismiss), and the treks in the .srctrek/treks folder, opening the chosen one in
+Neovim.
 
 Does not: talk to git or the model, or define the trek format. That is all in core.
 

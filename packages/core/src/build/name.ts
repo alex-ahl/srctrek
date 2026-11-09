@@ -1,6 +1,5 @@
 import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
-import { checkedOutBranch, isSnapshot } from "../git/refs"
-import { pullRequestOfRef } from "../repos/pull-request"
+import { rangeHead } from "../change/head"
 
 // Trek names are lowercase letters, digits, and dashes; long branch names are cut.
 function slug(text: string): string {
@@ -11,25 +10,15 @@ function slug(text: string): string {
     .slice(0, 60)
 }
 
-// What the range's head is called: a pull request's number, the branch checked out (marked
-// when the head is a snapshot of uncommitted work), or the branch or ref the range names.
+// What the range's head is called: "pr-12", "mr-4", the branch, or the branch with
+// "-uncommitted" for a snapshot of the work on it.
 async function headName(repo: RepoWithRange): Promise<string> {
-  const { head, headCommit } = repo.range
-  const request = pullRequestOfRef(head)
-  if (request !== undefined) {
-    return `${request.kind === "pull" ? "pr" : "mr"}-${request.number}`
+  const head = await rangeHead(repo)
+  if (head.kind !== "branch") {
+    return `${head.kind === "pull" ? "pr" : "mr"}-${head.number}`
   }
 
-  const checkedOut = (await checkedOutBranch(repo.dir)) ?? headCommit.slice(0, 7)
-  if (head === "HEAD") {
-    return checkedOut
-  }
-
-  if (await isSnapshot(repo.dir, headCommit)) {
-    return `${checkedOut}-uncommitted`
-  }
-
-  return head
+  return head.uncommitted ? `${head.name}-uncommitted` : head.name
 }
 
 // A trek of code as it is is named after its trigger, or after its first repo when the agent

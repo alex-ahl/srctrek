@@ -92,6 +92,8 @@ export { cachePath, cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
 export type { CodeTrek } from "./change/options"
+export type { RangeHead } from "./change/head"
+export { summarizeChange, type ChangeSummary, type ChangedRepoSummary } from "./change/summary"
 export {
   hasRange,
   resolveChange,

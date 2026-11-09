@@ -1,4 +1,5 @@
 import {
+  type ChangeSummary,
   type ProposedRepo,
   type TrekEntry,
   type TrekStatus,
@@ -17,6 +18,8 @@ import { openInPager } from "./pager"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
+  // what the change is, for the title bar
+  summary: ChangeSummary
   status: () => Promise<TrekStatus>
   // starts building the change's trek; absent when no agent is set
   build?: (() => Promise<void>) | undefined
@@ -104,6 +107,7 @@ function Home(props: HomeProps) {
       proposals={proposals}
       onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
       onDismissRepo={(name) => void settle(dismissProposal(root, name))}
+      summary={change?.summary}
     />
   )
 }

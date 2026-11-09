@@ -1,10 +1,17 @@
-import type { ProposedRepo, TrekEntry, TrekStatus } from "@srctrek/core"
+import type { ChangeSummary, ProposedRepo, TrekEntry, TrekStatus } from "@srctrek/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { useState } from "react"
 import { ChangeStatus } from "./change-status"
-import { rowsThatFit } from "./layout"
-import { type Row, RowView, rowKey, rowsOf } from "./rows"
+import { Footer } from "./footer"
+import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
+import { listHeight } from "./layout"
+import { type ListLine, lineOfRow, listLines } from "./list-lines"
 import { LocationInput } from "./location-input"
+import { type Row, type RowContext, RowView, columnsOf, rowsOf } from "./rows"
+import { canStartBuild, hasLog, hasTrek } from "./states"
+import { statusBlock } from "./status-block"
+import { COLOUR } from "./theme"
+import { TitleBar } from "./title-bar"
 import { visibleWindow } from "./window"
 
 type Action = (() => void) | undefined
@@ -26,33 +33,10 @@ type Props = {
   proposals?: ProposedRepo[] | undefined
   onAddRepo?: ((name: string, location?: string) => void) | undefined
   onDismissRepo?: ((name: string) => void) | undefined
-}
-
-type WithLog = Extract<TrekStatus, { kind: "building" | "failed" }>
-
-// A build's log is worth reading while it runs, and after it failed.
-function hasLog(status: TrekStatus | undefined): status is WithLog {
-  return status?.kind === "building" || status?.kind === "failed"
-}
-
-// A build can start when the change has no trek yet, its last build failed, its trek is out of
-// date and can be updated, or its trek was built with an older guide or isn't valid and can be
-// rebuilt.
-const BUILDABLE: ReadonlySet<TrekStatus["kind"] | undefined> = new Set([
-  "missing",
-  "failed",
-  "stale",
-  "older-guide",
-  "unreadable",
-])
-
-function canStartBuild(status: TrekStatus | undefined): boolean {
-  return BUILDABLE.has(status?.kind)
-}
-
-// A trek built with an older guide still opens; rebuilding it is the user's call.
-function hasTrek(status: TrekStatus | undefined): boolean {
-  return status?.kind === "ready" || status?.kind === "older-guide"
+  // what the change is, for the title bar; absent when trek was started without one
+  summary?: ChangeSummary | undefined
+  // the time "built today" is measured from; now, unless a test fixes it
+  now?: Date | undefined
 }
 
 // Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
@@ -96,37 +80,6 @@ function logName(row: Row | undefined, status: TrekStatus | undefined): string |
   return hasLog(status) ? status.name : undefined
 }
 
-// What b does, when it does anything: "build" a trek, "update" an out-of-date one, or
-// "rebuild" one built with an older guide or that isn't valid.
-type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
-
-function buildVerb(status: TrekStatus | undefined): string {
-  if (status?.kind === "stale") {
-    return "update"
-  }
-
-  return status?.kind === "older-guide" || status?.kind === "unreadable" ? "rebuild" : "build"
-}
-
-function footerKeys(enter: string, offered: Offered): string {
-  const build = offered.build === undefined ? "" : ` · b ${offered.build}`
-  const log = offered.log ? " · l log" : ""
-  const dismiss = offered.dismiss ? " · d dismiss" : ""
-
-  return `↑/↓ choose · enter ${enter}${dismiss}${build}${log} · q quit`
-}
-
-// What enter says it does for the selected row.
-function enterLabel(row: Row | undefined): string {
-  if (row?.kind === "proposal") {
-    return "add to the repos list"
-  }
-
-  const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.found.trek)
-
-  return buildsTrigger ? "build its trek" : "open in Neovim"
-}
-
 // What each key does on the selected row; undefined where it does nothing.
 type RowActions = { pick: Action; build: Action; showLog: Action; dismiss: Action }
 
@@ -155,12 +108,34 @@ function actionsFor(
   }
 }
 
+// "3–22 of 35": which rows are on screen, when not all of them are.
+function shownRows(visible: readonly ListLine[], total: number): string {
+  const indexes = visible.flatMap((line) => (line.kind === "row" ? [line.index] : []))
+  const [first, last] = [indexes.at(0), indexes.at(-1)]
+  if (first === undefined || last === undefined || indexes.length === total) {
+    return ""
+  }
+
+  return `${first + 1}–${last + 1} of ${total}`
+}
+
+// What enter, b, l, and d do here, for the footer; only keys that do something are listed.
+function keyHints(row: Row | undefined, status: TrekStatus | undefined, actions: RowActions) {
+  return footerKeys(enterLabel(row), {
+    build: actions.build === undefined ? undefined : buildVerb(status),
+    log: actions.showLog !== undefined,
+    dismiss: actions.dismiss !== undefined,
+  })
+}
+
 export function App(props: Props) {
   const { entries, onQuit, status, onBuild, onAddRepo } = props
   const rows = rowsOf(entries, status, props.proposals ?? [])
   const [chosen, setChosen] = useState<number | undefined>(undefined)
   // the proposed repo whose location the user is typing, while they are
   const [placing, setPlacing] = useState<string | undefined>(undefined)
+  // when the screen opened, which "built today" is measured from
+  const [now] = useState(() => props.now ?? new Date())
 
   // Until the user moves, the change's trek is the one picked out, once it's listed.
   const readyIndex = rows.findIndex(
@@ -169,7 +144,8 @@ export function App(props: Props) {
   const selected = chosen ?? Math.max(readyIndex, 0)
   const row = rows[selected]
 
-  const { pick, build, showLog, dismiss } = actionsFor(row, props, setPlacing)
+  const rowActions = actionsFor(row, props, setPlacing)
+  const { pick, build, showLog, dismiss } = rowActions
 
   const moveDown = () => setChosen(Math.min(selected + 1, rows.length - 1))
   const moveUp = () => setChosen(Math.max(selected - 1, 0))
@@ -187,35 +163,43 @@ export function App(props: Props) {
   // While a location is typed, keys are text, not commands.
   useKeyboard((key) => placing === undefined && actions.get(key.name)?.())
 
-  const { height } = useTerminalDimensions()
-  const { start, end } = visibleWindow(rows.length, selected, rowsThatFit(height, status))
-  const shown = end - start < rows.length ? `${start + 1}–${end} of ${rows.length} · ` : ""
-  const keys = footerKeys(enterLabel(row), {
-    build: build === undefined ? undefined : buildVerb(status),
-    log: showLog !== undefined,
-    dismiss: dismiss !== undefined,
-  })
+  const { width, height } = useTerminalDimensions()
+  const changeEntry = entries.find((entry) => entry.name === status?.name)
+  const block =
+    status === undefined ? undefined : statusBlock(status, changeEntry, onBuild !== undefined)
+  const lines = listLines(rows)
+  const { start, end } = visibleWindow(
+    lines.length,
+    lineOfRow(lines, selected),
+    listHeight(height, block),
+  )
+  const shown = shownRows(lines.slice(start, end), rows.length)
+  const context = { width, now, columns: columnsOf(rows, status), status }
 
   return (
-    <box flexDirection="column" style={{ border: true, padding: 1 }} title="srctrek">
-      {status !== undefined && (
-        <box style={{ marginBottom: 1, flexShrink: 0 }}>
-          <ChangeStatus status={status} canBuild={onBuild !== undefined} />
-        </box>
-      )}
-      <box flexDirection="column" style={{ flexGrow: 1, overflow: "hidden" }}>
+    <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
+      <TitleBar summary={props.summary} />
+      <box
+        flexDirection="column"
+        style={{ flexGrow: 1, paddingTop: 1, paddingLeft: 1, paddingRight: 1, overflow: "hidden" }}
+      >
+        {block !== undefined && (
+          <box style={{ marginBottom: 1, flexShrink: 0 }}>
+            <ChangeStatus block={block} />
+          </box>
+        )}
         {rows.length === 0 ? (
-          <text>No treks in .srctrek/treks. Press q to quit.</text>
+          <text fg={COLOUR.dim}>No treks in .srctrek/treks yet.</text>
         ) : (
-          rows
+          lines
             .slice(start, end)
-            .map((shownRow, i) => (
-              <RowView key={rowKey(shownRow)} row={shownRow} selected={start + i === selected} />
+            .map((line, i) => (
+              <ListLineView key={start + i} line={line} selected={selected} context={context} />
             ))
         )}
       </box>
       {placing === undefined ? (
-        <text fg="#7a7f99">{`${shown}${keys}`}</text>
+        <Footer keys={keyHints(row, status, rowActions)} shown={shown} />
       ) : (
         <LocationInput
           name={placing}
@@ -228,4 +212,24 @@ export function App(props: Props) {
       )}
     </box>
   )
+}
+
+function ListLineView({
+  line,
+  selected,
+  context,
+}: {
+  line: ListLine
+  selected: number
+  context: RowContext
+}) {
+  if (line.kind === "gap") {
+    return <text fg={COLOUR.text}> </text>
+  }
+
+  if (line.kind === "heading") {
+    return <text fg={COLOUR.dim}>{line.text}</text>
+  }
+
+  return <RowView row={line.row} selected={line.index === selected} context={context} />
 }

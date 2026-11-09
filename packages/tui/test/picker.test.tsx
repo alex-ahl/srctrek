@@ -16,6 +16,8 @@ const withTrek: TrekEntry = {
   title: "A reply times out",
   steps: 6,
   highFlags: 0,
+  createdAt: "2026-11-09T09:12:00.000Z",
+  code: false,
 }
 
 function statusWith(trek: { kind: "missing" | "ready"; name: string }) {

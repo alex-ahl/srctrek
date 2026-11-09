@@ -18,6 +18,8 @@ const refund: TrekEntry = {
   title: "Refund orders",
   steps: 20,
   highFlags: 0,
+  createdAt: "2026-11-09T09:12:00.000Z",
+  code: false,
 }
 
 test("lists a proposed repo first, with where it lives and why, and how to settle it", async () => {
@@ -31,13 +33,14 @@ test("lists a proposed repo first, with where it lives and why, and how to settl
       onDismissRepo={noop}
     />,
     120,
-    14,
+    20,
   )
 
-  expect(frame).toContain("▶ + payments (proposed repo)")
+  expect(frame).toContain(" PROPOSED BY THE AGENT")
   expect(frame).toContain(
-    "    git@example.test:shop/payments.git · the client posts refunds to the payments service",
+    "▶ + payments   git@example.test:shop/payments.git   the client posts refunds to the payments service",
   )
+  expect(frame).toContain(" TREKS")
   expect(frame).toContain("enter add to the repos list · d dismiss")
 })
 
@@ -86,10 +89,12 @@ test("says when the agent couldn't find where a proposed repo lives", async () =
   const frame = await renderFrame(
     <App entries={[]} onOpen={noop} onQuit={noop} proposals={[api]} onAddRepo={noop} />,
     120,
-    10,
+    20,
   )
 
-  expect(frame).toContain("    location unknown · the web posts refunds to /refunds on the API")
+  expect(frame).toContain(
+    "▶ + api   location unknown   the web posts refunds to /refunds on the API",
+  )
 })
 
 test("enter on a proposal without a location asks for one, and adds the repo there", async () => {

@@ -6,6 +6,7 @@ import {
   readChangeArguments,
   resolveChange,
   startBuild,
+  summarizeChange,
   trekStatus,
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
@@ -46,7 +47,7 @@ async function trek(args: string[]): Promise<void> {
     await build()
   }
 
-  await startHome(cwd, { status, build, buildTrigger })
+  await startHome(cwd, { summary: await summarizeChange(change), status, build, buildTrigger })
 }
 
 // "mcp" or "serve" as the first word is the command: a folder by that name is given as ./mcp,

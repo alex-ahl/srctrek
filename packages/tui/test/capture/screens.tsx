@@ -1,4 +1,4 @@
-import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
+import type { ChangeSummary, ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
 import type { ReactNode } from "react"
 import { App } from "../../src/app"
 
@@ -12,6 +12,8 @@ const treks: TrekEntry[] = [
     title: "Full refund of order o_1001: button click to the payment provider",
     steps: 19,
     highFlags: 1,
+    createdAt: "2026-11-09T09:12:00.000Z",
+    code: false,
   },
   {
     name: "pr-12",
@@ -20,6 +22,8 @@ const treks: TrekEntry[] = [
     title: "Partial refunds split across two payments",
     steps: 14,
     highFlags: 0,
+    createdAt: "2026-11-08T16:40:00.000Z",
+    code: false,
   },
   {
     name: "orientation",
@@ -28,6 +32,8 @@ const treks: TrekEntry[] = [
     title: "How a refund request reaches the worker",
     steps: 15,
     highFlags: 0,
+    createdAt: "2026-10-21T11:05:00.000Z",
+    code: true,
   },
   {
     name: "pr-9",
@@ -36,6 +42,30 @@ const treks: TrekEntry[] = [
     problem: "steps.3 (s4).via: a link from another repo cites one side only",
   },
 ]
+
+// Reviewing feature/refunds in web, through the api and the worker, on the morning of Nov 9.
+const NOW = new Date("2026-11-09T10:30:00.000Z")
+
+const summary: ChangeSummary = {
+  changed: [
+    {
+      repo: "web",
+      base: "main",
+      head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+      commits: 9,
+    },
+  ],
+  unchanged: ["api", "worker"],
+  code: false,
+}
+
+// A branch still where it left main.
+const emptySummary: ChangeSummary = {
+  ...summary,
+  changed: summary.changed.map((repo) => ({ ...repo, commits: 0 })),
+}
+
+const codeSummary: ChangeSummary = { changed: [], unchanged: ["api"], code: true }
 
 const payments: ProposedRepo = {
   name: "payments",
@@ -81,13 +111,18 @@ const triggers: TriggerTrek[] = [
 // The home screen with the change's trek where `status` says, and an agent to build it.
 function home(
   status: TrekStatus | undefined,
-  extra: { proposals?: ProposedRepo[]; agent?: boolean } = {},
+  extra: { proposals?: ProposedRepo[]; agent?: boolean; summary?: ChangeSummary } = {},
 ) {
+  // a change with no trek yet has none of its own in the list
+  const entries =
+    status !== undefined && status.kind !== "missing" && status.kind !== "empty"
+      ? treks
+      : treks.slice(1)
   const build = extra.agent === false ? undefined : noop
 
   return (
     <App
-      entries={treks}
+      entries={entries}
       onOpen={noop}
       onQuit={noop}
       status={status}
@@ -97,6 +132,8 @@ function home(
       proposals={extra.proposals ?? []}
       onAddRepo={noop}
       onDismissRepo={noop}
+      summary={extra.summary ?? summary}
+      now={NOW}
     />
   )
 }
@@ -123,7 +160,7 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
   }),
   "home-missing": home({ kind: "missing", name: "feature-refunds" }),
   "home-no-agent": home({ kind: "missing", name: "feature-refunds" }, { agent: false }),
-  "home-empty": home({ kind: "empty", name: "feature-refunds" }),
-  "home-triggers": home({ kind: "triggers", name: "api-code", triggers }),
+  "home-empty": home({ kind: "empty", name: "feature-refunds" }, { summary: emptySummary }),
+  "home-triggers": home({ kind: "triggers", name: "api-code", triggers }, { summary: codeSummary }),
   "home-no-change": home(undefined),
 }
