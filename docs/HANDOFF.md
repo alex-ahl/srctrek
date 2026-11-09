@@ -20,6 +20,11 @@
   for the change's trek and invalid ones), steps, flags, and when each was built (left out on a
   narrow terminal); the footer's keys at the bottom. Trek entries carry when they were built and
   whether they follow code as it is.
+- Step 7d: `bun packages/tui/test/capture-terminal.ts <out-prefix>`, with `--cwd`, `--size`,
+  `--keys`, and trek's arguments after `--`, runs the built `trek` in a pseudo-terminal (macOS's
+  `script`), presses the keys and then `q`, plays what it wrote through a headless terminal
+  emulator, and saves the screen it showed as text and dark and light pictures, as Step 7b's
+  capture does: the real binary and renderer, in about five seconds.
 
 ## 2026-11-03 — Milestone 6: the editors
 

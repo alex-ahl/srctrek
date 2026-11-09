@@ -3,6 +3,7 @@ import { expect, test } from "bun:test"
 import { screenText } from "./capture/as-text"
 import { captureScreen } from "./capture/frame"
 import { DARK, LIGHT, dimmed, shownColour } from "./capture/palettes"
+import { playOutput } from "./capture/terminal"
 
 test("an ANSI colour and the terminal's default take the palette's colours", () => {
   expect(shownColour(RGBA.fromIndex(2), "fg", DARK)).toBe("#8fcf7a")
@@ -29,4 +30,11 @@ test("the screen's text names where its colours and attributes are", async () =>
   )
 
   expect(screenText(frame)).toBe("plain\n● ready\n\nstyles:\n 1: 0-6 green bold\n")
+})
+
+test("a program's output is played through an emulator, up to where it leaves its screen", async () => {
+  const drawn = "\x1b[?1049h\x1b[1;1H\x1b[38;5;2m\x1b[1m● ready\x1b[0m\x1b[2;3H\x1b[39mplain"
+  const frame = await playOutput(`${drawn}\x1b[?1049l`, 12, 2)
+
+  expect(screenText(frame)).toBe("● ready\n  plain\n\nstyles:\n 0: 0-6 green bold\n")
 })

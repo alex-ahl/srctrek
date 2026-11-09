@@ -20,7 +20,9 @@ Does not: talk to git or the model, or define the trek format. That is all in co
 Depends on `@srctrek/core`. Exports `startHome`, which the cli (`packages/cli/`) calls.
 The render smoke check used by CI: `packages/tui/src/smoke.tsx`. Every screen and state, drawn
 as text and pictures in a dark and a light terminal's colours:
-`bun packages/tui/test/capture-screens.tsx <out-dir> [screen]...`.
+`bun packages/tui/test/capture-screens.tsx <out-dir> [screen]...`. The built `trek` in a real
+terminal, after pressing keys, drawn the same way:
+`bun packages/tui/test/capture-terminal.ts <out-prefix> [--cwd <dir>] [--size <W>x<H>] [--keys "<key>…"] [-- <trek args>…]`.
 
 ## Why a package of its own
 
