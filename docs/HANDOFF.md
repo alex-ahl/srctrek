@@ -8,6 +8,10 @@
   which still opens, or unreadable (a file under its name that isn't a valid trek, such as one
   from another format version), which `trek` no longer builds over unasked; the home screen
   says which, and `b` rebuilds either, showing the build as it runs.
+- Step 7b: `bun packages/tui/test/capture-screens.tsx <out-dir> [screen]...` draws every screen
+  and state of the terminal, from sample data in `packages/tui/test/capture/screens.tsx`, at a
+  wide and a narrow size, as text with its colours and as pictures in a dark and a light
+  terminal's palette, for checking each screen against `docs/DESIGN.md`.
 
 ## 2026-11-03 — Milestone 6: the editors
 
