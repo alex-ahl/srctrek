@@ -27,6 +27,7 @@ const refund: TrekEntry = {
   steps: 12,
   highFlags: 0,
   createdAt: new Date(2026, 10, 9, 9, 12).toISOString(),
+  repos: 1,
   code: false,
   heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }
@@ -72,9 +73,9 @@ test("lists the treks in sections by what they're of, newest first, folding what
   const frame = await frameOf({ entries })
 
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
-  expect(frame).toContain("▶ refund   12 steps               ⚠ 4   today 09:12")
+  expect(frame).toContain("▶ Refund orders   12 steps   ⚠ 4   built today 09:12")
   expect(frame).toContain(" CODE AS IT IS")
-  expect(frame).toContain("   older    12 steps · code trek         Oct 21")
+  expect(frame).toContain("   An older trek   12 steps         built Oct 21")
   expect(frame).toContain(" ▸ CAN'T READ  1 trek")
   expect(frame).not.toContain("broken")
 })
@@ -107,8 +108,10 @@ test("puts treks of the change's branch with the change, and done treks folded a
   const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
   const frame = await frameOf({ entries, status, summary, states })
 
-  expect(frame).toMatch(/THIS CHANGE *\n.*feature-refunds .*\n.*older +● stale/)
-  expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS *\n.*partial/)
+  expect(frame).toMatch(
+    /THIS CHANGE *\n.*● ready   Refund orders .*\n.*● stale   An older trek   1 of 12 steps changed/,
+  )
+  expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS *\n *An older trek/)
   expect(frame).toContain(" ▸ DONE  1 trek")
   expect(frame).not.toContain("merged")
 })
@@ -181,10 +184,10 @@ test("picks out the change's trek once it's ready, with what it holds", async ()
   const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
   const frame = await frameOf({ entries: [other, { ...refund, highFlags: 1 }], status })
 
-  expect(frame).toContain(" ● ready  feature-refunds  12 steps · ⚠ 1 likely wrong")
+  expect(frame).toContain(" ● ready  feature-refunds  12 steps · 1 repo   ⚠ 1 likely wrong")
   expect(frame).toContain("   Refund orders")
-  expect(frame).toContain("▶ feature-refunds   ● ready   12 steps   ⚠ 1   today 09:12")
-  expect(frame).not.toContain("▶ older")
+  expect(frame).toContain("▶ ● ready   Refund orders   12 steps   ⚠ 1   built today 09:12")
+  expect(frame).not.toContain("▶ An older trek")
 })
 
 test("says there's nothing to trek when the change has no commits, and offers no build", async () => {
@@ -199,9 +202,7 @@ test("shows as many treks as fit, and says which", async () => {
   const many = Array.from({ length: 24 }, (_, i) => ({ ...refund, name: `t${i}` }))
   const frame = await frameOf({ entries: many }, 110, 12)
 
-  expect(frame).toContain("▶ t0 ")
-  expect(frame).toContain("  t5 ")
-  expect(frame).not.toContain("  t6 ")
+  expect(frame.match(/Refund orders/g)?.length).toBe(6)
   expect(frame).toContain("1–6 of 24")
 })
 
@@ -229,8 +230,8 @@ test("lists the triggers found as rows to pick, each saying where its trek stand
 
   expect(frame).toContain(" ◇ found 2 ways in")
   expect(frame).toContain(" WAYS INTO THIS CODE")
-  expect(frame).toContain("▶ a persona answers an @-ment…   ○ no trek yet   event   bot.py:311")
-  expect(frame).toContain("  a reply times out              ● ready         event   bot.py:91")
+  expect(frame).toContain("▶ ○ no trek yet   a persona answers an @-mention   event · bot.py:311")
+  expect(frame).toContain("  ● ready         a reply times out                event · bot.py:91")
   expect(frame).toContain("enter build its trek")
 })
 
@@ -251,7 +252,7 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   expect(frame).toContain(" ● older guide  feature-refunds")
   expect(frame).toContain("   built before the guide last changed")
   expect(frame).toContain("   b rebuild with the current guide · enter open it")
-  expect(frame).toContain("▶ feature-refunds   ● older guide   12 steps   today 09:12")
+  expect(frame).toContain("▶ ● older guide   Refund orders   12 steps   built today 09:12")
   expect(frame).toContain("enter open in Neovim · b rebuild")
 })
 
@@ -285,7 +286,7 @@ test("says a trek can't be opened, which repo, and how to fix it, with no key to
   expect(frame).toContain(" ✕ can't open  feature-refunds")
   expect(frame).toContain("   repo worker isn't at ../worker")
   expect(frame).toContain("   clone it there to open this trek")
-  expect(frame).toContain("▶ feature-refunds   ✕ can't open")
+  expect(frame).toContain("▶ ✕ can't open   Refund orders   no worker at ../worker")
   expect(frame).not.toContain("b build")
   expect(frame).not.toContain("enter open")
 })

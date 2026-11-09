@@ -59,10 +59,8 @@ export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
       style={{ paddingLeft: 1, paddingRight: 1, flexShrink: 0 }}
     >
       <text fg={COLOUR.text}>
-        <span fg={COLOUR.accent} attributes={TextAttributes.BOLD}>
-          srctrek
-        </span>
-        {change}
+        <span attributes={TextAttributes.BOLD}>srctrek</span>
+        <span fg={COLOUR.dim}>{change}</span>
       </text>
       <text fg={COLOUR.dim}>{size}</text>
     </box>

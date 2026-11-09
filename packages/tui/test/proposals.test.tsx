@@ -19,6 +19,7 @@ const refund: TrekEntry = {
   steps: 20,
   highFlags: 0,
   createdAt: "2026-11-09T09:12:00.000Z",
+  repos: 1,
   code: false,
   heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }
@@ -39,7 +40,7 @@ test("lists a proposed repo first, with where it lives and why, and how to settl
 
   expect(frame).toContain(" PROPOSED BY THE AGENT")
   expect(frame).toContain(
-    "▶ + payments   git@example.test:shop/payments.git   the client posts refunds to the payments service",
+    "▶ + proposed   payments   git@example.test:shop/payments.git   the client posts refunds to th…   enter add · d dismiss",
   )
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
   expect(frame).toContain("enter add to the repos list · d dismiss")
@@ -94,7 +95,7 @@ test("says when the agent couldn't find where a proposed repo lives", async () =
   )
 
   expect(frame).toContain(
-    "▶ + api   location unknown   the web posts refunds to /refunds on the API",
+    "▶ + proposed   api   location unknown   the web posts refunds to /refunds on the API",
   )
 })
 

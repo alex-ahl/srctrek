@@ -8,7 +8,8 @@ import { listHeight } from "./layout"
 import { type Item, type ListLine, itemKey, itemsOf, lineOfItem, listLines } from "./list-lines"
 import { ListLineView } from "./list-view"
 import { LocationInput } from "./location-input"
-import { type Row, columnsOf, rowsOf } from "./rows"
+import { columnsOf } from "./row-columns"
+import { type Row, rowsOf } from "./rows"
 import { type SectionId, sectionsOf } from "./sections"
 import { canStartBuild, hasLog, hasTrek } from "./states"
 import { statusBlock } from "./status-block"
@@ -230,7 +231,8 @@ export function App(props: Props) {
   )
   const shown = shownItems(lines.slice(start, end), items.length)
   const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
-  const context = { width, now, columns: columnsOf(visibleRows, status, states), status, states }
+  const columns = columnsOf(visibleRows, width, { status, states, now })
+  const context = { width, now, columns, status, states }
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>

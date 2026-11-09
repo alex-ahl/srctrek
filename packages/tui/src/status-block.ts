@@ -13,6 +13,8 @@ export type StatusBlock = Readonly<{
   colour: Colour
   name?: string
   holds?: string
+  // a likely-wrong count, drawn in the bad colour
+  flag?: string
   details: readonly string[]
   keys?: string
 }>
@@ -22,19 +24,19 @@ const LOG_LINES = 3
 
 type Of<K extends TrekStatus["kind"]> = Extract<TrekStatus, { kind: K }>
 
-// "19 steps · ⚠ 1 likely wrong", and the trek's title below it, for a trek that's saved.
+// "15 steps · 3 repos", the flag, and the trek's title below it, for a trek that's saved.
 function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
   if (entry === undefined || !entry.valid) {
     return { symbol: "●", state: "ready", colour: COLOUR.good, name, details: [] }
   }
 
-  const flags = entry.highFlags > 0 ? ` · ⚠ ${entry.highFlags} likely wrong` : ""
   return {
     symbol: "●",
     state: "ready",
     colour: COLOUR.good,
     name,
-    holds: `${count(entry.steps, "step")}${flags}`,
+    holds: `${count(entry.steps, "step")} · ${count(entry.repos, "repo")}`,
+    ...(entry.highFlags > 0 ? { flag: `⚠ ${entry.highFlags} likely wrong` } : {}),
     details: [entry.title],
   }
 }

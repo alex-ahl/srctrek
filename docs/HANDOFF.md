@@ -43,6 +43,11 @@
   with a count that enter opens or closes. Every trek shows its state, loaded after the list is
   drawn; the selection follows its row by name as rows move. Trek entries carry each changed
   repo's head.
+- Step 7i: the rows to the mockup: state, then the title (names leave the row), then what the
+  state says beyond its word ("1 of 15 steps changed", "no worker at ../worker") or the steps,
+  flags, and "built today 13:51"; the title column as wide as the longest title; proposals spread
+  their source and reason past it, their keys at the end; the block says "15 steps · 3 repos"
+  with the flag in red; srctrek bold in the text colour; the footer dimmed.
 
 ## 2026-11-03 — Milestone 6: the editors
 

@@ -17,6 +17,7 @@ const withTrek: TrekEntry = {
   steps: 6,
   highFlags: 0,
   createdAt: "2026-11-09T09:12:00.000Z",
+  repos: 1,
   code: false,
   heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }

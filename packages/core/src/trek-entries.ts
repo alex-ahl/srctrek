@@ -3,8 +3,8 @@ import { TrekValidationError, listTreks, loadTrek, trekPath } from "./treks"
 
 /**
  * A saved trek, for lists of treks: a valid one's title, stops, likely-wrong flags, when it was
- * built, whether it follows code as it is rather than a change, and each changed repo's branch or
- * pull request it was built from; else its first problem.
+ * built, how many repos it passes through, whether it follows code as it is rather than a change,
+ * and each changed repo's branch or pull request it was built from; else its first problem.
  */
 export type TrekEntry =
   | {
@@ -15,6 +15,7 @@ export type TrekEntry =
       steps: number
       highFlags: number
       createdAt: string
+      repos: number
       code: boolean
       heads: { repo: string; head: RangeHead }[]
     }
@@ -39,6 +40,7 @@ async function loadEntry(root: string, name: string): Promise<TrekEntry> {
       steps,
       highFlags,
       createdAt: trek.created_at,
+      repos: trek.repos.length,
       code,
       heads: trek.repos.flatMap((repo) =>
         repo.head === undefined ? [] : [{ repo: repo.name, head: repo.head }],
