@@ -25,19 +25,22 @@
       "name": "web",
       "source": "evals/fixtures/refund/web",
       "revision": "feature",
-      "range": "main...feature"
+      "range": "main...feature",
+      "head": { "kind": "branch", "name": "feature", "uncommitted": false }
     },
     {
       "name": "api",
       "source": "evals/fixtures/refund/api",
       "revision": "feature",
-      "range": "main...feature"
+      "range": "main...feature",
+      "head": { "kind": "branch", "name": "feature", "uncommitted": false }
     },
     {
       "name": "worker",
       "source": "evals/fixtures/refund/worker",
       "revision": "feature",
-      "range": "main...feature"
+      "range": "main...feature",
+      "head": { "kind": "branch", "name": "feature", "uncommitted": false }
     }
   ],
   "steps": [

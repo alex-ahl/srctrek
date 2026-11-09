@@ -129,8 +129,10 @@ can check; never a bare "line 5".
 - `trigger`: `{ kind, input }` — kind is a request, event, schedule, or command; input is the
   scenario's concrete example
 - `outcome`: what the scenario ends in
-- `repos`: `{ name, source, revision, range? }[]` — `source` is a path or URL; a repo on the
-  path without changes has no range
+- `repos`: `{ name, source, revision, range?, head? }[]` — `source` is a path or URL; a repo on
+  the path without changes has no range. A changed repo's `head` names what its range ended at
+  when the trek was built: `{ kind: "branch", name, uncommitted }`, or
+  `{ kind: "pull" | "merge-requests", number }`
 - `steps[]`:
   - `id`, `repo`, `file`, `start_line`, `end_line`, `summary`, `details`
   - optional: `name`, the function, route, or handler the step shows, as the code names it

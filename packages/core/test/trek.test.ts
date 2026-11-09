@@ -45,6 +45,23 @@ function issuesOf(data: unknown): string[] {
 const BOTH_SIDES = "cite both sides or mark guessed"
 
 describe("parseTrek", () => {
+  test("needs a head on exactly the repos with a range", () => {
+    const trek = refundTrek()
+    const [web, ...rest] = trek.repos
+    if (web === undefined) {
+      throw new Error("no repo")
+    }
+    const { head: _head, ...withoutHead } = web
+    const { range: _range, ...withoutRange } = web
+
+    expect(issuesOf({ ...trek, repos: [withoutHead, ...rest] })).toEqual([
+      "repos.0.head: a repo names its head exactly when it has a range",
+    ])
+    expect(issuesOf({ ...trek, repos: [withoutRange, ...rest] })).toEqual([
+      "repos.0.head: a repo names its head exactly when it has a range",
+    ])
+  })
+
   test("accepts the refund trek", () => {
     expect(issuesOf(refundTrek())).toEqual([])
   })

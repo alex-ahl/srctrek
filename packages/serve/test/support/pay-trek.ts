@@ -58,7 +58,7 @@ export async function repoWithSteps(
   const steps = stepsIn(buildersIn(change.repos[0]?.name ?? ""))
   const { draft, problems } = await addSteps(newDraft(change, header), steps)
   expect(problems).toEqual([])
-  await saveTrek(dir, "pay", draftToTrek(draft))
+  await saveTrek(dir, "pay", await draftToTrek(draft))
 
   return dir
 }

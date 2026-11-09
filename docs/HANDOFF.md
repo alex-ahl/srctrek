@@ -29,6 +29,9 @@
   lacks the trek's commit; the home screen says which repo and where, enter leaves it alone, and
   the footer no longer offers enter where it does nothing. Remote repos aren't checked: they're
   fetched when the trek opens.
+- Step 7f: a trek records, for each changed repo, the branch or pull request its range ended at
+  (`head`), so the home screen can compare any trek with its branch now. Required: treks saved
+  before it read as invalid until rebuilt.
 
 ## 2026-11-03 — Milestone 6: the editors
 

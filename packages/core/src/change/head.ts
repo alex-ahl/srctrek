@@ -1,16 +1,11 @@
 import { checkedOutBranch, isSnapshot } from "../git/refs"
 import { pullRequestOfRef } from "../repos/pull-request"
+import type { z } from "zod"
+import type { RangeHeadSchema } from "../schema/trek"
 import type { RepoWithRange } from "./resolve"
 
-/**
- * What a changed repo's range ends at: a pull request or merge request by number; or a branch,
- * the one the range names or, for HEAD, the one checked out (its short commit when detached),
- * marked when the head is a snapshot of the uncommitted work on it.
- */
-export type RangeHead = Readonly<
-  | { kind: "pull" | "merge-requests"; number: number }
-  | { kind: "branch"; name: string; uncommitted: boolean }
->
+/** What a changed repo's range ends at; see RangeHeadSchema. */
+export type RangeHead = z.infer<typeof RangeHeadSchema>
 
 export async function rangeHead(repo: RepoWithRange): Promise<RangeHead> {
   const { head, headCommit } = repo.range

@@ -160,7 +160,7 @@ export async function finish(
   revised: Revised = {},
 ): Promise<Outcome<Finished>> {
   const draft = revisedDraft(openDraft(session), revised)
-  const trek = draftToTrek(draft)
+  const trek = await draftToTrek(draft)
 
   const result = await saveOrInvalid(session.cwd, name, trek)
   if ("invalid" in result) {

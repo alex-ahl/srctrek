@@ -1,4 +1,5 @@
-import type { ResolvedChange, ResolvedRepo } from "../change/resolve"
+import { rangeHead } from "../change/head"
+import { type ResolvedChange, type ResolvedRepo, hasRange } from "../change/resolve"
 import { PROMPT_HASH } from "../prompts"
 import { FORMAT_VERSION, type Trek, type TrekHeader, type TrekStep } from "../schema/trek"
 import { citationProblems } from "./citations"
@@ -67,24 +68,33 @@ export function stepIds(draft: Draft): string[] {
   return orderedSteps(draft).map((step) => step.id)
 }
 
-// The trek's record of a repo. The range names exact commits, since branches move on.
-function trekRepo({ name, source, revision, range }: ResolvedRepo): Trek["repos"][number] {
-  if (range === undefined) {
+// The trek's record of a repo. The range names exact commits, since branches move on; its head
+// names the branch or pull request, to compare those commits with later.
+async function trekRepo(repo: ResolvedRepo): Promise<Trek["repos"][number]> {
+  const { name, source, revision } = repo
+  if (!hasRange(repo)) {
     return { name, source, revision }
   }
 
-  return { name, source, revision, range: `${range.baseCommit}..${range.headCommit}` }
+  const { baseCommit, headCommit } = repo.range
+  return {
+    name,
+    source,
+    revision,
+    range: `${baseCommit}..${headCommit}`,
+    head: await rangeHead(repo),
+  }
 }
 
 /** The trek as the draft stands; saving validates it as a whole. */
-export function draftToTrek(draft: Draft, now = new Date()): Trek {
+export async function draftToTrek(draft: Draft, now = new Date()): Promise<Trek> {
   return {
     format_version: FORMAT_VERSION,
     created_at: now.toISOString(),
     prompt_hash: PROMPT_HASH,
     ...draft.header,
     author: { role: "producer", ...draft.header.author },
-    repos: draft.change.repos.map(trekRepo),
+    repos: await Promise.all(draft.change.repos.map(trekRepo)),
     steps: orderedSteps(draft),
   }
 }

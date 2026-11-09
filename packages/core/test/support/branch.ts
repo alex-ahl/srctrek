@@ -62,5 +62,5 @@ export async function saveTrekOf(dir: string, change: ResolvedChange, name: stri
     throw new Error(`the test trek has problems: ${problems.join("; ")}`)
   }
 
-  await saveTrek(dir, name, draftToTrek(draft))
+  await saveTrek(dir, name, await draftToTrek(draft))
 }

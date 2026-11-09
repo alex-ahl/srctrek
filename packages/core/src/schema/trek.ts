@@ -96,14 +96,30 @@ export const SubmittedStepSchema = StepFields.omit({ blob: true, changed: true }
   stepLineChecks,
 )
 
-const Repo = z.object({
-  name: nonEmpty,
-  // a local path or a remote URL
-  source: nonEmpty,
-  revision: nonEmpty,
-  // absent for a repo on the route with no changes
-  range: nonEmpty.optional(),
-})
+/**
+ * What a changed repo's range ends at, as it was named when the trek was built: a pull request
+ * or merge request by number, or a branch, marked when the head was a snapshot of the uncommitted
+ * work on it. The range records exact commits; this says which branch to compare them with now.
+ */
+export const RangeHeadSchema = z.union([
+  z.object({ kind: z.enum(["pull", "merge-requests"]), number: z.number().int().positive() }),
+  z.object({ kind: z.literal("branch"), name: nonEmpty, uncommitted: z.boolean() }),
+])
+
+const Repo = z
+  .object({
+    name: nonEmpty,
+    // a local path or a remote URL
+    source: nonEmpty,
+    revision: nonEmpty,
+    // absent for a repo on the route with no changes, with its head
+    range: nonEmpty.optional(),
+    head: RangeHeadSchema.optional(),
+  })
+  .refine((repo) => (repo.range === undefined) === (repo.head === undefined), {
+    message: "a repo names its head exactly when it has a range",
+    path: ["head"],
+  })
 
 const TrekShape = z.object({
   format_version: z.literal(FORMAT_VERSION),

@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-09 — A trek records the branch or pull request it was built from
+
+Each changed repo in a trek names its head: the branch (marked when the trek was of uncommitted
+work on it) or the pull request its range ended at. The field is required; treks saved before it
+don't load until they're rebuilt.
+
+The range's exact commits say what the trek shows, but not what it's of: with only commits, the
+home screen can't tell whether another branch's trek is current, stale, or merged, so it can't
+show a state on every trek or group treks by branch. No compatibility path, as the project is
+pre-release.
+
 ## 2026-11-08 — The beta follows the TUI, as a milestone of its own
 
 Milestone 8 hands srctrek to beta testers: the `trek` binary without a checkout, a clear error

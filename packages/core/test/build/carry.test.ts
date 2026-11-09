@@ -66,7 +66,7 @@ describe("carryOver", () => {
 
     expect(redo).toEqual([])
     expect(stepIds(draft)).toEqual(["s1", "s2"])
-    expect(draftToTrek(draft).repos[0]?.revision).toBe(change.repos[0]?.revision)
+    expect((await draftToTrek(draft)).repos[0]?.revision).toBe(change.repos[0]?.revision)
     expect(draft.header.title).toBe("t")
   })
 
