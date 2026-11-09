@@ -20,6 +20,7 @@ const refund: TrekEntry = {
   highFlags: 0,
   createdAt: "2026-11-09T09:12:00.000Z",
   code: false,
+  heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }
 
 test("lists a proposed repo first, with where it lives and why, and how to settle it", async () => {
@@ -40,7 +41,7 @@ test("lists a proposed repo first, with where it lives and why, and how to settl
   expect(frame).toContain(
     "▶ + payments   git@example.test:shop/payments.git   the client posts refunds to the payments service",
   )
-  expect(frame).toContain(" TREKS")
+  expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
   expect(frame).toContain("enter add to the repos list · d dismiss")
 })
 

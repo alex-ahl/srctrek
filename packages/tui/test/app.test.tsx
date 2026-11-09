@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test"
-import type { ChangeSummary, TrekEntry, TrekStatus } from "@srctrek/core"
+import type { ChangeSummary, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
 import type { ComponentProps } from "react"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
+import { frameAfter } from "./support/keys"
 
 const noop = () => undefined
 const NOW = new Date(2026, 10, 9, 15, 0)
@@ -27,6 +28,7 @@ const refund: TrekEntry = {
   highFlags: 0,
   createdAt: new Date(2026, 10, 9, 9, 12).toISOString(),
   code: false,
+  heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }
 const other: TrekEntry = { ...refund, name: "older", title: "An older trek" }
 
@@ -56,9 +58,9 @@ test("names the change and its size in the title bar", async () => {
   expect(frame).toContain("3 repos · 4 commits")
 })
 
-test("lists the treks newest first, in columns sized to what they hold", async () => {
+test("lists the treks in sections by what they're of, newest first, folding what can't be read", async () => {
   const entries: TrekEntry[] = [
-    { ...other, code: true, createdAt: new Date(2026, 9, 21).toISOString() },
+    { ...other, code: true, heads: [], createdAt: new Date(2026, 9, 21).toISOString() },
     { ...refund, name: "refund", highFlags: 4 },
     {
       name: "broken",
@@ -69,11 +71,71 @@ test("lists the treks newest first, in columns sized to what they hold", async (
   ]
   const frame = await frameOf({ entries })
 
-  expect(frame).toContain(" TREKS")
-  expect(frame.indexOf("refund")).toBeLessThan(frame.indexOf("older"))
-  expect(frame).toContain("▶ refund               12 steps               ⚠ 4   today 09:12")
-  expect(frame).toContain("  older                12 steps · code trek         Oct 21")
-  expect(frame).toContain("  broken   ✕ invalid   steps.1.via: missing evidence")
+  expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
+  expect(frame).toContain("▶ refund   12 steps               ⚠ 4   today 09:12")
+  expect(frame).toContain(" CODE AS IT IS")
+  expect(frame).toContain("   older    12 steps · code trek         Oct 21")
+  expect(frame).toContain(" ▸ CAN'T READ  1 trek")
+  expect(frame).not.toContain("broken")
+})
+
+test("puts treks of the change's branch with the change, and done treks folded away", async () => {
+  const summary: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+        commits: 3,
+      },
+    ],
+    unchanged: [],
+    code: false,
+  }
+  const otherBranch = {
+    ...other,
+    name: "partial",
+    heads: [
+      { repo: "web", head: { kind: "branch" as const, name: "partial", uncommitted: false } },
+    ],
+  }
+  const states = new Map<string, TrekState>([
+    ["older", { kind: "stale", staleStops: 1, stops: 12 }],
+    ["merged", { kind: "done", why: "merged" }],
+  ])
+  const entries = [refund, { ...other }, otherBranch, { ...other, name: "merged" }]
+  const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
+  const frame = await frameOf({ entries, status, summary, states })
+
+  expect(frame).toMatch(/THIS CHANGE *\n.*feature-refunds .*\n.*older +● stale/)
+  expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS *\n.*partial/)
+  expect(frame).toContain(" ▸ DONE  1 trek")
+  expect(frame).not.toContain("merged")
+})
+
+test("enter on a folded section shows its treks, and again hides them", async () => {
+  const entries: TrekEntry[] = [
+    {
+      name: "broken",
+      path: "/t/broken.json",
+      valid: false,
+      problem: "steps.1.via: missing evidence",
+    },
+  ]
+  const app = <App entries={entries} onOpen={noop} onQuit={noop} now={NOW} />
+
+  const opened = await frameAfter(app, (input) => input.pressEnter())
+  expect(opened).toContain(" ▾ CAN'T READ  1 trek")
+  expect(opened).toContain("broken")
+  expect(opened).toContain("enter hide")
+
+  const closed = await frameAfter(app, async (input) => {
+    input.pressEnter()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    input.pressEnter()
+  })
+  expect(closed).toContain("enter show")
+  expect(closed).not.toContain("broken")
 })
 
 test("leaves out when treks were built on a narrow terminal", async () => {

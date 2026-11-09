@@ -29,3 +29,27 @@ export function pressEnterOn(node: ReactNode): Promise<void> {
 export function pressKeyOn(node: ReactNode, key: string): Promise<void> {
   return pressOn(node, (input) => input.pressKey(key))
 }
+
+/** Renders the node, presses keys with `press`, and returns the screen they leave. */
+export async function frameAfter(
+  node: ReactNode,
+  press: (input: MockInput) => void | Promise<void>,
+  width = 110,
+  height = 24,
+): Promise<string> {
+  const { renderer, renderOnce, mockInput, captureCharFrame } = await createTestRenderer({
+    width,
+    height,
+  })
+  createRoot(renderer).render(node)
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await renderOnce()
+
+  await press(mockInput)
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await renderOnce()
+  const frame = captureCharFrame()
+  renderer.destroy()
+
+  return frame
+}

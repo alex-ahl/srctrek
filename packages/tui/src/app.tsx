@@ -1,13 +1,15 @@
-import type { ChangeSummary, ProposedRepo, TrekEntry, TrekStatus } from "@srctrek/core"
+import type { ChangeSummary, ProposedRepo, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { useState } from "react"
 import { ChangeStatus } from "./change-status"
 import { Footer } from "./footer"
 import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
 import { listHeight } from "./layout"
-import { type ListLine, lineOfRow, listLines } from "./list-lines"
+import { type Item, type ListLine, itemKey, itemsOf, lineOfItem, listLines } from "./list-lines"
+import { ListLineView } from "./list-view"
 import { LocationInput } from "./location-input"
-import { type Row, type RowContext, RowView, columnsOf, rowsOf } from "./rows"
+import { type Row, columnsOf, rowsOf } from "./rows"
+import { type SectionId, sectionsOf } from "./sections"
 import { canStartBuild, hasLog, hasTrek } from "./states"
 import { statusBlock } from "./status-block"
 import { COLOUR } from "./theme"
@@ -35,6 +37,8 @@ type Props = {
   onDismissRepo?: ((name: string) => void) | undefined
   // what the change is, for the title bar; absent when trek was started without one
   summary?: ChangeSummary | undefined
+  // where each saved trek stands against its branches, by name, as far as it's known yet
+  states?: ReadonlyMap<string, TrekState> | undefined
   // the time "built today" is measured from; now, unless a test fixes it
   now?: Date | undefined
 }
@@ -115,9 +119,9 @@ function actionsFor(
   }
 }
 
-// "3–22 of 35": which rows are on screen, when not all of them are.
-function shownRows(visible: readonly ListLine[], total: number): string {
-  const indexes = visible.flatMap((line) => (line.kind === "row" ? [line.index] : []))
+// "3–22 of 35": which items are on screen, when not all of them are.
+function shownItems(visible: readonly ListLine[], total: number): string {
+  const indexes = visible.flatMap((line) => (line.kind === "item" ? [line.index] : []))
   const [first, last] = [indexes.at(0), indexes.at(-1)]
   if (first === undefined || last === undefined || indexes.length === total) {
     return ""
@@ -127,44 +131,89 @@ function shownRows(visible: readonly ListLine[], total: number): string {
 }
 
 // What enter, b, l, and d do here, for the footer; only keys that do something are listed.
-function keyHints(row: Row | undefined, status: TrekStatus | undefined, actions: RowActions) {
-  return footerKeys(actions.pick === undefined ? undefined : enterLabel(row), {
+function keyHints(item: Item | undefined, status: TrekStatus | undefined, actions: RowActions) {
+  const row = item?.kind === "row" ? item.row : undefined
+  const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row)
+
+  return footerKeys(actions.pick === undefined ? undefined : enter, {
     build: actions.build === undefined ? undefined : buildVerb(status),
     log: actions.showLog !== undefined,
     dismiss: actions.dismiss !== undefined,
   })
 }
 
+// The section opened if closed, closed if open.
+function toggled(open: ReadonlySet<SectionId>, id: SectionId): ReadonlySet<SectionId> {
+  return open.has(id) ? new Set([...open].filter((each) => each !== id)) : new Set([...open, id])
+}
+
+// Until the user moves, the change's trek is the one picked out, once it's listed; else the first.
+function defaultKey(items: readonly Item[], status: TrekStatus | undefined): string | undefined {
+  const change = hasTrek(status) ? `trek:${status?.name}` : undefined
+  const keys = items.map(itemKey)
+
+  return keys.find((key) => key === change) ?? keys[0]
+}
+
+// Which item is selected: the one the user chose while it's still listed, else the default.
+function selectedIndex(
+  items: readonly Item[],
+  chosen: string | undefined,
+  status: TrekStatus | undefined,
+) {
+  const keys = items.map(itemKey)
+  const found = chosen === undefined ? -1 : keys.indexOf(chosen)
+  if (found !== -1) {
+    return found
+  }
+
+  return Math.max(0, keys.indexOf(defaultKey(items, status) ?? ""))
+}
+
+// What enter does: open or close a fold, else what it does on the row.
+function pickFor(item: Item | undefined, onRow: Action, fold: (id: SectionId) => void): Action {
+  if (item?.kind !== "fold") {
+    return onRow
+  }
+
+  const { id } = item.section
+  return () => fold(id)
+}
+
 export function App(props: Props) {
   const { entries, onQuit, status, onBuild, onAddRepo } = props
   const rows = rowsOf(entries, status, props.proposals ?? [])
-  const [chosen, setChosen] = useState<number | undefined>(undefined)
+  // the selected item by its key, so it stays put as rows move between sections
+  const [chosen, setChosen] = useState<string | undefined>(undefined)
+  const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
   // the proposed repo whose location the user is typing, while they are
   const [placing, setPlacing] = useState<string | undefined>(undefined)
   // when the screen opened, which "built today" is measured from
   const [now] = useState(() => props.now ?? new Date())
 
-  // Until the user moves, the change's trek is the one picked out, once it's listed.
-  const readyIndex = rows.findIndex(
-    (row) => hasTrek(status) && row.kind === "trek" && row.entry.name === status?.name,
-  )
-  const selected = chosen ?? Math.max(readyIndex, 0)
-  const row = rows[selected]
+  const states = props.states ?? new Map<string, TrekState>()
+  const sections = sectionsOf(rows, { status, summary: props.summary, states })
+  const lines = listLines(sections, open)
+  const items = itemsOf(lines)
+  const keys = items.map(itemKey)
+  const selected = selectedIndex(items, chosen, status)
+  const item = items[selected]
+  const row = item?.kind === "row" ? item.row : undefined
 
   const rowActions = actionsFor(row, props, setPlacing)
-  const { pick, build, showLog, dismiss } = rowActions
+  const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
+  const { build, showLog, dismiss } = rowActions
 
-  const moveDown = () => setChosen(Math.min(selected + 1, rows.length - 1))
-  const moveUp = () => setChosen(Math.max(selected - 1, 0))
+  const moveTo = (index: number) => setChosen(keys[Math.min(Math.max(index, 0), keys.length - 1)])
   const actions = new Map([
     ["q", onQuit],
     ["b", () => build?.()],
     ["l", () => showLog?.()],
     ["d", () => dismiss?.()],
-    ["down", moveDown],
-    ["j", moveDown],
-    ["up", moveUp],
-    ["k", moveUp],
+    ["down", () => moveTo(selected + 1)],
+    ["j", () => moveTo(selected + 1)],
+    ["up", () => moveTo(selected - 1)],
+    ["k", () => moveTo(selected - 1)],
     ["return", () => pick?.()],
   ])
   // While a location is typed, keys are text, not commands.
@@ -174,14 +223,14 @@ export function App(props: Props) {
   const changeEntry = entries.find((entry) => entry.name === status?.name)
   const block =
     status === undefined ? undefined : statusBlock(status, changeEntry, onBuild !== undefined)
-  const lines = listLines(rows)
   const { start, end } = visibleWindow(
     lines.length,
-    lineOfRow(lines, selected),
+    lineOfItem(lines, selected),
     listHeight(height, block),
   )
-  const shown = shownRows(lines.slice(start, end), rows.length)
-  const context = { width, now, columns: columnsOf(rows, status), status }
+  const shown = shownItems(lines.slice(start, end), items.length)
+  const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
+  const context = { width, now, columns: columnsOf(visibleRows, status, states), status, states }
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
@@ -206,7 +255,7 @@ export function App(props: Props) {
         )}
       </box>
       {placing === undefined ? (
-        <Footer keys={keyHints(row, status, rowActions)} shown={shown} />
+        <Footer keys={keyHints(item, status, { ...rowActions, pick })} shown={shown} />
       ) : (
         <LocationInput
           name={placing}
@@ -219,24 +268,4 @@ export function App(props: Props) {
       )}
     </box>
   )
-}
-
-function ListLineView({
-  line,
-  selected,
-  context,
-}: {
-  line: ListLine
-  selected: number
-  context: RowContext
-}) {
-  if (line.kind === "gap") {
-    return <text fg={COLOUR.text}> </text>
-  }
-
-  if (line.kind === "heading") {
-    return <text fg={COLOUR.dim}>{line.text}</text>
-  }
-
-  return <RowView row={line.row} selected={line.index === selected} context={context} />
 }

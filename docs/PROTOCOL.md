@@ -37,16 +37,17 @@ A move with nowhere to go answers with the view unchanged.
 For the list of treks, each taking `trek`'s arguments for the change (none: the current
 branch's):
 
-| Method              | Answers                                                             |
-| ------------------- | ------------------------------------------------------------------- |
-| `treks(args?)`      | Every saved trek (name, title, stops, likely-wrong flags, when it   |
-|                     | was built, whether it follows code as it is) and where the change's |
-|                     | trek stands: ready, built with an older guide, can't be opened (a   |
-|                     | local repo it names isn't there or lacks its commit), stale,        |
-|                     | unreadable, building, failed, missing                               |
-| `build(args?)`      | Starts the agent in `SRCTREK_AGENT` on the change's trek, or        |
-|                     | updates it when stale; answers where it stands once started         |
-| `log(trek, lines?)` | The end of a trek's build log                                       |
+| Method              | Answers                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| `treks(args?)`      | Every saved trek (name, title, stops, likely-wrong flags, when it  |
+|                     | was built, whether it follows code as it is, each changed repo's   |
+|                     | branch or pull request) and where the change's trek stands: ready, |
+|                     | built with an older guide, can't be opened (a local repo it names  |
+|                     | isn't there or lacks its commit), stale, unreadable, building,     |
+|                     | failed, missing                                                    |
+| `build(args?)`      | Starts the agent in `SRCTREK_AGENT` on the change's trek, or       |
+|                     | updates it when stale; answers where it stands once started        |
+| `log(trek, lines?)` | The end of a trek's build log                                      |
 
 ## The view
 

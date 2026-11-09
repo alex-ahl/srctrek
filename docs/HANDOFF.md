@@ -37,6 +37,12 @@
   base branch or gone, or the uncommitted work it showed committed since; can't open; or
   unchecked for a remote repo or a pull request, which would need fetching. Local git only;
   about 45 ms a trek.
+- Step 7h: the home screen's list in sections: proposed repos, ways into the code, this change
+  (its trek, and treks whose head in every repo the change touches is the change's), other
+  branches and pull requests, code as it is, then done and can't read, folded under a heading
+  with a count that enter opens or closes. Every trek shows its state, loaded after the list is
+  drawn; the selection follows its row by name as rows move. Trek entries carry each changed
+  repo's head.
 
 ## 2026-11-03 — Milestone 6: the editors
 

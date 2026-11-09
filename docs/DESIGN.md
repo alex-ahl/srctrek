@@ -225,9 +225,13 @@ In VS Code the keys step a trek only while no debug session runs.
 In the review page for Step 5d. Colours are the terminal's own: green, yellow, red, blue, and
 dim, in the roles of the visual language.
 
-- **Home:** the change at the top, then the change's trek with where it stands, repos the agent
-  proposed (they wait on the user), and every other trek with its state. Enter opens the selected
-  trek in the editor `SRCTREK_EDITOR` names.
+- **Home:** the change at the top, then the change's trek with where it stands, then the list in
+  sections: repos the agent proposed and ways into the code (they wait on the user), treks of this
+  change, treks of other branches and pull requests, treks of code as it is, then done treks
+  (merged, branch gone, or their uncommitted work committed since) and files that can't be read,
+  folded under a heading with a count that enter opens. Every trek shows its state against its
+  branch now, newest first in its section. Enter opens the selected trek in the editor
+  `SRCTREK_EDITOR` names.
 - **The change's trek, by state:** building (enter watches it), ready, stale (with how many steps
   changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
   repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured

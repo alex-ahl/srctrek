@@ -18,6 +18,7 @@ const withTrek: TrekEntry = {
   highFlags: 0,
   createdAt: "2026-11-09T09:12:00.000Z",
   code: false,
+  heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }
 
 function statusWith(trek: { kind: "missing" | "ready"; name: string }) {

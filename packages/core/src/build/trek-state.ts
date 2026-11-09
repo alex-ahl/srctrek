@@ -5,6 +5,8 @@ import { defaultCacheDir } from "../repos/cache"
 import { isRemote } from "../repos/entry"
 import { repoDir } from "../repos/resolve"
 import type { Trek } from "../schema/trek"
+import type { TrekEntry } from "../trek-entries"
+import { loadTrek } from "../treks"
 import { type UnreachableRepo, unreachableRepo } from "./reachable"
 import { staleStepIds } from "./stale"
 
@@ -129,4 +131,27 @@ export async function trekState(root: string, trek: Trek): Promise<TrekState> {
   }
 
   return states.find((state): state is Done => state.kind === "done") ?? { kind: "unchecked" }
+}
+
+/**
+ * Where each valid trek among `entries` stands, by name. A trek whose state can't be worked out
+ * (its repo's git fails) is left out, as unchecked.
+ */
+export async function trekStates(
+  root: string,
+  entries: readonly TrekEntry[],
+): Promise<Map<string, TrekState>> {
+  const stateOf = async (entry: TrekEntry): Promise<[string, TrekState][]> => {
+    if (!entry.valid) {
+      return []
+    }
+
+    try {
+      return [[entry.name, await trekState(root, await loadTrek(entry.path))]]
+    } catch {
+      return []
+    }
+  }
+
+  return new Map((await Promise.all(entries.map(stateOf))).flat())
 }

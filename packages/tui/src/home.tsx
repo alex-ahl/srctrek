@@ -2,12 +2,14 @@ import {
   type ChangeSummary,
   type ProposedRepo,
   type TrekEntry,
+  type TrekState,
   type TrekStatus,
   acceptProposal,
   buildFiles,
   dismissProposal,
   loadProposals,
   loadTrekEntries,
+  trekStates,
 } from "@srctrek/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
@@ -55,6 +57,17 @@ function Home(props: HomeProps) {
   const [entries, setEntries] = useState(props.firstEntries)
   const [status, setStatus] = useState(props.firstStatus)
   const [proposals, setProposals] = useState(props.firstProposals)
+  const [states, setStates] = useState<ReadonlyMap<string, TrekState>>(new Map())
+
+  // Each trek's state takes git calls, so the list is drawn first and the states fill in.
+  useEffect(() => {
+    let current = true
+    void trekStates(root, entries).then((found) => current && setStates(found))
+
+    return () => {
+      current = false
+    }
+  }, [root, entries])
 
   // While the agent builds, check on it; when it ends, the trek list has changed too.
   const building = isBuilding(status)
@@ -108,6 +121,7 @@ function Home(props: HomeProps) {
       onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
       onDismissRepo={(name) => void settle(dismissProposal(root, name))}
       summary={change?.summary}
+      states={states}
     />
   )
 }

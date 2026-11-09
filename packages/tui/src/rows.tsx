@@ -1,5 +1,5 @@
 import { TextAttributes } from "@opentui/core"
-import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
+import type { ProposedRepo, TrekEntry, TrekState, TrekStatus, TriggerTrek } from "@srctrek/core"
 import { type StatusBlock, statusBlock } from "./status-block"
 import { COLOUR } from "./theme"
 import { builtWhen, count, fit } from "./text"
@@ -42,11 +42,40 @@ type StateLabel = Pick<StatusBlock, "symbol" | "state" | "colour">
 
 const INVALID: StateLabel = { symbol: "✕", state: "invalid", colour: COLOUR.bad }
 
+const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], string>> = {
+  merged: "merged",
+  gone: "branch gone",
+  committed: "committed",
+}
+
+// A saved trek's state as a row shows it; none while unchecked.
+function savedLabel(state: TrekState | undefined): StateLabel | undefined {
+  if (state === undefined || state.kind === "unchecked") {
+    return undefined
+  }
+
+  if (state.kind === "current") {
+    return { symbol: "●", state: "ready", colour: COLOUR.good }
+  }
+
+  if (state.kind === "stale") {
+    return { symbol: "●", state: "stale", colour: COLOUR.warn }
+  }
+
+  if (state.kind === "done") {
+    return { symbol: "✓", state: DONE_WORD[state.why], colour: COLOUR.dim }
+  }
+
+  return { symbol: "✕", state: "can't open", colour: COLOUR.bad }
+}
+
+type States = ReadonlyMap<string, TrekState>
+
 /**
- * Where a row stands, when it's known: a trigger's trek; the change's own trek; a trek that
- * isn't valid. Other treks' states would need each checked against its change, so they have none.
+ * Where a row stands, as far as it's known: a trigger's trek; the change's own trek, from the
+ * change's status; a trek that isn't valid; any other trek, from its state once it's checked.
  */
-function stateOf(row: Row, status: TrekStatus | undefined): StateLabel | undefined {
+function stateOf(row: Row, status: TrekStatus | undefined, states: States): StateLabel | undefined {
   if (row.kind === "trigger") {
     return statusBlock(row.found.trek, undefined, false)
   }
@@ -59,7 +88,11 @@ function stateOf(row: Row, status: TrekStatus | undefined): StateLabel | undefin
     return INVALID
   }
 
-  return status?.name === row.entry.name ? statusBlock(status, row.entry, false) : undefined
+  if (status?.name === row.entry.name) {
+    return statusBlock(status, row.entry, false)
+  }
+
+  return savedLabel(states.get(row.entry.name))
 }
 
 // "19 steps · code trek" and "⚠ 1": a valid trek's size and flags.
@@ -89,16 +122,20 @@ function nameOf(row: Row): string {
   return row.kind === "trigger" ? row.found.trigger.name : row.entry.name
 }
 
-export function columnsOf(rows: readonly Row[], status: TrekStatus | undefined): Columns {
+export function columnsOf(
+  rows: readonly Row[],
+  status: TrekStatus | undefined,
+  states: States,
+): Columns {
   const valid = rows.flatMap((row) => (row.kind === "trek" && row.entry.valid ? [row.entry] : []))
-  const states = rows.flatMap((row) => {
-    const label = stateOf(row, status)
+  const labels = rows.flatMap((row) => {
+    const label = stateOf(row, status, states)
     return label === undefined ? [] : [`${label.symbol} ${label.state}`]
   })
 
   return {
     name: Math.min(NAME_MAX, widest(rows.map(nameOf))) + GAP,
-    state: column(states),
+    state: column(labels),
     steps: column(valid.map(stepsText)),
     flags: column(valid.map(flagsText)),
   }
@@ -111,6 +148,8 @@ export type RowContext = Readonly<{
   columns: Columns
   // the change's trek and its state, which its row shows
   status: TrekStatus | undefined
+  // where every other saved trek stands, as far as it's known yet
+  states: States
 }>
 
 function Marker({ selected }: { selected: boolean }) {
@@ -170,8 +209,8 @@ function TriggerRow({ item: found, selected, context }: RowProps<TriggerTrek>) {
 }
 
 function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
-  const { columns, status } = context
-  const label = stateOf({ kind: "trek", entry }, status)
+  const { columns, status, states } = context
+  const label = stateOf({ kind: "trek", entry }, status, states)
   const name = <Name text={entry.name} width={columns.name} selected={selected} />
 
   if (!entry.valid) {

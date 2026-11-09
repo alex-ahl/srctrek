@@ -14,6 +14,7 @@ const treks: TrekEntry[] = [
     highFlags: 1,
     createdAt: "2026-11-09T09:12:00.000Z",
     code: false,
+    heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
   },
   {
     name: "pr-12",
@@ -24,6 +25,7 @@ const treks: TrekEntry[] = [
     highFlags: 0,
     createdAt: "2026-11-08T16:40:00.000Z",
     code: false,
+    heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
   },
   {
     name: "orientation",
@@ -34,6 +36,7 @@ const treks: TrekEntry[] = [
     highFlags: 0,
     createdAt: "2026-10-21T11:05:00.000Z",
     code: true,
+    heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
   },
   {
     name: "pr-9",
