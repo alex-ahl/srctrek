@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { SERVER_INSTRUCTIONS, TOOL_DESCRIPTIONS, buildTrekPrompt, runGit } from "@srctrek/core"
+import {
+  SERVER_INSTRUCTIONS,
+  SET_AGENT_COMMAND,
+  TOOL_DESCRIPTIONS,
+  buildTrekPrompt,
+  runGit,
+} from "@srctrek/core"
 import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { z } from "zod"
 import { McpTestClient } from "./mcp-client"
@@ -50,9 +56,10 @@ describe("trek mcp", () => {
 
     const { result } = await client.request("tools/list")
     const { tools } = ToolListSchema.parse(result)
-    expect(Object.fromEntries(tools.map((tool) => [tool.name, tool.description]))).toEqual(
-      TOOL_DESCRIPTIONS,
-    )
+    expect(Object.fromEntries(tools.map((tool) => [tool.name, tool.description]))).toEqual({
+      ...TOOL_DESCRIPTIONS,
+      set_agent_command: SET_AGENT_COMMAND,
+    })
   })
 
   test("reads a change once it's open", async () => {

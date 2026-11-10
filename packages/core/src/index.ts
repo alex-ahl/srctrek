@@ -120,6 +120,9 @@ export { directoryIn } from "./files"
 export {
   BUILD_STOPPED,
   PROMPT_HASH,
+  SET_AGENT_COMMAND,
+  agentSavedAnswer,
+  agentUnsavedAnswer,
   SERVER_INSTRUCTIONS,
   TOOL_DESCRIPTIONS,
   headlessBuildPrompt,

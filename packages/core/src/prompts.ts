@@ -11,6 +11,9 @@ import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
 import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
 import saveAs from "../prompts/save_as.md" with { type: "text" }
 import updateAs from "../prompts/update_as.md" with { type: "text" }
+import agentSaved from "../prompts/answers/agent_saved.md" with { type: "text" }
+import agentUnsaved from "../prompts/answers/agent_unsaved.md" with { type: "text" }
+import setAgentCommand from "../prompts/tools/set_agent_command.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
@@ -43,6 +46,26 @@ export const TOOL_DESCRIPTIONS = {
   record_triggers: recordTriggers.trim(),
   update_trek: updateTrek.trim(),
   propose_repo: proposeRepo.trim(),
+}
+
+/**
+ * The description of the tool that saves the agent's command. Setting srctrek up doesn't change
+ * how a trek is built, so it stays out of the prompt hash below.
+ */
+export const SET_AGENT_COMMAND = setAgentCommand.trim()
+
+/** What the agent is told once its command is saved; `overridden` when SRCTREK_AGENT wins. */
+export function agentSavedAnswer(path: string, overridden: boolean): string {
+  const note = overridden
+    ? " SRCTREK_AGENT is set in trek's environment, though, and overrides the saved command."
+    : ""
+
+  return fill(agentSaved, { path, overridden: note })
+}
+
+/** What the agent is told when its command didn't start and answer. */
+export function agentUnsavedAnswer(problem: string): string {
+  return fill(agentUnsaved, { problem })
 }
 
 /** What an agent is told about the server when it connects. */

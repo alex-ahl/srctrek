@@ -74,10 +74,11 @@ Name a different change the way you'd give it to `trek`: `main...feature`,
 agent reads the change at its exact revisions, builds the trek, and saves it to the
 .srctrek/treks folder, where the home screen lists it.
 
-To have `trek` build treks itself, give it your agent's headless command line, including
-whatever it needs to use the srctrek server's tools without asking: in settings (`S` on the home
-screen, then Agent), which checks that the command starts and answers and keeps it in
-`~/.config/srctrek/settings.json`, or in `SRCTREK_AGENT`, which overrides the file. The
+To have `trek` build treks itself, ask your agent, in its chat, to set up srctrek to build treks:
+it saves the command that runs it headless. Or give the command yourself, including whatever it
+needs to use the srctrek server's tools without asking: in settings (`S` on the home screen, then
+Agent), which checks that it starts and answers and keeps it in `~/.config/srctrek/settings.json`,
+or in `SRCTREK_AGENT`, which overrides the file. The
 instruction is appended as the last argument, so an option that takes a list of values goes
 before the one that reads the prompt. `b` on the home screen builds; turn on Build automatically
 in settings (`S`) to start a build whenever a change has none. A change with no commits gets no

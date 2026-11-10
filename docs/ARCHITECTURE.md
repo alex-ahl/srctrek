@@ -182,6 +182,11 @@ The user's agent builds the trek through `trek mcp`:
    call is validated; the TUI shows the overview as soon as `start_trek` lands and steps as
    they arrive.
 
+Setting up: `set_agent_command` saves the command that runs the agent headless to the user's
+settings, after running it once with a short instruction; asked to set srctrek up, the agent
+passes its own. Its description and answers stay out of the prompt hash, as they don't change
+how a trek is built.
+
 The agent is started one of two ways:
 
 - From the agent's own chat, with `trek mcp` registered.

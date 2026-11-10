@@ -58,7 +58,7 @@ function agentRow(settings: Settings, ask: () => void): Row {
     name: "Agent",
     value: command ?? "none",
     source: from,
-    help: "The command that runs your agent headless, with a trek's instructions as its last argument. trek starts it to build a trek.",
+    help: "The command that runs your agent headless, with a trek's instructions as its last argument. trek starts it to build a trek. Easiest: ask your agent, in its chat, to set up srctrek to build treks; it knows how it runs headless, and fills this in.",
     change: ask,
   }
 }

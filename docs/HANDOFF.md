@@ -79,6 +79,10 @@
   file, and saving runs it once with a tiny instruction (`packages/core/prompts/agent_check.md`,
   outside the prompt hash), showing "the command starts and answers" or what it printed last.
   The no-agent state points to settings. The location prompt and this field share `TextPrompt`.
+- An agent sets srctrek up from its chat: `set_agent_command` (in `trek mcp`) runs the command
+  it's given once, saves it to the user's settings if it starts and answers, and else says what
+  failed so the agent can fix it. Its description and answers are prompt files outside the
+  prompt hash; settings' help for the agent points to it.
 
 ## 2026-11-03 — Milestone 6: the editors
 

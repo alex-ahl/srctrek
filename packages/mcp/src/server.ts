@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/server/stdio"
 import { registerPrompts } from "./prompts"
 import { reportFor } from "./report"
 import { newSession } from "./session"
+import { registerSetupTools } from "./setup"
 import { registerBuildTools, registerReadTools } from "./tools"
 
 /** `trek mcp`: an MCP server over stdin and stdout for the agent that builds a trek. */
@@ -16,6 +17,7 @@ export async function startMcpServer(cwd: string): Promise<void> {
   const report = reportFor()
   registerReadTools(server, cell, report)
   registerBuildTools(server, cell, report)
+  registerSetupTools(server)
   registerPrompts(server)
 
   await server.connect(new StdioServerTransport())
