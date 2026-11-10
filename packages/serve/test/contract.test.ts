@@ -133,10 +133,15 @@ async function repoWithoutTrek(): Promise<string> {
   return dir
 }
 
-// trek serve in `dir` with `agent` as SRCTREK_AGENT ("" for none), initialized.
+// trek serve in `dir` with `agent` as SRCTREK_AGENT ("" for none) and no settings file, which
+// would otherwise give the user's own agent, initialized.
 async function servingWithAgent(dir: string, agent: string): Promise<ServeTestClient> {
-  const cache = await tempDir("cache-")
-  client = new ServeTestClient(dir, { XDG_CACHE_HOME: cache, SRCTREK_AGENT: agent })
+  const [cache, config] = await Promise.all([tempDir("cache-"), tempDir("config-")])
+  client = new ServeTestClient(dir, {
+    XDG_CACHE_HOME: cache,
+    XDG_CONFIG_HOME: config,
+    SRCTREK_AGENT: agent,
+  })
   await client.initialize()
   return client
 }
