@@ -17,6 +17,7 @@
   --text-muted: #4a5384;
   --border: #d9ddf0;
   --accent: #3a4fd6;
+  --status: #9a5a00;
   --code-bg: #eceffa;
   --hero-glow: rgba(107, 124, 255, 0.16);
 
@@ -37,6 +38,7 @@
     --text-muted: #9aa3d6;
     --border: #1f2a66;
     --accent: var(--cyan);
+    --status: var(--amber);
     --code-bg: #121b4d;
     --hero-glow: rgba(28, 47, 122, 0.7);
   }
@@ -81,6 +83,12 @@ p {
 a {
   color: var(--accent);
   text-underline-offset: 0.2em;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 0.2rem;
 }
 
 code {

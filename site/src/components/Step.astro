@@ -1,0 +1,63 @@
+---
+interface Props {
+  title: string
+  // A command is typed; a prompt is said to your agent.
+  example: { kind: "command" | "prompt"; text: string }
+}
+
+const { title, example } = Astro.props
+---
+
+<li>
+  <h3>{title}</h3>
+  <p><slot /></p>
+  {
+    example.kind === "command" ? (
+      <code>{example.text}</code>
+    ) : (
+      <blockquote>“{example.text}”</blockquote>
+    )
+  }
+</li>
+
+<style>
+  li {
+    counter-increment: step;
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+  }
+
+  li::before {
+    content: counter(step);
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--navy-deep);
+    background: var(--step-color);
+  }
+
+  h3 {
+    font-size: 1.2rem;
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  code {
+    justify-self: start;
+  }
+
+  blockquote {
+    justify-self: start;
+    margin: 0;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--step-color);
+    font-style: italic;
+  }
+</style>
