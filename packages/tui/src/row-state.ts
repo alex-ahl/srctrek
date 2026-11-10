@@ -28,7 +28,7 @@ function savedLabel(state: TrekState | undefined): StateLabel | undefined {
   }
 
   if (state.kind === "stale") {
-    return { symbol: "●", state: "stale", colour: COLOUR.warn }
+    return { symbol: "±", state: "stale", colour: COLOUR.warn }
   }
 
   if (state.kind === "done") {

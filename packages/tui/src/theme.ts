@@ -2,16 +2,17 @@ import { RGBA } from "@opentui/core"
 
 /**
  * The terminal's own colours, so the screen follows its theme, dark or light: its default text,
- * and ANSI colours in the roles of the visual language.
+ * and ANSI colours in the roles of the visual language, the bright ones for the roles that should
+ * stand out.
  */
 export const COLOUR = {
   text: RGBA.defaultForeground(),
   dim: RGBA.fromIndex(8),
-  bad: RGBA.fromIndex(1),
-  good: RGBA.fromIndex(2),
-  warn: RGBA.fromIndex(3),
-  busy: RGBA.fromIndex(4),
-  accent: RGBA.fromIndex(6),
+  bad: RGBA.fromIndex(9),
+  good: RGBA.fromIndex(10),
+  warn: RGBA.fromIndex(11),
+  busy: RGBA.fromIndex(12),
+  accent: RGBA.fromIndex(14),
 }
 
 export type Colour = (typeof COLOUR)[keyof typeof COLOUR]

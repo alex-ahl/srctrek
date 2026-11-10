@@ -136,7 +136,7 @@ test("puts treks of the change's branch with the change, and done treks folded a
   const frame = await frameOf({ entries, status, summary, states })
 
   expect(frame).toMatch(
-    /THIS CHANGE *\n.*● ready   Refund orders .*\n.*● stale   An older trek   1 of 12 steps changed/,
+    /THIS CHANGE *\n.*● ready   Refund orders .*\n.*± stale   An older trek   1 of 12 steps changed/,
   )
   expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS *\n *An older trek/)
   expect(frame).toContain(" ▸ DONE  1 trek")
@@ -266,7 +266,7 @@ test("says a stale trek is out of date, how much changed, and offers to update i
   const status: TrekStatus = { kind: "stale", name: "feature-refunds", staleStops: 3, stops: 12 }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toContain(" ● stale  feature-refunds")
+  expect(frame).toContain(" ± stale  feature-refunds")
   expect(frame).toContain("   3 of 12 steps' files changed since it was built")
   expect(frame).toContain("   b update it")
   expect(frame).toContain("b update")
@@ -276,10 +276,10 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   const status: TrekStatus = { kind: "older-guide", name: "feature-refunds" }
   const frame = await frameOf({ entries: [refund], status, onBuild: noop })
 
-  expect(frame).toContain(" ● older guide  feature-refunds")
+  expect(frame).toContain(" ↻ older guide  feature-refunds")
   expect(frame).toContain("   built before the guide last changed")
   expect(frame).toContain("   b rebuild with the current guide · enter open it")
-  expect(frame).toContain("▶ ● older guide   Refund orders   12 steps   built today 09:12")
+  expect(frame).toContain("▶ ↻ older guide   Refund orders   12 steps   built today 09:12")
   expect(frame).toContain("enter open in Neovim · b rebuild")
 })
 

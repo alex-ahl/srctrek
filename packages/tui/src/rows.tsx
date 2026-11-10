@@ -66,18 +66,11 @@ function Title({ text, width, selected }: { text: string; width: number; selecte
   return selected ? <span attributes={TextAttributes.BOLD}>{shown}</span> : <span>{shown}</span>
 }
 
-// The state in its column: the symbol in the state's colour, the word dimmed; blank when unknown.
+// The state in its column, symbol and word in the state's colour; blank when unknown.
 function State({ label, width }: { label: StateLabel | undefined; width: number }) {
-  if (label === undefined) {
-    return <span>{"".padEnd(width)}</span>
-  }
+  const text = label === undefined ? "" : `${label.symbol} ${label.state}`
 
-  return (
-    <>
-      <span fg={label.colour}>{label.symbol}</span>
-      <span fg={COLOUR.dim}>{` ${label.state}`.padEnd(width - 1)}</span>
-    </>
-  )
+  return <span fg={label?.colour ?? COLOUR.dim}>{text.padEnd(width)}</span>
 }
 
 // The room after the marker, the state, and the title, for text that fills the rest of a row.

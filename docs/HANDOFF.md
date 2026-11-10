@@ -56,6 +56,9 @@
   reads in dark and light themes; a terminal that doesn't answer keeps the `▶`. The terminal
   capture now runs trek live and answers its colour queries from each palette, so it shows what
   a dark and a light terminal really get.
+- States stand out more: the bright ANSI colours for states, flags, and the accent; a row's whole
+  state in its colour; and stale and older guide by their own symbols (`±`, `↻`), so they don't
+  rest on telling green from yellow, which some themes draw close together.
 
 ## 2026-11-03 — Milestone 6: the editors
 

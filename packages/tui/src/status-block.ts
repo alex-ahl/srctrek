@@ -48,7 +48,7 @@ function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean)
       : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
 
   return {
-    symbol: "●",
+    symbol: "±",
     state: "stale",
     colour: COLOUR.warn,
     name,
@@ -125,7 +125,7 @@ function nameOnlyBlock(
 
   if (kind === "older-guide") {
     return {
-      symbol: "●",
+      symbol: "↻",
       state: "older guide",
       colour: COLOUR.warn,
       name,
