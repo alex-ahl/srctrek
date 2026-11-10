@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 import type { ChangeSummary, ChangedRepoSummary, RangeHead } from "@srctrek/core"
 import { PADDING } from "./layout"
-import { COLOUR } from "./theme"
+import { COLOUR, useTones } from "./theme"
 import { useTerminalDimensions } from "@opentui/react"
 import { count, fit } from "./text"
 
@@ -49,6 +49,7 @@ function sizeText(summary: ChangeSummary): string {
 
 /** The top line: srctrek, the change on the left and its size on the right, ruled off below. */
 export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
+  const tones = useTones()
   const { width } = useTerminalDimensions()
   const size = summary === undefined ? "" : sizeText(summary)
   // the change gives way to its size: the padding, "srctrek  ", and two spaces before the size
@@ -60,14 +61,14 @@ export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
       flexDirection="row"
       justifyContent="space-between"
       border={["bottom"]}
-      borderColor={COLOUR.dim}
+      borderColor={tones.dim}
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <text fg={COLOUR.text}>
         <span attributes={TextAttributes.BOLD}>srctrek</span>
-        <span fg={COLOUR.dim}>{change}</span>
+        <span fg={tones.dim}>{change}</span>
       </text>
-      <text fg={COLOUR.dim}>{size}</text>
+      <text fg={tones.dim}>{size}</text>
     </box>
   )
 }

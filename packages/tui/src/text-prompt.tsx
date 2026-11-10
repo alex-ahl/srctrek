@@ -2,7 +2,7 @@ import { type InputRenderable, RGBA } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useRef } from "react"
 import { PADDING } from "./layout"
-import { COLOUR } from "./theme"
+import { COLOUR, useTones } from "./theme"
 
 type Props = {
   question: string
@@ -16,6 +16,7 @@ type Props = {
 
 /** A question answered by typing, in the footer's place; enter answers, esc cancels. */
 export function TextPrompt({ question, initial, hint, onSubmit, onCancel }: Props) {
+  const tones = useTones()
   // Read from the input itself on enter: its submit event doesn't carry the text, and state
   // set while typing can lag a paste followed straight away by enter.
   const input = useRef<InputRenderable>(null)
@@ -37,7 +38,7 @@ export function TextPrompt({ question, initial, hint, onSubmit, onCancel }: Prop
     <box
       flexDirection="column"
       border={["top"]}
-      borderColor={COLOUR.dim}
+      borderColor={tones.dim}
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <box flexDirection="row">
@@ -54,7 +55,7 @@ export function TextPrompt({ question, initial, hint, onSubmit, onCancel }: Prop
           style={{ flexGrow: 1 }}
         />
       </box>
-      {hint !== undefined && <text fg={COLOUR.dim}>{hint}</text>}
+      {hint !== undefined && <text fg={tones.dim}>{hint}</text>}
     </box>
   )
 }

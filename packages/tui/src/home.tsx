@@ -21,7 +21,7 @@ import { App } from "./app"
 import { type Editor, availableEditors, openInEditor } from "./editors"
 import { openInPager } from "./pager"
 import type { SettingChange } from "./settings-screen"
-import { TERMINAL_TONES, TonesContext, bandFor, tonesFor } from "./theme"
+import { TERMINAL_TONES, type TerminalColours, TonesContext, bandFor, tonesFor } from "./theme"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
@@ -92,10 +92,10 @@ function Home(props: HomeProps) {
   const [proposals, setProposals] = useState(props.firstProposals)
   const [states, setStates] = useState<ReadonlyMap<string, TrekState>>(new Map())
   // the background the terminal reported, which the band and srctrek's tones are chosen for
-  const [background, setBackground] = useState<string | undefined>(undefined)
-  const tint = background === undefined ? undefined : bandFor(background)
-  const ownColours = background !== undefined && settings.colours !== "terminal"
-  const tones = ownColours ? tonesFor(background) : TERMINAL_TONES
+  const [reported, setReported] = useState<TerminalColours | undefined>(undefined)
+  const tint = reported === undefined ? undefined : bandFor(reported.background)
+  const ownColours = reported !== undefined && settings.colours !== "terminal"
+  const tones = ownColours ? tonesFor(reported) : TERMINAL_TONES
   const renderer = useRenderer()
 
   // The selected row's tint and the states' tones come from the terminal's own colours, when it
@@ -103,9 +103,9 @@ function Home(props: HomeProps) {
   useEffect(() => {
     const colours = renderer.getPalette({ timeout: 1000 })
     void colours.then(
-      ({ defaultBackground }) => {
-        if (defaultBackground !== null) {
-          setBackground(defaultBackground)
+      ({ defaultForeground, defaultBackground }) => {
+        if (defaultForeground !== null && defaultBackground !== null) {
+          setReported({ foreground: defaultForeground, background: defaultBackground })
         }
       },
       () => undefined,

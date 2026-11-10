@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-10 — Secondary text is mixed from the terminal's own colours
+
+Once the terminal reports its text and background colours, secondary text (help, details,
+dates, the footer, rules) is mixed 60% of the way from its background to its text, instead of
+taking the theme's dim grey (ANSI 8). A terminal that doesn't report them, or colours set to the
+terminal's, keeps ANSI 8.
+
+Many themes draw their dim grey close to the background, and trek puts much of what a screen
+says in secondary text, which then read as barely there. A mix from the theme's own colours stays
+readable in any theme and still reads as secondary. Narrows "The terminal's states take trek's
+own colours" (2026-11-10), which kept dim text the terminal's.
+
 ## 2026-11-10 — Settings on S; trek builds on its own only when asked
 
 The terminal has a settings screen on `S`: the editor, the agent's command, building

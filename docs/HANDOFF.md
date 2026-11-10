@@ -88,6 +88,9 @@
   by hand where the terminal can't take it; the home screen rereads the settings file every two
   seconds, so the agent's save shows up, with "your agent saved its command". Each row's footer
   says what enter does to it.
+- Secondary text is readable in any theme: once the terminal reports its colours, it's mixed 60%
+  from the terminal's background to its text (`tonesFor`), instead of the theme's ANSI 8; every
+  grey on screen comes from the tones now.
 
 ## 2026-11-03 — Milestone 6: the editors
 

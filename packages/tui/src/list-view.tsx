@@ -17,8 +17,8 @@ function FoldView({
   const tones = useTones()
 
   return (
-    <text fg={COLOUR.dim}>
-      <span fg={selected ? tones.accent : COLOUR.dim}>{open ? "▾ " : "▸ "}</span>
+    <text fg={tones.dim}>
+      <span fg={selected ? tones.accent : tones.dim}>{open ? "▾ " : "▸ "}</span>
       <span {...(selected ? { attributes: TextAttributes.BOLD } : {})}>{section.title}</span>
       {`  ${count(section.rows.length, "trek")}`}
     </text>
@@ -35,12 +35,13 @@ export function ListLineView({
   selected: number
   context: RowContext
 }) {
+  const tones = useTones()
   if (line.kind === "gap") {
     return <text fg={COLOUR.text}> </text>
   }
 
   if (line.kind === "heading") {
-    return <text fg={COLOUR.dim}>{line.text}</text>
+    return <text fg={tones.dim}>{line.text}</text>
   }
 
   const isSelected = line.index === selected

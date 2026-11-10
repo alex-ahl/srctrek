@@ -40,7 +40,7 @@ function RowView({ row, selected }: { row: SettingRow; selected: boolean }) {
       <span fg={tones.accent}>{selected ? "▶ " : "  "}</span>
       <span>{row.name.padEnd(NAME_WIDTH)}</span>
       <span attributes={TextAttributes.BOLD}>{row.value.padEnd(VALUE_WIDTH)}</span>
-      <span fg={COLOUR.dim}>{row.source}</span>
+      <span fg={tones.dim}>{row.source}</span>
     </text>
   )
 }
@@ -62,6 +62,7 @@ function Bottom({
   close: () => void
   onAgent: (command: string) => void
 }) {
+  const tones = useTones()
   if (prompt === "editor") {
     const pick = (picked: Editor) => {
       close()
@@ -90,10 +91,10 @@ function Bottom({
   return (
     <box
       border={["top"]}
-      borderColor={COLOUR.dim}
+      borderColor={tones.dim}
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
-      <text fg={COLOUR.dim}>{keys}</text>
+      <text fg={tones.dim}>{keys}</text>
     </box>
   )
 }
@@ -131,6 +132,7 @@ function copied(renderer: CliRenderer): boolean {
 
 /** The user's settings, each with its value and where it comes from; enter changes one. */
 export function SettingsScreen(props: Props) {
+  const tones = useTones()
   const { width } = useTerminalDimensions()
   const renderer = useRenderer()
   const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
@@ -176,14 +178,14 @@ export function SettingsScreen(props: Props) {
         flexDirection="row"
         justifyContent="space-between"
         border={["bottom"]}
-        borderColor={COLOUR.dim}
+        borderColor={tones.dim}
         style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
       >
         <text fg={COLOUR.text}>
           <span attributes={TextAttributes.BOLD}>srctrek</span>
-          <span fg={COLOUR.dim}>{SUBTITLE}</span>
+          <span fg={tones.dim}>{SUBTITLE}</span>
         </text>
-        <text fg={COLOUR.dim}>{settingsPath()}</text>
+        <text fg={tones.dim}>{settingsPath()}</text>
       </box>
       <box
         flexDirection="column"
@@ -194,7 +196,7 @@ export function SettingsScreen(props: Props) {
         ))}
         <text fg={COLOUR.text}> </text>
         {wrap(row?.help ?? "", Math.min(HELP_WIDTH, width - 2 * PADDING - 2)).map((line, i) => (
-          <text key={i} fg={COLOUR.dim}>{`  ${line}`}</text>
+          <text key={i} fg={tones.dim}>{`  ${line}`}</text>
         ))}
         {notice !== undefined && <NoticeLine notice={notice} />}
       </box>

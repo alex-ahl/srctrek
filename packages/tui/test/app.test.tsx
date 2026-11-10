@@ -335,12 +335,21 @@ test("the band moves the terminal's background toward the accent, dark or light"
   expect(bandFor("#ffffff").toInts()).toEqual([214, 231, 233, 255])
 })
 
+const dark = { foreground: "#d3d6da", background: "#16181b" }
+const light = { foreground: "#24292f", background: "#ffffff" }
+
 test("picks deep tones for a light terminal and bright ones for a dark one", () => {
-  expect(tonesFor("#16181b").good.toInts()).toEqual([143, 207, 122, 255])
-  expect(tonesFor("#ffffff").good.toInts()).toEqual([26, 127, 55, 255])
+  expect(tonesFor(dark).good.toInts()).toEqual([143, 207, 122, 255])
+  expect(tonesFor(light).good.toInts()).toEqual([26, 127, 55, 255])
 })
 
-test("draws in the terminal's own ANSI colours until it says what its background is", () => {
+test("mixes secondary text from the terminal's own text and background, 60% of the way", () => {
+  expect(tonesFor(dark).dim.toInts()).toEqual([135, 138, 142, 255])
+  expect(tonesFor(light).dim.toInts()).toEqual([124, 127, 130, 255])
+})
+
+test("draws in the terminal's own ANSI colours until it says what it looks like", () => {
   expect(TERMINAL_TONES.good.intent).toBe("indexed")
-  expect(tonesFor("#16181b").good.intent).toBe("rgb")
+  expect(TERMINAL_TONES.dim.intent).toBe("indexed")
+  expect(tonesFor(dark).good.intent).toBe("rgb")
 })

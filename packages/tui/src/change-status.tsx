@@ -13,13 +13,13 @@ export function ChangeStatus({ block }: { block: StatusBlock }) {
         <span fg={tones[tone]}>{`${symbol} ${state}`}</span>
         {name === undefined ? "" : "  "}
         {name !== undefined && <span attributes={TextAttributes.BOLD}>{name}</span>}
-        {holds === undefined ? "" : <span fg={COLOUR.dim}>{`  ${holds}`}</span>}
+        {holds === undefined ? "" : <span fg={tones.dim}>{`  ${holds}`}</span>}
         {flag === undefined ? "" : <span fg={tones.bad}>{`   ${flag}`}</span>}
       </text>
       {details.map((line, i) => (
-        <text key={i} fg={COLOUR.dim}>{`  ${line}`}</text>
+        <text key={i} fg={tones.dim}>{`  ${line}`}</text>
       ))}
-      {keys !== undefined && <text fg={COLOUR.dim}>{`  ${keys}`}</text>}
+      {keys !== undefined && <text fg={tones.dim}>{`  ${keys}`}</text>}
     </box>
   )
 }

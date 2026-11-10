@@ -84,6 +84,7 @@ const PROPOSED: StateLabel = { symbol: "+", state: "proposed", tone: "warn" }
 // A proposed repo's name, where it lives, and why, across the title and the columns after it;
 // the keys that settle it at the end.
 function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRepo>) {
+  const tones = useTones()
   const { name, source, reason } = proposal
   const { columns } = context
   const keys = "enter add · d dismiss"
@@ -97,13 +98,14 @@ function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRep
       <span
         {...(selected ? { attributes: TextAttributes.BOLD } : {})}
       >{`${name}${" ".repeat(GAP)}`}</span>
-      <span fg={COLOUR.dim}>{where}</span>
-      <span fg={COLOUR.dim}>{keys}</span>
+      <span fg={tones.dim}>{where}</span>
+      <span fg={tones.dim}>{keys}</span>
     </text>
   )
 }
 
 function TriggerRow({ item: found, selected, context }: RowProps<TriggerTrek>) {
+  const tones = useTones()
   const { trigger, trek } = found
   const { columns } = context
   const where = `${trigger.kind} · ${trigger.evidence.file}:${trigger.evidence.line}`
@@ -113,7 +115,7 @@ function TriggerRow({ item: found, selected, context }: RowProps<TriggerTrek>) {
       <Marker selected={selected} context={context} />
       <State label={statusBlock(trek, undefined, false)} width={columns.state} />
       <Title text={trigger.name} width={columns.title} selected={selected} />
-      <span fg={COLOUR.dim}>{fit(where, rest(context))}</span>
+      <span fg={tones.dim}>{fit(where, rest(context))}</span>
     </text>
   )
 }
@@ -129,7 +131,7 @@ function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
         <Marker selected={selected} context={context} />
         <State label={label} width={columns.state} />
         <Title text={entry.name} width={columns.title} selected={selected} />
-        <span fg={COLOUR.dim}>{fit(entry.problem, rest(context))}</span>
+        <span fg={tones.dim}>{fit(entry.problem, rest(context))}</span>
       </text>
     )
   }
@@ -140,9 +142,9 @@ function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
       <Marker selected={selected} context={context} />
       <State label={label} width={columns.state} />
       <Title text={entry.title} width={columns.title} selected={selected} />
-      <span fg={COLOUR.dim}>{detailOf(entry, status, states).padEnd(columns.detail)}</span>
+      <span fg={tones.dim}>{detailOf(entry, status, states).padEnd(columns.detail)}</span>
       <span fg={tones.bad}>{flagsText(entry).padEnd(columns.flags)}</span>
-      <span fg={COLOUR.dim}>{built}</span>
+      <span fg={tones.dim}>{built}</span>
     </text>
   )
 }

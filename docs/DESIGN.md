@@ -224,10 +224,11 @@ In VS Code the keys step a trek only while no debug session runs.
 ## Terminal screens
 
 Mocked up in [design/terminal-screens.html](design/terminal-screens.html), which changes with the
-screens. Text, dim text, and the background are the terminal's own. The colours of states (good,
-stale, failed, building) and the accent are srctrek's, a bright set on a dark background and
-deeper ones on a light background, once the terminal reports its background; until then, or if it
-never does, the terminal's own bright ANSI colours. Each state also has its own symbol: `●` ready,
+screens. Text and the background are the terminal's own. Once the terminal reports its colours,
+the states (good, stale, failed, building) and the accent are srctrek's, a bright set on a dark
+background and deeper ones on a light one, and secondary text is mixed 60% of the way from the
+terminal's background to its text; until then, or if it never reports them, the terminal's own
+bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 
 - **Home:** the change at the top, then the change's trek with where it stands, then the list in

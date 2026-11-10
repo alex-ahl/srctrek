@@ -23,7 +23,7 @@ export function NoticeLine({ notice }: { notice: Notice }) {
   const tones = useTones()
 
   if (notice.kind === "checking") {
-    return <text fg={COLOUR.dim}>{CHECKING}</text>
+    return <text fg={tones.dim}>{CHECKING}</text>
   }
 
   if (notice.kind === "checked") {

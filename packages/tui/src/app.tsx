@@ -24,7 +24,7 @@ import { type Row, rowsOf } from "./rows"
 import { type SectionId, sectionsOf } from "./sections"
 import { canStartBuild, hasLog, hasTrek } from "./states"
 import { statusBlock } from "./status-block"
-import { COLOUR } from "./theme"
+import { useTones } from "./theme"
 import { TitleBar } from "./title-bar"
 import { visibleWindow } from "./window"
 
@@ -280,6 +280,7 @@ function Settings({ props, close }: { props: Props; close: () => void }) {
 }
 
 export function App(props: Props) {
+  const tones = useTones()
   const { entries, onQuit, status, onBuild } = props
   const rows = rowsOf(entries, status, props.proposals ?? [])
   // the selected item by its key, so it stays put as rows move between sections
@@ -364,7 +365,7 @@ export function App(props: Props) {
           </box>
         )}
         {rows.length === 0 ? (
-          <text fg={COLOUR.dim}>No treks in .srctrek/treks yet.</text>
+          <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>
         ) : (
           lines
             .slice(start, end)

@@ -48,21 +48,21 @@ export function EditorPicker({ editors, current, onPick, onCancel }: Props) {
     <box
       flexDirection="column"
       border={["top"]}
-      borderColor={COLOUR.dim}
+      borderColor={tones.dim}
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <text fg={COLOUR.text}>Open treks in:</text>
-      {editors.length === 0 && <text fg={COLOUR.dim}>{NONE_FOUND}</text>}
+      {editors.length === 0 && <text fg={tones.dim}>{NONE_FOUND}</text>}
       {editors.map((editor, i) => (
         <text key={editor.id} fg={COLOUR.text}>
           <span fg={tones.accent}>{i === chosen ? "▶ " : "  "}</span>
           <span {...(i === chosen ? { attributes: TextAttributes.BOLD } : {})}>
             {editor.label.padEnd(width)}
           </span>
-          <span fg={COLOUR.dim}>{how(editor)}</span>
+          <span fg={tones.dim}>{how(editor)}</span>
         </text>
       ))}
-      <text fg={COLOUR.dim}>↑/↓ choose · enter pick · esc cancel</text>
+      <text fg={tones.dim}>↑/↓ choose · enter pick · esc cancel</text>
     </box>
   )
 }
