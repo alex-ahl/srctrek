@@ -1,16 +1,16 @@
 import type { TrekEntry, TrekStatus } from "@srctrek/core"
-import { COLOUR, type Colour } from "./theme"
+import type { Tone } from "./theme"
 import { count } from "./text"
 
 /**
  * Where the change's trek stands, as the home screen shows it: a symbol and the state in the
- * state's colour, the trek's name and what it holds, then dim lines saying why and the keys that
+ * state's tone, the trek's name and what it holds, then dim lines saying why and the keys that
  * act on it.
  */
 export type StatusBlock = Readonly<{
   symbol: string
   state: string
-  colour: Colour
+  tone: Tone
   name?: string
   holds?: string
   // a likely-wrong count, drawn in the bad colour
@@ -27,13 +27,13 @@ type Of<K extends TrekStatus["kind"]> = Extract<TrekStatus, { kind: K }>
 // "15 steps · 3 repos", the flag, and the trek's title below it, for a trek that's saved.
 function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
   if (entry === undefined || !entry.valid) {
-    return { symbol: "●", state: "ready", colour: COLOUR.good, name, details: [] }
+    return { symbol: "●", state: "ready", tone: "good", name, details: [] }
   }
 
   return {
     symbol: "●",
     state: "ready",
-    colour: COLOUR.good,
+    tone: "good",
     name,
     holds: `${count(entry.steps, "step")} · ${count(entry.repos, "repo")}`,
     ...(entry.highFlags > 0 ? { flag: `⚠ ${entry.highFlags} likely wrong` } : {}),
@@ -48,9 +48,9 @@ function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean)
       : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
 
   return {
-    symbol: "±",
+    symbol: "≠",
     state: "stale",
-    colour: COLOUR.warn,
+    tone: "warn",
     name,
     details: [changed],
     ...(canBuild ? { keys: "b update it" } : {}),
@@ -58,7 +58,7 @@ function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean)
 }
 
 function missingBlock(name: string, canBuild: boolean): StatusBlock {
-  const block = { symbol: "○", state: "no trek yet", colour: COLOUR.dim, name }
+  const block = { symbol: "○", state: "no trek yet", tone: "dim" as const, name }
   if (canBuild) {
     return { ...block, details: [], keys: "b build it" }
   }
@@ -79,7 +79,7 @@ function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): Statu
     return {
       symbol: "◐",
       state: "building",
-      colour: COLOUR.busy,
+      tone: "busy",
       name: status.name,
       details,
       keys: "l log",
@@ -89,7 +89,7 @@ function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): Statu
   return {
     symbol: "✕",
     state: "build failed",
-    colour: COLOUR.bad,
+    tone: "bad",
     name: status.name,
     details: details.length === 0 ? ["its log is empty"] : details,
     keys: canBuild ? "b build again · l whole log" : "l whole log",
@@ -107,7 +107,7 @@ function unreachableBlock({ name, unreachable }: Of<"unreachable">): StatusBlock
           "fetch it there to open this trek",
         ]
 
-  return { symbol: "✕", state: "can't open", colour: COLOUR.bad, name, details }
+  return { symbol: "✕", state: "can't open", tone: "bad", name, details }
 }
 
 type NameOnly = "ready" | "older-guide" | "missing" | "empty"
@@ -127,7 +127,7 @@ function nameOnlyBlock(
     return {
       symbol: "↻",
       state: "older guide",
-      colour: COLOUR.warn,
+      tone: "warn",
       name,
       details: ["built before the guide last changed"],
       keys: canBuild ? "b rebuild with the current guide · enter open it" : "enter open it",
@@ -138,7 +138,7 @@ function nameOnlyBlock(
     return {
       symbol: "○",
       state: "nothing to trek",
-      colour: COLOUR.dim,
+      tone: "dim",
       details: [
         "this change has no commits",
         "give trek a range, such as trek HEAD~5..HEAD, or try --uncommitted",
@@ -167,7 +167,7 @@ export function statusBlock(
     return {
       symbol: "✕",
       state: "can't read",
-      colour: COLOUR.bad,
+      tone: "bad",
       name: status.name,
       details: [status.problem],
       ...(canBuild ? { keys: "b rebuild it" } : {}),
@@ -182,7 +182,7 @@ export function statusBlock(
     return {
       symbol: "◇",
       state: `found ${count(status.triggers.length, "way")} in`,
-      colour: COLOUR.accent,
+      tone: "accent",
       details: ["pick one below to trek it"],
     }
   }

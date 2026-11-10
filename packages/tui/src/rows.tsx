@@ -3,7 +3,7 @@ import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/
 import { type Columns, GAP, builtText, flagsText } from "./row-columns"
 import { type StateLabel, type States, detailOf, stateOf } from "./row-state"
 import { statusBlock } from "./status-block"
-import { COLOUR } from "./theme"
+import { COLOUR, useTones } from "./theme"
 import { fit } from "./text"
 
 /**
@@ -57,7 +57,7 @@ export type RowContext = Readonly<{
 function Marker({ selected, context }: { selected: boolean; context: RowContext }) {
   const marked = selected && context.tint === undefined
 
-  return <span fg={COLOUR.accent}>{marked ? "▶ " : "  "}</span>
+  return <span fg={useTones().accent}>{marked ? "▶ " : "  "}</span>
 }
 
 // The row's title in its column, bold when selected, cut to leave a gap before the next column.
@@ -70,14 +70,16 @@ function Title({ text, width, selected }: { text: string; width: number; selecte
 function State({ label, width }: { label: StateLabel | undefined; width: number }) {
   const text = label === undefined ? "" : `${label.symbol} ${label.state}`
 
-  return <span fg={label?.colour ?? COLOUR.dim}>{text.padEnd(width)}</span>
+  const tones = useTones()
+
+  return <span fg={tones[label?.tone ?? "dim"]}>{text.padEnd(width)}</span>
 }
 
 // The room after the marker, the state, and the title, for text that fills the rest of a row.
 const rest = (context: RowContext) =>
   Math.max(0, context.width - 4 - context.columns.state - context.columns.title)
 
-const PROPOSED: StateLabel = { symbol: "+", state: "proposed", colour: COLOUR.warn }
+const PROPOSED: StateLabel = { symbol: "+", state: "proposed", tone: "warn" }
 
 // A proposed repo's name, where it lives, and why, across the title and the columns after it;
 // the keys that settle it at the end.
@@ -119,6 +121,7 @@ function TriggerRow({ item: found, selected, context }: RowProps<TriggerTrek>) {
 function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
   const { columns, status, states } = context
   const label = stateOf({ kind: "trek", entry }, status, states)
+  const tones = useTones()
 
   if (!entry.valid) {
     return (
@@ -138,7 +141,7 @@ function TrekRow({ item: entry, selected, context }: RowProps<TrekEntry>) {
       <State label={label} width={columns.state} />
       <Title text={entry.title} width={columns.title} selected={selected} />
       <span fg={COLOUR.dim}>{detailOf(entry, status, states).padEnd(columns.detail)}</span>
-      <span fg={COLOUR.bad}>{flagsText(entry).padEnd(columns.flags)}</span>
+      <span fg={tones.bad}>{flagsText(entry).padEnd(columns.flags)}</span>
       <span fg={COLOUR.dim}>{built}</span>
     </text>
   )

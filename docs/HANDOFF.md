@@ -57,8 +57,11 @@
   capture now runs trek live and answers its colour queries from each palette, so it shows what
   a dark and a light terminal really get.
 - States stand out more: the bright ANSI colours for states, flags, and the accent; a row's whole
-  state in its colour; and stale and older guide by their own symbols (`±`, `↻`), so they don't
+  state in its colour; and stale and older guide by their own symbols (`≠`, `↻`), so they don't
   rest on telling green from yellow, which some themes draw close together.
+- The states' colours are srctrek's once the terminal reports its background: a bright set on
+  dark, deeper ones on light, chosen to keep green and yellow apart; text, dim text, and the
+  background stay the terminal's, and a terminal that doesn't report keeps its ANSI colours.
 
 ## 2026-11-03 — Milestone 6: the editors
 

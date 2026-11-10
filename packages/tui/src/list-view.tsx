@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 import type { Item, ListLine } from "./list-lines"
 import { type RowContext, RowView } from "./rows"
-import { COLOUR } from "./theme"
+import { COLOUR, useTones } from "./theme"
 import { count } from "./text"
 
 // A folding section's heading where other headings sit, "▸ DONE  31 treks", which enter opens or
@@ -14,10 +14,11 @@ function FoldView({
   selected: boolean
 }) {
   const { section, open } = item
+  const tones = useTones()
 
   return (
     <text fg={COLOUR.dim}>
-      <span fg={selected ? COLOUR.accent : COLOUR.dim}>{open ? "▾ " : "▸ "}</span>
+      <span fg={selected ? tones.accent : COLOUR.dim}>{open ? "▾ " : "▸ "}</span>
       <span {...(selected ? { attributes: TextAttributes.BOLD } : {})}>{section.title}</span>
       {`  ${count(section.rows.length, "trek")}`}
     </text>

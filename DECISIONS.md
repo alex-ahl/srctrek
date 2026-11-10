@@ -2,6 +2,19 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-10 — The terminal's states take trek's own colours
+
+The colours that say how something stands (good, stale, failed, building) and the accent are
+trek's own once the terminal reports its background: a bright set on a dark background, deeper
+ones on a light one. Default and dim text, and the background, stay the terminal's. A terminal
+that doesn't report its colours keeps its own bright ANSI colours. Each state also has a symbol of
+its own (`●`, `≠`, `✕`, `◐`, `✓`), so it reads by shape alone.
+
+Themes differ most in green and yellow: in some, ready and stale were hard to tell apart, and the
+screen read flatter than the design's mockup. States are signals that must stay apart in every
+theme. The shapes keep them readable for anyone who chose a theme for its contrast. Narrows "The
+editor's theme colours srctrek" (2026-11-03) for the terminal: these roles only.
+
 ## 2026-11-09 — A trek records the branch or pull request it was built from
 
 Each changed repo in a trek names its head: the branch (marked when the trek was of uncommitted

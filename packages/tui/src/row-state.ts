@@ -1,15 +1,14 @@
 import type { TrekEntry, TrekState, TrekStatus, UnreachableRepo } from "@srctrek/core"
 import type { Row } from "./rows"
 import { type StatusBlock, statusBlock } from "./status-block"
-import { COLOUR } from "./theme"
 import { count } from "./text"
 
-/** A row's state: its symbol and word, and the colour the symbol takes. */
-export type StateLabel = Pick<StatusBlock, "symbol" | "state" | "colour">
+/** A row's state: its symbol and word, and the tone they're drawn in. */
+export type StateLabel = Pick<StatusBlock, "symbol" | "state" | "tone">
 
 export type States = ReadonlyMap<string, TrekState>
 
-const INVALID: StateLabel = { symbol: "✕", state: "invalid", colour: COLOUR.bad }
+const INVALID: StateLabel = { symbol: "✕", state: "invalid", tone: "bad" }
 
 const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], string>> = {
   merged: "merged",
@@ -24,18 +23,18 @@ function savedLabel(state: TrekState | undefined): StateLabel | undefined {
   }
 
   if (state.kind === "current") {
-    return { symbol: "●", state: "ready", colour: COLOUR.good }
+    return { symbol: "●", state: "ready", tone: "good" }
   }
 
   if (state.kind === "stale") {
-    return { symbol: "±", state: "stale", colour: COLOUR.warn }
+    return { symbol: "≠", state: "stale", tone: "warn" }
   }
 
   if (state.kind === "done") {
-    return { symbol: "✓", state: DONE_WORD[state.why], colour: COLOUR.dim }
+    return { symbol: "✓", state: DONE_WORD[state.why], tone: "dim" }
   }
 
-  return { symbol: "✕", state: "can't open", colour: COLOUR.bad }
+  return { symbol: "✕", state: "can't open", tone: "bad" }
 }
 
 /**

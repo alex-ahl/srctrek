@@ -17,7 +17,7 @@ import { useEffect, useState } from "react"
 import { App } from "./app"
 import { openInNeovim } from "./neovim"
 import { openInPager } from "./pager"
-import { tintOf } from "./theme"
+import { TERMINAL_TONES, type Tones, TonesContext, tintOf, tonesFor } from "./theme"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
@@ -60,16 +60,18 @@ function Home(props: HomeProps) {
   const [proposals, setProposals] = useState(props.firstProposals)
   const [states, setStates] = useState<ReadonlyMap<string, TrekState>>(new Map())
   const [tint, setTint] = useState<RGBA | undefined>(undefined)
+  const [tones, setTones] = useState<Tones>(TERMINAL_TONES)
   const renderer = useRenderer()
 
-  // The selected row's tint comes from the terminal's own colours, when it says what they are;
-  // a terminal that doesn't answer keeps the plain marker.
+  // The selected row's tint and the states' tones come from the terminal's own colours, when it
+  // says what they are; a terminal that doesn't answer keeps the marker and its ANSI colours.
   useEffect(() => {
     const colours = renderer.getPalette({ timeout: 1000 })
     void colours.then(
       ({ defaultForeground, defaultBackground }) => {
         if (defaultForeground !== null && defaultBackground !== null) {
           setTint(tintOf(defaultForeground, defaultBackground))
+          setTones(tonesFor(defaultBackground))
         }
       },
       () => undefined,
@@ -124,23 +126,25 @@ function Home(props: HomeProps) {
   const buildTrigger = change?.buildTrigger
 
   return (
-    <App
-      entries={entries}
-      onOpen={onOpen}
-      onQuit={onQuit}
-      status={status}
-      onBuild={build === undefined ? undefined : () => void started(build())}
-      onBuildTrigger={
-        buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
-      }
-      onShowLog={(name) => void showLog(name)}
-      proposals={proposals}
-      onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
-      onDismissRepo={(name) => void settle(dismissProposal(root, name))}
-      summary={change?.summary}
-      states={states}
-      tint={tint}
-    />
+    <TonesContext.Provider value={tones}>
+      <App
+        entries={entries}
+        onOpen={onOpen}
+        onQuit={onQuit}
+        status={status}
+        onBuild={build === undefined ? undefined : () => void started(build())}
+        onBuildTrigger={
+          buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
+        }
+        onShowLog={(name) => void showLog(name)}
+        proposals={proposals}
+        onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
+        onDismissRepo={(name) => void settle(dismissProposal(root, name))}
+        summary={change?.summary}
+        states={states}
+        tint={tint}
+      />
+    </TonesContext.Provider>
   )
 }
 

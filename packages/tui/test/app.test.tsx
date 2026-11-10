@@ -3,7 +3,7 @@ import type { ChangeSummary, TrekEntry, TrekState, TrekStatus } from "@srctrek/c
 import type { ComponentProps } from "react"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
-import { tintOf } from "../src/theme"
+import { TERMINAL_TONES, tintOf, tonesFor } from "../src/theme"
 import { frameAfter } from "./support/keys"
 
 const noop = () => undefined
@@ -136,7 +136,7 @@ test("puts treks of the change's branch with the change, and done treks folded a
   const frame = await frameOf({ entries, status, summary, states })
 
   expect(frame).toMatch(
-    /THIS CHANGE *\n.*● ready   Refund orders .*\n.*± stale   An older trek   1 of 12 steps changed/,
+    /THIS CHANGE *\n.*● ready   Refund orders .*\n.*≠ stale   An older trek   1 of 12 steps changed/,
   )
   expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS *\n *An older trek/)
   expect(frame).toContain(" ▸ DONE  1 trek")
@@ -266,7 +266,7 @@ test("says a stale trek is out of date, how much changed, and offers to update i
   const status: TrekStatus = { kind: "stale", name: "feature-refunds", staleStops: 3, stops: 12 }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toContain(" ± stale  feature-refunds")
+  expect(frame).toContain(" ≠ stale  feature-refunds")
   expect(frame).toContain("   3 of 12 steps' files changed since it was built")
   expect(frame).toContain("   b update it")
   expect(frame).toContain("b update")
@@ -331,4 +331,14 @@ test("tints the selected row instead of marking it, once the terminal's colours 
 test("a tint moves the terminal's background a little toward its text, dark or light", () => {
   expect(tintOf("#d3d6da", "#16181b").toInts()).toEqual([45, 47, 50, 255])
   expect(tintOf("#24292f", "#ffffff").toInts()).toEqual([229, 229, 230, 255])
+})
+
+test("picks deep tones for a light terminal and bright ones for a dark one", () => {
+  expect(tonesFor("#16181b").good.toInts()).toEqual([143, 207, 122, 255])
+  expect(tonesFor("#ffffff").good.toInts()).toEqual([26, 127, 55, 255])
+})
+
+test("draws in the terminal's own ANSI colours until it says what its background is", () => {
+  expect(TERMINAL_TONES.good.intent).toBe("indexed")
+  expect(tonesFor("#16181b").good.intent).toBe("rgb")
 })
