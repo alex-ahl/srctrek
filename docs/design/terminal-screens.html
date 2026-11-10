@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>srctrek terminal screens</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f5f7f6;
+        --panel: #ffffff;
+        --ink: #1d2421;
+        --muted: #5c6763;
+        --rule: #d8dedb;
+        --accent: #1f7a6b;
+        --accent-soft: #e2f1ed;
+        --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #121615;
+          --panel: #181d1b;
+          --ink: #e3e8e5;
+          --muted: #9aa5a0;
+          --rule: #2a312e;
+          --accent: #4fc1a8;
+          --accent-soft: #17302a;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #121615;
+        --panel: #181d1b;
+        --ink: #e3e8e5;
+        --muted: #9aa5a0;
+        --rule: #2a312e;
+        --accent: #4fc1a8;
+        --accent-soft: #17302a;
+        color-scheme: dark;
+      }
+      /* Terminal mocks keep a dark terminal theme, with ANSI-like roles. */
+      .term {
+        --t-bg: #16181b;
+        --t-fg: #d3d6da;
+        --t-dim: #7c838c;
+        --t-sel: #26403b;
+        --t-line: #2d3136;
+        --t-green: #8fcf7a;
+        --t-yellow: #e6c27a;
+        --t-red: #f2858a;
+        --t-blue: #8fb5ff;
+        --t-cyan: #7fd3d0;
+        --t-accent: #4fc1a8;
+        background: var(--t-bg);
+        color: var(--t-fg);
+        border-radius: 6px;
+        border: 1px solid var(--rule);
+        font: 12.5px/1.55 var(--mono);
+        overflow-x: auto;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.55 var(--sans);
+        padding-inline: 20px;
+        padding-block: 32px 64px;
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        gap: 52px;
+      }
+      h1,
+      h2 {
+        font-family: var(--cond);
+        font-weight: 600;
+        text-wrap: balance;
+        margin: 0;
+        line-height: 1.2;
+      }
+      h1 {
+        font-size: 34px;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 22px;
+      }
+      p {
+        margin: 0;
+        max-width: 70ch;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+      }
+      .lede {
+        color: var(--muted);
+        font-size: 17px;
+      }
+      header,
+      section {
+        display: grid;
+        gap: 14px;
+      }
+      .eyebrow {
+        font: 500 12px/1 var(--cond);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+      }
+      .note {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+      figure {
+        margin: 0;
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+      figcaption {
+        font: 500 13px var(--cond);
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+
+      .screen {
+        min-width: 560px;
+        padding: 0;
+      }
+      .tb {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--t-line);
+        color: var(--t-dim);
+      }
+      .tb b {
+        color: var(--t-fg);
+        font-weight: 600;
+      }
+      .pane {
+        padding: 10px 12px;
+        display: grid;
+        gap: 2px;
+      }
+      .ln {
+        white-space: pre;
+      }
+      .sel {
+        background: var(--t-sel);
+      }
+      .dim {
+        color: var(--t-dim);
+      }
+      .g {
+        color: var(--t-green);
+      }
+      .y {
+        color: var(--t-yellow);
+      }
+      .r {
+        color: var(--t-red);
+      }
+      .b {
+        color: var(--t-blue);
+      }
+      .c {
+        color: var(--t-cyan);
+      }
+      .a {
+        color: var(--t-accent);
+      }
+      .bold {
+        font-weight: 600;
+        color: var(--t-fg);
+      }
+      .it {
+        font-style: italic;
+      }
+      .foot {
+        padding: 6px 12px;
+        border-top: 1px solid var(--t-line);
+        color: var(--t-dim);
+        white-space: pre;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 230px;
+      }
+      .split > div + div {
+        border-left: 1px solid var(--t-line);
+      }
+      .step-hl {
+        background: rgba(79, 193, 168, 0.13);
+        box-shadow: inset 2px 0 0 var(--t-accent);
+      }
+
+      /* route map */
+      .lanes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(170px, 1fr));
+        gap: 0;
+        padding: 8px 12px 12px;
+        min-width: 600px;
+      }
+      .lane-h {
+        color: var(--t-dim);
+        border-bottom: 1px solid var(--t-line);
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .lane {
+        display: grid;
+        align-content: start;
+        gap: 0;
+        padding-right: 10px;
+      }
+      .node {
+        white-space: pre;
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      .node.cur {
+        background: var(--t-sel);
+      }
+      .gap {
+        height: 21px;
+      }
+      .hopline {
+        color: var(--t-dim);
+        white-space: pre;
+      }
+
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+        gap: 14px;
+      }
+      .state {
+        display: grid;
+        gap: 6px;
+      }
+      .state .term {
+        min-width: 0;
+      }
+      .state .pane {
+        padding: 8px 10px;
+      }
+      ol.q {
+        margin: 0;
+        padding-left: 22px;
+        display: grid;
+        gap: 12px;
+        max-width: 76ch;
+      }
+      ol.q li::marker {
+        font-family: var(--cond);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .tablewrap {
+        overflow-x: auto;
+        border: 1px solid var(--rule);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 600px;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: top;
+      }
+      th {
+        font: 500 12px var(--cond);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        background: var(--bg);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- prettier-ignore -->
+    <main>
+  <header>
+    <span class="eyebrow">Milestone 5 · Step 5d · for review</span>
+    <h1>srctrek terminal screens</h1>
+    <p class="lede">What <code>trek</code> shows in the terminal: the home screen and every state a change's trek can be in, the build view while an agent works, the route map of a whole trek, and stepping for editors without a plugin. Colours are the terminal's own: green, yellow, red, blue, and dim, as in the visual language.</p>
+  </header>
+
+  <section>
+    <h2>1. The home screen</h2>
+    <p class="note">The change at the top, then what needs a decision (repos the agent proposed), then the change's trek, then every other trek. Enter opens the selected trek in the editor <code>SRCTREK_EDITOR</code> names.</p>
+    <figure><figcaption>Reviewing feature/refunds across three repos; the trek is ready</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b>  web · main...feature/refunds  + api, worker</span><span>3 repos · 9 commits</span></div>
+        <div class="pane">
+          <div class="ln"><span class="g">● ready</span>  <span class="bold">feature-refunds</span>  19 steps · 3 repos   <span class="r">⚠ 1 likely wrong</span></div>
+          <div class="ln dim">  Full refund of order o_1001: button click to the payment provider</div>
+          <div class="ln"> </div>
+          <div class="ln dim">PROPOSED BY THE AGENT</div>
+          <div class="ln">  <span class="y">+</span> payments   ../payments-service   the worker calls it at /v2/refunds          <span class="dim">enter add · d dismiss</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">TREKS</div>
+          <div class="ln sel">  <span class="g">●</span> feature-refunds      ready      19 steps   <span class="r">⚠ 1</span>     built today 09:12</div>
+          <div class="ln">  <span class="y">●</span> pr-12                stale      3 of 14 steps changed since    yesterday</div>
+          <div class="ln">  <span class="r">●</span> pr-9                 failed     no repo at ../billing          Mon</div>
+          <div class="ln">  <span class="dim">●</span> orientation          ready      15 steps · code trek            Oct 21</div>
+        </div>
+        <div class="foot">enter open in nvim · b rebuild · r route map · s step here · l log · q quit</div>
+      </div>
+    </figure>
+  </section>
+
+  <section>
+    <h2>2. Every state of the change's trek</h2>
+    <p class="note">The line under the header says where the change's trek stands and what the next key does about it.</p>
+    <div class="states">
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="b">◐ building</span>  feature-refunds   2:14</div>
+        <div class="ln dim">  added s8–s14 · reading worker/main.py</div>
+        <div class="ln dim">  enter watch the build · l log</div>
+      </div></div><span class="note">An agent is building it; enter opens the build view.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="y">● stale</span>  feature-refunds</div>
+        <div class="ln dim">  4 of 19 steps' files changed since it was built</div>
+        <div class="ln dim">  b update it · enter open it as it is</div>
+      </div></div><span class="note">The branch moved on; updating keeps the steps whose files didn't change.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="r">✕ build failed</span>  after 3 rejected rounds</div>
+        <div class="ln dim">  s15: crosses from api to worker without citing worker</div>
+        <div class="ln dim">  b build again · l whole log</div>
+      </div></div><span class="note">The end of the log says why.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="r">✕ can't open</span>  feature-refunds</div>
+        <div class="ln dim">  repo worker isn't at ../worker</div>
+        <div class="ln dim">  clone it there, or fix .srctrek/repos</div>
+      </div></div><span class="note">A repo the trek names isn't where it was.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="y">● older guide</span>  feature-refunds</div>
+        <div class="ln dim">  built with an earlier trek guide</div>
+        <div class="ln dim">  b rebuild with the current one · enter open it</div>
+      </div></div><span class="note">The trek's prompt hash differs from this trek binary's.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="dim">○ no trek yet</span>  feature/refunds</div>
+        <div class="ln dim">  set SRCTREK_AGENT to the command that runs your agent headless,</div>
+        <div class="ln dim">  or ask your agent for a trek in chat</div>
+      </div></div><span class="note">No agent configured.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="dim">○ nothing to trek</span></div>
+        <div class="ln dim">  feature/refunds has no commits since main</div>
+        <div class="ln dim">  try --uncommitted, or trek --code</div>
+      </div></div><span class="note">An empty change.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="dim">TRIGGERS IN web</span>  <span class="dim">(trek --code)</span></div>
+        <div class="ln sel">  route   POST /refunds          <span class="g">●</span> ready</div>
+        <div class="ln">  command  import-orders          <span class="dim">○</span> enter build</div>
+      </div></div><span class="note">Exploring code: its triggers, each with its trek's state.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. The build view</h2>
+    <p class="note">Opened from a building trek. The overview as soon as the agent starts the trek, steps as they arrive, rejected rounds with their problems, and what the agent is reading.</p>
+    <figure><figcaption>Building feature-refunds, two minutes in</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b>  building feature-refunds</span><span>2:14 · 24 reads · round 1 of 3 ok</span></div>
+        <div class="pane">
+          <div class="ln bold">Full refund of order o_1001</div>
+          <div class="ln dim">  The refund button posts the amount to the api, which validates it and queues it.</div>
+          <div class="ln"> </div>
+          <div class="ln"><span class="dim">web</span>     s1  click listener            s2 refund action           s3 requestRefund</div>
+          <div class="ln">        s4  post()                     <span class="dim">↯ hop to api</span></div>
+          <div class="ln"><span class="dim">api</span>     s8  POST /refunds              s9 openapi entry <span class="dim">(context)</span></div>
+          <div class="ln">        s11 createRefund <span class="r">⚠</span>             s13 publish                <span class="dim">↯ hop to worker</span></div>
+          <div class="ln"><span class="dim">worker</span>  <span class="b">◐ reading worker/main.py</span></div>
+          <div class="ln"> </div>
+          <div class="ln"><span class="y">rejected</span> s15: crosses from api to worker without citing worker <span class="dim">· the agent is fixing it</span></div>
+          <div class="ln"><span class="y">proposed</span> payments, ../payments-service <span class="dim">· opened in this build</span></div>
+        </div>
+        <div class="foot">l full log · esc back home · the build goes on if trek quits</div>
+      </div>
+    </figure>
+  </section>
+
+  <section>
+    <h2>4. The route map</h2>
+    <p class="note">The whole trek at once: one lane per repo, steps in the order they run, hops crossing between lanes, flags where they are. Enter opens the selected step in the editor; the map is the overview no single editor window can give.</p>
+    <figure><figcaption>feature-refunds, s11 selected</figcaption>
+      <div class="term">
+        <div class="tb"><span><b>srctrek</b>  route · feature-refunds</span><span>19 steps · 2 hops</span></div>
+        <div class="lanes">
+          <div class="lane">
+            <div class="lane-h">web</div>
+            <div class="node">s1  page load</div>
+            <div class="node">s4  click listener</div>
+            <div class="node">s5  refund action  <span class="g">+</span></div>
+            <div class="node">s6  requestRefund  <span class="g">+</span></div>
+            <div class="node">s7  post() ────────────┐</div>
+            <div class="gap"></div><div class="gap"></div><div class="gap"></div>
+            <div class="node">s14 status text  <span class="g">+</span> ◂─┐</div>
+          </div>
+          <div class="lane">
+            <div class="lane-h">api</div>
+            <div class="gap"></div><div class="gap"></div><div class="gap"></div><div class="gap"></div>
+            <div class="node">  ┌─▸ s8  POST /refunds</div>
+            <div class="node dim">      s9  openapi entry</div>
+            <div class="node cur">      s11 createRefund <span class="r">⚠</span> <span class="y">~</span></div>
+            <div class="node">      s13 publish  <span class="g">+</span> ──┐</div>
+          </div>
+          <div class="lane">
+            <div class="lane-h">worker</div>
+            <div class="gap"></div><div class="gap"></div><div class="gap"></div><div class="gap"></div><div class="gap"></div><div class="gap"></div><div class="gap"></div>
+            <div class="node">  ┌─▸ s15 poll loop</div>
+            <div class="node">      s17 handler  <span class="g">+</span></div>
+            <div class="node">      s18 provider refund</div>
+          </div>
+        </div>
+        <div class="foot">j/k move · enter open in nvim · s step here · c changed only · f flags only · esc back</div>
+      </div>
+    </figure>
+  </section>
+
+  <section>
+    <h2>5. Stepping without an editor plugin</h2>
+    <p class="note">The step view drawn in the terminal, for editors without a plugin: the code with the step's lines, narration, values, and signs, the call stack beside it. <code>e</code> opens the step in the user's editor at its line.</p>
+    <figure><figcaption>s11, with the call stack on the right</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b>  11 / 19 · api · src/handlers/refunds.ts:8</span><span>call · s8 › s11</span></div>
+        <div class="split">
+          <div class="pane">
+            <div class="ln">▶ createRefund validates amount, stores a refund, publishes it, and returns 202.</div>
+            <div class="ln r">⚠ likely wrong: accepts the web's 499 (kronor) as 499 öre.</div>
+            <div class="ln step-hl"><span class="g">+</span>  8  <span class="b">export const</span> createRefund = <span class="b">async</span> ({ body }) =&gt; {</div>
+            <div class="ln step-hl">   9    <span class="b">const</span> { order_id, amount } = body   <span class="dim it">≈ amount = 499</span></div>
+            <div class="ln step-hl"><span class="y">~</span> 12    <span class="b">if</span> (amount &gt; order.total_minor) {   <span class="dim it">≈ passes</span></div>
+            <div class="ln step-hl"><span class="g">+</span> 18    publish("refund.requested", { amount })</div>
+            <div class="ln step-hl"><span class="g">+</span> 19    <span class="b">return</span> { status: 202 }</div>
+            <div class="ln dim">2 context steps · t details</div>
+          </div>
+          <div class="pane">
+            <div class="ln dim">CALL STACK</div>
+            <div class="ln sel">createRefund</div>
+            <div class="ln">POST /refunds</div>
+            <div class="ln dim">↯ hop · HTTP from web</div>
+            <div class="ln">post</div>
+            <div class="ln">refund action</div>
+            <div class="ln dim">↯ hop · click</div>
+            <div class="ln">click listener</div>
+          </div>
+        </div>
+        <div class="foot">n next · p prev · i into · o out · O over · t details · e open in $EDITOR · r route · q home</div>
+      </div>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Keys</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Screen</th><th>Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Home</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open in the editor · <code>b</code> build, update, or rebuild · <code>r</code> route map · <code>s</code> step here · <code>l</code> log · <code>d</code> dismiss a proposal · <code>q</code> quit</td></tr>
+        <tr><td>Build view</td><td><code>l</code> full log · <code>esc</code> home</td></tr>
+        <tr><td>Route map</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open the step in the editor · <code>s</code> step from here · <code>c</code> changed steps only · <code>f</code> flagged steps only · <code>esc</code> home</td></tr>
+        <tr><td>Stepping</td><td><code>n</code>/<code>p</code> next, previous · <code>i</code> into · <code>o</code> out · <code>O</code> over · <code>t</code> details · <code>e</code> open in <code>$EDITOR</code> · <code>r</code> route map · <code>q</code> home</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Questions for you</h2>
+    <ol class="q">
+      <li><b>The route map as lanes, one per repo</b>, with hops crossing between them. Clear for two to four repos; with many repos it gets wide. Agree, or prefer a single list grouped by repo?</li>
+      <li><b>The build view as its own screen</b>, opened from a building trek, rather than growing inside the home screen. Agree?</li>
+      <li><b>Stepping in the terminal for everyone</b>, not only editors without a plugin: <code>s</code> on the home screen starts it anywhere. Useful for a quick look without opening the editor. Agree, or keep it as the fallback only?</li>
+      <li><b>Proposed repos above the treks</b> on the home screen, since they wait on the user. Agree?</li>
+    </ol>
+  </section>
+</main>
+  </body>
+</html>
