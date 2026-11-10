@@ -94,10 +94,17 @@ export async function runInTerminal(run: TerminalRun, palette: Palette): Promise
   }
   await send("q")
 
-  const stopping = setTimeout(() => shell.kill(), QUIT_MS)
-  await shell.exited
-  clearTimeout(stopping)
-  await reading
+  // q can be taken by a prompt; ctrl-c always quits trek; a program past both is killed. Its
+  // output may stay open in script's children, so it's read for a moment more, not until it ends.
+  const exited = (ms: number) =>
+    Promise.race([shell.exited.then(() => true), Bun.sleep(ms).then(() => false)])
+  if (!(await exited(QUIT_MS))) {
+    await send("\x03")
+  }
+  if (!(await exited(QUIT_MS))) {
+    shell.kill()
+  }
+  await Promise.race([reading, Bun.sleep(QUIT_MS)])
   await input.close()
   await rm(dir, { recursive: true, force: true })
 

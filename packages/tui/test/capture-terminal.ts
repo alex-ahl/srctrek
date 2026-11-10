@@ -50,3 +50,5 @@ for (const [i, palette] of PALETTES.entries()) {
 }
 
 console.log(`saved ${out}.txt and its pictures`)
+// a program's children can outlive it and hold this process open
+process.exit(0)
