@@ -167,12 +167,12 @@ function showsRequest(row: SettingRow | undefined, settings: Settings, notice: N
   return justCopied || agentSetting(settings).command === undefined
 }
 
-// What the chosen setting is for, under its name.
+// What the chosen setting is for, under its name, in a panel above the footer.
 function Help({ row, width }: { row: SettingRow | undefined; width: number }) {
   const tones = useTones()
 
   return (
-    <box flexDirection="column" style={{ marginTop: 1 }}>
+    <box flexDirection="column">
       <text fg={COLOUR.text} attributes={TextAttributes.BOLD}>
         {row?.name ?? ""}
       </text>
@@ -255,12 +255,17 @@ export function SettingsScreen(props: Props) {
           overflow: "hidden",
         }}
       >
-        <box flexDirection="column" style={{ flexShrink: 0 }}>
-          <SettingsList rows={rows} chosen={chosen} lineWidth={lineWidth} tint={props.tint} />
-          <Help row={row} width={helpWidth} />
-          {showsRequest(row, props.settings, notice) && <SetupRequest width={helpWidth} />}
-          {notice !== undefined && <NoticeLine notice={notice} />}
-        </box>
+        <SettingsList rows={rows} chosen={chosen} lineWidth={lineWidth} tint={props.tint} />
+      </box>
+      <box
+        flexDirection="column"
+        border={["top"]}
+        borderColor={tones.dim}
+        style={{ flexShrink: 0, paddingLeft: PADDING, paddingRight: PADDING }}
+      >
+        <Help row={row} width={helpWidth} />
+        {showsRequest(row, props.settings, notice) && <SetupRequest width={helpWidth} />}
+        {notice !== undefined && <NoticeLine notice={notice} />}
       </box>
       <Bottom
         prompt={prompt}

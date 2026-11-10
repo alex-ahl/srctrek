@@ -196,6 +196,12 @@
       .it {
         font-style: italic;
       }
+      .help-panel {
+        padding: 8px 12px;
+        border-top: 1px solid var(--t-line);
+        display: grid;
+        gap: 2px;
+      }
       .foot {
         padding: 6px 12px;
         border-top: 1px solid var(--t-line);
@@ -428,10 +434,10 @@
   <section>
     <h2>4. Settings</h2>
     <p class="note"><code>S</code> opens settings over the list: each setting and its value, with a note beside it when an environment variable sets it. Enter changes the selected one. Everything is kept per user, in <code>$XDG_CONFIG_HOME/srctrek/settings.json</code> (else <code>~/.config</code>); an environment variable overrides the file, for scripts and CI.</p>
-    <figure><figcaption>Settings, the agent selected: grouped, the band on the chosen row, values that show what they mean</figcaption>
+    <figure><figcaption>Settings, the agent selected: grouped, the band on the chosen row, values that show what they mean, and what the chosen one is for above the footer</figcaption>
       <div class="term screen">
         <div class="tb"><span><b>srctrek</b>  settings</span><span>~/.config/srctrek/settings.json</span></div>
-        <div class="pane">
+        <div class="pane" style="min-height: 330px; align-content: start">
           <div class="ln dim">OPENING</div>
           <div class="ln">  Editor                  <span class="bold">Neovim</span></div>
           <div class="ln"> </div>
@@ -441,7 +447,8 @@
           <div class="ln"> </div>
           <div class="ln dim">LOOK</div>
           <div class="ln">  Colours                 <span class="bold">srctrek's</span>   <span class="g">● ready</span>  <span class="y">≠ stale</span>  <span class="r">✕ can't open</span></div>
-          <div class="ln"> </div>
+        </div>
+        <div class="help-panel">
           <div class="ln"><span class="bold">Agent</span></div>
           <div class="ln dim">trek can have your coding agent build treks in the background, but it needs</div>
           <div class="ln dim">to know how to start your agent.</div>
@@ -456,7 +463,8 @@
           <div class="ln dim">BUILDING</div>
           <div class="ln">  Agent                   <span class="bold">agent run --headless</span>  <span class="dim">SRCTREK_AGENT overrides the settings file</span></div>
           <div class="ln sel">  Build automatically     <span class="dim">○ off</span></div>
-          <div class="ln"> </div>
+        </div>
+        <div class="help-panel">
           <div class="ln"><span class="bold">Build automatically</span></div>
           <div class="ln dim">On, trek starts building a change's trek as it opens, when there's none and</div>
           <div class="ln dim">an agent is set. Off, it waits for b.</div>
@@ -469,7 +477,8 @@
         <div class="pane">
           <div class="ln dim">LOOK</div>
           <div class="ln sel">  Colours                 <span class="bold">the terminal's</span>   <span class="g">● ready</span>  <span class="y">≠ stale</span>  <span class="r">✕ can't open</span></div>
-          <div class="ln"> </div>
+        </div>
+        <div class="help-panel">
           <div class="ln"><span class="bold">Colours</span></div>
           <div class="ln dim">srctrek's keep states apart in any theme; the terminal's follow its own green,</div>
           <div class="ln dim">yellow, and red.</div>
@@ -484,7 +493,8 @@
             <div class="ln dim">BUILDING</div>
             <div class="ln sel">  Agent                   <span class="dim">none</span></div>
             <div class="ln">  Build automatically     <span class="dim">○ off</span></div>
-            <div class="ln"> </div>
+          </div>
+          <div class="help-panel">
             <div class="ln"><span class="bold">Agent</span></div>
             <div class="ln dim">trek can have your coding agent build treks in the background, but it needs</div>
             <div class="ln dim">to know how to start your agent.</div>
