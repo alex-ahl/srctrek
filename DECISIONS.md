@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-10 — The terminal asks which editor treks open in
+
+Enter on the home screen opens a trek in the editor the user picked. The first time, a picker
+lists the editors found on the machine that can open a trek; the choice is kept per user, in
+`$XDG_CONFIG_HOME/srctrek/settings.json` (else `~/.config`), and `E` picks again.
+`SRCTREK_EDITOR` is gone.
+
+An environment variable had to be found and set before trek opened anything but Neovim, and the
+home screen is where people meet trek. Listing only what's installed and asking still assumes no
+editor. The setting is per user, not in the repo's .srctrek, which a team shares. Replaces the
+editor half of "A session starts from the terminal or the editor" (2026-11-03).
+
 ## 2026-11-10 — The terminal's states take trek's own colours
 
 The colours that say how something stands (good, stale, failed, building) and the accent are

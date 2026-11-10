@@ -1,4 +1,5 @@
 import type { TrekStatus } from "@srctrek/core"
+import type { Editor } from "./editors"
 import type { KeyHint } from "./footer"
 import type { Row } from "./rows"
 import { hasTrek } from "./states"
@@ -13,15 +14,19 @@ export function buildVerb(status: TrekStatus | undefined): string {
   return status?.kind === "older-guide" || status?.kind === "unreadable" ? "rebuild" : "build"
 }
 
-/** What enter says it does for the selected row. */
-export function enterLabel(row: Row | undefined): string {
+/** What enter says it does for the selected row; opening names the editor, once one is chosen. */
+export function enterLabel(row: Row | undefined, editor: Editor | undefined): string {
   if (row?.kind === "proposal") {
     return "add to the repos list"
   }
 
   const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.found.trek)
 
-  return buildsTrigger ? "build its trek" : "open in Neovim"
+  if (buildsTrigger) {
+    return "build its trek"
+  }
+
+  return editor === undefined ? "open, choosing an editor" : `open in ${editor.label}`
 }
 
 type Offered = { build: string | undefined; log: boolean; dismiss: boolean }
@@ -35,6 +40,7 @@ export function footerKeys(enter: string | undefined, offered: Offered): KeyHint
     ...(offered.dismiss ? [{ key: "d", does: "dismiss" }] : []),
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
     ...(offered.log ? [{ key: "l", does: "log" }] : []),
+    { key: "E", does: "editor" },
     { key: "q", does: "quit" },
   ]
 }

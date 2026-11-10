@@ -1,8 +1,10 @@
 import type { ChangeSummary, ProposedRepo, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import { ChangeStatus } from "./change-status"
+import { EditorPicker } from "./editor-picker"
+import type { Editor } from "./editors"
 import { Footer } from "./footer"
 import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
 import { PADDING, listHeight } from "./layout"
@@ -45,6 +47,10 @@ type Props = {
   now?: Date | undefined
   // the selected row's background, from the terminal's colours; absent, a marker shows it
   tint?: RGBA | undefined
+  // the editors treks can open in here, the one chosen, and what to do when one is picked
+  editors?: readonly Editor[] | undefined
+  editor?: Editor | undefined
+  onChooseEditor?: ((editor: Editor) => void) | undefined
 }
 
 // Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
@@ -135,9 +141,14 @@ function shownItems(visible: readonly ListLine[], total: number): string {
 }
 
 // What enter, b, l, and d do here, for the footer; only keys that do something are listed.
-function keyHints(item: Item | undefined, status: TrekStatus | undefined, actions: RowActions) {
+function keyHints(
+  item: Item | undefined,
+  status: TrekStatus | undefined,
+  actions: RowActions,
+  editor: Editor | undefined,
+) {
   const row = item?.kind === "row" ? item.row : undefined
-  const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row)
+  const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row, editor)
 
   return footerKeys(actions.pick === undefined ? undefined : enter, {
     build: actions.build === undefined ? undefined : buildVerb(status),
@@ -184,14 +195,75 @@ function pickFor(item: Item | undefined, onRow: Action, fold: (id: SectionId) =>
   return () => fold(id)
 }
 
+// A key on the list: E, with shift, opens the editor picker; any other does its action.
+function listKey(
+  key: { name: string; shift: boolean },
+  actions: ReadonlyMap<string, () => void>,
+  pickEditor: () => void,
+) {
+  if (key.shift && key.name === "e") {
+    pickEditor()
+    return
+  }
+
+  actions.get(key.name)?.()
+}
+
+// What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or which
+// editor treks open in, with the trek to open once it's picked.
+type Prompt = { kind: "location"; name: string } | { kind: "editor"; then?: TrekEntry | undefined }
+
+// The bottom of the screen: the prompt that's open, else the footer.
+function Bottom({
+  prompt,
+  props,
+  footer,
+  close,
+}: {
+  prompt: Prompt | undefined
+  props: Props
+  footer: ReactNode
+  close: () => void
+}) {
+  if (prompt === undefined) {
+    return footer
+  }
+
+  if (prompt.kind === "location") {
+    const { name } = prompt
+    const add = (location: string) => {
+      close()
+      props.onAddRepo?.(name, location)
+    }
+    return <LocationInput name={name} onSubmit={add} onCancel={close} />
+  }
+
+  const { then } = prompt
+  const pick = (editor: Editor) => {
+    close()
+    props.onChooseEditor?.(editor)
+    if (then !== undefined) {
+      props.onOpen(then)
+    }
+  }
+
+  return (
+    <EditorPicker
+      editors={props.editors ?? []}
+      current={props.editor}
+      onPick={pick}
+      onCancel={close}
+    />
+  )
+}
+
 export function App(props: Props) {
-  const { entries, onQuit, status, onBuild, onAddRepo } = props
+  const { entries, onQuit, status, onBuild } = props
   const rows = rowsOf(entries, status, props.proposals ?? [])
   // the selected item by its key, so it stays put as rows move between sections
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
-  // the proposed repo whose location the user is typing, while they are
-  const [placing, setPlacing] = useState<string | undefined>(undefined)
+  const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
   // when the screen opened, which "built today" is measured from
   const [now] = useState(() => props.now ?? new Date())
 
@@ -204,7 +276,12 @@ export function App(props: Props) {
   const item = items[selected]
   const row = item?.kind === "row" ? item.row : undefined
 
-  const rowActions = actionsFor(row, props, setPlacing)
+  // Opening a trek before an editor is chosen asks for one first.
+  const { editor } = props
+  const onOpen = (entry: TrekEntry) =>
+    editor === undefined ? setPrompt({ kind: "editor", then: entry }) : props.onOpen(entry)
+  const askLocation = (name: string) => setPrompt({ kind: "location", name })
+  const rowActions = actionsFor(row, { ...props, onOpen }, askLocation)
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
   const { build, showLog, dismiss } = rowActions
 
@@ -220,8 +297,10 @@ export function App(props: Props) {
     ["k", () => moveTo(selected - 1)],
     ["return", () => pick?.()],
   ])
-  // While a location is typed, keys are text, not commands.
-  useKeyboard((key) => placing === undefined && actions.get(key.name)?.())
+  // While a prompt is open, keys go to it, not to the list.
+  useKeyboard(
+    (key) => prompt === undefined && listKey(key, actions, () => setPrompt({ kind: "editor" })),
+  )
 
   const { width, height } = useTerminalDimensions()
   const changeEntry = entries.find((entry) => entry.name === status?.name)
@@ -265,18 +344,14 @@ export function App(props: Props) {
             ))
         )}
       </box>
-      {placing === undefined ? (
-        <Footer keys={keyHints(item, status, { ...rowActions, pick })} shown={shown} />
-      ) : (
-        <LocationInput
-          name={placing}
-          onSubmit={(location) => {
-            setPlacing(undefined)
-            onAddRepo?.(placing, location)
-          }}
-          onCancel={() => setPlacing(undefined)}
-        />
-      )}
+      <Bottom
+        prompt={prompt}
+        props={props}
+        footer={
+          <Footer keys={keyHints(item, status, { ...rowActions, pick }, editor)} shown={shown} />
+        }
+        close={() => setPrompt(undefined)}
+      />
     </box>
   )
 }

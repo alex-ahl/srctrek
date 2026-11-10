@@ -38,6 +38,8 @@ export {
   type ViewContext,
 } from "./session/view"
 export { UnreachableRepoError, viewContext } from "./session/context"
+export { firstStopPlace, type StopPlace } from "./session/start"
+export { loadSettings, saveSetting, settingsPath, type Settings } from "./settings"
 export {
   ErrorCode,
   PROTOCOL_VERSION,

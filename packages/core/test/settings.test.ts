@@ -1,0 +1,64 @@
+import { describe, expect, test } from "bun:test"
+import { lstat, readFile, stat, symlink, writeFile } from "node:fs/promises"
+import { join } from "node:path"
+import { loadSettings, saveSetting, settingsPath } from "../src"
+import { rejection } from "./support/rejection"
+import { tempDir } from "./support/temp"
+
+describe("settings", () => {
+  test("live under XDG_CONFIG_HOME, else ~/.config", () => {
+    expect(settingsPath({ XDG_CONFIG_HOME: "/x" })).toBe("/x/srctrek/settings.json")
+    expect(settingsPath({})).toEndWith("/.config/srctrek/settings.json")
+  })
+
+  test("are none until saved, then hold what was saved", async () => {
+    const path = join(await tempDir("settings-"), "srctrek", "settings.json")
+    expect(await loadSettings(path)).toEqual({})
+
+    await saveSetting("editor", "nvim", path)
+    expect(await loadSettings(path)).toEqual({ editor: "nvim" })
+    expect(await readFile(path, "utf8")).toBe('{\n  "editor": "nvim"\n}\n')
+  })
+
+  test("keep keys they don't know, in their order", async () => {
+    const path = join(await tempDir("settings-"), "settings.json")
+    await writeFile(path, '{ "theme": "mine", "editor": "nvim", "later": 1 }\n')
+
+    await saveSetting("editor", "$EDITOR", path)
+    expect(await readFile(path, "utf8")).toBe(
+      '{\n  "theme": "mine",\n  "editor": "$EDITOR",\n  "later": 1\n}\n',
+    )
+  })
+
+  test("aren't written again when nothing changes", async () => {
+    const path = join(await tempDir("settings-"), "settings.json")
+    await writeFile(path, '{"editor":"nvim"}')
+
+    await saveSetting("editor", "nvim", path)
+    expect(await readFile(path, "utf8")).toBe('{"editor":"nvim"}')
+  })
+
+  test("are written through a link, which stays a link", async () => {
+    const dir = await tempDir("settings-")
+    const target = join(dir, "kept.json")
+    const link = join(dir, "settings.json")
+    await writeFile(target, "{}")
+    await symlink(target, link)
+
+    await saveSetting("editor", "nvim", link)
+    expect((await lstat(link)).isSymbolicLink()).toBe(true)
+    expect(JSON.parse(await readFile(target, "utf8"))).toEqual({ editor: "nvim" })
+    expect((await stat(link)).isFile()).toBe(true)
+  })
+
+  test("say which file is wrong when it isn't valid JSON, and leave it alone", async () => {
+    const path = join(await tempDir("settings-"), "settings.json")
+    await writeFile(path, "{ editor: nvim")
+
+    expect(await rejection(loadSettings(path))).toMatchObject({
+      message: `${path} isn't valid JSON`,
+    })
+    expect(await rejection(saveSetting("editor", "nvim", path))).toBeInstanceOf(Error)
+    expect(await readFile(path, "utf8")).toBe("{ editor: nvim")
+  })
+})

@@ -274,7 +274,8 @@ test("says a stale trek is out of date, how much changed, and offers to update i
 
 test("says a trek built with an older guide still opens, and offers to rebuild it", async () => {
   const status: TrekStatus = { kind: "older-guide", name: "feature-refunds" }
-  const frame = await frameOf({ entries: [refund], status, onBuild: noop })
+  const editor = { id: "nvim", label: "Neovim", command: "nvim", steps: true }
+  const frame = await frameOf({ entries: [refund], status, onBuild: noop, editor })
 
   expect(frame).toContain(" ↻ older guide  feature-refunds")
   expect(frame).toContain("   built before the guide last changed")

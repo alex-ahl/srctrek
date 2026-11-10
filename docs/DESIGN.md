@@ -67,9 +67,10 @@ at its line.
 
 ### Where a session starts
 
-- **From the terminal:** enter on the home screen opens the trek in the editor that
-  `SRCTREK_EDITOR` names (`nvim`, `code`, …); nothing is detected. Without it, `$EDITOR` opens
-  the step at its line.
+- **From the terminal:** enter on the home screen opens the trek in the editor the user picked.
+  The first time, a picker lists the editors found on the machine that can open a trek (Neovim,
+  and `$EDITOR` at the first stop without stepping); the choice is kept per user, in
+  `$XDG_CONFIG_HOME/srctrek/settings.json` (else `~/.config`), and `E` picks again.
 - **From the editor:** the plugin or extension lists the saved treks with their status (ready,
   stale, building, failed), opens one, and starts a build. The protocol gains the requests for
   this in Milestone 6.
@@ -234,8 +235,8 @@ done, `○` none yet.
   change, treks of other branches and pull requests, treks of code as it is, then done treks
   (merged, branch gone, or their uncommitted work committed since) and files that can't be read,
   folded under a heading with a count that enter opens. Every trek shows its state against its
-  branch now, newest first in its section. Enter opens the selected trek in the editor
-  `SRCTREK_EDITOR` names.
+  branch now, newest first in its section. Enter opens the selected trek in the editor the user
+  picked, `E` picks another.
 - **The change's trek, by state:** building (enter watches it), ready, stale (with how many steps
   changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
   repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
@@ -256,7 +257,7 @@ done, `○` none yet.
 | Screen     | Keys                                                                                         |
 | ---------- | -------------------------------------------------------------------------------------------- |
 | Home       | `j`/`k` move · `enter` open in the editor · `b` build, update, or rebuild · `r` route map ·  |
-|            | `s` step here · `l` log · `d` dismiss a proposal · `q` quit                                  |
+|            | `s` step here · `l` log · `d` dismiss a proposal · `E` pick the editor · `q` quit            |
 | Build view | `l` full log · `esc` home                                                                    |
 | Route map  | `j`/`k` move · `enter` open the step in the editor · `s` step from here · `c` changed only · |
 |            | `f` flagged only · `esc` home                                                                |

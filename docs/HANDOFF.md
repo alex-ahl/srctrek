@@ -65,6 +65,11 @@
 - Crisper, closer to the mockup: the selected row's band is tinted toward the accent; content
   sits two columns from the edge; titles are cut at 50 characters, so a wide terminal keeps each
   row together; and only the trek's name is bold in the block.
+- The editor treks open in is picked in the terminal: enter before one is chosen opens a picker
+  of the editors found here (Neovim; `$EDITOR`, at the trek's first stop without stepping), the
+  choice is kept per user in `$XDG_CONFIG_HOME/srctrek/settings.json` (else `~/.config`), written
+  in place and keeping keys it doesn't know, and `E` picks again; the footer names it. VS Code and
+  its forks join the list once the extension can take a trek from outside.
 
 ## 2026-11-03 — Milestone 6: the editors
 

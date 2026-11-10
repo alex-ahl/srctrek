@@ -8,14 +8,16 @@ import {
   buildFiles,
   dismissProposal,
   loadProposals,
+  loadSettings,
   loadTrekEntries,
+  saveSetting,
   trekStates,
 } from "@srctrek/core"
 import { type RGBA, createCliRenderer } from "@opentui/core"
 import { createRoot, useRenderer } from "@opentui/react"
 import { useEffect, useState } from "react"
 import { App } from "./app"
-import { openInNeovim } from "./neovim"
+import { type Editor, availableEditors, openInEditor } from "./editors"
 import { openInPager } from "./pager"
 import { TERMINAL_TONES, type Tones, TonesContext, bandFor, tonesFor } from "./theme"
 
@@ -48,13 +50,23 @@ type HomeProps = {
   firstEntries: TrekEntry[]
   firstStatus: TrekStatus | undefined
   firstProposals: ProposedRepo[]
-  onOpen: (entry: TrekEntry) => void
+  // the editors treks can open in here, and the one the user chose before, if any
+  editors: readonly Editor[]
+  firstEditor: Editor | undefined
+  onOpen: (entry: TrekEntry, editor: Editor) => void
   onQuit: () => void
   onShowFile: (path: string) => void
 }
 
 function Home(props: HomeProps) {
   const { root, change, onOpen, onQuit, onShowFile } = props
+  const [editor, setEditor] = useState(props.firstEditor)
+
+  // A picked editor is remembered for every repo; a settings file broken meanwhile keeps the old.
+  const chooseEditor = (picked: Editor) => {
+    setEditor(picked)
+    void saveSetting("editor", picked.id).catch(() => undefined)
+  }
   const [entries, setEntries] = useState(props.firstEntries)
   const [status, setStatus] = useState(props.firstStatus)
   const [proposals, setProposals] = useState(props.firstProposals)
@@ -129,7 +141,10 @@ function Home(props: HomeProps) {
     <TonesContext.Provider value={tones}>
       <App
         entries={entries}
-        onOpen={onOpen}
+        onOpen={(entry) => editor !== undefined && onOpen(entry, editor)}
+        editors={props.editors}
+        editor={editor}
+        onChooseEditor={chooseEditor}
         onQuit={onQuit}
         status={status}
         onBuild={build === undefined ? undefined : () => void started(build())}
@@ -156,6 +171,8 @@ export async function startHome(root: string, change?: HomeChange): Promise<void
   const firstEntries = await loadTrekEntries(root)
   const firstStatus = await change?.status()
   const firstProposals = await loadProposals(root)
+  const editors = availableEditors()
+  const { editor: chosen } = await loadSettings()
   const renderer = await createCliRenderer({ exitOnCtrlC: true })
 
   createRoot(renderer).render(
@@ -165,7 +182,9 @@ export async function startHome(root: string, change?: HomeChange): Promise<void
       firstEntries={firstEntries}
       firstStatus={firstStatus}
       firstProposals={firstProposals}
-      onOpen={(entry) => void openInNeovim(renderer, entry.name)}
+      editors={editors}
+      firstEditor={editors.find((editor) => editor.id === chosen)}
+      onOpen={(entry, editor) => void openInEditor(renderer, root, entry, editor)}
       onShowFile={(path) => void openInPager(renderer, path)}
       onQuit={() => {
         renderer.destroy()

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { TREKS_DIR, loadTrek } from "../../src"
+import { TREKS_DIR, firstStopPlace, loadTrek } from "../../src"
 import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
 
 describe("draftToTrek", () => {
@@ -20,5 +20,15 @@ describe("draftToTrek", () => {
 
     const [repo] = (await loadTrek(join(dir, TREKS_DIR, "work.json"))).repos
     expect(repo?.head).toEqual({ kind: "branch", name: "feature/refunds", uncommitted: true })
+  })
+})
+
+describe("firstStopPlace", () => {
+  test("is the first stop's file in the user's checkout, at its first line", async () => {
+    const dir = await makeBranchRepo()
+    await saveTrekOf(dir, await changeOf(dir), "refunds")
+
+    const place = await firstStopPlace(dir, await loadTrek(join(dir, TREKS_DIR, "refunds.json")))
+    expect(place).toEqual({ path: join(dir, "app.ts"), line: 1 })
   })
 })
