@@ -65,10 +65,8 @@ function missingBlock(name: string, canBuild: boolean): StatusBlock {
 
   return {
     ...block,
-    details: [
-      "set SRCTREK_AGENT to the command that runs your agent headless,",
-      "or ask your agent for a trek in chat",
-    ],
+    details: ["set an agent in settings, or ask your agent for a trek in chat"],
+    keys: "S settings",
   }
 }
 

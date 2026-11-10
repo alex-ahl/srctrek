@@ -75,6 +75,10 @@
   colours. The agent's command comes from the settings file or `SRCTREK_AGENT`, which overrides
   it (`agentSetting`), in `trek` and `trek serve` alike. Building automatically is off by default,
   so `trek` builds on its own only when asked; colours switches the states to the terminal's own.
+- The agent's command is set in settings: enter on Agent opens a field with the command in the
+  file, and saving runs it once with a tiny instruction (`packages/core/prompts/agent_check.md`,
+  outside the prompt hash), showing "the command starts and answers" or what it printed last.
+  The no-agent state points to settings. The location prompt and this field share `TextPrompt`.
 
 ## 2026-11-03 — Milestone 6: the editors
 

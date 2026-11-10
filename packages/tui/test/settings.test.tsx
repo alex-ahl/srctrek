@@ -67,3 +67,36 @@ test("esc goes back to the list", async () => {
   expect(frame).not.toContain("srctrek  settings")
   expect(frame).toContain("No treks in .srctrek/treks yet.")
 })
+
+test("enter on the agent asks for its command, saves it, and says whether it works", async () => {
+  const change = mock<SettingChange>(() => undefined)
+  const frame = await frameAfter(app({}, change), async (input) => {
+    input.pressKey("S", { shift: true })
+    await Bun.sleep(20)
+    input.pressKey("j")
+    await Bun.sleep(20)
+    input.pressEnter()
+    await Bun.sleep(20)
+    await input.typeText("true")
+    input.pressEnter()
+    // the check runs the command, which takes a moment even for true
+    await Bun.sleep(300)
+  })
+
+  expect(change).toHaveBeenCalledWith("agent", "true")
+  expect(frame).toContain("✓ the command starts and answers")
+})
+
+test("the agent's prompt says what to type", async () => {
+  const frame = await frameAfter(app({}), async (input) => {
+    input.pressKey("S", { shift: true })
+    await Bun.sleep(20)
+    input.pressKey("j")
+    await Bun.sleep(20)
+    input.pressEnter()
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toContain("Agent command:")
+  expect(frame).toContain("the command that runs your agent without a chat")
+})

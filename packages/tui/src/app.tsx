@@ -18,7 +18,7 @@ import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
 import { PADDING, listHeight } from "./layout"
 import { type Item, type ListLine, itemKey, itemsOf, lineOfItem, listLines } from "./list-lines"
 import { ListLineView } from "./list-view"
-import { LocationInput } from "./location-input"
+import { TextPrompt } from "./text-prompt"
 import { columnsOf } from "./row-columns"
 import { type Row, rowsOf } from "./rows"
 import { type SectionId, sectionsOf } from "./sections"
@@ -243,7 +243,8 @@ function Bottom({
       close()
       props.onAddRepo?.(name, location)
     }
-    return <LocationInput name={name} onSubmit={add} onCancel={close} />
+    const question = `Where does ${name} live? A path or URL, esc to cancel:`
+    return <TextPrompt question={question} onSubmit={add} onCancel={close} />
   }
 
   const { then } = prompt

@@ -157,6 +157,7 @@ export {
 } from "./build/background"
 export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status"
 export { buildChangeTrek } from "./build/start"
+export { checkAgent, type AgentCheck } from "./build/check"
 export { loadTrekEntries, type TrekEntry } from "./trek-entries"
 export { buildTrekPrompt } from "./guide"
 export { buildFiles, type BuildFiles } from "./build/files"

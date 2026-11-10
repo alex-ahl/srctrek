@@ -199,11 +199,12 @@ test("shows why a build failed, and offers to build again", async () => {
   expect(frame).toContain("b build")
 })
 
-test("says how to have trek build treks when no agent is set", async () => {
+test("points to settings when no agent is set", async () => {
   const frame = await frameOf({ status: { kind: "missing", name: "feature-refunds" } })
 
   expect(frame).toContain(" ○ no trek yet  feature-refunds")
-  expect(frame).toContain("   set SRCTREK_AGENT to the command that runs your agent headless,")
+  expect(frame).toContain("   set an agent in settings, or ask your agent for a trek in chat")
+  expect(frame).toContain("   S settings")
   expect(frame).not.toContain("b build")
 })
 
