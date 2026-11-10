@@ -1,8 +1,9 @@
 import {
   type ResolvedChange,
-  agentCommand,
+  agentSetting,
   buildChangeTrek,
   directoryIn,
+  loadSettings,
   readChangeArguments,
   resolveChange,
   startBuild,
@@ -33,7 +34,8 @@ async function buildTriggerTrek(
 async function trek(args: string[]): Promise<void> {
   const cwd = process.cwd()
   const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
-  const agent = agentCommand()
+  const settings = await loadSettings()
+  const agent = agentSetting(settings).command
 
   const status = () => trekStatus(cwd, change)
   const build = agent === undefined ? undefined : () => buildChangeTrek(cwd, args, change, agent)
@@ -42,12 +44,15 @@ async function trek(args: string[]): Promise<void> {
       ? undefined
       : (trigger: string) => buildTriggerTrek(cwd, args, agent, change, trigger)
 
-  // A change with no trek gets one started right away, when there's an agent to build it.
-  if (build !== undefined && (await status()).kind === "missing") {
+  // A change with no trek gets one started right away, when the user asked for that and there's an
+  // agent to build it.
+  const startsBuild = settings.build_automatically === true && build !== undefined
+  if (startsBuild && (await status()).kind === "missing") {
     await build()
   }
 
-  await startHome(cwd, { summary: await summarizeChange(change), status, build, buildTrigger })
+  const summary = await summarizeChange(change)
+  await startHome(cwd, { summary, status, build, buildTrigger }, settings)
 }
 
 // "mcp" or "serve" as the first word is the command: a folder by that name is given as ./mcp,

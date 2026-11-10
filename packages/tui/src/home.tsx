@@ -1,6 +1,7 @@
 import {
   type ChangeSummary,
   type ProposedRepo,
+  type Settings,
   type TrekEntry,
   type TrekState,
   type TrekStatus,
@@ -8,18 +9,18 @@ import {
   buildFiles,
   dismissProposal,
   loadProposals,
-  loadSettings,
   loadTrekEntries,
   saveSetting,
   trekStates,
 } from "@srctrek/core"
-import { type RGBA, createCliRenderer } from "@opentui/core"
+import { createCliRenderer } from "@opentui/core"
 import { createRoot, useRenderer } from "@opentui/react"
 import { useEffect, useState } from "react"
 import { App } from "./app"
 import { type Editor, availableEditors, openInEditor } from "./editors"
 import { openInPager } from "./pager"
-import { TERMINAL_TONES, type Tones, TonesContext, bandFor, tonesFor } from "./theme"
+import type { SettingChange } from "./settings-screen"
+import { TERMINAL_TONES, TonesContext, bandFor, tonesFor } from "./theme"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
@@ -50,9 +51,9 @@ type HomeProps = {
   firstEntries: TrekEntry[]
   firstStatus: TrekStatus | undefined
   firstProposals: ProposedRepo[]
-  // the editors treks can open in here, and the one the user chose before, if any
+  // the editors treks can open in here, and the user's settings as trek started
   editors: readonly Editor[]
-  firstEditor: Editor | undefined
+  firstSettings: Settings
   onOpen: (entry: TrekEntry, editor: Editor) => void
   onQuit: () => void
   onShowFile: (path: string) => void
@@ -60,19 +61,23 @@ type HomeProps = {
 
 function Home(props: HomeProps) {
   const { root, change, onOpen, onQuit, onShowFile } = props
-  const [editor, setEditor] = useState(props.firstEditor)
+  const [settings, setSettings] = useState(props.firstSettings)
+  const editor = props.editors.find((each) => each.id === settings.editor)
 
-  // A picked editor is remembered for every repo; a settings file broken meanwhile keeps the old.
-  const chooseEditor = (picked: Editor) => {
-    setEditor(picked)
-    void saveSetting("editor", picked.id).catch(() => undefined)
+  // A changed setting holds for every repo; a settings file broken meanwhile keeps the old one.
+  const changeSetting: SettingChange = (key, value) => {
+    setSettings({ ...settings, [key]: value })
+    void saveSetting(key, value).catch(() => undefined)
   }
   const [entries, setEntries] = useState(props.firstEntries)
   const [status, setStatus] = useState(props.firstStatus)
   const [proposals, setProposals] = useState(props.firstProposals)
   const [states, setStates] = useState<ReadonlyMap<string, TrekState>>(new Map())
-  const [tint, setTint] = useState<RGBA | undefined>(undefined)
-  const [tones, setTones] = useState<Tones>(TERMINAL_TONES)
+  // the background the terminal reported, which the band and srctrek's tones are chosen for
+  const [background, setBackground] = useState<string | undefined>(undefined)
+  const tint = background === undefined ? undefined : bandFor(background)
+  const ownColours = background !== undefined && settings.colours !== "terminal"
+  const tones = ownColours ? tonesFor(background) : TERMINAL_TONES
   const renderer = useRenderer()
 
   // The selected row's tint and the states' tones come from the terminal's own colours, when it
@@ -82,8 +87,7 @@ function Home(props: HomeProps) {
     void colours.then(
       ({ defaultBackground }) => {
         if (defaultBackground !== null) {
-          setTint(bandFor(defaultBackground))
-          setTones(tonesFor(defaultBackground))
+          setBackground(defaultBackground)
         }
       },
       () => undefined,
@@ -144,7 +148,9 @@ function Home(props: HomeProps) {
         onOpen={(entry) => editor !== undefined && onOpen(entry, editor)}
         editors={props.editors}
         editor={editor}
-        onChooseEditor={chooseEditor}
+        onChooseEditor={(picked) => changeSetting("editor", picked.id)}
+        settings={settings}
+        onChangeSetting={changeSetting}
         onQuit={onQuit}
         status={status}
         onBuild={build === undefined ? undefined : () => void started(build())}
@@ -167,12 +173,15 @@ function Home(props: HomeProps) {
  * The home screen: the treks saved under `root`, each opened in Neovim on enter, and where
  * the trek of the change trek was started for stands.
  */
-export async function startHome(root: string, change?: HomeChange): Promise<void> {
+export async function startHome(
+  root: string,
+  change?: HomeChange,
+  settings: Settings = {},
+): Promise<void> {
   const firstEntries = await loadTrekEntries(root)
   const firstStatus = await change?.status()
   const firstProposals = await loadProposals(root)
   const editors = availableEditors()
-  const { editor: chosen } = await loadSettings()
   const renderer = await createCliRenderer({ exitOnCtrlC: true })
 
   createRoot(renderer).render(
@@ -183,7 +192,7 @@ export async function startHome(root: string, change?: HomeChange): Promise<void
       firstStatus={firstStatus}
       firstProposals={firstProposals}
       editors={editors}
-      firstEditor={editors.find((editor) => editor.id === chosen)}
+      firstSettings={settings}
       onOpen={(entry, editor) => void openInEditor(renderer, root, entry, editor)}
       onShowFile={(path) => void openInPager(renderer, path)}
       onQuit={() => {

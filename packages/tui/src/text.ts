@@ -8,6 +8,18 @@ export function fit(text: string, width: number): string {
   return text.length <= width ? text : `${text.slice(0, Math.max(0, width - 1))}…`
 }
 
+/** `text` broken into lines of at most `width` characters, at spaces. */
+export function wrap(text: string, width: number): string[] {
+  return text.split(" ").reduce<string[]>((lines, word) => {
+    const last = lines.at(-1)
+    if (last !== undefined && last.length + 1 + word.length <= width) {
+      return [...lines.slice(0, -1), `${last} ${word}`]
+    }
+
+    return [...lines, word]
+  }, [])
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
 
 const startOfDay = (date: Date) =>

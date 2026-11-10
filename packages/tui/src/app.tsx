@@ -1,9 +1,17 @@
-import type { ChangeSummary, ProposedRepo, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
+import type {
+  ChangeSummary,
+  ProposedRepo,
+  Settings as UserSettings,
+  TrekEntry,
+  TrekState,
+  TrekStatus,
+} from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { type ReactNode, useState } from "react"
 import { ChangeStatus } from "./change-status"
 import { EditorPicker } from "./editor-picker"
+import { type SettingChange, SettingsScreen } from "./settings-screen"
 import type { Editor } from "./editors"
 import { Footer } from "./footer"
 import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
@@ -51,6 +59,9 @@ type Props = {
   editors?: readonly Editor[] | undefined
   editor?: Editor | undefined
   onChooseEditor?: ((editor: Editor) => void) | undefined
+  // the user's settings, shown and changed on the settings screen
+  settings?: UserSettings | undefined
+  onChangeSetting?: SettingChange | undefined
 }
 
 // Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
@@ -195,18 +206,15 @@ function pickFor(item: Item | undefined, onRow: Action, fold: (id: SectionId) =>
   return () => fold(id)
 }
 
-// A key on the list: E, with shift, opens the editor picker; any other does its action.
+// A key on the list: E or S, with shift, opens the editor picker or settings; any other does
+// its action.
 function listKey(
   key: { name: string; shift: boolean },
   actions: ReadonlyMap<string, () => void>,
-  pickEditor: () => void,
+  shifted: ReadonlyMap<string, () => void>,
 ) {
-  if (key.shift && key.name === "e") {
-    pickEditor()
-    return
-  }
-
-  actions.get(key.name)?.()
+  const action = key.shift ? shifted.get(key.name) : actions.get(key.name)
+  action?.()
 }
 
 // What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or which
@@ -257,6 +265,19 @@ function Bottom({
   )
 }
 
+// The settings screen, over the list, which keeps its selection for when it closes.
+function Settings({ props, close }: { props: Props; close: () => void }) {
+  return (
+    <SettingsScreen
+      settings={props.settings ?? {}}
+      editors={props.editors ?? []}
+      editor={props.editor}
+      onChange={(key, value) => props.onChangeSetting?.(key, value)}
+      onBack={close}
+    />
+  )
+}
+
 export function App(props: Props) {
   const { entries, onQuit, status, onBuild } = props
   const rows = rowsOf(entries, status, props.proposals ?? [])
@@ -264,6 +285,7 @@ export function App(props: Props) {
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
   const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
+  const [inSettings, setInSettings] = useState(false)
   // when the screen opened, which "built today" is measured from
   const [now] = useState(() => props.now ?? new Date())
 
@@ -297,10 +319,12 @@ export function App(props: Props) {
     ["k", () => moveTo(selected - 1)],
     ["return", () => pick?.()],
   ])
-  // While a prompt is open, keys go to it, not to the list.
-  useKeyboard(
-    (key) => prompt === undefined && listKey(key, actions, () => setPrompt({ kind: "editor" })),
-  )
+  const shifted = new Map([
+    ["e", () => setPrompt({ kind: "editor" })],
+    ["s", () => setInSettings(true)],
+  ])
+  // While a prompt or settings is open, keys go there, not to the list.
+  useKeyboard((key) => prompt === undefined && !inSettings && listKey(key, actions, shifted))
 
   const { width, height } = useTerminalDimensions()
   const changeEntry = entries.find((entry) => entry.name === status?.name)
@@ -315,6 +339,10 @@ export function App(props: Props) {
   const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
   const columns = columnsOf(visibleRows, width, { status, states, now })
   const context = { width, now, columns, status, states, tint: props.tint }
+
+  if (inSettings) {
+    return <Settings props={props} close={() => setInSettings(false)} />
+  }
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>

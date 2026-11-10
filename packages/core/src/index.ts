@@ -39,7 +39,14 @@ export {
 } from "./session/view"
 export { UnreachableRepoError, viewContext } from "./session/context"
 export { firstStopPlace, type StopPlace } from "./session/start"
-export { loadSettings, saveSetting, settingsPath, type Settings } from "./settings"
+export {
+  agentSetting,
+  loadSettings,
+  saveSetting,
+  settingsPath,
+  type SettingSource,
+  type Settings,
+} from "./settings"
 export {
   ErrorCode,
   PROTOCOL_VERSION,
@@ -149,7 +156,7 @@ export {
   type BuildState,
 } from "./build/background"
 export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status"
-export { agentCommand, buildChangeTrek } from "./build/start"
+export { buildChangeTrek } from "./build/start"
 export { loadTrekEntries, type TrekEntry } from "./trek-entries"
 export { buildTrekPrompt } from "./guide"
 export { buildFiles, type BuildFiles } from "./build/files"

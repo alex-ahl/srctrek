@@ -185,8 +185,9 @@ The user's agent builds the trek through `trek mcp`:
 The agent is started one of two ways:
 
 - From the agent's own chat, with `trek mcp` registered.
-- By `trek` itself, when there is no trek for the change: it runs the command in
-  `SRCTREK_AGENT` in the background, as for Asking, with the instruction (the guide, the
+- By `trek` itself, on `b`, or as it opens when there is no trek for the change and building
+  automatically is on: it runs the agent's command (the user's settings, or `SRCTREK_AGENT`,
+  which overrides them) in the background, as for Asking, with the instruction (the guide, the
   change's args, and the trek's name) as its last argument. The agent reaches `trek mcp`
   through the user's own registration. The build goes on if `trek` quits; its log and exit
   code are kept in the repo's git folder, and the build view shows the trek when it arrives.
@@ -270,7 +271,8 @@ agent to answer it.
 Answers by kind: explain (text with citations), navigate (locations), what-if (a branch
 trek from the current step), verify (a flag raised, lowered, or cleared, with the reason).
 
-The agent is the command in `SRCTREK_AGENT`; nothing is detected.
+The agent is the command in the user's settings, or in `SRCTREK_AGENT`, which overrides them;
+nothing is detected.
 
 ## Modes
 

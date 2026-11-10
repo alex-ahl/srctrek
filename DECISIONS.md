@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-10 — Settings on S; trek builds on its own only when asked
+
+The terminal has a settings screen on `S`: the editor, the agent's command, building
+automatically, and colours, each with its value and where it comes from. The agent's command
+can live in the settings file; `SRCTREK_AGENT` overrides it. Building automatically is off by
+default: a change with no trek waits for `b` unless the user turns it on.
+
+Settings people have to discover as environment variables go unset, and the home screen is
+where people meet trek. The environment still wins, so scripts, CI, and the evals set the agent
+without touching anyone's file. An agent run costs, so starting one shouldn't surprise anyone
+who only opened `trek` to look.
+
 ## 2026-11-10 — The terminal asks which editor treks open in
 
 Enter on the home screen opens a trek in the editor the user picked. The first time, a picker

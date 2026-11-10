@@ -70,6 +70,11 @@
   choice is kept per user in `$XDG_CONFIG_HOME/srctrek/settings.json` (else `~/.config`), written
   in place and keeping keys it doesn't know, and `E` picks again; the footer names it. VS Code and
   its forks join the list once the extension can take a trek from outside.
+- Settings on `S`: the editor (its picker), the agent's command, building automatically, and
+  colours, each with its value and where it comes from; enter changes the editor, building, and
+  colours. The agent's command comes from the settings file or `SRCTREK_AGENT`, which overrides
+  it (`agentSetting`), in `trek` and `trek serve` alike. Building automatically is off by default,
+  so `trek` builds on its own only when asked; colours switches the states to the terminal's own.
 
 ## 2026-11-03 — Milestone 6: the editors
 

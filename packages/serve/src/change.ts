@@ -4,10 +4,11 @@ import {
   type LogResult,
   type ResolvedChange,
   type TreksResult,
-  agentCommand,
+  agentSetting,
   buildChangeTrek,
   buildLogTail,
   directoryIn,
+  loadSettings,
   loadTrekEntries,
   readChangeArguments,
   resolveChange,
@@ -38,9 +39,9 @@ export async function treksIn(cwd: string, args: string[]): Promise<TreksResult>
 
 /** Starts the agent on the change's trek, building it or updating it when it's stale. */
 export async function buildTrek(cwd: string, args: string[]): Promise<BuildResult> {
-  const agent = agentCommand()
+  const agent = agentSetting(await loadSettings()).command
   if (agent === undefined) {
-    const message = "no agent: set SRCTREK_AGENT to the command that runs your agent headless"
+    const message = "no agent: set one in trek's settings, or SRCTREK_AGENT"
     throw new RequestError(ErrorCode.noAgent, message)
   }
 

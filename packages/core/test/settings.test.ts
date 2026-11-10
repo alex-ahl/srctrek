@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { lstat, readFile, stat, symlink, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { loadSettings, saveSetting, settingsPath } from "../src"
+import { agentSetting, loadSettings, saveSetting, settingsPath } from "../src"
 import { rejection } from "./support/rejection"
 import { tempDir } from "./support/temp"
 
@@ -60,5 +60,27 @@ describe("settings", () => {
     })
     expect(await rejection(saveSetting("editor", "nvim", path))).toBeInstanceOf(Error)
     expect(await readFile(path, "utf8")).toBe("{ editor: nvim")
+  })
+})
+
+describe("agentSetting", () => {
+  test("takes SRCTREK_AGENT over the settings file, and says it shadows one", () => {
+    expect(agentSetting({ agent: "from-file" }, { SRCTREK_AGENT: "from-env" })).toEqual({
+      command: "from-env",
+      source: "environment",
+      shadows: true,
+    })
+  })
+
+  test("takes the settings file when SRCTREK_AGENT is unset or blank", () => {
+    expect(agentSetting({ agent: "from-file" }, { SRCTREK_AGENT: " " })).toEqual({
+      command: "from-file",
+      source: "settings file",
+      shadows: false,
+    })
+  })
+
+  test("is none by default", () => {
+    expect(agentSetting({}, {})).toEqual({ command: undefined, source: "default", shadows: false })
   })
 })

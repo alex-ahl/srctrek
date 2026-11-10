@@ -3,15 +3,44 @@ import { homedir } from "node:os"
 import { dirname, join } from "node:path"
 import { z } from "zod"
 
-/** What a user has chosen for srctrek: the editor treks open in, by its id. */
-export type Settings = Readonly<{ editor?: string | undefined }>
+const SettingsSchema = z.object({
+  // the editor treks open in, by its id
+  editor: z.string().min(1).optional(),
+  // the command that runs the user's agent headless
+  agent: z.string().min(1).optional(),
+  // whether trek starts building a change's trek as it opens, when there's none
+  build_automatically: z.boolean().optional(),
+  // whose colours the states take: srctrek's, or the terminal's own
+  colours: z.enum(["srctrek", "terminal"]).optional(),
+})
 
-const SettingsSchema = z.object({ editor: z.string().min(1).optional() })
+/** What a user has chosen for srctrek; unset keys take their defaults. */
+export type Settings = Readonly<z.infer<typeof SettingsSchema>>
+
+/** Where a setting's value comes from. */
+export type SettingSource = "environment" | "settings file" | "default"
+
+type Env = Readonly<Record<string, string | undefined>>
+
+/**
+ * The agent's command in effect and where it comes from: SRCTREK_AGENT overrides the settings
+ * file, for scripts and CI; `shadows` says the file holds one it overrides.
+ */
+export function agentSetting(
+  settings: Settings,
+  env: Env = process.env,
+): Readonly<{ command: string | undefined; source: SettingSource; shadows: boolean }> {
+  const fromEnv = env["SRCTREK_AGENT"]?.trim()
+  if (fromEnv !== undefined && fromEnv !== "") {
+    return { command: fromEnv, source: "environment", shadows: settings.agent !== undefined }
+  }
+
+  const source = settings.agent === undefined ? "default" : "settings file"
+  return { command: settings.agent, source, shadows: false }
+}
 
 /** Where a user's settings live: under $XDG_CONFIG_HOME, else ~/.config. */
-export function settingsPath(
-  env: Readonly<Record<string, string | undefined>> = process.env,
-): string {
+export function settingsPath(env: Env = process.env): string {
   const config = env["XDG_CONFIG_HOME"]?.trim() || join(homedir(), ".config")
 
   return join(config, "srctrek", "settings.json")
@@ -54,9 +83,9 @@ export async function loadSettings(path = settingsPath()): Promise<Settings> {
  * Sets one setting, keeping every other key as it was, in the order it was; writes nothing when
  * the value is already set. Written in place, not replaced, so a linked file stays linked.
  */
-export async function saveSetting(
-  key: keyof Settings,
-  value: string,
+export async function saveSetting<K extends keyof Settings>(
+  key: K,
+  value: NonNullable<Settings[K]>,
   path = settingsPath(),
 ): Promise<void> {
   const raw = await readRaw(path)

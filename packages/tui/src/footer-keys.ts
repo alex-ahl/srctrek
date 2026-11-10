@@ -41,6 +41,7 @@ export function footerKeys(enter: string | undefined, offered: Offered): KeyHint
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
     ...(offered.log ? [{ key: "l", does: "log" }] : []),
     { key: "E", does: "editor" },
+    { key: "S", does: "settings" },
     { key: "q", does: "quit" },
   ]
 }

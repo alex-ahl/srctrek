@@ -45,7 +45,8 @@ branch's):
 |                     | built with an older guide, can't be opened (a local repo it names  |
 |                     | isn't there or lacks its commit), stale, unreadable, building,     |
 |                     | failed, missing                                                    |
-| `build(args?)`      | Starts the agent in `SRCTREK_AGENT` on the change's trek, or       |
+| `build(args?)`      | Starts the user's agent on the change's trek (settings, or         |
+|                     | `SRCTREK_AGENT`, which overrides them), or                         |
 |                     | updates it when stale; answers where it stands once started        |
 | `log(trek, lines?)` | The end of a trek's build log                                      |
 
@@ -82,7 +83,7 @@ JSON-RPC's own codes for malformed requests, unknown methods, and invalid params
 | 4    | The trek doesn't load: another format, or invalid      |
 | 5    | A repo the trek names isn't there, or lacks its commit |
 | 6    | `goto` named a step the trek doesn't have              |
-| 7    | `build` with no `SRCTREK_AGENT` set                    |
+| 7    | `build` with no agent set                              |
 | 8    | `trek`'s arguments don't name a change trek can read   |
 
 ## Definitions and tests
