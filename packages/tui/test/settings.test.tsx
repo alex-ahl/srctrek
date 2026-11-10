@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test"
-import { SETUP_REQUEST, type Settings, type TrekEntry } from "@srctrek/core"
+import type { Settings, TrekEntry } from "@srctrek/core"
 import { useEffect, useState } from "react"
 import { App } from "../src/app"
 import type { Editor } from "../src/editors"
@@ -113,9 +113,11 @@ test("c on the agent copies what to paste into the agent's chat, or shows it whe
   })
 
   expect(frame).toContain("c copy for your agent")
-  const copied = frame.includes("✓ copied: paste it into your agent's chat")
-  const shown = frame.includes(SETUP_REQUEST)
-  expect(copied || shown).toBe(true)
+  expect(frame).toContain("Press c to copy this, then paste it into your agent's chat:")
+  expect(frame).toContain("▌ Set up srctrek so it can start you to build treks on your own.")
+  const copied = frame.includes("✓ Copied. Send it in your agent's chat")
+  const toSelect = frame.includes("select the text above to copy it")
+  expect(copied || toSelect).toBe(true)
 })
 
 test("says when the agent saved its command from its chat", async () => {
@@ -137,4 +139,16 @@ test("says when the agent saved its command from its chat", async () => {
 
   expect(frame).toMatch(/Agent +agent run --headless +settings file/)
   expect(frame).toContain("✓ your agent saved its command; it starts and answers")
+})
+
+test("the request to copy goes once an agent's command is set", async () => {
+  const frame = await frameAfter(app({ agent: "agent run --headless" }), async (input) => {
+    input.pressKey("S", { shift: true })
+    await Bun.sleep(20)
+    input.pressKey("j")
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toMatch(/Agent +agent run --headless/)
+  expect(frame).not.toContain("Press c to copy this")
 })

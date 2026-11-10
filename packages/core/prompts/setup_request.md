@@ -1,1 +1,1 @@
-Set up srctrek to build treks: call set_agent_command with the command that runs you headless.
+Set up srctrek so it can start you to build treks on your own. Call srctrek's set_agent_command tool with the shell command that runs you without a chat, including whatever lets you use srctrek's tools without asking for approval. srctrek tests the command and tells you if it needs fixing.

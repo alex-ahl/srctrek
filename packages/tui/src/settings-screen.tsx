@@ -1,6 +1,7 @@
 import { type CliRenderer, TextAttributes } from "@opentui/core"
 import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { SETUP_REQUEST, type Settings, agentSetting, checkAgent, settingsPath } from "@srctrek/core"
+import { homedir } from "node:os"
 import { useEffect, useRef, useState } from "react"
 import { EditorPicker } from "./editor-picker"
 import type { Editor } from "./editors"
@@ -130,6 +131,46 @@ function copied(renderer: CliRenderer): boolean {
   }
 }
 
+// The settings file in the title bar: home as ~, and a path too long for the bar cut from its
+// start, so the end, which says which file, stays.
+function shownPath(width: number): string {
+  const path = settingsPath().replace(homedir(), "~")
+  const room = width - 2 * PADDING - "srctrek".length - SUBTITLE.length - 2
+
+  return path.length <= room ? path : `…${path.slice(path.length - room + 1)}`
+}
+
+const REQUEST_LEAD = "  Press c to copy this, then paste it into your agent's chat:"
+
+// The request c copies, quoted under the agent's help: a bar in the accent beside text in the
+// text colour, so what to paste stands apart from the grey help around it.
+function SetupRequest({ width }: { width: number }) {
+  const tones = useTones()
+
+  return (
+    <box flexDirection="column" style={{ marginTop: 1 }}>
+      <text fg={tones.dim}>{REQUEST_LEAD}</text>
+      {wrap(SETUP_REQUEST, width - 2).map((line, i) => (
+        <text key={i} fg={COLOUR.text}>
+          <span fg={tones.accent}>{"  ▌ "}</span>
+          {line}
+        </text>
+      ))}
+    </box>
+  )
+}
+
+// The request shows on the agent while there's no command yet, and right after c; once the agent
+// has saved its command, it's done its job.
+function showsRequest(row: SettingRow | undefined, settings: Settings, notice: Notice | undefined) {
+  if (row?.copy === undefined || notice?.kind === "saved-by-agent") {
+    return false
+  }
+
+  const justCopied = notice?.kind === "copied" || notice?.kind === "uncopied"
+  return justCopied || agentSetting(settings).command === undefined
+}
+
 /** The user's settings, each with its value and where it comes from; enter changes one. */
 export function SettingsScreen(props: Props) {
   const tones = useTones()
@@ -149,6 +190,7 @@ export function SettingsScreen(props: Props) {
     copySetup: () => setNotice({ kind: copied(renderer) ? "copied" : "uncopied" }),
   })
   const row = rows[chosen]
+  const helpWidth = Math.min(HELP_WIDTH, width - 2 * PADDING - 2)
 
   const saveAgent = (command: string) => {
     setPrompt(undefined)
@@ -185,7 +227,7 @@ export function SettingsScreen(props: Props) {
           <span attributes={TextAttributes.BOLD}>srctrek</span>
           <span fg={tones.dim}>{SUBTITLE}</span>
         </text>
-        <text fg={tones.dim}>{settingsPath()}</text>
+        <text fg={tones.dim}>{shownPath(width)}</text>
       </box>
       <box
         flexDirection="column"
@@ -195,9 +237,10 @@ export function SettingsScreen(props: Props) {
           <RowView key={each.name} row={each} selected={i === chosen} />
         ))}
         <text fg={COLOUR.text}> </text>
-        {wrap(row?.help ?? "", Math.min(HELP_WIDTH, width - 2 * PADDING - 2)).map((line, i) => (
+        {wrap(row?.help ?? "", helpWidth).map((line, i) => (
           <text key={i} fg={tones.dim}>{`  ${line}`}</text>
         ))}
+        {showsRequest(row, props.settings, notice) && <SetupRequest width={helpWidth} />}
         {notice !== undefined && <NoticeLine notice={notice} />}
       </box>
       <Bottom

@@ -45,7 +45,7 @@ function agentRow({ settings, typeAgent, copySetup }: RowActions): SettingRow {
     name: "Agent",
     value: command ?? "none",
     source: from,
-    help: "trek can have your coding agent build treks in the background, but it needs to know how to start your agent. Press c, paste what it copies into your agent's chat, and your agent fills this in.",
+    help: "trek can have your coding agent build treks in the background, but it needs to know how to start your agent.",
     change: typeAgent,
     enter: "type it",
     copy: copySetup,

@@ -91,6 +91,10 @@
 - Secondary text is readable in any theme: once the terminal reports its colours, it's mixed 60%
   from the terminal's background to its text (`tonesFor`), instead of the theme's ANSI 8; every
   grey on screen comes from the tones now.
+- The request to paste is on screen: on Agent, while no command is set and right after `c`, it's
+  quoted under the help with an accent bar, in plainer words that say what the setup is for and
+  that srctrek tests the command; once the agent has saved its command, it goes. The settings
+  path in the title bar shows home as `~` and is cut from the left to fit.
 
 ## 2026-11-03 — Milestone 6: the editors
 

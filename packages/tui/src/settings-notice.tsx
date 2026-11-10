@@ -1,10 +1,10 @@
-import { type AgentCheck, SETUP_REQUEST } from "@srctrek/core"
-import { COLOUR, useTones } from "./theme"
+import type { AgentCheck } from "@srctrek/core"
+import { useTones } from "./theme"
 
 /**
  * The line under the help, about the agent: checking a typed command and what that found, the
- * setup request copied for the agent's chat (or the terminal not taking it), or the agent having
- * saved its command.
+ * setup request copied for the agent's chat (or the terminal not taking it, which leaves it to
+ * select on screen), or the agent having saved its command.
  */
 export type Notice = Readonly<
   | { kind: "checking" }
@@ -14,9 +14,9 @@ export type Notice = Readonly<
 
 const CHECKING = "  checking that the command starts and answers…"
 const WORKS = "  ✓ the command starts and answers"
-const COPIED = "  ✓ copied: paste it into your agent's chat; its command shows up here once saved"
+const COPIED = "  ✓ Copied. Send it in your agent's chat; its command shows up here once saved."
 const SAVED = "  ✓ your agent saved its command; it starts and answers"
-const UNCOPIED = "  your terminal didn't take the copy; paste this into your agent's chat:"
+const UNCOPIED = "  Your terminal didn't take the copy: select the text above to copy it."
 
 /** The notice as one or two lines, in the tone of how it went. */
 export function NoticeLine({ notice }: { notice: Notice }) {
@@ -36,12 +36,7 @@ export function NoticeLine({ notice }: { notice: Notice }) {
   }
 
   if (notice.kind === "uncopied") {
-    return (
-      <box flexDirection="column">
-        <text fg={tones.warn}>{UNCOPIED}</text>
-        <text fg={COLOUR.text}>{`  ${SETUP_REQUEST}`}</text>
-      </box>
-    )
+    return <text fg={tones.warn}>{UNCOPIED}</text>
   }
 
   return <text fg={tones.good}>{notice.kind === "copied" ? COPIED : SAVED}</text>
