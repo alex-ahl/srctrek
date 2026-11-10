@@ -17,7 +17,7 @@ import { useEffect, useState } from "react"
 import { App } from "./app"
 import { openInNeovim } from "./neovim"
 import { openInPager } from "./pager"
-import { TERMINAL_TONES, type Tones, TonesContext, tintOf, tonesFor } from "./theme"
+import { TERMINAL_TONES, type Tones, TonesContext, bandFor, tonesFor } from "./theme"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {
@@ -68,9 +68,9 @@ function Home(props: HomeProps) {
   useEffect(() => {
     const colours = renderer.getPalette({ timeout: 1000 })
     void colours.then(
-      ({ defaultForeground, defaultBackground }) => {
-        if (defaultForeground !== null && defaultBackground !== null) {
-          setTint(tintOf(defaultForeground, defaultBackground))
+      ({ defaultBackground }) => {
+        if (defaultBackground !== null) {
+          setTint(bandFor(defaultBackground))
           setTones(tonesFor(defaultBackground))
         }
       },

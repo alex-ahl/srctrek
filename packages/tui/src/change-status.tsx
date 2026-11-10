@@ -10,7 +10,7 @@ export function ChangeStatus({ block }: { block: StatusBlock }) {
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
       <text fg={COLOUR.text}>
-        <span fg={tones[tone]} attributes={TextAttributes.BOLD}>{`${symbol} ${state}`}</span>
+        <span fg={tones[tone]}>{`${symbol} ${state}`}</span>
         {name === undefined ? "" : "  "}
         {name !== undefined && <span attributes={TextAttributes.BOLD}>{name}</span>}
         {holds === undefined ? "" : <span fg={COLOUR.dim}>{`  ${holds}`}</span>}

@@ -3,7 +3,7 @@ import type { ChangeSummary, TrekEntry, TrekState, TrekStatus } from "@srctrek/c
 import type { ComponentProps } from "react"
 import { App } from "../src/app"
 import { renderFrame } from "../src/render-frame"
-import { TERMINAL_TONES, tintOf, tonesFor } from "../src/theme"
+import { TERMINAL_TONES, bandFor, tonesFor } from "../src/theme"
 import { frameAfter } from "./support/keys"
 
 const noop = () => undefined
@@ -321,16 +321,16 @@ test("says a trek can't be opened, which repo, and how to fix it, with no key to
 test("tints the selected row instead of marking it, once the terminal's colours are known", async () => {
   const entries = [refund, other]
   const marked = await frameOf({ entries })
-  const tinted = await frameOf({ entries, tint: tintOf("#d3d6da", "#16181b") })
+  const tinted = await frameOf({ entries, tint: bandFor("#16181b") })
 
   expect(marked).toContain("▶ Refund orders")
   expect(tinted).not.toContain("▶")
   expect(tinted).toContain("  Refund orders")
 })
 
-test("a tint moves the terminal's background a little toward its text, dark or light", () => {
-  expect(tintOf("#d3d6da", "#16181b").toInts()).toEqual([45, 47, 50, 255])
-  expect(tintOf("#24292f", "#ffffff").toInts()).toEqual([229, 229, 230, 255])
+test("the band moves the terminal's background toward the accent, dark or light", () => {
+  expect(bandFor("#16181b").toInts()).toEqual([32, 54, 52, 255])
+  expect(bandFor("#ffffff").toInts()).toEqual([214, 231, 233, 255])
 })
 
 test("picks deep tones for a light terminal and bright ones for a dark one", () => {

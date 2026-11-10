@@ -1,5 +1,8 @@
 import { type StatusBlock, blockLines } from "./status-block"
 
+/** Columns between the screen's edge and its content, on either side. */
+export const PADDING = 2
+
 // The title bar and the footer, each a line with its rule, and the line above the list.
 const CHROME_LINES = 5
 

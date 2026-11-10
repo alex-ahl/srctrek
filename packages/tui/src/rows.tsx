@@ -1,6 +1,6 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
-import { type Columns, GAP, builtText, flagsText } from "./row-columns"
+import { type Columns, EDGES, GAP, builtText, flagsText } from "./row-columns"
 import { type StateLabel, type States, detailOf, stateOf } from "./row-state"
 import { statusBlock } from "./status-block"
 import { COLOUR, useTones } from "./theme"
@@ -77,7 +77,7 @@ function State({ label, width }: { label: StateLabel | undefined; width: number 
 
 // The room after the marker, the state, and the title, for text that fills the rest of a row.
 const rest = (context: RowContext) =>
-  Math.max(0, context.width - 4 - context.columns.state - context.columns.title)
+  Math.max(0, context.width - EDGES - context.columns.state - context.columns.title)
 
 const PROPOSED: StateLabel = { symbol: "+", state: "proposed", tone: "warn" }
 

@@ -5,7 +5,7 @@ import { useState } from "react"
 import { ChangeStatus } from "./change-status"
 import { Footer } from "./footer"
 import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
-import { listHeight } from "./layout"
+import { PADDING, listHeight } from "./layout"
 import { type Item, type ListLine, itemKey, itemsOf, lineOfItem, listLines } from "./list-lines"
 import { ListLineView } from "./list-view"
 import { LocationInput } from "./location-input"
@@ -242,7 +242,13 @@ export function App(props: Props) {
       <TitleBar summary={props.summary} />
       <box
         flexDirection="column"
-        style={{ flexGrow: 1, paddingTop: 1, paddingLeft: 1, paddingRight: 1, overflow: "hidden" }}
+        style={{
+          flexGrow: 1,
+          paddingTop: 1,
+          paddingLeft: PADDING,
+          paddingRight: PADDING,
+          overflow: "hidden",
+        }}
       >
         {block !== undefined && (
           <box style={{ marginBottom: 1, flexShrink: 0 }}>

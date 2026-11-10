@@ -1,3 +1,4 @@
+import { PADDING } from "./layout"
 import { COLOUR } from "./theme"
 
 /** A key and what it does, as the footer lists them. */
@@ -11,7 +12,7 @@ export function Footer({ keys, shown }: { keys: readonly KeyHint[]; shown: strin
       justifyContent="space-between"
       border={["top"]}
       borderColor={COLOUR.dim}
-      style={{ paddingLeft: 1, paddingRight: 1, flexShrink: 0 }}
+      style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <text fg={COLOUR.dim}>{keys.map(({ key, does }) => `${key} ${does}`).join(" · ")}</text>
       <text fg={COLOUR.dim}>{shown}</text>

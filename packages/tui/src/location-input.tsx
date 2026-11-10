@@ -1,6 +1,7 @@
 import { type InputRenderable, RGBA } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useRef } from "react"
+import { PADDING } from "./layout"
 import { COLOUR } from "./theme"
 
 type Props = {
@@ -33,7 +34,7 @@ export function LocationInput({ name, onSubmit, onCancel }: Props) {
       flexDirection="row"
       border={["top"]}
       borderColor={COLOUR.dim}
-      style={{ paddingLeft: 1, paddingRight: 1, flexShrink: 0 }}
+      style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <text fg={COLOUR.text}>{`Where does ${name} live? A path or URL, esc to cancel: `}</text>
       <input

@@ -65,17 +65,17 @@ export const TonesContext = createContext<Tones>(TERMINAL_TONES)
 
 export const useTones = () => useContext(TonesContext)
 
-// How far the selected row's background moves from the terminal's background toward its text.
-const TINT = 0.12
+// How far the selected row's background moves from the terminal's background toward the accent.
+const BAND = 0.18
 
 /**
- * The selected row's background: the terminal's own background moved a little toward its text,
- * so it reads as a highlight in a dark theme and a light one alike.
+ * The selected row's background: the terminal's own background moved toward the accent of the
+ * tones it gets, a soft tint of it, so it reads as a highlight on dark and light alike.
  */
-export function tintOf(foreground: string, background: string): RGBA {
-  const [fg, bg] = [channels(foreground), channels(background)]
+export function bandFor(background: string): RGBA {
+  const [accent, bg] = [tonesFor(background).accent.toInts(), channels(background)]
   const [r = 0, g = 0, b = 0] = bg.map((value, i) =>
-    Math.round(value + ((fg[i] ?? value) - value) * TINT),
+    Math.round(value + ((accent[i] ?? value) - value) * BAND),
   )
 
   return RGBA.fromInts(r, g, b)

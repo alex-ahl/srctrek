@@ -62,6 +62,9 @@
 - The states' colours are srctrek's once the terminal reports its background: a bright set on
   dark, deeper ones on light, chosen to keep green and yellow apart; text, dim text, and the
   background stay the terminal's, and a terminal that doesn't report keeps its ANSI colours.
+- Crisper, closer to the mockup: the selected row's band is tinted toward the accent; content
+  sits two columns from the edge; titles are cut at 50 characters, so a wide terminal keeps each
+  row together; and only the trek's name is bold in the block.
 
 ## 2026-11-03 — Milestone 6: the editors
 

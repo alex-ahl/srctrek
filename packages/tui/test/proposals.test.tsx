@@ -40,7 +40,7 @@ test("lists a proposed repo first, with where it lives and why, and how to settl
 
   expect(frame).toContain(" PROPOSED BY THE AGENT")
   expect(frame).toContain(
-    "▶ + proposed   payments   git@example.test:shop/payments.git   the client posts refunds to th…   enter add · d dismiss",
+    "▶ + proposed   payments   git@example.test:shop/payments.git   the client posts refunds to …   enter add · d dismiss",
   )
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
   expect(frame).toContain("enter add to the repos list · d dismiss")
