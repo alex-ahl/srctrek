@@ -1,0 +1,92 @@
+#!/bin/sh
+# Installs trek: curl -fsSL https://srctrek.dev/install | sh
+#
+#   SRCTREK_VERSION      a release such as 0.1.0 (default: the latest)
+#   SRCTREK_INSTALL_DIR  where trek goes (default: ~/.local/bin)
+#
+# The whole script is one function, called on the last line, so a download cut short runs nothing.
+
+set -eu
+
+REPO_URL="https://github.com/alex-ahl/srctrek"
+
+fail() {
+  echo "srctrek: $1" >&2
+  exit 1
+}
+
+platform() {
+  case "$(uname -s)" in
+    Darwin) os=darwin ;;
+    Linux) os=linux ;;
+    *) fail "no trek build for $(uname -s); build it from a checkout: $REPO_URL" ;;
+  esac
+
+  case "$(uname -m)" in
+    arm64 | aarch64) arch=arm64 ;;
+    x86_64 | amd64) arch=x64 ;;
+    *) fail "no trek build for $(uname -m); build it from a checkout: $REPO_URL" ;;
+  esac
+
+  # darwin-x64 isn't built.
+  if [ "$os-$arch" = darwin-x64 ]; then
+    fail "no trek build for Intel Macs; build it from a checkout: $REPO_URL"
+  fi
+
+  echo "$os-$arch"
+}
+
+release_url() {
+  if [ -n "${SRCTREK_VERSION:-}" ]; then
+    echo "$REPO_URL/releases/download/v$SRCTREK_VERSION"
+  else
+    echo "$REPO_URL/releases/latest/download"
+  fi
+}
+
+download() {
+  curl -fsSL --proto '=https' --tlsv1.2 -o "$2" "$1" || fail "couldn't download $1"
+}
+
+sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d ' ' -f 1
+  else
+    shasum -a 256 "$1" | cut -d ' ' -f 1
+  fi
+}
+
+verify() {
+  expected="$(grep " $2\$" "$3" | cut -d ' ' -f 1)"
+  [ -n "$expected" ] || fail "SHA256SUMS lists no $2"
+  [ "$(sha256 "$1")" = "$expected" ] || fail "$2 doesn't match its checksum; nothing was installed"
+}
+
+say_path_hint() {
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) echo "Add $1 to your PATH to run trek by name." ;;
+  esac
+}
+
+main() {
+  asset="trek-$(platform)"
+  base="$(release_url)"
+  dir="${SRCTREK_INSTALL_DIR:-$HOME/.local/bin}"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+
+  echo "Downloading $asset from $base"
+  download "$base/$asset" "$tmp/trek"
+  download "$base/SHA256SUMS" "$tmp/SHA256SUMS"
+  verify "$tmp/trek" "$asset" "$tmp/SHA256SUMS"
+
+  mkdir -p "$dir"
+  chmod +x "$tmp/trek"
+  mv "$tmp/trek" "$dir/trek"
+
+  echo "Installed trek to $dir/trek"
+  say_path_hint "$dir"
+}
+
+main

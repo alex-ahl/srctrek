@@ -1,7 +1,8 @@
 ---
 import iconUrl from "../../../docs/assets/srctrek-icon.svg?url"
 import Placeholder from "./Placeholder.astro"
-import { REPO_URL } from "../links"
+import InstallCommand from "./InstallCommand.astro"
+import { RELEASES_URL, REPO_URL } from "../links"
 ---
 
 <header class="hero">
@@ -19,6 +20,10 @@ import { REPO_URL } from "../links"
           <code>trek</code> takes a change — a git range or pull requests, across one or more repos —
           and follows one example scenario from its trigger to its outcome in execution order, moving
           your editor to each step.
+        </p>
+        <InstallCommand />
+        <p class="platforms">
+          macOS on Apple silicon, and Linux. Or <a href={RELEASES_URL}>download a binary</a>.
         </p>
         <div class="actions">
           <a class="button" href={REPO_URL}>View on GitHub</a>
@@ -83,11 +88,17 @@ import { REPO_URL } from "../links"
     max-width: 36rem;
   }
 
+  .platforms {
+    margin-top: 0.6rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
   .actions {
     display: flex;
     align-items: center;
     gap: 1.25rem;
-    margin-top: 2rem;
+    margin-top: 1.5rem;
   }
 
   .button {

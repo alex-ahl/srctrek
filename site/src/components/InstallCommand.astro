@@ -1,0 +1,29 @@
+---
+import { INSTALL_COMMAND } from "../links"
+---
+
+<pre class="install"><code>{INSTALL_COMMAND}</code></pre>
+
+<style>
+  .install {
+    margin: 2rem 0 0;
+    max-width: 36rem;
+    overflow-x: auto;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    padding: 0.8rem 1rem;
+  }
+
+  code {
+    background: none;
+    padding: 0;
+  }
+
+  /* Outside the text, so copying the line leaves the prompt behind. */
+  code::before {
+    content: "$ ";
+    color: var(--text-muted);
+    user-select: none;
+  }
+</style>
