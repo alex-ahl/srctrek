@@ -1,5 +1,6 @@
 import { expect, mock, test } from "bun:test"
-import type { Settings, TrekEntry } from "@srctrek/core"
+import { SETUP_REQUEST, type Settings, type TrekEntry } from "@srctrek/core"
+import { useEffect, useState } from "react"
 import { App } from "../src/app"
 import type { Editor } from "../src/editors"
 import type { SettingChange } from "../src/settings-screen"
@@ -99,4 +100,41 @@ test("the agent's prompt says what to type", async () => {
 
   expect(frame).toContain("Agent command:")
   expect(frame).toContain("the command that runs your agent without a chat")
+})
+
+test("c on the agent copies what to paste into the agent's chat, or shows it when it can't", async () => {
+  const frame = await frameAfter(app({}), async (input) => {
+    input.pressKey("S", { shift: true })
+    await Bun.sleep(20)
+    input.pressKey("j")
+    await Bun.sleep(20)
+    input.pressKey("c")
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toContain("c copy for your agent")
+  const copied = frame.includes("✓ copied: paste it into your agent's chat")
+  const shown = frame.includes(SETUP_REQUEST)
+  expect(copied || shown).toBe(true)
+})
+
+test("says when the agent saved its command from its chat", async () => {
+  // The settings as the home screen rereads them: the agent's command arrives after a moment.
+  function Later() {
+    const [settings, setSettings] = useState<Settings>({})
+    useEffect(() => {
+      const timer = setTimeout(() => setSettings({ agent: "agent run --headless" }), 60)
+      return () => clearTimeout(timer)
+    }, [])
+
+    return app(settings)
+  }
+
+  const frame = await frameAfter(<Later />, async (input) => {
+    input.pressKey("S", { shift: true })
+    await Bun.sleep(150)
+  })
+
+  expect(frame).toMatch(/Agent +agent run --headless +settings file/)
+  expect(frame).toContain("✓ your agent saved its command; it starts and answers")
 })

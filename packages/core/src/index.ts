@@ -121,6 +121,7 @@ export {
   BUILD_STOPPED,
   PROMPT_HASH,
   SET_AGENT_COMMAND,
+  SETUP_REQUEST,
   agentSavedAnswer,
   agentUnsavedAnswer,
   SERVER_INSTRUCTIONS,

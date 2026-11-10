@@ -14,6 +14,7 @@ import updateAs from "../prompts/update_as.md" with { type: "text" }
 import agentSaved from "../prompts/answers/agent_saved.md" with { type: "text" }
 import agentUnsaved from "../prompts/answers/agent_unsaved.md" with { type: "text" }
 import setAgentCommand from "../prompts/tools/set_agent_command.md" with { type: "text" }
+import setupRequest from "../prompts/setup_request.md" with { type: "text" }
 import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
 import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
 import diff from "../prompts/tools/diff.md" with { type: "text" }
@@ -53,6 +54,12 @@ export const TOOL_DESCRIPTIONS = {
  * how a trek is built, so it stays out of the prompt hash below.
  */
 export const SET_AGENT_COMMAND = setAgentCommand.trim()
+
+/**
+ * What the user pastes into their agent's chat to have it set srctrek up; outside the prompt
+ * hash, with the tool it asks for.
+ */
+export const SETUP_REQUEST = setupRequest.trim()
 
 /** What the agent is told once its command is saved; `overridden` when SRCTREK_AGENT wins. */
 export function agentSavedAnswer(path: string, overridden: boolean): string {

@@ -9,6 +9,7 @@ import {
   buildFiles,
   dismissProposal,
   loadProposals,
+  loadSettings,
   loadTrekEntries,
   saveSetting,
   trekStates,
@@ -42,6 +43,9 @@ function isBuilding(status: TrekStatus | undefined): boolean {
   return status?.kind === "building"
 }
 
+// Often enough that an agent's save shows up while the user waits for it.
+const SETTINGS_POLL_MS = 2000
+
 // A build takes minutes, so checking every couple of seconds is plenty.
 const POLL_MS = 2000
 
@@ -63,6 +67,20 @@ function Home(props: HomeProps) {
   const { root, change, onOpen, onQuit, onShowFile } = props
   const [settings, setSettings] = useState(props.firstSettings)
   const editor = props.editors.find((each) => each.id === settings.editor)
+
+  // The settings file can change while trek runs: the agent saves its command from its chat, or
+  // the user edits it. A file broken meanwhile keeps what was read before.
+  useEffect(() => {
+    const reread = async () => {
+      const now = await loadSettings().catch(() => undefined)
+      if (now !== undefined) {
+        setSettings((shown) => (JSON.stringify(shown) === JSON.stringify(now) ? shown : now))
+      }
+    }
+    const timer = setInterval(() => void reread(), SETTINGS_POLL_MS)
+
+    return () => clearInterval(timer)
+  }, [])
 
   // A changed setting holds for every repo; a settings file broken meanwhile keeps the old one.
   const changeSetting: SettingChange = (key, value) => {

@@ -83,6 +83,11 @@
   it's given once, saves it to the user's settings if it starts and answers, and else says what
   failed so the agent can fix it. Its description and answers are prompt files outside the
   prompt hash; settings' help for the agent points to it.
+- From settings to the agent's chat in one key: `c` on Agent copies the request
+  (`packages/core/prompts/setup_request.md`) through the terminal's clipboard, or shows it to copy
+  by hand where the terminal can't take it; the home screen rereads the settings file every two
+  seconds, so the agent's save shows up, with "your agent saved its command". Each row's footer
+  says what enter does to it.
 
 ## 2026-11-03 — Milestone 6: the editors
 

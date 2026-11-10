@@ -440,22 +440,26 @@
           <div class="ln dim">  The command that runs your agent headless, with a trek's instructions as its last</div>
           <div class="ln dim">  argument. trek starts it to build a trek; b builds, updates, and rebuilds with it.</div>
         </div>
-        <div class="foot">↑/↓ choose · enter change · esc back</div>
+        <div class="foot">↑/↓ choose · enter type it · c copy for your agent · esc back</div>
       </div>
     </figure>
     <div class="grid2">
-      <figure><figcaption>Changing the agent: ask the agent, or type its command</figcaption>
+      <figure><figcaption>Setting the agent: c copies the request for its chat</figcaption>
         <div class="term">
           <div class="pane">
-            <div class="ln">Agent command:</div>
-            <div class="ln dim">  (not set)</div>
+            <div class="ln">  Editor                  <span class="bold">Neovim</span>         <span class="dim">settings file</span></div>
+            <div class="ln sel">  Agent                   <span class="bold">none</span>           <span class="dim">not set</span></div>
             <div class="ln"> </div>
-            <div class="ln">  Easiest: ask your agent, in its chat, to <span class="bold">"set up srctrek to build treks"</span>.</div>
-            <div class="ln dim">  It knows how it runs headless, and fills this in.</div>
-            <div class="ln dim">  Or type the command that runs your agent without a chat;</div>
-            <div class="ln dim">  trek adds the trek's instructions as its last argument.</div>
+            <div class="ln dim">  trek can have your coding agent build treks in the background, but it needs to know</div>
+            <div class="ln dim">  how to start your agent. Press c, paste what it copies into your agent's chat, and</div>
+            <div class="ln dim">  your agent fills this in.</div>
+            <div class="ln g">  ✓ copied: paste it into your agent's chat; its command shows up here once saved</div>
+            <div class="ln"> </div>
+            <div class="ln dim">  … a moment after the agent saves it:</div>
+            <div class="ln">  Agent                   <span class="bold">agent run --headless</span>   <span class="dim">settings file</span></div>
+            <div class="ln g">  ✓ your agent saved its command; it starts and answers</div>
           </div>
-          <div class="foot">enter type it · esc back</div>
+          <div class="foot">↑/↓ choose · enter type it · c copy for your agent · esc back</div>
         </div>
       </figure>
       <figure><figcaption>Changing the colours: a picker</figcaption>
@@ -469,7 +473,7 @@
         </div>
       </figure>
     </div>
-    <p class="note">The agent sets the command itself through srctrek's MCP server, which it has registered to build treks (<code>set_agent_command</code>, with the command that runs it headless); srctrek saves it to the settings file. Once a command is set, trek runs it once with a tiny instruction, and settings shows <span class="g">works</span> or the error, before a real build fails on a typo.</p>
+    <p class="note"><code>c</code> on the agent copies a one-line request to paste into the agent's chat, through the terminal's clipboard; a terminal that doesn't take it shows the line to copy by hand. The agent then sets the command itself through srctrek's MCP server, which it has registered to build treks (<code>set_agent_command</code>, with the command that runs it headless); srctrek saves it to the settings file, and settings shows it within a couple of seconds. Once a command is set, trek runs it once with a tiny instruction, and settings shows <span class="g">works</span> or the error, before a real build fails on a typo.</p>
     <p class="note">Build automatically toggles with enter, off by default: off, a change with no trek waits for <code>b</code>; on, trek starts building it as soon as it opens, when an agent is set.</p>
   </section>
 
