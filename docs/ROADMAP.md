@@ -43,6 +43,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - TUI sidebar mode: narration, call stack, watched values, and boundary cards in a pane, for
   an editor kept free of inline text.
 - `trek doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
+- **Editing settings as JSON:** a key in the terminal's settings opens the settings file in the
+  user's editor, and settings reread it on return.
 - Presenting: a trek walked through for a team, with large narration and the route map.
 - Web GUI served by the same binary (`trek --gui`).
 - **srctrek.nvim:** the Neovim plugin copied on each release to a repo of its own, installable by
