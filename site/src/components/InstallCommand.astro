@@ -8,16 +8,18 @@ import { INSTALL_COMMAND } from "../links"
   .install {
     margin: 2rem 0 0;
     max-width: 36rem;
-    overflow-x: auto;
     background: var(--code-bg);
     border: 1px solid var(--border);
     border-radius: 0.6rem;
     padding: 0.8rem 1rem;
   }
 
+  /* Wraps on narrow screens rather than scrolling, so all of it shows; a copy is still one line. */
   code {
     background: none;
     padding: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   /* Outside the text, so copying the line leaves the prompt behind. */
