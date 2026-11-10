@@ -1,5 +1,6 @@
 import { type Settings, agentSetting } from "@srctrek/core"
 import type { Editor } from "./editors"
+import type { Tone } from "./theme"
 
 /** Sets one of the user's settings, for every repo. */
 export type SettingChange = <K extends keyof Settings>(
@@ -7,14 +8,23 @@ export type SettingChange = <K extends keyof Settings>(
   value: NonNullable<Settings[K]>,
 ) => void
 
+/** The headings settings are grouped under, in the order they're listed. */
+export type SettingGroup = "OPENING" | "BUILDING" | "LOOK"
+
 /**
- * A setting as the screen lists it: its value, a note when the environment sets it, what it's for,
- * what enter does to it and says it does, and, for the agent, what c does.
+ * A setting as the screen lists it, under its group: its value (in a tone where the tone says
+ * what it means, else bold), a mark after it, a note when the environment sets it, a sample of
+ * the states' colours for the colours, what it's for, what enter does to it and says it does, and,
+ * for the agent, what c does.
  */
 export type SettingRow = Readonly<{
+  group: SettingGroup
   name: string
   value: string
+  tone?: Tone
+  mark?: Readonly<{ symbol: string; tone: Tone }>
   note?: string
+  sample?: true
   help: string
   change: () => void
   enter: string
@@ -29,17 +39,25 @@ export type RowActions = Readonly<{
   pickEditor: () => void
   typeAgent: () => void
   copySetup: () => void
+  // whether the agent's command passed its check, once checked on this visit
+  agentWorks: boolean | undefined
 }>
 
-function agentRow({ settings, typeAgent, copySetup }: RowActions): SettingRow {
+const checkMark = (works: boolean) =>
+  works ? { symbol: "✓", tone: "good" as const } : { symbol: "✕", tone: "bad" as const }
+
+function agentRow({ settings, typeAgent, copySetup, agentWorks }: RowActions): SettingRow {
   const { command, source, shadows } = agentSetting(settings)
   const fromEnvironment = shadows
     ? "SRCTREK_AGENT overrides the settings file"
     : "from SRCTREK_AGENT"
 
   return {
+    group: "BUILDING",
     name: "Agent",
     value: command ?? "none",
+    ...(command === undefined && { tone: "dim" as const }),
+    ...(command !== undefined && agentWorks !== undefined && { mark: checkMark(agentWorks) }),
     ...(source === "environment" && { note: fromEnvironment }),
     help: "trek can have your coding agent build treks in the background, but it needs to know how to start your agent.",
     change: typeAgent,
@@ -56,23 +74,29 @@ export function settingRows(actions: RowActions): SettingRow[] {
 
   return [
     {
+      group: "OPENING",
       name: "Editor",
       value: editor?.label ?? "not chosen",
+      ...(editor === undefined && { tone: "dim" as const }),
       help: "Where enter opens a trek. Only editors found on this machine are offered.",
       change: actions.pickEditor,
       enter: "pick",
     },
     agentRow(actions),
     {
+      group: "BUILDING",
       name: "Build automatically",
-      value: building ? "on" : "off",
+      value: building ? "● on" : "○ off",
+      tone: building ? "good" : "dim",
       help: "On, trek starts building a change's trek as it opens, when there's none and an agent is set. Off, it waits for b.",
       change: () => onChange("build_automatically", !building),
       enter: building ? "turn off" : "turn on",
     },
     {
+      group: "LOOK",
       name: "Colours",
       value: terminal ? "the terminal's" : "srctrek's",
+      sample: true,
       help: "srctrek's keep states apart in any theme; the terminal's follow its own green, yellow, and red.",
       change: () => onChange("colours", terminal ? "srctrek" : "terminal"),
       enter: terminal ? "use srctrek's" : "use the terminal's",

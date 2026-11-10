@@ -275,6 +275,7 @@ function Settings({ props, close }: { props: Props; close: () => void }) {
       editor={props.editor}
       onChange={(key, value) => props.onChangeSetting?.(key, value)}
       onBack={close}
+      tint={props.tint}
     />
   )
 }

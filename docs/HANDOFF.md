@@ -98,6 +98,11 @@
   quoted under the help with an accent bar, in plainer words that say what the setup is for and
   that srctrek tests the command; once the agent has saved its command, it goes. The settings
   path in the title bar shows home as `~` and is cut from the left to fit.
+- Settings to the design: grouped under OPENING, BUILDING, and LOOK like the home screen's
+  sections, the chosen row on the home screen's tint, building shown as `● on` or `○ off`, the
+  colours with a sample of the states in them, the agent's command marked `✓` or `✕` once checked
+  on this visit, and the help under the setting's name. Without a command or value, it reads in
+  grey.
 
 ## 2026-11-03 — Milestone 6: the editors
 

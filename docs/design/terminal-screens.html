@@ -428,51 +428,78 @@
   <section>
     <h2>4. Settings</h2>
     <p class="note"><code>S</code> opens settings over the list: each setting and its value, with a note beside it when an environment variable sets it. Enter changes the selected one. Everything is kept per user, in <code>$XDG_CONFIG_HOME/srctrek/settings.json</code> (else <code>~/.config</code>); an environment variable overrides the file, for scripts and CI.</p>
-    <figure><figcaption>Settings, the agent selected</figcaption>
+    <figure><figcaption>Settings, the agent selected: grouped, the band on the chosen row, values that show what they mean</figcaption>
       <div class="term screen">
         <div class="tb"><span><b>srctrek</b>  settings</span><span>~/.config/srctrek/settings.json</span></div>
         <div class="pane">
+          <div class="ln dim">OPENING</div>
           <div class="ln">  Editor                  <span class="bold">Neovim</span></div>
-          <div class="ln sel">  Agent                   <span class="bold">agent run --headless</span>  <span class="dim">SRCTREK_AGENT overrides the settings file</span></div>
-          <div class="ln">  Build automatically     <span class="bold">off</span></div>
-          <div class="ln">  Colours                 <span class="bold">srctrek's</span></div>
           <div class="ln"> </div>
-          <div class="ln dim">  The command that runs your agent headless, with a trek's instructions as its last</div>
-          <div class="ln dim">  argument. trek starts it to build a trek; b builds, updates, and rebuilds with it.</div>
+          <div class="ln dim">BUILDING</div>
+          <div class="ln sel">  Agent                   <span class="bold">agent run --headless</span>  <span class="g">✓</span></div>
+          <div class="ln">  Build automatically     <span class="g">● on</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">LOOK</div>
+          <div class="ln">  Colours                 <span class="bold">srctrek's</span>   <span class="g">● ready</span>  <span class="y">≠ stale</span>  <span class="r">✕ can't open</span></div>
+          <div class="ln"> </div>
+          <div class="ln"><span class="bold">Agent</span></div>
+          <div class="ln dim">trek can have your coding agent build treks in the background, but it needs</div>
+          <div class="ln dim">to know how to start your agent.</div>
+          <div class="ln g">✓ the command starts and answers</div>
         </div>
         <div class="foot">↑/↓ choose · enter type it · c copy for your agent · esc back</div>
+      </div>
+    </figure>
+    <figure><figcaption>Off, and the environment setting the agent</figcaption>
+      <div class="term">
+        <div class="pane">
+          <div class="ln dim">BUILDING</div>
+          <div class="ln">  Agent                   <span class="bold">agent run --headless</span>  <span class="dim">SRCTREK_AGENT overrides the settings file</span></div>
+          <div class="ln sel">  Build automatically     <span class="dim">○ off</span></div>
+          <div class="ln"> </div>
+          <div class="ln"><span class="bold">Build automatically</span></div>
+          <div class="ln dim">On, trek starts building a change's trek as it opens, when there's none and</div>
+          <div class="ln dim">an agent is set. Off, it waits for b.</div>
+        </div>
+        <div class="foot">↑/↓ choose · enter turn on · esc back</div>
+      </div>
+    </figure>
+    <figure><figcaption>The terminal's colours, sampled in its own palette</figcaption>
+      <div class="term">
+        <div class="pane">
+          <div class="ln dim">LOOK</div>
+          <div class="ln sel">  Colours                 <span class="bold">the terminal's</span>   <span class="g">● ready</span>  <span class="y">≠ stale</span>  <span class="r">✕ can't open</span></div>
+          <div class="ln"> </div>
+          <div class="ln"><span class="bold">Colours</span></div>
+          <div class="ln dim">srctrek's keep states apart in any theme; the terminal's follow its own green,</div>
+          <div class="ln dim">yellow, and red.</div>
+        </div>
+        <div class="foot">↑/↓ choose · enter use srctrek's · esc back</div>
       </div>
     </figure>
     <div class="grid2">
       <figure><figcaption>Setting the agent: the request to paste, quoted, and c to copy it</figcaption>
         <div class="term">
           <div class="pane">
-            <div class="ln sel">  Agent                   <span class="bold">none</span></div>
+            <div class="ln dim">BUILDING</div>
+            <div class="ln sel">  Agent                   <span class="dim">none</span></div>
+            <div class="ln">  Build automatically     <span class="dim">○ off</span></div>
             <div class="ln"> </div>
-            <div class="ln dim">  trek can have your coding agent build treks in the background, but it needs</div>
-            <div class="ln dim">  to know how to start your agent.</div>
+            <div class="ln"><span class="bold">Agent</span></div>
+            <div class="ln dim">trek can have your coding agent build treks in the background, but it needs</div>
+            <div class="ln dim">to know how to start your agent.</div>
             <div class="ln"> </div>
-            <div class="ln dim">  Press c to copy this, then paste it into your agent's chat:</div>
-            <div class="ln"><span class="a">  ▌ </span>Set up srctrek so it can start you to build treks on your own. Call</div>
-            <div class="ln"><span class="a">  ▌ </span>srctrek's set_agent_command tool with the shell command that runs you</div>
-            <div class="ln"><span class="a">  ▌ </span>without a chat, including whatever lets you use srctrek's tools without</div>
-            <div class="ln"><span class="a">  ▌ </span>asking for approval. srctrek tests the command and tells you if it needs</div>
-            <div class="ln"><span class="a">  ▌ </span>fixing. If you don't have srctrek's tools, tell me how to register `trek</div>
-            <div class="ln"><span class="a">  ▌ </span>mcp` as an MCP server with you, and I'll ask again once you've</div>
-            <div class="ln"><span class="a">  ▌ </span>reconnected.</div>
-            <div class="ln g">  ✓ Copied. Send it in your agent's chat; its command shows up here once saved.</div>
+            <div class="ln dim">Press c to copy this, then paste it into your agent's chat:</div>
+            <div class="ln"><span class="a">▌ </span>Set up srctrek so it can start you to build treks on your own. Call</div>
+            <div class="ln"><span class="a">▌ </span>srctrek's set_agent_command tool with the shell command that runs you</div>
+            <div class="ln"><span class="a">▌ </span>without a chat, including whatever lets you use srctrek's tools without</div>
+            <div class="ln"><span class="a">▌ </span>asking for approval. srctrek tests the command and tells you if it needs</div>
+            <div class="ln"><span class="a">▌ </span>fixing. If you don't have srctrek's tools, tell me how to register `trek</div>
+            <div class="ln"><span class="a">▌ </span>mcp` as an MCP server with you, and I'll ask again once you've</div>
+            <div class="ln"><span class="a">▌ </span>reconnected.</div>
+            <div class="ln g">✓ Copied. Send it in your agent's chat; its command shows up here once saved.</div>
           </div>
           <div class="foot">↑/↓ choose · enter type it · c copy for your agent · esc back</div>
-        </div>
-      </figure>
-      <figure><figcaption>Changing the colours: a picker</figcaption>
-        <div class="term">
-          <div class="pane">
-            <div class="ln">Colours:</div>
-            <div class="ln">  <span class="a">▶</span> <span class="bold">srctrek's</span>          <span class="g">● ready</span>  <span class="y">≠ stale</span>  <span class="r">✕ failed</span></div>
-            <div class="ln">    the terminal's     <span class="dim">its own green, yellow, and red</span></div>
-          </div>
-          <div class="foot">↑/↓ choose · enter pick · esc cancel</div>
         </div>
       </figure>
     </div>

@@ -1,4 +1,4 @@
-import { type CliRenderer, TextAttributes } from "@opentui/core"
+import { type CliRenderer, type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { SETUP_REQUEST, type Settings, agentSetting, checkAgent, settingsPath } from "@srctrek/core"
 import { homedir } from "node:os"
@@ -6,10 +6,11 @@ import { useEffect, useRef, useState } from "react"
 import { EditorPicker } from "./editor-picker"
 import type { Editor } from "./editors"
 import { PADDING } from "./layout"
+import { SettingsList } from "./settings-list"
 import { type Notice, NoticeLine } from "./settings-notice"
 import { type SettingChange, type SettingRow, rowKeys, settingRows } from "./settings-rows"
 import { TextPrompt } from "./text-prompt"
-import { fit, wrap } from "./text"
+import { wrap } from "./text"
 import { COLOUR, useTones } from "./theme"
 
 export type { SettingChange } from "./settings-rows"
@@ -21,6 +22,8 @@ type Props = {
   editor: Editor | undefined
   onChange: SettingChange
   onBack: () => void
+  // the chosen row's background, when the terminal's colours are known
+  tint: RGBA | undefined
 }
 
 // What the bottom of the screen is asking: which editor, or the agent's command.
@@ -30,34 +33,6 @@ type Prompt = "editor" | "agent"
 const SUBTITLE = "  settings"
 // Help reads as a short paragraph, not one line across a wide terminal.
 const HELP_WIDTH = 76
-const NAME_WIDTH = 24
-const NOTE_GAP = 2
-
-// A value too long for the line, beside its name and any note, is cut with "…"; enter on the
-// agent still shows the whole command.
-function RowView({
-  row,
-  selected,
-  lineWidth,
-}: {
-  row: SettingRow
-  selected: boolean
-  lineWidth: number
-}) {
-  const tones = useTones()
-  const noteWidth = row.note === undefined ? 0 : NOTE_GAP + row.note.length
-  const room = lineWidth - 2 - NAME_WIDTH - noteWidth
-
-  return (
-    <text fg={COLOUR.text}>
-      <span fg={tones.accent}>{selected ? "▶ " : "  "}</span>
-      <span>{row.name.padEnd(NAME_WIDTH)}</span>
-      <span attributes={TextAttributes.BOLD}>{fit(row.value, room)}</span>
-      {row.note !== undefined && <span fg={tones.dim}>{`  ${row.note}`}</span>}
-    </text>
-  )
-}
-
 const AGENT_HINT =
   "the command that runs your agent without a chat; trek adds a trek's instructions as its last argument"
 
@@ -152,7 +127,7 @@ function shownPath(width: number): string {
   return path.length <= room ? path : `…${path.slice(path.length - room + 1)}`
 }
 
-const REQUEST_LEAD = "  Press c to copy this, then paste it into your agent's chat:"
+const REQUEST_LEAD = "Press c to copy this, then paste it into your agent's chat:"
 
 // The request c copies, quoted under the agent's help: a bar in the accent beside text in the
 // text colour, so what to paste stands apart from the grey help around it.
@@ -164,12 +139,21 @@ function SetupRequest({ width }: { width: number }) {
       <text fg={tones.dim}>{REQUEST_LEAD}</text>
       {wrap(SETUP_REQUEST, width - 2).map((line, i) => (
         <text key={i} fg={COLOUR.text}>
-          <span fg={tones.accent}>{"  ▌ "}</span>
+          <span fg={tones.accent}>{"▌ "}</span>
           {line}
         </text>
       ))}
     </box>
   )
+}
+
+// The agent's check this visit, typed here or saved by the agent, marks its command.
+function agentWorks(notice: Notice | undefined): boolean | undefined {
+  if (notice?.kind === "checked") {
+    return notice.check.ok
+  }
+
+  return notice?.kind === "saved-by-agent" ? true : undefined
 }
 
 // The request shows on the agent while there's no command yet, and right after c; once the agent
@@ -181,6 +165,24 @@ function showsRequest(row: SettingRow | undefined, settings: Settings, notice: N
 
   const justCopied = notice?.kind === "copied" || notice?.kind === "uncopied"
   return justCopied || agentSetting(settings).command === undefined
+}
+
+// What the chosen setting is for, under its name.
+function Help({ row, width }: { row: SettingRow | undefined; width: number }) {
+  const tones = useTones()
+
+  return (
+    <box flexDirection="column" style={{ marginTop: 1 }}>
+      <text fg={COLOUR.text} attributes={TextAttributes.BOLD}>
+        {row?.name ?? ""}
+      </text>
+      {wrap(row?.help ?? "", width).map((line, i) => (
+        <text key={i} fg={tones.dim}>
+          {line}
+        </text>
+      ))}
+    </box>
+  )
 }
 
 /** The user's settings, each with its value and where it comes from; enter changes one. */
@@ -200,9 +202,11 @@ export function SettingsScreen(props: Props) {
     pickEditor: () => setPrompt("editor"),
     typeAgent: () => setPrompt("agent"),
     copySetup: () => setNotice({ kind: copied(renderer) ? "copied" : "uncopied" }),
+    agentWorks: agentWorks(notice),
   })
   const row = rows[chosen]
-  const helpWidth = Math.min(HELP_WIDTH, width - 2 * PADDING - 2)
+  const lineWidth = width - 2 * PADDING
+  const helpWidth = Math.min(HELP_WIDTH, lineWidth)
 
   const saveAgent = (command: string) => {
     setPrompt(undefined)
@@ -243,22 +247,20 @@ export function SettingsScreen(props: Props) {
       </box>
       <box
         flexDirection="column"
-        style={{ flexGrow: 1, paddingTop: 1, paddingLeft: PADDING, paddingRight: PADDING }}
+        style={{
+          flexGrow: 1,
+          paddingTop: 1,
+          paddingLeft: PADDING,
+          paddingRight: PADDING,
+          overflow: "hidden",
+        }}
       >
-        {rows.map((each, i) => (
-          <RowView
-            key={each.name}
-            row={each}
-            selected={i === chosen}
-            lineWidth={width - 2 * PADDING}
-          />
-        ))}
-        <text fg={COLOUR.text}> </text>
-        {wrap(row?.help ?? "", helpWidth).map((line, i) => (
-          <text key={i} fg={tones.dim}>{`  ${line}`}</text>
-        ))}
-        {showsRequest(row, props.settings, notice) && <SetupRequest width={helpWidth} />}
-        {notice !== undefined && <NoticeLine notice={notice} />}
+        <box flexDirection="column" style={{ flexShrink: 0 }}>
+          <SettingsList rows={rows} chosen={chosen} lineWidth={lineWidth} tint={props.tint} />
+          <Help row={row} width={helpWidth} />
+          {showsRequest(row, props.settings, notice) && <SetupRequest width={helpWidth} />}
+          {notice !== undefined && <NoticeLine notice={notice} />}
+        </box>
       </box>
       <Bottom
         prompt={prompt}

@@ -31,7 +31,7 @@ test("S opens settings: each setting with its value and where it comes from", as
 
   expect(frame).toContain("  srctrek  settings")
   expect(frame).toContain("▶ Editor                  Neovim")
-  expect(frame).toMatch(/Build automatically +off/)
+  expect(frame).toMatch(/Build automatically +○ off/)
   expect(frame).toMatch(/Colours +the terminal's/)
   expect(frame).not.toContain("settings file")
   expect(frame).toContain("Where enter opens a trek.")
@@ -95,18 +95,23 @@ test("esc goes back to the list", async () => {
 
 test("enter on the agent asks for its command, saves it, and says whether it works", async () => {
   const change = mock<SettingChange>(() => undefined)
-  const frame = await frameAfter(app({}, change), async (input) => {
-    input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
-    input.pressKey("j")
-    await Bun.sleep(20)
-    input.pressEnter()
-    await Bun.sleep(20)
-    await input.typeText("true")
-    input.pressEnter()
-    // the check runs the command, which takes a moment even for true
-    await Bun.sleep(300)
-  })
+  const frame = await frameAfter(
+    app({}, change),
+    async (input) => {
+      input.pressKey("S", { shift: true })
+      await Bun.sleep(20)
+      input.pressKey("j")
+      await Bun.sleep(20)
+      input.pressEnter()
+      await Bun.sleep(20)
+      await input.typeText("true")
+      input.pressEnter()
+      // the check runs the command, which takes a moment even for true
+      await Bun.sleep(300)
+    },
+    110,
+    32,
+  )
 
   expect(change).toHaveBeenCalledWith("agent", "true")
   expect(frame).toContain("✓ the command starts and answers")
@@ -127,14 +132,19 @@ test("the agent's prompt says what to type", async () => {
 })
 
 test("c on the agent copies what to paste into the agent's chat, or shows it when it can't", async () => {
-  const frame = await frameAfter(app({}), async (input) => {
-    input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
-    input.pressKey("j")
-    await Bun.sleep(20)
-    input.pressKey("c")
-    await Bun.sleep(20)
-  })
+  const frame = await frameAfter(
+    app({}),
+    async (input) => {
+      input.pressKey("S", { shift: true })
+      await Bun.sleep(20)
+      input.pressKey("j")
+      await Bun.sleep(20)
+      input.pressKey("c")
+      await Bun.sleep(20)
+    },
+    110,
+    32,
+  )
 
   expect(frame).toContain("c copy for your agent")
   expect(frame).toContain("Press c to copy this, then paste it into your agent's chat:")
