@@ -46,26 +46,39 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
   that trigger, and plain `trek --code` has your agent find the code's triggers (routes,
   commands, handlers, jobs) and list them on the home screen, to build one with `enter`.
 
-The home screen lists the treks in the .srctrek/treks folder, with their stop counts and
-likely-wrong flags; invalid treks are listed with the reason. Above them, it says where the trek
-of your change stands. When there is none, `trek` has your agent build it in the background
-(see Building a trek from your agent, below), and the trek appears when it's saved. While it builds,
-the end of its log shows what the agent has done so far, `l` opens the whole log, and after a
-failed build `b` builds again.
+The home screen names the change at the top and says where its trek stands. Below, it lists
+repos your agent proposed, then the treks in the .srctrek/treks folder in sections: this change,
+other branches and pull requests, code as it is, and, folded, treks whose work is done and files
+that aren't valid treks. Each trek shows its state against its branch now. With no trek of the
+change, `b` has your agent build one in the background; while it builds, the end of its log
+shows what the agent has done so far.
 
-| Key       | Action                       |
-| --------- | ---------------------------- |
-| `↑` / `↓` | Choose a trek (also `k`/`j`) |
-| `enter`   | Open it in Neovim            |
-| `q`       | Quit                         |
+| Key       | Action                                              |
+| --------- | --------------------------------------------------- |
+| `↑` / `↓` | Choose a row (also `k`/`j`)                         |
+| `enter`   | Open the trek in your editor, or open a folded list |
+| `b`       | Build, update, or rebuild the change's trek         |
+| `l`       | The build's whole log                               |
+| `d`       | Dismiss a proposed repo                             |
+| `E`       | Pick the editor treks open in                       |
+| `S`       | Settings                                            |
+| `q`       | Quit                                                |
+
+The first time you open a trek, `trek` asks which editor to open it in, from those it finds.
 
 To see a trek before building one of your own, `bun scripts/showcase-repo.ts` makes a small repo
 with a saved trek, "pay", that uses everything an editor shows, and prints its path to open.
 
 ## Building a trek from your agent
 
-Register `trek mcp` with your agent as a stdio MCP server, run in the repo you work in. Then ask
-in plain words:
+Register `trek mcp` with your agent as a stdio MCP server, run in the repo you work in: with
+your agent's own command for adding an MCP server, or in its MCP config:
+
+```json
+{ "mcpServers": { "srctrek": { "command": "trek", "args": ["mcp"] } } }
+```
+
+Restart or reconnect your agent so it sees srctrek's tools. Then ask in plain words:
 
 > Build a trek of this branch.
 
@@ -74,17 +87,17 @@ Name a different change the way you'd give it to `trek`: `main...feature`,
 agent reads the change at its exact revisions, builds the trek, and saves it to the
 .srctrek/treks folder, where the home screen lists it.
 
-To have `trek` build treks itself, open settings (`S` on the home screen), choose Agent, and
-press `c`: it copies a one-line request to paste into your agent's chat, and your agent saves the
-command that runs it headless. Or give the command yourself, including whatever it
-needs to use the srctrek server's tools without asking: in settings (`S` on the home screen, then
-Agent), which checks that it starts and answers and keeps it in `~/.config/srctrek/settings.json`,
-or in `SRCTREK_AGENT`, which overrides the file. The
-instruction is appended as the last argument, so an option that takes a list of values goes
-before the one that reads the prompt. `b` on the home screen builds; turn on Build automatically
-in settings (`S`) to start a build whenever a change has none. A change with no commits gets no
-trek, and the home screen says so instead of building. Agents that show MCP prompts as commands also offer
-`build_trek`.
+To have `trek` build treks itself, it needs the command that runs your agent without a chat.
+Open settings (`S` on the home screen), choose Agent, and press `c`: it copies a request to paste
+into your agent's chat, and your agent saves its own command. Or type the command there with
+`enter`, including whatever it needs to use srctrek's tools without asking; settings checks that
+it starts and answers and keeps it in `~/.config/srctrek/settings.json`. `SRCTREK_AGENT`, when
+set, overrides the file. The instruction is appended as the last argument, so an option that
+takes a list of values goes before the one that reads the prompt.
+
+`b` on the home screen builds; turn on Build automatically in settings to start a build whenever
+a change has none. A change with no commits gets no trek, and the home screen says so instead of
+building. Agents that show MCP prompts as commands also offer `build_trek`.
 
 ## Step through a trek
 

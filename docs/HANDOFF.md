@@ -88,6 +88,9 @@
   by hand where the terminal can't take it; the home screen rereads the settings file every two
   seconds, so the agent's save shows up, with "your agent saved its command". Each row's footer
   says what enter does to it.
+- Setup is findable: the README gives the MCP config for `trek mcp` and the home screen's
+  current keys, and the setup request has an agent without srctrek's tools tell the user how to
+  register it.
 - Secondary text is readable in any theme: once the terminal reports its colours, it's mixed 60%
   from the terminal's background to its text (`tonesFor`), instead of the theme's ANSI 8; every
   grey on screen comes from the tones now.
