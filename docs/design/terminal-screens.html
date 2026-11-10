@@ -427,15 +427,15 @@
 
   <section>
     <h2>4. Settings</h2>
-    <p class="note"><code>S</code> opens settings over the list: each setting, its value, and where the value comes from (the settings file, an environment variable, or the default). Enter changes the selected one. Everything is kept per user, in <code>$XDG_CONFIG_HOME/srctrek/settings.json</code> (else <code>~/.config</code>); an environment variable overrides the file, for scripts and CI.</p>
+    <p class="note"><code>S</code> opens settings over the list: each setting and its value, with a note beside it when an environment variable sets it. Enter changes the selected one. Everything is kept per user, in <code>$XDG_CONFIG_HOME/srctrek/settings.json</code> (else <code>~/.config</code>); an environment variable overrides the file, for scripts and CI.</p>
     <figure><figcaption>Settings, the agent selected</figcaption>
       <div class="term screen">
         <div class="tb"><span><b>srctrek</b>  settings</span><span>~/.config/srctrek/settings.json</span></div>
         <div class="pane">
-          <div class="ln">  Editor                  <span class="bold">Neovim</span>                           <span class="dim">settings file</span></div>
-          <div class="ln sel">  Agent                   <span class="bold">agent run --headless</span>             <span class="dim">SRCTREK_AGENT, over the settings file</span></div>
-          <div class="ln">  Build automatically     <span class="bold">off</span>                              <span class="dim">default</span></div>
-          <div class="ln">  Colours                 <span class="bold">srctrek's</span>                        <span class="dim">default</span></div>
+          <div class="ln">  Editor                  <span class="bold">Neovim</span></div>
+          <div class="ln sel">  Agent                   <span class="bold">agent run --headless</span>  <span class="dim">SRCTREK_AGENT overrides the settings file</span></div>
+          <div class="ln">  Build automatically     <span class="bold">off</span></div>
+          <div class="ln">  Colours                 <span class="bold">srctrek's</span></div>
           <div class="ln"> </div>
           <div class="ln dim">  The command that runs your agent headless, with a trek's instructions as its last</div>
           <div class="ln dim">  argument. trek starts it to build a trek; b builds, updates, and rebuilds with it.</div>
@@ -447,7 +447,7 @@
       <figure><figcaption>Setting the agent: the request to paste, quoted, and c to copy it</figcaption>
         <div class="term">
           <div class="pane">
-            <div class="ln sel">  Agent                   <span class="bold">none</span>           <span class="dim">not set</span></div>
+            <div class="ln sel">  Agent                   <span class="bold">none</span></div>
             <div class="ln"> </div>
             <div class="ln dim">  trek can have your coding agent build treks in the background, but it needs</div>
             <div class="ln dim">  to know how to start your agent.</div>

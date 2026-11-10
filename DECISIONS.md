@@ -17,8 +17,8 @@ own colours" (2026-11-10), which kept dim text the terminal's.
 ## 2026-11-10 — Settings on S; trek builds on its own only when asked
 
 The terminal has a settings screen on `S`: the editor, the agent's command, building
-automatically, and colours, each with its value and where it comes from. The agent's command
-can live in the settings file; `SRCTREK_AGENT` overrides it. Building automatically is off by
+automatically, and colours, each with its value. The agent's command can live in the settings
+file; `SRCTREK_AGENT` overrides it, and settings says so beside the value. Building automatically is off by
 default: a change with no trek waits for `b` unless the user turns it on.
 
 Settings people have to discover as environment variables go unset, and the home screen is

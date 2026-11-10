@@ -31,10 +31,34 @@ test("S opens settings: each setting with its value and where it comes from", as
 
   expect(frame).toContain("  srctrek  settings")
   expect(frame).toContain("▶ Editor                  Neovim")
-  expect(frame).toMatch(/Editor +Neovim +settings file/)
-  expect(frame).toMatch(/Build automatically +off +default/)
-  expect(frame).toMatch(/Colours +the terminal's +settings file/)
+  expect(frame).toMatch(/Build automatically +off/)
+  expect(frame).toMatch(/Colours +the terminal's/)
+  expect(frame).not.toContain("settings file")
   expect(frame).toContain("Where enter opens a trek.")
+})
+
+const LONG_AGENT = 'AGENT_HOME=~/.agent-one agent --allowed-tools "mcp__srctrek__*" -p'
+
+test("a long value is cut to the line, keeping any note beside it", async () => {
+  const openSettings = (input: { pressKey: (key: string, mods?: { shift: boolean }) => void }) =>
+    input.pressKey("S", { shift: true })
+  const wide = await frameAfter(app({ agent: LONG_AGENT }), openSettings, 140)
+  const narrow = await frameAfter(app({ agent: LONG_AGENT }), openSettings, 70)
+
+  expect(wide).toContain(`Agent                   ${LONG_AGENT}`)
+  expect(narrow).toMatch(/Agent +AGENT_HOME=\S+.*…/)
+})
+
+test("says beside the agent when SRCTREK_AGENT sets it", async () => {
+  process.env.SRCTREK_AGENT = "agent from env"
+  try {
+    const frame = await frameAfter(app({ agent: "agent from file" }), (input) =>
+      input.pressKey("S", { shift: true }),
+    )
+    expect(frame).toContain("agent from env  SRCTREK_AGENT overrides the settings file")
+  } finally {
+    delete process.env.SRCTREK_AGENT
+  }
 })
 
 test("enter on building automatically or colours turns it the other way", async () => {
@@ -137,7 +161,7 @@ test("says when the agent saved its command from its chat", async () => {
     await Bun.sleep(150)
   })
 
-  expect(frame).toMatch(/Agent +agent run --headless +settings file/)
+  expect(frame).toMatch(/Agent +agent run --headless/)
   expect(frame).toContain("✓ your agent saved its command; it starts and answers")
 })
 

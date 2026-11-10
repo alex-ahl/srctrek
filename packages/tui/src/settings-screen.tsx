@@ -9,7 +9,7 @@ import { PADDING } from "./layout"
 import { type Notice, NoticeLine } from "./settings-notice"
 import { type SettingChange, type SettingRow, rowKeys, settingRows } from "./settings-rows"
 import { TextPrompt } from "./text-prompt"
-import { wrap } from "./text"
+import { fit, wrap } from "./text"
 import { COLOUR, useTones } from "./theme"
 
 export type { SettingChange } from "./settings-rows"
@@ -31,17 +31,29 @@ const SUBTITLE = "  settings"
 // Help reads as a short paragraph, not one line across a wide terminal.
 const HELP_WIDTH = 76
 const NAME_WIDTH = 24
-const VALUE_WIDTH = 34
+const NOTE_GAP = 2
 
-function RowView({ row, selected }: { row: SettingRow; selected: boolean }) {
+// A value too long for the line, beside its name and any note, is cut with "…"; enter on the
+// agent still shows the whole command.
+function RowView({
+  row,
+  selected,
+  lineWidth,
+}: {
+  row: SettingRow
+  selected: boolean
+  lineWidth: number
+}) {
   const tones = useTones()
+  const noteWidth = row.note === undefined ? 0 : NOTE_GAP + row.note.length
+  const room = lineWidth - 2 - NAME_WIDTH - noteWidth
 
   return (
     <text fg={COLOUR.text}>
       <span fg={tones.accent}>{selected ? "▶ " : "  "}</span>
       <span>{row.name.padEnd(NAME_WIDTH)}</span>
-      <span attributes={TextAttributes.BOLD}>{row.value.padEnd(VALUE_WIDTH)}</span>
-      <span fg={tones.dim}>{row.source}</span>
+      <span attributes={TextAttributes.BOLD}>{fit(row.value, room)}</span>
+      {row.note !== undefined && <span fg={tones.dim}>{`  ${row.note}`}</span>}
     </text>
   )
 }
@@ -234,7 +246,12 @@ export function SettingsScreen(props: Props) {
         style={{ flexGrow: 1, paddingTop: 1, paddingLeft: PADDING, paddingRight: PADDING }}
       >
         {rows.map((each, i) => (
-          <RowView key={each.name} row={each} selected={i === chosen} />
+          <RowView
+            key={each.name}
+            row={each}
+            selected={i === chosen}
+            lineWidth={width - 2 * PADDING}
+          />
         ))}
         <text fg={COLOUR.text}> </text>
         {wrap(row?.help ?? "", helpWidth).map((line, i) => (
