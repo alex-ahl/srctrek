@@ -242,6 +242,10 @@ never does, the terminal's own bright ANSI colours. Each state also has its own 
   repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
   (how to set `SRCTREK_AGENT`), nothing to trek. With `--code`, the code's triggers, each with
   its trek's state.
+- **Settings,** opened with `S`: the editor, the agent's command, building automatically (off by
+  default), and colours (srctrek's or the terminal's), each with its value and where it comes
+  from; an environment variable overrides the settings file. The agent can set its own command
+  from its chat, through srctrek's MCP server, and a test run says whether a command works.
 - **Build view,** a screen of its own opened from a building trek: the overview as soon as the
   agent starts, steps as they arrive grouped by repo with hops between, what the agent is reading,
   rejected rounds with their problems, and repos it proposed.
@@ -257,7 +261,9 @@ never does, the terminal's own bright ANSI colours. Each state also has its own 
 | Screen     | Keys                                                                                         |
 | ---------- | -------------------------------------------------------------------------------------------- |
 | Home       | `j`/`k` move · `enter` open in the editor · `b` build, update, or rebuild · `r` route map ·  |
-|            | `s` step here · `l` log · `d` dismiss a proposal · `E` pick the editor · `q` quit            |
+|            | `s` step here · `l` log · `d` dismiss a proposal · `E` pick the editor · `S` settings ·      |
+|            | `q` quit                                                                                     |
+| Settings   | `j`/`k` choose · `enter` change · `esc` back                                                 |
 | Build view | `l` full log · `esc` home                                                                    |
 | Route map  | `j`/`k` move · `enter` open the step in the editor · `s` step from here · `c` changed only · |
 |            | `f` flagged only · `esc` home                                                                |

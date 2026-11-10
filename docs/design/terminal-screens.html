@@ -313,84 +313,168 @@
     <!-- prettier-ignore -->
     <main>
   <header>
-    <span class="eyebrow">Milestone 5 · Step 5d · for review</span>
+    <span class="eyebrow">Milestone 7 · changes with the screens</span>
     <h1>srctrek terminal screens</h1>
-    <p class="lede">What <code>trek</code> shows in the terminal: the home screen and every state a change's trek can be in, the build view while an agent works, the route map of a whole trek, and stepping for editors without a plugin. Colours are the terminal's own: green, yellow, red, blue, and dim, as in the visual language.</p>
+    <p class="lede">What <code>trek</code> shows in the terminal: the home screen and every state a change's trek can be in, choosing the editor, settings, the build view while an agent works, the route map of a whole trek, and stepping for editors without a plugin. Text, dim text, and the background are the terminal's own; the colours of states and the accent are srctrek's once the terminal reports its background, and each state has a symbol of its own.</p>
   </header>
 
   <section>
     <h2>1. The home screen</h2>
-    <p class="note">The change at the top, then what needs a decision (repos the agent proposed), then the change's trek, then every other trek. Enter opens the selected trek in the editor <code>SRCTREK_EDITOR</code> names.</p>
+    <p class="note">The change at the top, where its trek stands under it, then the list in sections: repos the agent proposed, treks of this change, treks of other branches and pull requests, code as it is, then done treks and files that can't be read, folded with a count. Every trek leads with its title and shows its state against its branch now; the selected row sits on a tint of the accent. Enter opens the selected trek in the editor the user picked.</p>
     <figure><figcaption>Reviewing feature/refunds across three repos; the trek is ready</figcaption>
       <div class="term screen">
         <div class="tb"><span><b>srctrek</b>  web · main...feature/refunds  + api, worker</span><span>3 repos · 9 commits</span></div>
         <div class="pane">
-          <div class="ln"><span class="g">● ready</span>  <span class="bold">feature-refunds</span>  19 steps · 3 repos   <span class="r">⚠ 1 likely wrong</span></div>
+          <div class="ln"><span class="g">● ready</span>  <span class="bold">feature-refunds</span>  <span class="dim">19 steps · 3 repos</span>   <span class="r">⚠ 1 likely wrong</span></div>
           <div class="ln dim">  Full refund of order o_1001: button click to the payment provider</div>
           <div class="ln"> </div>
           <div class="ln dim">PROPOSED BY THE AGENT</div>
-          <div class="ln">  <span class="y">+</span> payments   ../payments-service   the worker calls it at /v2/refunds          <span class="dim">enter add · d dismiss</span></div>
+          <div class="ln">  <span class="y">+ proposed</span>   payments   <span class="dim">../payments-service   the worker calls it at /v2/refunds       enter add · d dismiss</span></div>
           <div class="ln"> </div>
-          <div class="ln dim">TREKS</div>
-          <div class="ln sel">  <span class="g">●</span> feature-refunds      ready      19 steps   <span class="r">⚠ 1</span>     built today 09:12</div>
-          <div class="ln">  <span class="y">●</span> pr-12                stale      3 of 14 steps changed since    yesterday</div>
-          <div class="ln">  <span class="r">●</span> pr-9                 failed     no repo at ../billing          Mon</div>
-          <div class="ln">  <span class="dim">●</span> orientation          ready      15 steps · code trek            Oct 21</div>
+          <div class="ln dim">THIS CHANGE</div>
+          <div class="ln sel">  <span class="g">● ready</span>        <span class="bold">Full refund of order o_1001</span>        <span class="dim">19 steps</span>                <span class="r">⚠ 1</span>   <span class="dim">built today 09:12</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">OTHER BRANCHES AND PULL REQUESTS</div>
+          <div class="ln">  <span class="y">≠ stale</span>        Partial refunds across payments    <span class="dim">3 of 14 steps changed</span>         <span class="dim">built yesterday</span></div>
+          <div class="ln">  <span class="r">✕ can't open</span>   Refund emails from the worker      <span class="dim">no billing at ../billing</span>      <span class="dim">built Mon</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">CODE AS IT IS</div>
+          <div class="ln">  <span class="g">● ready</span>        How a refund reaches the worker    <span class="dim">15 steps</span>                      <span class="dim">built Oct 21</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">▸ DONE  31 treks</div>
+          <div class="ln"> </div>
+          <div class="ln dim">▸ CAN'T READ  2 treks</div>
         </div>
-        <div class="foot">enter open in nvim · b rebuild · r route map · s step here · l log · q quit</div>
+        <div class="foot">↑/↓ choose · enter open in Neovim · E editor · S settings · q quit</div>
       </div>
     </figure>
   </section>
 
   <section>
     <h2>2. Every state of the change's trek</h2>
-    <p class="note">The line under the header says where the change's trek stands and what the next key does about it.</p>
+    <p class="note">The block under the title bar: the state in its colour, the trek's name, then dim lines on why and the keys that act on it. The same symbol marks the trek's row in the list.</p>
     <div class="states">
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="b">◐ building</span>  feature-refunds   2:14</div>
-        <div class="ln dim">  added s8–s14 · reading worker/main.py</div>
-        <div class="ln dim">  enter watch the build · l log</div>
-      </div></div><span class="note">An agent is building it; enter opens the build view.</span></div>
+        <div class="ln"><span class="b">◐ building</span>  <span class="bold">feature-refunds</span></div>
+        <div class="ln dim">  added s8–s14; the trek has s1–s14</div>
+        <div class="ln dim">  read_file worker worker/main.py 1–80 → 2630 chars</div>
+        <div class="ln dim">  l log</div>
+      </div></div><span class="note">An agent is building it; the end of its log follows the build.</span></div>
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="y">● stale</span>  feature-refunds</div>
+        <div class="ln"><span class="y">≠ stale</span>  <span class="bold">feature-refunds</span></div>
         <div class="ln dim">  4 of 19 steps' files changed since it was built</div>
-        <div class="ln dim">  b update it · enter open it as it is</div>
+        <div class="ln dim">  b update it</div>
       </div></div><span class="note">The branch moved on; updating keeps the steps whose files didn't change.</span></div>
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="r">✕ build failed</span>  after 3 rejected rounds</div>
-        <div class="ln dim">  s15: crosses from api to worker without citing worker</div>
+        <div class="ln"><span class="r">✕ build failed</span>  <span class="bold">feature-refunds</span></div>
+        <div class="ln dim">  rejected s15: crosses from api to worker without citing worker</div>
+        <div class="ln dim">  stopped after 3 rejected rounds</div>
         <div class="ln dim">  b build again · l whole log</div>
       </div></div><span class="note">The end of the log says why.</span></div>
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="r">✕ can't open</span>  feature-refunds</div>
+        <div class="ln"><span class="r">✕ can't open</span>  <span class="bold">feature-refunds</span></div>
         <div class="ln dim">  repo worker isn't at ../worker</div>
-        <div class="ln dim">  clone it there, or fix .srctrek/repos</div>
-      </div></div><span class="note">A repo the trek names isn't where it was.</span></div>
+        <div class="ln dim">  clone it there to open this trek</div>
+      </div></div><span class="note">A local repo the trek names isn't where it was, or lacks the trek's commit; no key acts on it.</span></div>
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="y">● older guide</span>  feature-refunds</div>
-        <div class="ln dim">  built with an earlier trek guide</div>
-        <div class="ln dim">  b rebuild with the current one · enter open it</div>
-      </div></div><span class="note">The trek's prompt hash differs from this trek binary's.</span></div>
+        <div class="ln"><span class="y">↻ older guide</span>  <span class="bold">feature-refunds</span></div>
+        <div class="ln dim">  built before the guide last changed</div>
+        <div class="ln dim">  b rebuild with the current guide · enter open it</div>
+      </div></div><span class="note">The trek's prompt hash differs from this trek binary's; it still opens.</span></div>
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="dim">○ no trek yet</span>  feature/refunds</div>
-        <div class="ln dim">  set SRCTREK_AGENT to the command that runs your agent headless,</div>
-        <div class="ln dim">  or ask your agent for a trek in chat</div>
-      </div></div><span class="note">No agent configured.</span></div>
+        <div class="ln"><span class="r">✕ can't read</span>  <span class="bold">feature-refunds</span></div>
+        <div class="ln dim">  format_version: Invalid input: expected 1</div>
+        <div class="ln dim">  b rebuild it</div>
+      </div></div><span class="note">A file under the change's name that isn't a valid trek; trek doesn't build over it unasked.</span></div>
+      <div class="state"><div class="term"><div class="pane">
+        <div class="ln"><span class="dim">○ no trek yet</span>  <span class="bold">feature-refunds</span></div>
+        <div class="ln dim">  set an agent in settings, or ask your agent for a trek in chat</div>
+        <div class="ln dim">  S settings</div>
+      </div></div><span class="note">No agent set: settings is where to set one.</span></div>
       <div class="state"><div class="term"><div class="pane">
         <div class="ln"><span class="dim">○ nothing to trek</span></div>
-        <div class="ln dim">  feature/refunds has no commits since main</div>
-        <div class="ln dim">  try --uncommitted, or trek --code</div>
+        <div class="ln dim">  this change has no commits</div>
+        <div class="ln dim">  give trek a range, such as trek HEAD~5..HEAD, or try --uncommitted</div>
       </div></div><span class="note">An empty change.</span></div>
       <div class="state"><div class="term"><div class="pane">
-        <div class="ln"><span class="dim">TRIGGERS IN web</span>  <span class="dim">(trek --code)</span></div>
-        <div class="ln sel">  route   POST /refunds          <span class="g">●</span> ready</div>
-        <div class="ln">  command  import-orders          <span class="dim">○</span> enter build</div>
-      </div></div><span class="note">Exploring code: its triggers, each with its trek's state.</span></div>
+        <div class="ln"><span class="a">◇ found 2 ways in</span></div>
+        <div class="ln dim">  pick one below to trek it</div>
+        <div class="ln"> </div>
+        <div class="ln dim">WAYS INTO THIS CODE</div>
+        <div class="ln sel">  <span class="g">● ready</span>         POST /refunds    <span class="dim">request · src/routes.ts:12</span></div>
+        <div class="ln">  <span class="dim">○ no trek yet</span>   import-orders    <span class="dim">command · src/cli.ts:30</span></div>
+      </div></div><span class="note">Exploring code (<code>trek --code</code>): its triggers, each with its trek's state.</span></div>
     </div>
   </section>
 
   <section>
-    <h2>3. The build view</h2>
+    <h2>3. Choosing the editor</h2>
+    <p class="note">The first time a trek is opened, the footer becomes a picker of the editors found on the machine that can open one; the choice is kept per user. <code>E</code> picks again, and settings shows it too.</p>
+    <figure><figcaption>Enter on a trek, with no editor chosen yet</figcaption>
+      <div class="term screen">
+        <div class="pane">
+          <div class="ln dim">THIS CHANGE</div>
+          <div class="ln sel">  <span class="g">● ready</span>        <span class="bold">Full refund of order o_1001</span>        <span class="dim">19 steps</span>   <span class="r">⚠ 1</span>   <span class="dim">built today 09:12</span></div>
+        </div>
+        <div class="foot">Open treks in:
+<span class="a">▶</span> <span class="bold">VS Code</span>         code
+  Neovim          nvim
+  $EDITOR (vim)   at the first stop, without stepping
+↑/↓ choose · enter pick · esc cancel</div>
+      </div>
+    </figure>
+  </section>
+
+  <section>
+    <h2>4. Settings</h2>
+    <p class="note"><code>S</code> opens settings over the list: each setting, its value, and where the value comes from (the settings file, an environment variable, or the default). Enter changes the selected one. Everything is kept per user, in <code>$XDG_CONFIG_HOME/srctrek/settings.json</code> (else <code>~/.config</code>); an environment variable overrides the file, for scripts and CI.</p>
+    <figure><figcaption>Settings, the agent selected</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b>  settings</span><span>~/.config/srctrek/settings.json</span></div>
+        <div class="pane">
+          <div class="ln">  Editor                  <span class="bold">Neovim</span>                           <span class="dim">settings file</span></div>
+          <div class="ln sel">  Agent                   <span class="bold">agent run --headless</span>             <span class="dim">SRCTREK_AGENT, over the settings file</span></div>
+          <div class="ln">  Build automatically     <span class="bold">off</span>                              <span class="dim">default</span></div>
+          <div class="ln">  Colours                 <span class="bold">srctrek's</span>                        <span class="dim">default</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">  The command that runs your agent headless, with a trek's instructions as its last</div>
+          <div class="ln dim">  argument. trek starts it to build a trek; b builds, updates, and rebuilds with it.</div>
+        </div>
+        <div class="foot">↑/↓ choose · enter change · esc back</div>
+      </div>
+    </figure>
+    <div class="grid2">
+      <figure><figcaption>Changing the agent: ask the agent, or type its command</figcaption>
+        <div class="term">
+          <div class="pane">
+            <div class="ln">Agent command:</div>
+            <div class="ln dim">  (not set)</div>
+            <div class="ln"> </div>
+            <div class="ln">  Easiest: ask your agent, in its chat, to <span class="bold">"set up srctrek to build treks"</span>.</div>
+            <div class="ln dim">  It knows how it runs headless, and fills this in.</div>
+            <div class="ln dim">  Or type the command that runs your agent without a chat;</div>
+            <div class="ln dim">  trek adds the trek's instructions as its last argument.</div>
+          </div>
+          <div class="foot">enter type it · esc back</div>
+        </div>
+      </figure>
+      <figure><figcaption>Changing the colours: a picker</figcaption>
+        <div class="term">
+          <div class="pane">
+            <div class="ln">Colours:</div>
+            <div class="ln">  <span class="a">▶</span> <span class="bold">srctrek's</span>          <span class="g">● ready</span>  <span class="y">≠ stale</span>  <span class="r">✕ failed</span></div>
+            <div class="ln">    the terminal's     <span class="dim">its own green, yellow, and red</span></div>
+          </div>
+          <div class="foot">↑/↓ choose · enter pick · esc cancel</div>
+        </div>
+      </figure>
+    </div>
+    <p class="note">The agent sets the command itself through srctrek's MCP server, which it has registered to build treks (<code>set_agent_command</code>, with the command that runs it headless); srctrek saves it to the settings file. Once a command is set, trek runs it once with a tiny instruction, and settings shows <span class="g">works</span> or the error, before a real build fails on a typo.</p>
+    <p class="note">Build automatically toggles with enter, off by default: off, a change with no trek waits for <code>b</code>; on, trek starts building it as soon as it opens, when an agent is set.</p>
+  </section>
+
+  <section>
+    <h2>5. The build view</h2>
     <p class="note">Opened from a building trek. The overview as soon as the agent starts the trek, steps as they arrive, rejected rounds with their problems, and what the agent is reading.</p>
     <figure><figcaption>Building feature-refunds, two minutes in</figcaption>
       <div class="term screen">
@@ -414,7 +498,7 @@
   </section>
 
   <section>
-    <h2>4. The route map</h2>
+    <h2>6. The route map</h2>
     <p class="note">The whole trek at once: one lane per repo, steps in the order they run, hops crossing between lanes, flags where they are. Enter opens the selected step in the editor; the map is the overview no single editor window can give.</p>
     <figure><figcaption>feature-refunds, s11 selected</figcaption>
       <div class="term">
@@ -452,7 +536,7 @@
   </section>
 
   <section>
-    <h2>5. Stepping without an editor plugin</h2>
+    <h2>7. Stepping without an editor plugin</h2>
     <p class="note">The step view drawn in the terminal, for editors without a plugin: the code with the step's lines, narration, values, and signs, the call stack beside it. <code>e</code> opens the step in the user's editor at its line.</p>
     <figure><figcaption>s11, with the call stack on the right</figcaption>
       <div class="term screen">
@@ -489,7 +573,9 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Screen</th><th>Keys</th></tr></thead>
       <tbody>
-        <tr><td>Home</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open in the editor · <code>b</code> build, update, or rebuild · <code>r</code> route map · <code>s</code> step here · <code>l</code> log · <code>d</code> dismiss a proposal · <code>q</code> quit</td></tr>
+        <tr><td>Home</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open in the editor, or open or close a folded section · <code>b</code> build, update, or rebuild · <code>r</code> route map · <code>s</code> step here · <code>l</code> log · <code>d</code> dismiss a proposal · <code>E</code> pick the editor · <code>S</code> settings · <code>q</code> quit</td></tr>
+        <tr><td>Editor picker</td><td><code>j</code>/<code>k</code> choose · <code>enter</code> pick · <code>esc</code> cancel</td></tr>
+        <tr><td>Settings</td><td><code>j</code>/<code>k</code> choose · <code>enter</code> change · <code>esc</code> back</td></tr>
         <tr><td>Build view</td><td><code>l</code> full log · <code>esc</code> home</td></tr>
         <tr><td>Route map</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open the step in the editor · <code>s</code> step from here · <code>c</code> changed steps only · <code>f</code> flagged steps only · <code>esc</code> home</td></tr>
         <tr><td>Stepping</td><td><code>n</code>/<code>p</code> next, previous · <code>i</code> into · <code>o</code> out · <code>O</code> over · <code>t</code> details · <code>e</code> open in <code>$EDITOR</code> · <code>r</code> route map · <code>q</code> home</td></tr>
@@ -498,12 +584,14 @@
   </section>
 
   <section>
-    <h2>Questions for you</h2>
+    <h2>Decided</h2>
     <ol class="q">
-      <li><b>The route map as lanes, one per repo</b>, with hops crossing between them. Clear for two to four repos; with many repos it gets wide. Agree, or prefer a single list grouped by repo?</li>
-      <li><b>The build view as its own screen</b>, opened from a building trek, rather than growing inside the home screen. Agree?</li>
-      <li><b>Stepping in the terminal for everyone</b>, not only editors without a plugin: <code>s</code> on the home screen starts it anywhere. Useful for a quick look without opening the editor. Agree, or keep it as the fallback only?</li>
-      <li><b>Proposed repos above the treks</b> on the home screen, since they wait on the user. Agree?</li>
+      <li><b>Settings on <code>S</code></b>, a capital like <code>E</code>: capitals configure, lowercase acts.</li>
+      <li><b>The agent sets its own command</b> from its chat, through srctrek's MCP server; typing it stays possible, and a test run says whether it works. No list of agent tools: srctrek would have to know each one's flags.</li>
+      <li><b>An environment variable overrides the settings file</b>, and settings says so beside the value.</li>
+      <li><b>Build automatically is off by default</b>: an agent run costs, so it starts on <code>b</code> unless the user turns this on.</li>
+      <li><b>A colours setting</b>: srctrek's state colours, or the terminal's own.</li>
+      <li><b>The no-agent state points to settings.</b></li>
     </ol>
   </section>
 </main>
