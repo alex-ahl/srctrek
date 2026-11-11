@@ -16,7 +16,6 @@ describe("summarizeChange", () => {
           repo: basename(dir),
           base: "main",
           head: { kind: "branch", name: "feature/refunds", uncommitted: false },
-          mode: "since-branch-point",
           commits: 2,
         },
       ],

@@ -202,6 +202,12 @@
         display: grid;
         gap: 2px;
       }
+      .fg {
+        color: var(--t-fg);
+      }
+      .tb-case {
+        margin-bottom: 10px;
+      }
       .foot {
         padding: 6px 12px;
         border-top: 1px solid var(--t-line);
@@ -329,7 +335,7 @@
     <p class="note">The change at the top, where its trek stands under it, then the list in sections: repos the agent proposed, treks of this change, treks of other branches and pull requests, code as it is, then done treks and files that can't be read, folded with a count. Every trek leads with its title and shows its state against its branch now; the selected row sits on a tint of the accent. Enter opens the selected trek in the editor the user picked.</p>
     <figure><figcaption>Reviewing feature/refunds across three repos; the trek is ready</figcaption>
       <div class="term screen">
-        <div class="tb"><span><b>srctrek</b>  web · main...feature/refunds  + api, worker</span><span>3 repos · 9 commits</span></div>
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web + api, worker · 9 commits since main</span></div>
         <div class="pane">
           <div class="ln"><span class="g">● ready</span>  <span class="bold">feature-refunds</span>  <span class="dim">19 steps · 3 repos</span>   <span class="r">⚠ 1 likely wrong</span></div>
           <div class="ln dim">  Full refund of order o_1001: button click to the payment provider</div>
@@ -352,6 +358,28 @@
           <div class="ln dim">▸ CAN'T READ  2 treks</div>
         </div>
         <div class="foot">↑/↓ choose · enter open in Neovim · E editor · S settings · q quit</div>
+      </div>
+    </figure>
+    <figure><figcaption>The title bar, case by case: the branch on the left, where and how much on the right</figcaption>
+      <div class="term screen">
+        <div class="pane">
+        <div class="ln dim">one repo: the one trek runs in, so it goes unnamed</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>9 commits since main</span></div>
+        <div class="ln dim">a worktree, named after its project where repos are named</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">development</span></span><span>0 commits since origin/development</span></div>
+        <div class="ln dim">passing through repos unchanged</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web + api, worker · 9 commits since main</span></div>
+        <div class="ln dim">several repos changed on one branch</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 12 commits since main</span></div>
+        <div class="ln dim">several repos on different branches</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web feature/refunds · api refunds-api</span></span><span>2 repos · 12 commits</span></div>
+        <div class="ln dim">work not yet committed</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds + uncommitted</span></span><span>9 commits since main</span></div>
+        <div class="ln dim">a pull request</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">pr 12</span></span><span>4 commits</span></div>
+        <div class="ln dim">code as it is</div>
+        <div class="tb tb-case"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">code as it is</span></span><span>web, api</span></div>
+        </div>
       </div>
     </figure>
   </section>
@@ -436,7 +464,7 @@
     <p class="note"><code>S</code> opens settings over the list: each setting and its value, with a note beside it when an environment variable sets it. Enter changes the selected one. Everything is kept per user, in <code>$XDG_CONFIG_HOME/srctrek/settings.json</code> (else <code>~/.config</code>); an environment variable overrides the file, for scripts and CI.</p>
     <figure><figcaption>Settings, the agent selected: grouped, the band on the chosen row, values that show what they mean, and what the chosen one is for above the footer</figcaption>
       <div class="term screen">
-        <div class="tb"><span><b>srctrek</b>  settings</span><span>~/.config/srctrek/settings.json</span></div>
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> settings</span><span>~/.config/srctrek/settings.json</span></div>
         <div class="pane" style="min-height: 330px; align-content: start">
           <div class="ln dim">OPENING</div>
           <div class="ln">  Editor                  <span class="bold">Neovim</span></div>
@@ -522,7 +550,7 @@
     <p class="note">Opened from a building trek. The overview as soon as the agent starts the trek, steps as they arrive, rejected rounds with their problems, and what the agent is reading.</p>
     <figure><figcaption>Building feature-refunds, two minutes in</figcaption>
       <div class="term screen">
-        <div class="tb"><span><b>srctrek</b>  building feature-refunds</span><span>2:14 · 24 reads · round 1 of 3 ok</span></div>
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> building feature-refunds</span><span>2:14 · 24 reads · round 1 of 3 ok</span></div>
         <div class="pane">
           <div class="ln bold">Full refund of order o_1001</div>
           <div class="ln dim">  The refund button posts the amount to the api, which validates it and queues it.</div>
@@ -546,7 +574,7 @@
     <p class="note">The whole trek at once: one lane per repo, steps in the order they run, hops crossing between lanes, flags where they are. Enter opens the selected step in the editor; the map is the overview no single editor window can give.</p>
     <figure><figcaption>feature-refunds, s11 selected</figcaption>
       <div class="term">
-        <div class="tb"><span><b>srctrek</b>  route · feature-refunds</span><span>19 steps · 2 hops</span></div>
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> route · feature-refunds</span><span>19 steps · 2 hops</span></div>
         <div class="lanes">
           <div class="lane">
             <div class="lane-h">web</div>
@@ -584,7 +612,7 @@
     <p class="note">The step view drawn in the terminal, for editors without a plugin: the code with the step's lines, narration, values, and signs, the call stack beside it. <code>e</code> opens the step in the user's editor at its line.</p>
     <figure><figcaption>s11, with the call stack on the right</figcaption>
       <div class="term screen">
-        <div class="tb"><span><b>srctrek</b>  11 / 19 · api · src/handlers/refunds.ts:8</span><span>call · s8 › s11</span></div>
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> 11 / 19 · api · src/handlers/refunds.ts:8</span><span>call · s8 › s11</span></div>
         <div class="split">
           <div class="pane">
             <div class="ln">▶ createRefund validates amount, stores a refund, publishes it, and returns 202.</div>

@@ -103,6 +103,10 @@
   colours with a sample of the states in them, the agent's command marked `✓` or `✕` once checked
   on this visit, and the help in a panel above the footer, under the setting's name. Without a command or value, it reads in
   grey.
+- The title bar leads with what's reviewed, the branch or pull request (each repo's where they
+  differ), with the repos and how many commits since the base on the right, which gives way
+  first on a narrow terminal. Repos are named after their project's folder, so a worktree reads
+  as its project, not its own folder.
 
 ## 2026-11-03 — Milestone 6: the editors
 

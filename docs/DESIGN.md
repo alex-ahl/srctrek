@@ -231,7 +231,8 @@ terminal's background to its text; until then, or if it never reports them, the 
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 
-- **Home:** the change at the top, then the change's trek with where it stands, then the list in
+- **Home:** the change at the top (its branch or pull request, with how many commits since its
+  base on the right, after its repos where there are several), then the change's trek with where it stands, then the list in
   sections: repos the agent proposed and ways into the code (they wait on the user), treks of this
   change, treks of other branches and pull requests, treks of code as it is, then done treks
   (merged, branch gone, or their uncommitted work committed since) and files that can't be read,

@@ -38,21 +38,19 @@ test("renders the empty state", async () => {
   expect(await frameOf({})).toContain("No treks in .srctrek/treks yet.")
 })
 
-test("names the change and its size in the title bar", async () => {
+test("names each repo's head in the title bar where they differ, and counts the repos", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
         repo: "web",
         base: "main",
         head: { kind: "branch", name: "feature/refunds", uncommitted: true },
-        mode: "since-branch-point",
         commits: 3,
       },
       {
         repo: "api",
         base: "main",
         head: { kind: "pull", number: 12 },
-        mode: "since-branch-point",
         commits: 1,
       },
     ],
@@ -61,28 +59,64 @@ test("names the change and its size in the title bar", async () => {
   }
   const frame = await frameOf({ summary })
 
-  expect(frame).toContain(
-    " srctrek  web · main...feature/refunds + uncommitted  api · pr 12  + worker",
-  )
-  expect(frame).toContain("3 repos · 4 commits")
+  expect(frame).toContain(" srctrek › web feature/refunds + uncommitted · api pr 12 ")
+  expect(frame).toContain("3 repos · 4 commits ")
 })
 
-test("writes a direct range with two dots, as it was given", async () => {
+test("leads with the branch, then the repos and how many commits since the base", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
         repo: "web",
-        base: "HEAD~3",
+        base: "main",
         head: { kind: "branch", name: "feature/refunds", uncommitted: false },
-        mode: "direct",
+        commits: 9,
+      },
+    ],
+    unchanged: ["api", "worker"],
+    code: false,
+  }
+  const frame = await frameOf({ summary })
+
+  expect(frame).toMatch(/srctrek › feature\/refunds +web \+ api, worker · 9 commits since main /)
+})
+
+test("leaves the repo unnamed for a change in just the one trek runs in", async () => {
+  const summary: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "branch", name: "feature/refunds", uncommitted: false },
         commits: 3,
       },
     ],
     unchanged: [],
     code: false,
   }
+  const frame = await frameOf({ summary })
 
-  expect(await frameOf({ summary })).toContain(" srctrek  web · HEAD~3..feature/refunds ")
+  expect(frame).toMatch(/srctrek › feature\/refunds +3 commits since main /)
+  expect(frame).not.toContain("web")
+})
+
+test("gives the change the room before its size on a narrow terminal", async () => {
+  const summary: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "branch", name: "feature/a-long-branch-about-refunds", uncommitted: true },
+        commits: 9,
+      },
+    ],
+    unchanged: ["api", "worker"],
+    code: false,
+  }
+  const frame = await frameOf({ summary }, 60)
+
+  expect(frame).toContain("srctrek › feature/a-long-branch-about-refunds + uncommi…")
+  expect(frame).not.toContain("since main")
 })
 
 test("lists the treks in sections by what they're of, newest first, folding what can't be read", async () => {
@@ -113,7 +147,6 @@ test("puts treks of the change's branch with the change, and done treks folded a
         repo: "web",
         base: "main",
         head: { kind: "branch", name: "feature/refunds", uncommitted: false },
-        mode: "since-branch-point",
         commits: 3,
       },
     ],

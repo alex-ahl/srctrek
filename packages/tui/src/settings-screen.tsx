@@ -10,6 +10,7 @@ import { SettingsList } from "./settings-list"
 import { type Notice, NoticeLine } from "./settings-notice"
 import { type SettingChange, type SettingRow, rowKeys, settingRows } from "./settings-rows"
 import { TextPrompt } from "./text-prompt"
+import { TITLE_SEPARATOR } from "./title-bar"
 import { wrap } from "./text"
 import { COLOUR, useTones } from "./theme"
 
@@ -30,7 +31,7 @@ type Props = {
 type Prompt = "editor" | "agent"
 
 // After srctrek in the title bar, as the change is on the home screen.
-const SUBTITLE = "  settings"
+const SUBTITLE = `${TITLE_SEPARATOR}settings`
 // Help reads as a short paragraph, not one line across a wide terminal.
 const HELP_WIDTH = 76
 const AGENT_HINT =

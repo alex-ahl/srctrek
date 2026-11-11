@@ -29,7 +29,7 @@ test("S opens settings: each setting with its value and where it comes from", as
     input.pressKey("S", { shift: true }),
   )
 
-  expect(frame).toContain("  srctrek  settings")
+  expect(frame).toContain("  srctrek › settings")
   expect(frame).toContain("▶ Editor                  Neovim")
   expect(frame).toMatch(/Build automatically +○ off/)
   expect(frame).toMatch(/Colours +the terminal's/)
@@ -89,7 +89,7 @@ test("esc goes back to the list", async () => {
     await Bun.sleep(50)
   })
 
-  expect(frame).not.toContain("srctrek  settings")
+  expect(frame).not.toContain("srctrek › settings")
   expect(frame).toContain("No treks in .srctrek/treks yet.")
 })
 

@@ -58,7 +58,6 @@ const summary: ChangeSummary = {
       repo: "web",
       base: "main",
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
-      mode: "since-branch-point",
       commits: 9,
     },
   ],

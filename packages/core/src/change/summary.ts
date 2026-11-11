@@ -1,17 +1,12 @@
-import type { ResolvedRange } from "../git/range"
 import { runGit } from "../git/run"
 import { type RangeHead, rangeHead } from "./head"
 import { type RepoWithRange, type ResolvedChange, hasRange } from "./resolve"
 
-/**
- * A repo the change touches: where its range starts and ends, whether it runs from where the
- * head left the base or straight from the base, and how many commits it spans.
- */
+/** A repo the change touches: where its range starts and ends, and how many commits it spans. */
 export type ChangedRepoSummary = Readonly<{
   repo: string
   base: string
   head: RangeHead
-  mode: ResolvedRange["mode"]
   commits: number
 }>
 
@@ -26,10 +21,10 @@ export type ChangeSummary = Readonly<{
 }>
 
 async function summarizeRepo(repo: RepoWithRange): Promise<ChangedRepoSummary> {
-  const { base, mode, baseCommit, headCommit } = repo.range
+  const { base, baseCommit, headCommit } = repo.range
   const commits = await runGit(repo.dir, ["rev-list", "--count", `${baseCommit}..${headCommit}`])
 
-  return { repo: repo.name, base, head: await rangeHead(repo), mode, commits: Number(commits) }
+  return { repo: repo.name, base, head: await rangeHead(repo), commits: Number(commits) }
 }
 
 export async function summarizeChange(change: ResolvedChange): Promise<ChangeSummary> {

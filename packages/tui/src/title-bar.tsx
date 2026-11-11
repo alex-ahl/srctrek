@@ -14,47 +14,81 @@ function headLabel(head: RangeHead): string {
   return `${head.kind === "pull" ? "pr" : "mr"} ${head.number}`
 }
 
-// "web · main...feature/refunds" from where the branch left main, "web · HEAD~3..HEAD" straight
-// from a commit, or "api · pr 12" for a pull request, whose base is the host's.
-function changedText({ repo, base, head, mode }: ChangedRepoSummary): string {
-  if (head.kind !== "branch") {
-    return `${repo} · ${headLabel(head)}`
-  }
-
-  const dots = mode === "direct" ? ".." : "..."
-  return `${repo} · ${base}${dots}${headLabel(head)}`
+// The head every changed repo shares, "feature/refunds", or none where they differ.
+function sharedHead(changed: readonly ChangedRepoSummary[]): string | undefined {
+  const heads = new Set(changed.map((repo) => headLabel(repo.head)))
+  return heads.size === 1 ? [...heads][0] : undefined
 }
 
-/** What the change is: each changed repo's range, then the repos it passes through. */
+/** What the change is: its branch or pull request, each repo's where they differ. */
 function changeText(summary: ChangeSummary): string {
   if (summary.code) {
-    return `${summary.unchanged.join(", ")} · code as it is`
+    return "code as it is"
   }
 
-  const passing = summary.unchanged.length === 0 ? [] : [`+ ${summary.unchanged.join(", ")}`]
-
-  return [...summary.changed.map(changedText), ...passing].join("  ")
+  const each = summary.changed.map((repo) => `${repo.repo} ${headLabel(repo.head)}`).join(" · ")
+  return sharedHead(summary.changed) ?? each
 }
 
-/** How big the change is: "3 repos · 9 commits". */
+// The repos by name, those it passes through after a "+"; a count where the change names them;
+// none for a change in just the repo trek runs in.
+function reposText(summary: ChangeSummary): string {
+  if (summary.code) {
+    return summary.unchanged.join(", ")
+  }
+
+  if (summary.changed.length === 1 && summary.unchanged.length === 0) {
+    return ""
+  }
+
+  if (sharedHead(summary.changed) === undefined) {
+    return count(summary.changed.length + summary.unchanged.length, "repo")
+  }
+
+  const passing = summary.unchanged.length === 0 ? "" : ` + ${summary.unchanged.join(", ")}`
+  return `${summary.changed.map((repo) => repo.repo).join(", ")}${passing}`
+}
+
+// " since main" where every changed repo is a branch from the same base; a pull request's base
+// is the host's.
+function sinceText(changed: readonly ChangedRepoSummary[]): string {
+  const bases = new Set(changed.map((repo) => repo.base))
+  const onBranches = changed.every((repo) => repo.head.kind === "branch")
+
+  return onBranches && bases.size === 1 ? ` since ${[...bases][0]}` : ""
+}
+
+/** Where the change is and how big: "web + api, worker · 9 commits since main", "3 commits since main". */
 function sizeText(summary: ChangeSummary): string {
-  const repos = count(summary.changed.length + summary.unchanged.length, "repo")
+  const repos = reposText(summary)
   if (summary.code) {
     return repos
   }
 
   const commits = summary.changed.reduce((total, repo) => total + repo.commits, 0)
-  return `${repos} · ${count(commits, "commit")}`
+  const size = `${count(commits, "commit")}${sinceText(summary.changed)}`
+  return repos === "" ? size : `${repos} · ${size}`
 }
 
-/** The top line: srctrek, the change on the left and its size on the right, ruled off below. */
+const NAME = "srctrek"
+/** Between srctrek and what the screen is about, in every title bar. */
+export const TITLE_SEPARATOR = " › "
+// Below this, the right side is left out rather than cut to a stub.
+const MIN_SIZE_WIDTH = 12
+
+/**
+ * The top line: srctrek and the change on the left, where it is and its size on the right, ruled
+ * off below. The change is what the screen is about, so the right gives way first.
+ */
 export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
   const tones = useTones()
   const { width } = useTerminalDimensions()
-  const size = summary === undefined ? "" : sizeText(summary)
-  // the change gives way to its size: the padding, "srctrek  ", and two spaces before the size
-  const room = width - size.length - 2 * PADDING - 11
-  const change = summary === undefined ? "" : `  ${fit(changeText(summary), room)}`
+  const change = summary === undefined ? "" : changeText(summary)
+  const room = width - 2 * PADDING - NAME.length - TITLE_SEPARATOR.length
+  const sizeRoom = room - change.length - 2
+  const size =
+    summary === undefined || sizeRoom < MIN_SIZE_WIDTH ? "" : fit(sizeText(summary), sizeRoom)
+  const shownChange = fit(change, room - (size === "" ? 0 : size.length + 2))
 
   return (
     <box
@@ -65,10 +99,11 @@ export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <text fg={COLOUR.text}>
-        <span attributes={TextAttributes.BOLD}>srctrek</span>
-        <span fg={tones.dim}>{change}</span>
+        <span attributes={TextAttributes.BOLD}>{NAME}</span>
+        {shownChange !== "" && <span fg={tones.dim}>{TITLE_SEPARATOR}</span>}
+        {shownChange !== "" && <span>{shownChange}</span>}
       </text>
-      <text fg={tones.dim}>{size}</text>
+      {size !== "" && <text fg={tones.dim}>{size}</text>}
     </box>
   )
 }
