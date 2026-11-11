@@ -77,6 +77,24 @@ describe("resolveUnchangedRepo", () => {
     const resolved = await resolveUnchangedRepo("/", entry, await makeCacheDir())
     expect(resolved.revision).toBe(remote.main)
   })
+
+  test("names a worktree after its project, not its own folder", async () => {
+    const parent = await tempDir("project-")
+    const source = await makeRepo()
+    await commit(source, "app.ts", "v1\n")
+    const project = join(parent, "web")
+    await mkdir(project)
+    await runGit(project, ["clone", "--quiet", "--bare", source, ".bare"])
+    await writeFile(join(project, ".git"), "gitdir: ./.bare\n")
+    await runGit(project, ["worktree", "add", "--quiet", "--detach", "development"])
+    await runGit(source, ["worktree", "add", "--quiet", "--detach", join(parent, "review")])
+
+    const inBare = await resolveUnchangedRepo(project, { source: "development" })
+    const inClone = await resolveUnchangedRepo(parent, { source: "review" })
+
+    expect(inBare.name).toBe("web")
+    expect(inClone.name).toBe(basename(source))
+  })
 })
 
 describe("resolvePullRequest", () => {

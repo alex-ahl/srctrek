@@ -5,7 +5,8 @@ import { type RangeSpec, type ResolvedRange, resolveRange } from "../git/range"
 import { GitError, runGit } from "../git/run"
 import { snapshotWorkingTree } from "../git/snapshot"
 import { cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./cache"
-import { type RepoEntry, folderName, isRemote } from "./entry"
+import { type RepoEntry, isRemote } from "./entry"
+import { projectName } from "./project"
 import type { PullRequest } from "./pull-request"
 
 /**
@@ -87,7 +88,7 @@ async function fetchedEnds(dir: string, spec: RangeSpec): Promise<RangeSpec> {
 /**
  * Resolves an entry to the commit the trek reads. A local path is relative to `baseDir` (the
  * folder the entry was written for); a URL is read from its cached clone. Without a revision,
- * the repo's base branch is used; without a name, the repo is named after its folder. The
+ * the repo's base branch is used; without a name, the repo is named after its project's folder. The
  * source is kept as written, so a trek that records it stays valid on other machines.
  */
 export async function resolveUnchangedRepo(
@@ -98,7 +99,12 @@ export async function resolveUnchangedRepo(
   const dir = await repoDir(baseDir, entry, cacheDir)
   const commit = await commitOf(dir, entry)
 
-  return { name: entry.name ?? folderName(dir), source: entry.source, revision: commit, dir }
+  return {
+    name: entry.name ?? (await projectName(dir)),
+    source: entry.source,
+    revision: commit,
+    dir,
+  }
 }
 
 /**
@@ -117,7 +123,7 @@ export async function resolveRangeChange(
   const head = uncommitted ? await snapshotWorkingTree(dir) : ends.head
   const range = await resolveRange(dir, { ...ends, head })
 
-  return { name: entry.name ?? folderName(dir), source: entry.source, dir, range }
+  return { name: entry.name ?? (await projectName(dir)), source: entry.source, dir, range }
 }
 
 /**

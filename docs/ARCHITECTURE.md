@@ -76,7 +76,7 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
   commit.
 - A line in the repos list can name its repo: `payments = ../payments@v2.3`. The name is what
   the code calls the service, so a call to `payments` resolves to that repo. Without a name,
-  the repo is named after its folder.
+  the repo is named after its project's folder, so every worktree of a project shares its name.
 - While building, the agent proposes repos it finds on the route with `propose_repo`, citing
   the evidence (a client, a config value, a contract file, a dependency), with the source
   when it finds it: `open_change` names git repos next to the current one as candidates, and

@@ -1,9 +1,9 @@
 import { readdir, realpath } from "node:fs/promises"
-import { basename, dirname, join, relative, resolve } from "node:path"
+import { dirname, join, relative } from "node:path"
 import { type ResolvedChange, currentRepoTop } from "../change/resolve"
-import { runGit } from "../git/run"
 import { workBranches } from "./branch"
 import { gitDataOf } from "./git-files"
+import { commonDir, projectHome } from "./project"
 import { branchToRead } from "../git/refs"
 
 // A folder of checkouts can hold hundreds; the agent needs candidates, not all of them.
@@ -21,17 +21,6 @@ async function inBatches<T, R>(items: T[], each: (item: T) => Promise<R>): Promi
   }
 
   return results
-}
-
-// The folder holding a repo: a clone's own folder (its .git inside it), the project folder
-// of a bare repo kept beside its worktrees (project/.bare with project/main), or a bare repo
-// itself (api.git). Its siblings are the other repos.
-function homeOf(common: string): string {
-  return basename(common).startsWith(".") ? dirname(common) : common
-}
-
-async function commonDir(dir: string): Promise<string> {
-  return realpath(resolve(dir, await runGit(dir, ["rev-parse", "--git-common-dir"])))
 }
 
 // A folder holding a repo other than `own`: a worktree of the same repo is the same code.
@@ -83,7 +72,7 @@ function capped(repos: NearbyRepo[]): Nearby {
  */
 export async function nearbyRepos(cwd: string, change: ResolvedChange): Promise<Nearby> {
   const own = await commonDir(cwd)
-  const home = homeOf(own)
+  const home = projectHome(own)
   const opened = await Promise.all(change.repos.map((repo) => realpath(repo.dir).catch(() => "")))
 
   const parent = dirname(home)
