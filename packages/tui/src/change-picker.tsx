@@ -1,9 +1,10 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
-import type { BranchChoices, ChangeChoice } from "@srctrek/core"
+import type { BranchChoices, ChangeChoice, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
 import { type PickerRow, pickerRows, sameChoice } from "./change-picker-rows"
 import { Footer } from "./footer"
+import { statusBlock } from "./status-block"
 import { PADDING } from "./layout"
 import { COLOUR, useTones } from "./theme"
 import { TITLE_SEPARATOR } from "./title-bar"
@@ -12,11 +13,16 @@ type Props = {
   // the change the home screen is about now, marked in the list, and the changes to choose from
   choice: ChangeChoice
   load: () => Promise<BranchChoices>
+  // where the trek of each change stands, filled in as each is worked out
+  status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
   onBack: () => void
   // the chosen row's background, when the terminal's colours are known
   tint: RGBA | undefined
 }
+
+// The same empty list each render, so the statuses aren't asked for again while loading.
+const NO_ROWS: readonly PickerRow[] = []
 
 const KEYS = [
   { key: "↑/↓", does: "choose" },
@@ -41,18 +47,62 @@ function useRows(load: () => Promise<BranchChoices>): Loaded {
   return loaded
 }
 
+// Each row's trek status as it's worked out; one that can't be worked out is left blank.
+function useStatuses(
+  rows: readonly PickerRow[],
+  status: (choice: ChangeChoice) => Promise<TrekStatus>,
+): ReadonlyMap<string, TrekStatus> {
+  const [found, setFound] = useState<ReadonlyMap<string, TrekStatus>>(new Map())
+  useEffect(() => {
+    let current = true
+    for (const row of rows) {
+      void status(row.choice).then(
+        (each) => current && setFound((known) => new Map(known).set(rowKey(row), each)),
+        () => undefined,
+      )
+    }
+
+    return () => {
+      current = false
+    }
+  }, [rows, status])
+
+  return found
+}
+
+const rowKey = (row: PickerRow) => JSON.stringify(row.choice)
+
+// "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours the home screen uses.
+function StatusView({ status }: { status: TrekStatus | undefined }) {
+  const tones = useTones()
+  if (status === undefined) {
+    return null
+  }
+
+  const { symbol, state, tone } = statusBlock(status, undefined, false)
+  return <span fg={tones[tone]}>{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
+}
+
+// The block's words read as the trek's state on a row; "ready" alone could be the branch.
+const STATE_WORDS: Readonly<Record<string, string>> = {
+  ready: "trek ready",
+  stale: "trek stale",
+}
+
 // One change to pick: the current one marked, names lined up, what it holds dimmed after.
 function RowView({
   row,
   selected,
   current,
-  nameWidth,
+  widths,
+  status,
   tint,
 }: {
   row: PickerRow
   selected: boolean
   current: boolean
-  nameWidth: number
+  widths: Widths
+  status: TrekStatus | undefined
   tint: RGBA | undefined
 }) {
   const tones = useTones()
@@ -62,28 +112,37 @@ function RowView({
       <span fg={tones.accent}>{marked ? "▶ " : "  "}</span>
       <span fg={tones.accent}>{current ? "● " : "  "}</span>
       <span {...(current ? { attributes: TextAttributes.BOLD } : {})}>
-        {row.label.padEnd(nameWidth)}
+        {row.label.padEnd(widths.name)}
       </span>
-      <span fg={tones.dim}>{`  ${row.detail}`}</span>
+      <span fg={tones.dim}>{`  ${row.detail.padEnd(widths.detail)}`}</span>
+      <StatusView status={status} />
     </text>
   )
 
   return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
 }
 
+// The name and detail columns, as wide as their longest, so the statuses line up after them.
+type Widths = Readonly<{ name: number; detail: number }>
+
 function Rows({
   rows,
   chosen,
   choice,
+  statuses,
   tint,
 }: {
   rows: readonly PickerRow[]
   chosen: number
   choice: ChangeChoice
+  statuses: ReadonlyMap<string, TrekStatus>
   tint: RGBA | undefined
 }) {
   const tones = useTones()
-  const nameWidth = Math.max(...rows.map((row) => row.label.length))
+  const widths = {
+    name: Math.max(...rows.map((row) => row.label.length)),
+    detail: Math.max(...rows.map((row) => row.detail.length)),
+  }
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
@@ -97,7 +156,8 @@ function Rows({
               row={row}
               selected={index === chosen}
               current={sameChoice(row.choice, choice)}
-              nameWidth={nameWidth}
+              widths={widths}
+              status={statuses.get(rowKey(row))}
               tint={tint}
             />
           </box>
@@ -108,7 +168,17 @@ function Rows({
 }
 
 // What the body says while the branches load, if they can't be listed, or the list itself.
-function Body({ loaded, chosen, props }: { loaded: Loaded; chosen: number; props: Props }) {
+function Body({
+  loaded,
+  chosen,
+  statuses,
+  props,
+}: {
+  loaded: Loaded
+  chosen: number
+  statuses: ReadonlyMap<string, TrekStatus>
+  props: Props
+}) {
   const tones = useTones()
   if (loaded.kind === "loading") {
     return <text fg={tones.dim}>finding branches…</text>
@@ -118,7 +188,15 @@ function Body({ loaded, chosen, props }: { loaded: Loaded; chosen: number; props
     return <text fg={tones.bad}>{`✕ ${loaded.why}`}</text>
   }
 
-  return <Rows rows={loaded.rows} chosen={chosen} choice={props.choice} tint={props.tint} />
+  return (
+    <Rows
+      rows={loaded.rows}
+      chosen={chosen}
+      choice={props.choice}
+      statuses={statuses}
+      tint={props.tint}
+    />
+  )
 }
 
 /**
@@ -130,8 +208,9 @@ export function ChangePicker(props: Props) {
   const tones = useTones()
   const loaded = useRows(props.load)
   const [chosen, setChosen] = useState(0)
-  const rows = loaded.kind === "ready" ? loaded.rows : []
+  const rows = loaded.kind === "ready" ? loaded.rows : NO_ROWS
   const row = rows[chosen]
+  const statuses = useStatuses(rows, props.status)
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
   const move = (by: number) =>
@@ -168,7 +247,7 @@ export function ChangePicker(props: Props) {
           overflow: "hidden",
         }}
       >
-        <Body loaded={loaded} chosen={chosen} props={props} />
+        <Body loaded={loaded} chosen={chosen} statuses={statuses} props={props} />
       </box>
       {row !== undefined && (
         <box

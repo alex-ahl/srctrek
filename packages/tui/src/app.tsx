@@ -33,10 +33,14 @@ import { visibleWindow } from "./window"
 
 type Action = (() => void) | undefined
 
-/** What the change picker needs: the change chosen now, the changes to offer, and the pick. */
+/**
+ * What the change picker needs: the change chosen now, the changes to offer, where each one's
+ * trek stands, and the pick.
+ */
 export type Choosing = Readonly<{
   choice: ChangeChoice
   load: () => Promise<BranchChoices>
+  status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
 }>
 
@@ -304,6 +308,7 @@ function Picker({
     <ChangePicker
       choice={choosing.choice}
       load={choosing.load}
+      status={choosing.status}
       onPick={pick}
       onBack={close}
       tint={tint}

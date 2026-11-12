@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test"
-import type { BranchChoices, ChangeChoice } from "@srctrek/core"
+import type { BranchChoices, ChangeChoice, TrekStatus } from "@srctrek/core"
 import { App } from "../src/app"
 import { pickerRows } from "../src/change-picker-rows"
 import { frameAfter } from "./support/keys"
@@ -16,8 +16,20 @@ const choices: BranchChoices = {
 
 const own: ChangeChoice = { kind: "own", uncommitted: false }
 
+// The user's own branch has a trek; fix/rounding has none; the rest haven't answered yet.
+function statusOf(choice: ChangeChoice): Promise<TrekStatus> {
+  if (choice.kind === "own" && !choice.uncommitted) {
+    return Promise.resolve({ kind: "ready", name: "feature-refunds" })
+  }
+
+  const none: TrekStatus = { kind: "missing", name: "fix-rounding" }
+  return choice.kind === "branch" && choice.name === "fix/rounding"
+    ? Promise.resolve(none)
+    : new Promise(() => undefined)
+}
+
 function app(onPick: (choice: ChangeChoice) => void, choice: ChangeChoice = own) {
-  const choosing = { choice, load: () => Promise.resolve(choices), onPick }
+  const choosing = { choice, load: () => Promise.resolve(choices), status: statusOf, onPick }
   return <App entries={[]} onOpen={() => undefined} onQuit={() => undefined} choosing={choosing} />
 }
 
@@ -85,4 +97,15 @@ test("esc keeps the current change and goes back to the list", async () => {
   expect(onPick).not.toHaveBeenCalled()
   expect(frame).not.toContain("srctrek › change")
   expect(frame).toContain("C change")
+})
+
+test("says on each row whether a trek of it exists, as each is worked out", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    openPicker,
+  )
+
+  expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
+  expect(frame).toMatch(/fix\/rounding +1 commit since main +○ no trek yet/)
+  expect(frame).toMatch(/feature\/partial-refunds +5 commits since main *\n/)
 })

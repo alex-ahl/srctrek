@@ -9,6 +9,7 @@ import {
   acceptProposal,
   branchChoices,
   choiceArguments,
+  choiceStatus,
   buildFiles,
   dismissProposal,
   loadProposals,
@@ -67,6 +68,7 @@ function useChoosing(
   onPicked: (choice: ChangeChoice, change: HomeChange) => void,
 ): Choosing | undefined {
   const load = useCallback(() => branchChoices(root), [root])
+  const status = useCallback((each: ChangeChoice) => choiceStatus(root, each), [root])
   if (follow === undefined) {
     return undefined
   }
@@ -77,7 +79,7 @@ function useChoosing(
       () => undefined,
     )
 
-  return { choice, load, onPick }
+  return { choice, load, status, onPick }
 }
 
 type HomeProps = {

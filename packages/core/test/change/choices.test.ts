@@ -5,6 +5,7 @@ import {
   branchChoices,
   choiceArguments,
   choiceOfArguments,
+  choiceStatus,
   readChangeArguments,
   runGit,
 } from "../../src"
@@ -52,5 +53,18 @@ describe("branchChoices", () => {
     expect(choices.own).toEqual({ name: "feature/refunds", commits: 1 })
     expect(choices.uncommittedFiles).toBe(1)
     expect(choices.others).toEqual([{ name: "fix/rounding", commits: 1 }])
+  })
+})
+
+describe("choiceStatus", () => {
+  test("says whether a trek of the chosen branch exists, without switching to it", async () => {
+    const dir = await makeBranchRepo()
+    await runGit(dir, ["switch", "--quiet", "-c", "fix/rounding", "main"])
+    await commit(dir, "round.ts", "export const round = Math.round\n")
+
+    const other = await choiceStatus(dir, { kind: "branch", name: "feature/refunds" })
+
+    expect(other).toMatchObject({ kind: "missing", name: "feature-refunds" })
+    expect(await runGit(dir, ["branch", "--show-current"])).toBe("fix/rounding")
   })
 })

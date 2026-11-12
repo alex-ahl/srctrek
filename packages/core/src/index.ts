@@ -108,6 +108,7 @@ export {
   branchChoices,
   choiceArguments,
   choiceOfArguments,
+  choiceStatus,
   type BranchChoice,
   type BranchChoices,
   type ChangeChoice,

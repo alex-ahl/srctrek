@@ -113,7 +113,7 @@
   commit, a branch switch, a trek saved elsewhere, or an agent just set shows without a restart.
 - The change can be chosen on screen: `C` opens a picker with the user's own branch first (with or
   without work not yet committed) and the repo's other branches (`branchChoices`), each saying
-  what it opens; a pick becomes trek's arguments (`choiceArguments`), so following the worktree
+  what it opens and where its trek stands (`choiceStatus`, filled in as each is worked out); a pick becomes trek's arguments (`choiceArguments`), so following the worktree
   reopens it, and the title bar marks it `· picked`. Pull requests, more repos, and code as it
   is come next.
 

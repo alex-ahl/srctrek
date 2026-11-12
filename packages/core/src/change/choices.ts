@@ -1,6 +1,10 @@
+import { type TrekStatus, trekStatus } from "../build/status"
+import { directoryIn } from "../files"
 import { detectBase } from "../git/base"
 import { checkedOutBranch } from "../git/refs"
 import { runGit } from "../git/run"
+import { readChangeArguments } from "./arguments"
+import { resolveChange } from "./resolve"
 
 /**
  * Which change trek is about, as the user chooses it on screen: their own branch (with or without
@@ -92,4 +96,10 @@ export async function branchChoices(cwd: string): Promise<BranchChoices> {
     uncommittedFiles: await uncommittedFiles(cwd),
     others: counted.filter((branch) => branch.commits > 0),
   }
+}
+
+/** Where the trek of a choice stands, worked out as trek would on opening that change. */
+export async function choiceStatus(cwd: string, choice: ChangeChoice): Promise<TrekStatus> {
+  const args = readChangeArguments(choiceArguments(choice), directoryIn(cwd))
+  return trekStatus(cwd, await resolveChange(cwd, args))
 }
