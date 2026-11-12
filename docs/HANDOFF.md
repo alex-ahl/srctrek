@@ -114,8 +114,10 @@
 - The change can be chosen on screen: `C` opens a picker with the user's own branch first (with or
   without work not yet committed) and the repo's other branches (`branchChoices`), each saying
   what it opens and where its trek stands (`choiceStatus`, filled in as each is worked out); a pick becomes trek's arguments (`choiceArguments`), so following the worktree
-  reopens it, and the title bar marks it `· picked`. Pull requests, more repos, and code as it
-  is come next.
+  reopens it, and the title bar marks it `· picked`. Its open pull requests follow, listed
+  through the user's own `gh` (`openPullRequests`), those waiting on their review first, without
+  a trek state (that would mean fetching each); when `gh` can't list them, its own words say why.
+  More repos and code as it is come next.
 
 ## 2026-11-03 — Milestone 6: the editors
 

@@ -15,6 +15,7 @@ import {
   loadProposals,
   loadSettings,
   loadTrekEntries,
+  openPullRequests,
   saveSetting,
   trekStates,
 } from "@srctrek/core"
@@ -68,6 +69,7 @@ function useChoosing(
   onPicked: (choice: ChangeChoice, change: HomeChange) => void,
 ): Choosing | undefined {
   const load = useCallback(() => branchChoices(root), [root])
+  const pullRequests = useCallback(() => openPullRequests(root), [root])
   const status = useCallback((each: ChangeChoice) => choiceStatus(root, each), [root])
   if (follow === undefined) {
     return undefined
@@ -79,7 +81,7 @@ function useChoosing(
       () => undefined,
     )
 
-  return { choice, load, status, onPick }
+  return { choice, load, pullRequests, status, onPick }
 }
 
 type HomeProps = {

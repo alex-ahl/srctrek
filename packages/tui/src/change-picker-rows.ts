@@ -1,8 +1,8 @@
-import type { BranchChoices, ChangeChoice } from "@srctrek/core"
+import type { BranchChoices, ChangeChoice, OpenPullRequest } from "@srctrek/core"
 import { count } from "./text"
 
 /** The headings the picker's rows sit under, in the order they're listed. */
-export type PickerGroup = "YOUR WORK" | "OTHER BRANCHES"
+export type PickerGroup = "YOUR WORK" | "OTHER BRANCHES" | "PULL REQUESTS"
 
 /**
  * A change the picker offers: under its heading, its name and what it holds, the choice it makes,
@@ -57,6 +57,23 @@ export function pickerRows(choices: BranchChoices): PickerRow[] {
   }))
 
   return [...ownRows(choices), ...others]
+}
+
+// Who opened it, and what sets it apart: waiting on the user's review, or still a draft.
+function pullDetail(pr: OpenPullRequest): string {
+  const marks = [pr.reviewRequested ? "review requested" : "", pr.draft ? "draft" : ""]
+  return [pr.author, ...marks.filter(Boolean)].join(" · ")
+}
+
+/** The open pull requests to choose from, as gh lists them: those waiting on the user first. */
+export function pullRequestRows(open: readonly OpenPullRequest[]): PickerRow[] {
+  return open.map((pr) => ({
+    group: "PULL REQUESTS",
+    label: `#${pr.number} ${pr.title}`,
+    detail: pullDetail(pr),
+    choice: { kind: "pull-request", url: pr.url },
+    opens: `pr ${pr.number} · ${pr.title} · by ${pr.author}`,
+  }))
 }
 
 /** Whether two choices pick the same change. */

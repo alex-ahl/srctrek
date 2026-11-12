@@ -2,6 +2,7 @@ import type {
   BranchChoices,
   ChangeChoice,
   ChangeSummary,
+  OpenPullRequest,
   ProposedRepo,
   Settings as UserSettings,
   TrekEntry,
@@ -40,6 +41,7 @@ type Action = (() => void) | undefined
 export type Choosing = Readonly<{
   choice: ChangeChoice
   load: () => Promise<BranchChoices>
+  pullRequests: () => Promise<OpenPullRequest[]>
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
 }>
@@ -308,6 +310,7 @@ function Picker({
     <ChangePicker
       choice={choosing.choice}
       load={choosing.load}
+      pullRequests={choosing.pullRequests}
       status={choosing.status}
       onPick={pick}
       onBack={close}

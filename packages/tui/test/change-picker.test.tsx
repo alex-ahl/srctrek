@@ -1,7 +1,7 @@
 import { expect, mock, test } from "bun:test"
-import type { BranchChoices, ChangeChoice, TrekStatus } from "@srctrek/core"
+import type { BranchChoices, ChangeChoice, OpenPullRequest, TrekStatus } from "@srctrek/core"
 import { App } from "../src/app"
-import { pickerRows } from "../src/change-picker-rows"
+import { pickerRows, pullRequestRows } from "../src/change-picker-rows"
 import { frameAfter } from "./support/keys"
 
 const choices: BranchChoices = {
@@ -28,8 +28,36 @@ function statusOf(choice: ChangeChoice): Promise<TrekStatus> {
     : new Promise(() => undefined)
 }
 
-function app(onPick: (choice: ChangeChoice) => void, choice: ChangeChoice = own) {
-  const choosing = { choice, load: () => Promise.resolve(choices), status: statusOf, onPick }
+const open: OpenPullRequest[] = [
+  {
+    number: 12,
+    title: "Add partial refunds",
+    author: "alice",
+    url: "https://github.com/acme/web/pull/12",
+    draft: false,
+    reviewRequested: true,
+  },
+  {
+    number: 14,
+    title: "Round refunds to cents",
+    author: "bo",
+    url: "https://github.com/acme/web/pull/14",
+    draft: true,
+    reviewRequested: false,
+  },
+]
+
+function app(
+  onPick: (choice: ChangeChoice) => void,
+  pullRequests: () => Promise<OpenPullRequest[]> = () => Promise.resolve(open),
+) {
+  const choosing = {
+    choice: own,
+    load: () => Promise.resolve(choices),
+    pullRequests,
+    status: statusOf,
+    onPick,
+  }
   return <App entries={[]} onOpen={() => undefined} onQuit={() => undefined} choosing={choosing} />
 }
 
@@ -108,4 +136,52 @@ test("says on each row whether a trek of it exists, as each is worked out", asyn
   expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
   expect(frame).toMatch(/fix\/rounding +1 commit since main +○ no trek yet/)
   expect(frame).toMatch(/feature\/partial-refunds +5 commits since main *\n/)
+})
+
+test("offers the open pull requests by number and title, with who opened them and what waits", () => {
+  const rows = pullRequestRows(open)
+
+  expect(rows.map((row) => [row.label, row.detail])).toEqual([
+    ["#12 Add partial refunds", "alice · review requested"],
+    ["#14 Round refunds to cents", "bo · draft"],
+  ])
+  expect(rows[0]?.opens).toBe("pr 12 · Add partial refunds · by alice")
+})
+
+test("lists pull requests after the branches, and picking one picks it by its link", async () => {
+  const onPick = mock((_choice: ChangeChoice) => undefined)
+  await frameAfter(app(onPick), async (input) => {
+    await openPicker(input)
+    for (const _ of [1, 2, 3, 4]) {
+      input.pressKey("j")
+    }
+    await Bun.sleep(20)
+    input.pressEnter()
+    await Bun.sleep(20)
+  })
+
+  expect(onPick).toHaveBeenCalledWith({
+    kind: "pull-request",
+    url: "https://github.com/acme/web/pull/12",
+  })
+})
+
+test("says when there are no open pull requests, or why they can't be listed", async () => {
+  const none = await frameAfter(
+    app(
+      () => undefined,
+      () => Promise.resolve([]),
+    ),
+    openPicker,
+  )
+  const failed = await frameAfter(
+    app(
+      () => undefined,
+      () => Promise.reject(new Error("gh: not logged in")),
+    ),
+    openPicker,
+  )
+
+  expect(none).toContain("no open pull requests")
+  expect(failed).toContain("✕ gh: not logged in")
 })

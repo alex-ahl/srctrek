@@ -1,10 +1,10 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
-import type { BranchChoices, ChangeChoice, TrekStatus } from "@srctrek/core"
-import { useEffect, useState } from "react"
-import { type PickerRow, pickerRows, sameChoice } from "./change-picker-rows"
+import type { BranchChoices, ChangeChoice, OpenPullRequest, TrekStatus } from "@srctrek/core"
+import { useEffect, useMemo, useState } from "react"
+import { type PickerNote, PickerList, useStatuses } from "./change-picker-list"
+import { type PickerRow, pickerRows, pullRequestRows } from "./change-picker-rows"
 import { Footer } from "./footer"
-import { statusBlock } from "./status-block"
 import { PADDING } from "./layout"
 import { COLOUR, useTones } from "./theme"
 import { TITLE_SEPARATOR } from "./title-bar"
@@ -13,6 +13,7 @@ type Props = {
   // the change the home screen is about now, marked in the list, and the changes to choose from
   choice: ChangeChoice
   load: () => Promise<BranchChoices>
+  pullRequests: () => Promise<OpenPullRequest[]>
   // where the trek of each change stands, filled in as each is worked out
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
@@ -21,194 +22,70 @@ type Props = {
   tint: RGBA | undefined
 }
 
-// The same empty list each render, so the statuses aren't asked for again while loading.
-const NO_ROWS: readonly PickerRow[] = []
-
 const KEYS = [
   { key: "↑/↓", does: "choose" },
   { key: "enter", does: "review this" },
   { key: "esc", does: "keep current" },
 ]
 
-// The repo's branches as they load, or why they can't be listed.
+// Rows as they load, or why they can't be listed.
 type Loaded =
   { kind: "loading" } | { kind: "ready"; rows: PickerRow[] } | { kind: "failed"; why: string }
 
-function useRows(load: () => Promise<BranchChoices>): Loaded {
-  const [loaded, setLoaded] = useState<Loaded>({ kind: "loading" })
+const NOTHING_YET: Loaded = { kind: "loading" }
+
+/** Rows from `load`, made by `toRows` once it answers; the same rows each render until then. */
+function useLoaded<T>(load: () => Promise<T>, toRows: (found: T) => PickerRow[]): Loaded {
+  const [loaded, setLoaded] = useState<Loaded>(NOTHING_YET)
   useEffect(() => {
     void load().then(
-      (choices) => setLoaded({ kind: "ready", rows: pickerRows(choices) }),
+      (found) => setLoaded({ kind: "ready", rows: toRows(found) }),
       (error: unknown) =>
         setLoaded({ kind: "failed", why: error instanceof Error ? error.message : String(error) }),
     )
+    // toRows makes rows from what's found; only a new load asks again
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [load])
 
   return loaded
 }
 
-// Each row's trek status as it's worked out; one that can't be worked out is left blank.
-function useStatuses(
-  rows: readonly PickerRow[],
-  status: (choice: ChangeChoice) => Promise<TrekStatus>,
-): ReadonlyMap<string, TrekStatus> {
-  const [found, setFound] = useState<ReadonlyMap<string, TrekStatus>>(new Map())
-  useEffect(() => {
-    let current = true
-    for (const row of rows) {
-      void status(row.choice).then(
-        (each) => current && setFound((known) => new Map(known).set(rowKey(row), each)),
-        () => undefined,
-      )
-    }
+const rowsOf = (loaded: Loaded): readonly PickerRow[] =>
+  loaded.kind === "ready" ? loaded.rows : []
 
-    return () => {
-      current = false
-    }
-  }, [rows, status])
-
-  return found
-}
-
-const rowKey = (row: PickerRow) => JSON.stringify(row.choice)
-
-// "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours the home screen uses.
-function StatusView({ status }: { status: TrekStatus | undefined }) {
-  const tones = useTones()
-  if (status === undefined) {
-    return null
+// The pull requests' heading with nothing to pick under it yet: still asking, none, or why not.
+function pullNote(pulls: Loaded): PickerNote | undefined {
+  if (pulls.kind === "loading") {
+    return { group: "PULL REQUESTS", text: "finding pull requests…", tone: "dim" }
   }
 
-  const { symbol, state, tone } = statusBlock(status, undefined, false)
-  return <span fg={tones[tone]}>{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
-}
-
-// The block's words read as the trek's state on a row; "ready" alone could be the branch.
-const STATE_WORDS: Readonly<Record<string, string>> = {
-  ready: "trek ready",
-  stale: "trek stale",
-}
-
-// One change to pick: the current one marked, names lined up, what it holds dimmed after.
-function RowView({
-  row,
-  selected,
-  current,
-  widths,
-  status,
-  tint,
-}: {
-  row: PickerRow
-  selected: boolean
-  current: boolean
-  widths: Widths
-  status: TrekStatus | undefined
-  tint: RGBA | undefined
-}) {
-  const tones = useTones()
-  const marked = selected && tint === undefined
-  const line = (
-    <text fg={COLOUR.text}>
-      <span fg={tones.accent}>{marked ? "▶ " : "  "}</span>
-      <span fg={tones.accent}>{current ? "● " : "  "}</span>
-      <span {...(current ? { attributes: TextAttributes.BOLD } : {})}>
-        {row.label.padEnd(widths.name)}
-      </span>
-      <span fg={tones.dim}>{`  ${row.detail.padEnd(widths.detail)}`}</span>
-      <StatusView status={status} />
-    </text>
-  )
-
-  return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
-}
-
-// The name and detail columns, as wide as their longest, so the statuses line up after them.
-type Widths = Readonly<{ name: number; detail: number }>
-
-function Rows({
-  rows,
-  chosen,
-  choice,
-  statuses,
-  tint,
-}: {
-  rows: readonly PickerRow[]
-  chosen: number
-  choice: ChangeChoice
-  statuses: ReadonlyMap<string, TrekStatus>
-  tint: RGBA | undefined
-}) {
-  const tones = useTones()
-  const widths = {
-    name: Math.max(...rows.map((row) => row.label.length)),
-    detail: Math.max(...rows.map((row) => row.detail.length)),
+  if (pulls.kind === "failed") {
+    return { group: "PULL REQUESTS", text: `✕ ${pulls.why}`, tone: "bad" }
   }
 
-  return (
-    <box flexDirection="column" style={{ flexShrink: 0 }}>
-      {rows.map((row, index) => {
-        const heading = index === 0 || rows[index - 1]?.group !== row.group
-        return (
-          <box key={`${row.group}:${row.label}`} flexDirection="column" style={{ flexShrink: 0 }}>
-            {heading && index > 0 && <text fg={COLOUR.text}> </text>}
-            {heading && <text fg={tones.dim}>{row.group}</text>}
-            <RowView
-              row={row}
-              selected={index === chosen}
-              current={sameChoice(row.choice, choice)}
-              widths={widths}
-              status={statuses.get(rowKey(row))}
-              tint={tint}
-            />
-          </box>
-        )
-      })}
-    </box>
-  )
+  return pulls.rows.length === 0
+    ? { group: "PULL REQUESTS", text: "no open pull requests", tone: "dim" }
+    : undefined
 }
 
-// What the body says while the branches load, if they can't be listed, or the list itself.
-function Body({
-  loaded,
-  chosen,
-  statuses,
-  props,
-}: {
-  loaded: Loaded
-  chosen: number
-  statuses: ReadonlyMap<string, TrekStatus>
-  props: Props
-}) {
-  const tones = useTones()
-  if (loaded.kind === "loading") {
-    return <text fg={tones.dim}>finding branches…</text>
-  }
+// The branches, then the pull requests; a pull request's rows are only offered once listed.
+function useRows(props: Props) {
+  const branches = useLoaded(props.load, pickerRows)
+  const pulls = useLoaded(props.pullRequests, pullRequestRows)
+  const rows = useMemo(() => [...rowsOf(branches), ...rowsOf(pulls)], [branches, pulls])
 
-  if (loaded.kind === "failed") {
-    return <text fg={tones.bad}>{`✕ ${loaded.why}`}</text>
-  }
-
-  return (
-    <Rows
-      rows={loaded.rows}
-      chosen={chosen}
-      choice={props.choice}
-      statuses={statuses}
-      tint={props.tint}
-    />
-  )
+  return { branches, rows, note: pullNote(pulls) }
 }
 
 /**
  * Choosing the change trek is about: the user's own branch first, with or without what isn't
- * committed yet, then the repo's other branches. Opens with their own branch selected, so going
- * back to it is one key.
+ * committed yet, then the repo's other branches, then its open pull requests. Opens with their own
+ * branch selected, so going back to it is one key.
  */
 export function ChangePicker(props: Props) {
   const tones = useTones()
-  const loaded = useRows(props.load)
+  const { branches, rows, note } = useRows(props)
   const [chosen, setChosen] = useState(0)
-  const rows = loaded.kind === "ready" ? loaded.rows : NO_ROWS
   const row = rows[chosen]
   const statuses = useStatuses(rows, props.status)
 
@@ -247,7 +124,18 @@ export function ChangePicker(props: Props) {
           overflow: "hidden",
         }}
       >
-        <Body loaded={loaded} chosen={chosen} statuses={statuses} props={props} />
+        {branches.kind === "failed" ? (
+          <text fg={tones.bad}>{`✕ ${branches.why}`}</text>
+        ) : (
+          <PickerList
+            rows={rows}
+            chosen={chosen}
+            choice={props.choice}
+            statuses={statuses}
+            note={note}
+            tint={props.tint}
+          />
+        )}
       </box>
       {row !== undefined && (
         <box

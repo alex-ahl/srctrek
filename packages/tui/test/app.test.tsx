@@ -117,6 +117,7 @@ test("marks a change picked rather than the user's own branch", async () => {
   const choosing = {
     choice: { kind: "branch" as const, name: "fix/rounding" },
     load: () => Promise.reject(new Error("unused")),
+    pullRequests: () => Promise.reject(new Error("unused")),
     status: () => Promise.reject(new Error("unused")),
     onPick: () => undefined,
   }
