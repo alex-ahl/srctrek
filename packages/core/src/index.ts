@@ -113,6 +113,7 @@ export {
   type BranchChoice,
   type BranchChoices,
   type ChangeChoice,
+  type RepoPick,
 } from "./change/choices"
 export {
   hasRange,
@@ -195,6 +196,12 @@ export {
   saveProposal,
   type ProposedRepo,
 } from "./build/proposals"
-export { nearbyRepos, type Nearby, type NearbyRepo } from "./repos/nearby"
+export {
+  nearbyCheckouts,
+  nearbyRepos,
+  type Nearby,
+  type NearbyCheckout,
+  type NearbyRepo,
+} from "./repos/nearby"
 export { workBranches } from "./repos/branch"
 export { carryOver, type CarriedOver, type Redo } from "./build/carry"

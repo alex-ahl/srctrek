@@ -8,19 +8,44 @@ import { readChangeArguments } from "./arguments"
 import { resolveChange } from "./resolve"
 
 /**
+ * A repo beside this one, ticked to go with the change: by its path, as changed (on the branch it
+ * has checked out) or passed through unchanged.
+ */
+export type RepoPick = Readonly<{ path: string; changed: boolean }>
+
+/**
  * Which change trek is about, as the user chooses it on screen: their own branch (with or without
  * work not yet committed), another branch of the same repo, a pull request by its link, or what
- * trek's arguments named.
+ * trek's arguments named; with the repos beside it ticked to go along.
  */
 export type ChangeChoice = Readonly<
-  | { kind: "own"; uncommitted: boolean }
-  | { kind: "branch"; name: string }
-  | { kind: "pull-request"; url: string }
-  | { kind: "given"; args: readonly string[] }
+  (
+    | { kind: "own"; uncommitted: boolean }
+    | { kind: "branch"; name: string }
+    | { kind: "pull-request"; url: string }
+    | { kind: "given"; args: readonly string[] }
+  ) & { repos?: readonly RepoPick[] }
 >
 
-/** trek's arguments for a choice; a branch is named as a range from the base, never as a folder. */
+// A changed repo is read on what it has checked out, since it left its default branch; a range
+// after a repo applies to it.
+const repoArguments = (repos: readonly RepoPick[]) =>
+  repos.flatMap((repo) => (repo.changed ? [repo.path, "...HEAD"] : [repo.path]))
+
+/**
+ * trek's arguments for a choice; a branch is named as a range from the base, never as a folder.
+ * Repos ticked to go along follow it; with them, the user's own branch is named too, since trek
+ * only reads it by default when given nothing else.
+ */
 export function choiceArguments(choice: ChangeChoice): string[] {
+  const repos = choice.repos ?? []
+  const change = changeArguments(choice)
+  const own = choice.kind === "own" && repos.length > 0 ? ["...HEAD"] : []
+
+  return [...change, ...own, ...repoArguments(repos)]
+}
+
+function changeArguments(choice: ChangeChoice): string[] {
   if (choice.kind === "own") {
     return choice.uncommitted ? ["--uncommitted"] : []
   }

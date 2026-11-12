@@ -1,7 +1,14 @@
 import { describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { type ChangeArguments, nearbyRepos, parseRange, resolveChange, runGit } from "../../src"
+import {
+  type ChangeArguments,
+  nearbyCheckouts,
+  nearbyRepos,
+  parseRange,
+  resolveChange,
+  runGit,
+} from "../../src"
 import { commit } from "../support/repo"
 import { makeCacheDir } from "../support/remote"
 import { tempDir } from "../support/temp"
@@ -125,5 +132,21 @@ describe("nearbyRepos", () => {
     const { repos } = await nearbyRepos(development, change)
 
     expect(repos.map(({ path }) => path)).toEqual(["../../api", "../../source"])
+  })
+})
+
+describe("nearbyCheckouts", () => {
+  test("lists the repos beside this one with the branch each has out and its commits", async () => {
+    const parent = await tempDir("nearby-")
+    const web = await repoIn(parent, "web")
+    await onBranch(await repoIn(parent, "api"), "refunds-api")
+    await repoIn(parent, "worker")
+
+    const checkouts = await nearbyCheckouts(web)
+
+    expect(checkouts).toEqual([
+      { path: "../api", name: "api", branch: "refunds-api", commits: 1 },
+      { path: "../worker", name: "worker", branch: "main", commits: 0 },
+    ])
   })
 })

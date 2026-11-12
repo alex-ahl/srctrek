@@ -28,6 +28,29 @@ describe("choiceArguments and choiceOfArguments", () => {
     expect(choiceOfArguments([url, "../web"])).toEqual({ kind: "given", args: [url, "../web"] })
   })
 
+  test("ticked repos follow the change: changed on what they have out, else passed through", () => {
+    const repos = [
+      { path: "../api", changed: true },
+      { path: "../worker", changed: false },
+    ]
+    const own = choiceArguments({ kind: "own", uncommitted: false, repos })
+    const pull = choiceArguments({
+      kind: "pull-request",
+      url: "https://github.com/acme/web/pull/12",
+      repos,
+    })
+
+    const read = readChangeArguments(own, (path) => path.startsWith("../"))
+
+    expect(own).toEqual(["...HEAD", "../api", "...HEAD", "../worker"])
+    expect(pull).toEqual(["https://github.com/acme/web/pull/12", "../api", "...HEAD", "../worker"])
+    expect(read.changes).toMatchObject([
+      { kind: "range", range: { head: "HEAD" } },
+      { kind: "range", repo: { source: "../api" }, range: { head: "HEAD" } },
+    ])
+    expect(read.unchanged).toMatchObject([{ source: "../worker" }])
+  })
+
   test("other arguments are kept as given", () => {
     const given = choiceOfArguments(["main...feature", "../api"])
 

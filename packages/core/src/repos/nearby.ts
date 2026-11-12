@@ -3,8 +3,11 @@ import { dirname, join, relative } from "node:path"
 import { type ResolvedChange, currentRepoTop } from "../change/resolve"
 import { workBranches } from "./branch"
 import { gitDataOf } from "./git-files"
+import { folderName } from "./entry"
+import { detectBase } from "../git/base"
+import { runGit } from "../git/run"
 import { commonDir, projectHome } from "./project"
-import { branchToRead } from "../git/refs"
+import { branchToRead, checkedOutBranch } from "../git/refs"
 
 // A folder of checkouts can hold hundreds; the agent needs candidates, not all of them.
 const NEARBY_LIMIT = 50
@@ -71,21 +74,70 @@ function capped(repos: NearbyRepo[]): Nearby {
  * work is on, which by convention holds the work's side in that repo.
  */
 export async function nearbyRepos(cwd: string, change: ResolvedChange): Promise<Nearby> {
+  const opened = await Promise.all(change.repos.map((repo) => realpath(repo.dir).catch(() => "")))
+  const candidates = await siblingRepos(cwd, opened)
+  const branches = await workBranches(cwd, change)
+  const from = await currentTop(cwd)
+  const repos = await inBatches(candidates, (dir) => nearbyRepo(from, dir, branches))
+
+  return capped(repos)
+}
+
+/**
+ * The git repos in the folders beside the current repo's project, sorted, leaving out its own
+ * worktrees and the folders in `leaveOut`.
+ */
+async function siblingRepos(cwd: string, leaveOut: readonly string[] = []): Promise<string[]> {
   const own = await commonDir(cwd)
   const home = projectHome(own)
-  const opened = await Promise.all(change.repos.map((repo) => realpath(repo.dir).catch(() => "")))
-
   const parent = dirname(home)
   const entries = await readdir(parent, { withFileTypes: true })
   const folders = entries
     .filter((entry) => entry.isDirectory())
     .map((entry) => join(parent, entry.name))
-    .filter((dir) => dir !== home && !opened.includes(dir))
+    .filter((dir) => dir !== home && !leaveOut.includes(dir))
 
   const candidates = (await Promise.all(folders.map((dir) => otherRepo(dir, own)))).flat()
-  const branches = await workBranches(cwd, change)
-  const from = await realpath((await currentRepoTop(cwd)) ?? cwd)
-  const repos = await inBatches(candidates.toSorted(), (dir) => nearbyRepo(from, dir, branches))
+  return candidates.toSorted((a, b) => a.localeCompare(b))
+}
 
-  return capped(repos)
+// The current repo's top, as the paths of the repos beside it are read from.
+async function currentTop(cwd: string): Promise<string> {
+  return realpath((await currentRepoTop(cwd)) ?? cwd)
+}
+
+/**
+ * A repo beside the current one as the user has it: its path from the current repo's top, its
+ * name, the branch it has checked out, and how many commits that branch has since the repo's
+ * default branch (none when it's on that branch, or has no default to count from).
+ */
+export type NearbyCheckout = Readonly<{
+  path: string
+  name: string
+  branch: string | undefined
+  commits: number
+}>
+
+async function commitsSinceBase(dir: string): Promise<number> {
+  const base = await detectBase(dir).catch(() => undefined)
+  if (base === undefined) {
+    return 0
+  }
+
+  const count = await runGit(dir, ["rev-list", "--count", `${base}..HEAD`]).catch(() => "0")
+  return Number(count)
+}
+
+async function nearbyCheckout(from: string, dir: string): Promise<NearbyCheckout> {
+  const [branch, commits] = await Promise.all([checkedOutBranch(dir), commitsSinceBase(dir)])
+
+  return { path: relative(from, dir), name: folderName(dir), branch, commits }
+}
+
+/** The repos beside the current one, each with the branch it has checked out and its commits. */
+export async function nearbyCheckouts(cwd: string): Promise<NearbyCheckout[]> {
+  const from = await currentTop(cwd)
+  const repos = await siblingRepos(cwd)
+
+  return inBatches(repos.slice(0, NEARBY_LIMIT), (dir) => nearbyCheckout(from, dir))
 }
