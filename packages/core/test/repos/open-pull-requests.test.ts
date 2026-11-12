@@ -1,0 +1,74 @@
+import { describe, expect, test } from "bun:test"
+import { chmod, writeFile } from "node:fs/promises"
+import { join } from "node:path"
+import { openPullRequests } from "../../src"
+import { rejection } from "../support/rejection"
+import { tempDir } from "../support/temp"
+
+const LISTED = [
+  {
+    number: 14,
+    title: "Round refunds to cents",
+    author: { login: "bo" },
+    url: "https://github.com/acme/api/pull/14",
+    isDraft: true,
+  },
+  {
+    number: 12,
+    title: "Add partial refunds",
+    author: { login: "alice" },
+    url: "https://github.com/acme/api/pull/12",
+    isDraft: false,
+  },
+]
+
+// A stand-in gh: the review search answers with what waits on the user, the plain list with all.
+async function fakeGh(script: string): Promise<string> {
+  const path = join(await tempDir("gh-"), "gh")
+  await writeFile(path, `#!/bin/sh\n${script}\n`)
+  await chmod(path, 0o755)
+  return path
+}
+
+describe("openPullRequests", () => {
+  test("lists the open pull requests, those waiting on the user's review first", async () => {
+    const gh = await fakeGh(`case "$*" in
+  *review-requested*) echo '[{"number":12}]' ;;
+  *) echo '${JSON.stringify(LISTED)}' ;;
+esac`)
+
+    const open = await openPullRequests(await tempDir("repo-"), gh)
+
+    expect(open).toEqual([
+      {
+        number: 12,
+        title: "Add partial refunds",
+        author: "alice",
+        url: "https://github.com/acme/api/pull/12",
+        draft: false,
+        reviewRequested: true,
+      },
+      {
+        number: 14,
+        title: "Round refunds to cents",
+        author: "bo",
+        url: "https://github.com/acme/api/pull/14",
+        draft: true,
+        reviewRequested: false,
+      },
+    ])
+  })
+
+  test("says what gh said when it can't list them", async () => {
+    const gh = await fakeGh(
+      `echo "To get started with GitHub CLI, please run:  gh auth login" >&2; exit 4`,
+    )
+
+    const error = await rejection(openPullRequests(await tempDir("repo-"), gh))
+
+    expect(error).toBeInstanceOf(Error)
+    expect(String(error)).toContain(
+      "gh: To get started with GitHub CLI, please run:  gh auth login",
+    )
+  })
+})

@@ -97,6 +97,7 @@ export {
   type UnchangedRepo,
 } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
+export { openPullRequests, type OpenPullRequest } from "./repos/open-pull-requests"
 export { cachePath, cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
