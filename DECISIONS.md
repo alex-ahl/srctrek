@@ -10,9 +10,9 @@ of choosing a change (another branch, a pull request, more repos) can be done fr
 arguments stay as a shortcut for scripts. A repo named without a range will mean its checked-out
 branch, passed through unchanged when that's its default branch.
 
-trek is opened once per workspace and left open, so a change worked out at startup goes stale.
-Branches across repos rarely share a name, and the argument grammar (a range applies to the repo
-before it) is hard to read; choosing on screen needs neither.
+The change can move while trek is open, and one worked out at startup goes stale.
+Branches across repos can't be assumed to share a name, and the argument grammar (a range applies
+to the repo before it) is hard to read; choosing on screen needs neither.
 
 ## 2026-11-10 — Secondary text is mixed from the terminal's own colours
 
