@@ -117,7 +117,9 @@
   reopens it, and the title bar marks it `· picked`. Its open pull requests follow, listed
   through the user's own `gh` (`openPullRequests`), those waiting on their review first, without
   a trek state (that would mean fetching each); when `gh` can't list them, its own words say why.
-  More repos and code as it is come next.
+  While a pick is worked out the home screen says `◐ opening pr 12…`, and when it can't be, why,
+  in git's last words (`failureReason`), until the next pick. More repos and code as it is come
+  next.
 
 ## 2026-11-03 — Milestone 6: the editors
 

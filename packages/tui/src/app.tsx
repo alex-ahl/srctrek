@@ -14,6 +14,7 @@ import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { type ReactNode, useState } from "react"
 import { ChangePicker } from "./change-picker"
 import { ChangeStatus } from "./change-status"
+import { type Opening, OpeningLine } from "./opening-line"
 import { EditorPicker } from "./editor-picker"
 import { type SettingChange, SettingsScreen } from "./settings-screen"
 import type { Editor } from "./editors"
@@ -67,6 +68,8 @@ type Props = {
   summary?: ChangeSummary | undefined
   // the change chosen, the changes to choose from, and what picking one does; absent, C does nothing
   choosing?: Choosing | undefined
+  // a picked change on its way, or why it couldn't be opened
+  opening?: Opening | undefined
   // where each saved trek stands against its branches, by name, as far as it's known yet
   states?: ReadonlyMap<string, TrekState> | undefined
   // the time "built today" is measured from; now, unless a test fixes it
@@ -432,6 +435,7 @@ export function App(props: Props) {
           overflow: "hidden",
         }}
       >
+        <OpeningLine opening={props.opening} />
         {block !== undefined && (
           <box style={{ marginBottom: 1, flexShrink: 0 }}>
             <ChangeStatus block={block} />

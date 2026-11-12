@@ -152,6 +152,8 @@ test("lists pull requests after the branches, and picking one picks it by its li
   const onPick = mock((_choice: ChangeChoice) => undefined)
   await frameAfter(app(onPick), async (input) => {
     await openPicker(input)
+    // the pull requests load apart from the branches; moving before they're listed stops short
+    await Bun.sleep(150)
     for (const _ of [1, 2, 3, 4]) {
       input.pressKey("j")
     }

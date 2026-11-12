@@ -25,6 +25,7 @@ import { useCallback, useEffect, useState } from "react"
 import { App, type Choosing } from "./app"
 import { type Editor, availableEditors, openInEditor } from "./editors"
 import { type FollowChange, useFollow } from "./follow"
+import { type Opening, failureReason } from "./opening-line"
 import { openInPager } from "./pager"
 import type { SettingChange } from "./settings-screen"
 import { TERMINAL_TONES, type TerminalColours, TonesContext, bandFor, tonesFor } from "./theme"
@@ -58,15 +59,23 @@ const SETTINGS_POLL_MS = 2000
 // A build takes minutes, so checking every couple of seconds is plenty.
 const POLL_MS = 2000
 
+// What a pick tells the home screen: it's under way, it opened, or why it couldn't.
+type PickEvents = Readonly<{
+  onOpening: (choice: ChangeChoice) => void
+  onPicked: (choice: ChangeChoice, change: HomeChange) => void
+  onFailed: (choice: ChangeChoice, why: string) => void
+}>
+
 /**
- * What the change picker needs from here: the choice now, this repo's branches, and a pick that
- * works out the picked change before handing it on. Without a way to reopen, there's no picker.
+ * What the change picker needs from here: the choice now, this repo's branches and pull requests,
+ * and a pick that works out the picked change before handing it on, saying how it goes. Without a
+ * way to reopen, there's no picker.
  */
 function useChoosing(
   root: string,
   follow: FollowChange | undefined,
   choice: ChangeChoice,
-  onPicked: (choice: ChangeChoice, change: HomeChange) => void,
+  events: PickEvents,
 ): Choosing | undefined {
   const load = useCallback(() => branchChoices(root), [root])
   const pullRequests = useCallback(() => openPullRequests(root), [root])
@@ -75,11 +84,13 @@ function useChoosing(
     return undefined
   }
 
-  const onPick = (picked: ChangeChoice) =>
+  const onPick = (picked: ChangeChoice) => {
+    events.onOpening(picked)
     void follow.open(choiceArguments(picked)).then(
-      (next) => onPicked(picked, next),
-      () => undefined,
+      (next) => events.onPicked(picked, next),
+      (error: unknown) => events.onFailed(picked, failureReason(error)),
     )
+  }
 
   return { choice, load, pullRequests, status, onPick }
 }
@@ -161,9 +172,15 @@ function Home(props: HomeProps) {
 
   // The worktree moves on while trek is open: a commit, a branch switched, a trek saved elsewhere.
   useFollow(props.follow, choice, show)
-  const choosing = useChoosing(root, props.follow, choice, (picked, next) => {
-    setChoice(picked)
-    void show(next)
+  const [opening, setOpening] = useState<Opening | undefined>(undefined)
+  const choosing = useChoosing(root, props.follow, choice, {
+    onOpening: (picked) => setOpening({ kind: "opening", choice: picked }),
+    onPicked: (picked, next) => {
+      setOpening(undefined)
+      setChoice(picked)
+      void show(next)
+    },
+    onFailed: (picked, why) => setOpening({ kind: "failed", choice: picked, why }),
   })
 
   // Each trek's state takes git calls, so the list is drawn first and the states fill in.
@@ -235,6 +252,7 @@ function Home(props: HomeProps) {
         onDismissRepo={(name) => void settle(dismissProposal(root, name))}
         summary={change?.summary}
         choosing={choosing}
+        opening={opening}
         states={states}
         tint={tint}
       />
