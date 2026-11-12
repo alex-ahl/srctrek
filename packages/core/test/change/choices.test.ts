@@ -51,6 +51,19 @@ describe("choiceArguments and choiceOfArguments", () => {
     expect(read.unchanged).toMatchObject([{ source: "../worker" }])
   })
 
+  test("a repo on a chosen branch is read on it; passed through, at its default branch", () => {
+    const args = choiceArguments({
+      kind: "own",
+      uncommitted: false,
+      repos: [
+        { path: "../billing", changed: true, branch: "refunds-ledger" },
+        { path: "../worker", changed: false, branch: "main" },
+      ],
+    })
+
+    expect(args).toEqual(["...HEAD", "../billing", "...refunds-ledger", "../worker"])
+  })
+
   test("other arguments are kept as given", () => {
     const given = choiceOfArguments(["main...feature", "../api"])
 

@@ -8,10 +8,11 @@ import { readChangeArguments } from "./arguments"
 import { resolveChange } from "./resolve"
 
 /**
- * A repo beside this one, ticked to go with the change: by its path, as changed (on the branch it
- * has checked out) or passed through unchanged.
+ * A repo beside this one, ticked to go with the change: by its path, as changed or passed through
+ * unchanged, and the branch chosen for it; without one, a changed repo is read on what it has
+ * checked out, and one passed through at its default branch.
  */
-export type RepoPick = Readonly<{ path: string; changed: boolean }>
+export type RepoPick = Readonly<{ path: string; changed: boolean; branch?: string }>
 
 /**
  * Which change trek is about, as the user chooses it on screen: their own branch (with or without
@@ -27,10 +28,10 @@ export type ChangeChoice = Readonly<
   ) & { repos?: readonly RepoPick[] }
 >
 
-// A changed repo is read on what it has checked out, since it left its default branch; a range
-// after a repo applies to it.
+// A changed repo is read on its chosen branch, else what it has checked out, since it left its
+// default branch; a range after a repo applies to it.
 const repoArguments = (repos: readonly RepoPick[]) =>
-  repos.flatMap((repo) => (repo.changed ? [repo.path, "...HEAD"] : [repo.path]))
+  repos.flatMap((repo) => (repo.changed ? [repo.path, `...${repo.branch ?? "HEAD"}`] : [repo.path]))
 
 /**
  * trek's arguments for a choice; a branch is named as a range from the base, never as a folder.
