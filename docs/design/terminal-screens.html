@@ -411,17 +411,36 @@
         <div class="foot">↑/↓ choose · enter review this · space add repo · esc keep current</div>
       </div>
     </figure>
-    <figure><figcaption>Trying: the picker with two repos ticked, the result spelled out</figcaption>
+    <p class="note">Trying: more repos. The repos beside this one with work on them (a branch with commits since their default branch) and those ticked are listed, each with the branch it has checked out; the rest fold under a count that enter opens. A ticked repo counts as changed when that branch has commits since its default branch, and as passed through when it doesn't; <code>p</code> switches a ticked repo between the two, for a repo left on a branch that isn't part of this work. Ticked repos go with whatever is picked above them, and the line above the footer spells out the whole change.</p>
+    <figure><figcaption>Trying: three repos ticked — api changed, worker passed through as it's on main (ticked from the fold, so it stays listed), billing switched to passed through with p</figcaption>
       <div class="term screen">
         <div class="pane">
           <div class="ln dim">MORE REPOS</div>
-          <div class="ln sel">    <span class="a">[x]</span> api                    <span class="dim">../api      on refunds-api · 4 commits since main</span></div>
-          <div class="ln">    <span class="a">[x]</span> worker                 <span class="dim">../worker   on main · passed through</span></div>
+          <div class="ln">    <span class="a">[x]</span> api                    <span class="dim">../api       on refunds-api · 4 commits since main</span></div>
+          <div class="ln">    <span class="a">[x]</span> worker                 <span class="dim">../worker    on main · passed through</span></div>
+          <div class="ln sel">    <span class="a">[x]</span> billing                <span class="dim">../billing   on spike/ledger · 2 commits ·</span> passed through</div>
+          <div class="ln"> </div>
+          <div class="ln dim">▸ 21 more repos</div>
         </div>
         <div class="help-panel">
-          <div class="ln"><span class="dim">Opens:</span> feature/refunds in web, refunds-api in api <span class="dim">· worker passed through · 7 commits</span></div>
+          <div class="ln"><span class="dim">Opens:</span> feature/refunds in web, refunds-api in api <span class="dim">· worker and billing passed through · 7 commits</span></div>
         </div>
-        <div class="foot">↑/↓ choose · enter review this · space remove repo · esc keep current</div>
+        <div class="foot">↑/↓ choose · enter review this · space remove repo · p count as changed · esc keep current</div>
+      </div>
+    </figure>
+    <figure><figcaption>Trying: a pull request picked above, with api ticked below</figcaption>
+      <div class="term screen">
+        <div class="pane">
+          <div class="ln dim">PULL REQUESTS</div>
+          <div class="ln sel">      #12 Add partial refunds          <span class="dim">alice · review requested</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">MORE REPOS</div>
+          <div class="ln">    <span class="a">[x]</span> api                    <span class="dim">../api       on refunds-api · 4 commits since main</span></div>
+        </div>
+        <div class="help-panel">
+          <div class="ln"><span class="dim">Opens:</span> pr 12 in web, refunds-api in api <span class="dim">· by alice</span></div>
+        </div>
+        <div class="foot">↑/↓ choose · enter review this · esc keep current</div>
       </div>
     </figure>
     <p class="note">Trying: once something other than your branch is picked, the title bar says so; on your branch nothing is labelled. <code>C</code> opens the picker on your branch either way, so going back is <code>C</code> then enter. Three ways to draw it, after picking pull request 12 in api:</p>

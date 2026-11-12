@@ -118,8 +118,11 @@
   through the user's own `gh` (`openPullRequests`), those waiting on their review first, without
   a trek state (that would mean fetching each); when `gh` can't list them, its own words say why.
   While a pick is worked out the home screen says `◐ opening pr 12…`, and when it can't be, why,
-  in git's last words (`failureReason`), until the next pick. More repos and code as it is come
-  next.
+  in git's last words (`failureReason`), until the next pick. Under MORE REPOS, the repos beside
+  this one with work on them (`nearbyCheckouts`), the rest folded under a count; `space` ticks
+  one to go with the change, changed on what it has checked out or passed through when that's
+  its default branch, and enter on a repo opens the current change with them. Switching a repo
+  between the two, choosing its branch, following ticked repos, and code as it is come next.
 
 ## 2026-11-03 — Milestone 6: the editors
 

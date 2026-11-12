@@ -2,7 +2,7 @@ import type { BranchChoices, ChangeChoice, OpenPullRequest } from "@srctrek/core
 import { count } from "./text"
 
 /** The headings the picker's rows sit under, in the order they're listed. */
-export type PickerGroup = "YOUR WORK" | "OTHER BRANCHES" | "PULL REQUESTS"
+export type PickerGroup = "YOUR WORK" | "OTHER BRANCHES" | "PULL REQUESTS" | "MORE REPOS"
 
 /**
  * A change the picker offers: under its heading, its name and what it holds, the choice it makes,
@@ -76,7 +76,12 @@ export function pullRequestRows(open: readonly OpenPullRequest[]): PickerRow[] {
   }))
 }
 
-/** Whether two choices pick the same change. */
-export function sameChoice(a: ChangeChoice, b: ChangeChoice): boolean {
-  return JSON.stringify(a) === JSON.stringify(b)
+// A choice without the repos ticked to go with it.
+function changeOnly({ repos: _repos, ...change }: ChangeChoice) {
+  return change
+}
+
+/** Whether two choices pick the same change in this repo, whatever repos go with it. */
+export function sameChange(a: ChangeChoice, b: ChangeChoice): boolean {
+  return JSON.stringify(changeOnly(a)) === JSON.stringify(changeOnly(b))
 }

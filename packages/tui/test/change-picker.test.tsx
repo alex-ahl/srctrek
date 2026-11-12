@@ -1,5 +1,11 @@
 import { expect, mock, test } from "bun:test"
-import type { BranchChoices, ChangeChoice, OpenPullRequest, TrekStatus } from "@srctrek/core"
+import type {
+  BranchChoices,
+  ChangeChoice,
+  NearbyCheckout,
+  OpenPullRequest,
+  TrekStatus,
+} from "@srctrek/core"
 import { App } from "../src/app"
 import { pickerRows, pullRequestRows } from "../src/change-picker-rows"
 import { frameAfter } from "./support/keys"
@@ -47,6 +53,13 @@ const open: OpenPullRequest[] = [
   },
 ]
 
+// Beside web: api with work on refunds-api, worker and docs on main.
+const nearby: NearbyCheckout[] = [
+  { path: "../api", name: "api", branch: "refunds-api", commits: 4 },
+  { path: "../docs", name: "docs", branch: "main", commits: 0 },
+  { path: "../worker", name: "worker", branch: "main", commits: 0 },
+]
+
 function app(
   onPick: (choice: ChangeChoice) => void,
   pullRequests: () => Promise<OpenPullRequest[]> = () => Promise.resolve(open),
@@ -55,6 +68,7 @@ function app(
     choice: own,
     load: () => Promise.resolve(choices),
     pullRequests,
+    nearby: () => Promise.resolve(nearby),
     status: statusOf,
     onPick,
   }
@@ -186,4 +200,86 @@ test("says when there are no open pull requests, or why they can't be listed", a
 
   expect(none).toContain("no open pull requests")
   expect(failed).toContain("✕ gh: not logged in")
+})
+
+// The picker open with everything listed: 4 changes, 2 pull requests, then api and the fold.
+const openListed = async (input: Parameters<typeof openPicker>[0]) => {
+  await openPicker(input)
+  await Bun.sleep(150)
+}
+
+const down = (input: { pressKey: (key: string) => void }, times: number) => {
+  for (const _ of Array.from({ length: times })) {
+    input.pressKey("j")
+  }
+}
+
+test("lists the repos with work beside this one, folding the rest under a count", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    openListed,
+    110,
+    30,
+  )
+
+  expect(frame).toContain("MORE REPOS")
+  expect(frame).toMatch(/\[ \] api +\.\.\/api +on refunds-api · 4 commits/)
+  expect(frame).toContain("▸ 2 more repos")
+  expect(frame).not.toContain("worker")
+})
+
+test("space ticks a repo, which goes along with the change enter opens", async () => {
+  const onPick = mock((_choice: ChangeChoice) => undefined)
+  const frame = await frameAfter(
+    app(onPick),
+    async (input) => {
+      await openListed(input)
+      down(input, 6)
+      await Bun.sleep(20)
+      input.pressKey(" ")
+      await Bun.sleep(20)
+    },
+    110,
+    30,
+  )
+
+  expect(frame).toMatch(/\[x\] api/)
+  expect(frame).toContain("Opens: feature/refunds · 3 commits since main, refunds-api in api")
+})
+
+test("enter on a repo opens the current change with the ticked repos", async () => {
+  const onPick = mock((_choice: ChangeChoice) => undefined)
+  await frameAfter(app(onPick), async (input) => {
+    await openListed(input)
+    down(input, 6)
+    await Bun.sleep(20)
+    input.pressKey(" ")
+    await Bun.sleep(20)
+    input.pressEnter()
+    await Bun.sleep(20)
+  })
+
+  expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
+})
+
+test("enter on the fold lists the rest, and a repo on its default branch is passed through", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    async (input) => {
+      await openListed(input)
+      down(input, 7)
+      await Bun.sleep(20)
+      input.pressEnter()
+      await Bun.sleep(20)
+      down(input, 2)
+      await Bun.sleep(20)
+      input.pressKey(" ")
+      await Bun.sleep(20)
+    },
+    110,
+    30,
+  )
+
+  expect(frame).toMatch(/\[x\] worker +\.\.\/worker +on main · passed through/)
+  expect(frame).toContain("· worker passed through")
 })

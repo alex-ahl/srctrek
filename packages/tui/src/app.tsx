@@ -2,6 +2,7 @@ import type {
   BranchChoices,
   ChangeChoice,
   ChangeSummary,
+  NearbyCheckout,
   OpenPullRequest,
   ProposedRepo,
   Settings as UserSettings,
@@ -43,6 +44,7 @@ export type Choosing = Readonly<{
   choice: ChangeChoice
   load: () => Promise<BranchChoices>
   pullRequests: () => Promise<OpenPullRequest[]>
+  nearby: () => Promise<NearbyCheckout[]>
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
 }>
@@ -314,6 +316,7 @@ function Picker({
       choice={choosing.choice}
       load={choosing.load}
       pullRequests={choosing.pullRequests}
+      nearby={choosing.nearby}
       status={choosing.status}
       onPick={pick}
       onBack={close}

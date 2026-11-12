@@ -1,9 +1,10 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
-import { useEffect, useState } from "react"
-import { type PickerGroup, type PickerRow, sameChoice } from "./change-picker-rows"
+import { type ReactNode, useEffect, useState } from "react"
+import { type FoldItem, type RepoItem, repoDetail } from "./change-picker-repos"
+import { type PickerGroup, type PickerRow, sameChange } from "./change-picker-rows"
 import { statusBlock } from "./status-block"
-import { fit } from "./text"
+import { count, fit } from "./text"
 import { COLOUR, type Tone, useTones } from "./theme"
 
 /** A line under a heading that isn't a change to pick: still loading, none, or why not. */
@@ -57,40 +58,33 @@ function StatusView({ status }: { status: TrekStatus | undefined }) {
   return <span fg={tones[tone]}>{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
 }
 
-// The name and detail columns, as wide as their longest, so the statuses line up after them.
-type Widths = Readonly<{ name: number; detail: number }>
+// The columns, as wide as their longest, so what follows them lines up.
+type Widths = Readonly<{ name: number; detail: number; path: number }>
 
 // One change to pick: the current one marked, names lined up, what it holds dimmed after.
-function RowView({
+function ChangeView({
   row,
-  selected,
   current,
   widths,
   status,
-  tint,
 }: {
   row: PickerRow
-  selected: boolean
   current: boolean
   widths: Widths
   status: TrekStatus | undefined
-  tint: RGBA | undefined
 }) {
   const tones = useTones()
-  const marked = selected && tint === undefined
-  const line = (
-    <text fg={COLOUR.text}>
-      <span fg={tones.accent}>{marked ? "▶ " : "  "}</span>
+
+  return (
+    <span>
       <span fg={tones.accent}>{current ? "● " : "  "}</span>
       <span {...(current ? { attributes: TextAttributes.BOLD } : {})}>
         {fit(row.label, widths.name).padEnd(widths.name)}
       </span>
       <span fg={tones.dim}>{`  ${row.detail.padEnd(widths.detail)}`}</span>
       <StatusView status={status} />
-    </text>
+    </span>
   )
-
-  return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
 }
 
 function Heading({ group, first }: { group: PickerGroup; first: boolean }) {
@@ -104,51 +98,164 @@ function Heading({ group, first }: { group: PickerGroup; first: boolean }) {
   )
 }
 
+/** Something the picker lists: a change to pick, a repo beside this one, or the folded rest. */
+export type PickerItem = Readonly<{ kind: "change"; row: PickerRow }> | RepoItem | FoldItem
+
+const groupOf = (item: PickerItem): PickerGroup =>
+  item.kind === "change" ? item.row.group : "MORE REPOS"
+
+function itemKey(item: PickerItem): string {
+  if (item.kind === "change") {
+    return rowKey(item.row)
+  }
+
+  return item.kind === "repo" ? `repo:${item.checkout.path}` : "fold"
+}
+
+// The selected line on the tint, or marked where the terminal's colours aren't known.
+function Selectable({
+  selected,
+  tint,
+  children,
+}: {
+  selected: boolean
+  tint: RGBA | undefined
+  children: ReactNode
+}) {
+  const tones = useTones()
+  const marked = selected && tint === undefined
+  const line = (
+    <text fg={COLOUR.text}>
+      <span fg={tones.accent}>{marked ? "▶ " : "  "}</span>
+      {children}
+    </text>
+  )
+
+  return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
+}
+
+// A repo beside this one: ticked or not, its name, then its path and what it has checked out.
+function RepoView({ item, widths }: { item: RepoItem; widths: Widths }) {
+  const tones = useTones()
+  const ticked = item.pick !== undefined
+
+  return (
+    <span>
+      <span fg={ticked ? tones.accent : tones.dim}>{ticked ? "[x] " : "[ ] "}</span>
+      <span>{fit(item.checkout.name, widths.name - 2).padEnd(widths.name - 2)}</span>
+      <span
+        fg={tones.dim}
+      >{`  ${item.checkout.path.padEnd(widths.path)}  ${repoDetail(item)}`}</span>
+    </span>
+  )
+}
+
+function ItemView({
+  item,
+  choice,
+  widths,
+  statuses,
+}: {
+  item: PickerItem
+  choice: ChangeChoice
+  widths: Widths
+  statuses: ReadonlyMap<string, TrekStatus>
+}) {
+  const tones = useTones()
+  if (item.kind === "fold") {
+    return <span fg={tones.dim}>{`▸ ${count(item.count, "more repo")}`}</span>
+  }
+
+  if (item.kind === "repo") {
+    return <RepoView item={item} widths={widths} />
+  }
+
+  return (
+    <ChangeView
+      row={item.row}
+      current={sameChange(item.row.choice, choice)}
+      widths={widths}
+      status={statuses.get(rowKey(item.row))}
+    />
+  )
+}
+
 /**
- * The changes to pick under their headings, the selected one on the tint (or marked, where the
- * terminal's colours aren't known), the current one marked with a dot; then a note under a
- * heading of its own, for a group with nothing to pick yet.
+ * Everything to pick under its heading, the selected line on the tint, the current change marked
+ * with a dot; the pull requests' note, for when there are none to pick yet, sits where they would.
  */
 export function PickerList({
-  rows,
+  items,
   chosen,
   choice,
   statuses,
   note,
   tint,
 }: {
-  rows: readonly PickerRow[]
+  items: readonly PickerItem[]
   chosen: number
   choice: ChangeChoice
   statuses: ReadonlyMap<string, TrekStatus>
   note: PickerNote | undefined
   tint: RGBA | undefined
 }) {
+  const widths = widthsOf(items)
+  const noteAt = noteIndex(items)
+
+  return (
+    <box flexDirection="column" style={{ flexShrink: 0 }}>
+      {items.map((item, index) => (
+        <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
+          {index === noteAt && <Note note={note} first={index === 0} />}
+          {startsGroup(items[index - 1], item) && (
+            <Heading group={groupOf(item)} first={index === 0 && noteAt !== 0} />
+          )}
+          <Selectable selected={index === chosen} tint={tint}>
+            <ItemView item={item} choice={choice} widths={widths} statuses={statuses} />
+          </Selectable>
+        </box>
+      ))}
+      {noteAt === items.length && <Note note={note} first={items.length === 0} />}
+    </box>
+  )
+}
+
+// An item under a different heading from the one before it, or the first.
+const startsGroup = (previous: PickerItem | undefined, item: PickerItem) =>
+  previous === undefined || groupOf(previous) !== groupOf(item)
+
+// The pull requests' note goes before the repos, or at the end when there are none.
+function noteIndex(items: readonly PickerItem[]): number {
+  const repos = items.findIndex((item) => item.kind !== "change")
+  return repos === -1 ? items.length : repos
+}
+
+function Note({ note, first }: { note: PickerNote | undefined; first: boolean }) {
   const tones = useTones()
-  const widths = {
-    name: Math.min(MAX_NAME_WIDTH, Math.max(...rows.map((row) => row.label.length))),
-    detail: Math.max(...rows.map((row) => row.detail.length)),
+  if (note === undefined) {
+    return null
   }
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
-      {rows.map((row, index) => (
-        <box key={rowKey(row)} flexDirection="column" style={{ flexShrink: 0 }}>
-          {rows[index - 1]?.group !== row.group && (
-            <Heading group={row.group} first={index === 0} />
-          )}
-          <RowView
-            row={row}
-            selected={index === chosen}
-            current={sameChoice(row.choice, choice)}
-            widths={widths}
-            status={statuses.get(rowKey(row))}
-            tint={tint}
-          />
-        </box>
-      ))}
-      {note !== undefined && <Heading group={note.group} first={rows.length === 0} />}
-      {note !== undefined && <text fg={tones[note.tone]}>{`    ${note.text}`}</text>}
+      <Heading group={note.group} first={first} />
+      <text fg={tones[note.tone]}>{`    ${note.text}`}</text>
     </box>
   )
+}
+
+// Names, repo paths, and details as wide as their longest, so later columns line up.
+function widthsOf(items: readonly PickerItem[]): Widths {
+  const rows = items.flatMap((item) => (item.kind === "change" ? [item.row] : []))
+  const repos = items.flatMap((item) => (item.kind === "repo" ? [item.checkout] : []))
+  const names = [
+    ...rows.map((row) => row.label.length),
+    ...repos.map((repo) => repo.name.length + 2),
+  ]
+
+  return {
+    name: Math.min(MAX_NAME_WIDTH, Math.max(0, ...names)),
+    detail: Math.max(0, ...rows.map((row) => row.detail.length)),
+    path: Math.max(0, ...repos.map((repo) => repo.path.length)),
+  }
 }

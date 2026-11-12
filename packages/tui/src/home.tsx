@@ -15,6 +15,7 @@ import {
   loadProposals,
   loadSettings,
   loadTrekEntries,
+  nearbyCheckouts,
   openPullRequests,
   saveSetting,
   trekStates,
@@ -79,6 +80,7 @@ function useChoosing(
 ): Choosing | undefined {
   const load = useCallback(() => branchChoices(root), [root])
   const pullRequests = useCallback(() => openPullRequests(root), [root])
+  const nearby = useCallback(() => nearbyCheckouts(root), [root])
   const status = useCallback((each: ChangeChoice) => choiceStatus(root, each), [root])
   if (follow === undefined) {
     return undefined
@@ -92,7 +94,7 @@ function useChoosing(
     )
   }
 
-  return { choice, load, pullRequests, status, onPick }
+  return { choice, load, pullRequests, nearby, status, onPick }
 }
 
 type HomeProps = {
