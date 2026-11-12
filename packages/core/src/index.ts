@@ -103,6 +103,7 @@ export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./
 export type { CodeTrek } from "./change/options"
 export type { RangeHead } from "./change/head"
 export { summarizeChange, type ChangeSummary, type ChangedRepoSummary } from "./change/summary"
+export { worktreeStamp } from "./change/stamp"
 export {
   hasRange,
   resolveChange,

@@ -107,6 +107,10 @@
   differ), with the repos and how many commits since the base on the right, which gives way
   first on a narrow terminal. Repos are named after their project's folder, so a worktree reads
   as its project, not its own folder.
+- `trek` follows the worktree while open: every two seconds it checks `worktreeStamp` (the
+  checked-out branch and commit, and each saved trek's file time) and the agent in the
+  settings, and when either moves it works the change out again (`openChange` in the CLI), so a
+  commit, a branch switch, a trek saved elsewhere, or an agent just set shows without a restart.
 
 ## 2026-11-03 — Milestone 6: the editors
 

@@ -9,10 +9,11 @@ import {
   startBuild,
   summarizeChange,
   trekStatus,
+  worktreeStamp,
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
 import { startServe } from "@srctrek/serve"
-import { startHome } from "@srctrek/tui"
+import { type HomeChange, startHome } from "@srctrek/tui"
 
 // The same repos as trek's args, followed from one trigger: --code="<trigger>" for --code.
 function argsForTrigger(args: string[], trigger: string): string[] {
@@ -31,8 +32,10 @@ async function buildTriggerTrek(
   await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
 }
 
-async function trek(args: string[]): Promise<void> {
-  const cwd = process.cwd()
+// The change trek's args name, as it stands now, with the agent as the settings name it now. A
+// change with no trek gets one started right away, when the user asked for that and there's an
+// agent to build it.
+async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
   const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
   const settings = await loadSettings()
   const agent = agentSetting(settings).command
@@ -44,15 +47,26 @@ async function trek(args: string[]): Promise<void> {
       ? undefined
       : (trigger: string) => buildTriggerTrek(cwd, args, agent, change, trigger)
 
-  // A change with no trek gets one started right away, when the user asked for that and there's an
-  // agent to build it.
   const startsBuild = settings.build_automatically === true && build !== undefined
   if (startsBuild && (await status()).kind === "missing") {
     await build()
   }
 
-  const summary = await summarizeChange(change)
-  await startHome(cwd, { summary, status, build, buildTrigger }, settings)
+  return { summary: await summarizeChange(change), status, build, buildTrigger }
+}
+
+// What moves the change on while trek is open: the worktree, and the agent the settings name.
+async function changeStamp(cwd: string): Promise<string> {
+  const agent = agentSetting(await loadSettings().catch(() => ({}))).command
+  return `${await worktreeStamp(cwd)}\n${agent ?? ""}`
+}
+
+async function trek(args: string[]): Promise<void> {
+  const cwd = process.cwd()
+  const change = await openChange(cwd, args)
+  const follow = { stamp: () => changeStamp(cwd), reopen: () => openChange(cwd, args) }
+
+  await startHome(cwd, change, await loadSettings(), follow)
 }
 
 // "mcp" or "serve" as the first word is the command: a folder by that name is given as ./mcp,

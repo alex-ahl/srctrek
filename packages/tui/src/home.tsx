@@ -19,6 +19,7 @@ import { createRoot, useRenderer } from "@opentui/react"
 import { useEffect, useState } from "react"
 import { App } from "./app"
 import { type Editor, availableEditors, openInEditor } from "./editors"
+import { type FollowChange, useFollow } from "./follow"
 import { openInPager } from "./pager"
 import type { SettingChange } from "./settings-screen"
 import { TERMINAL_TONES, type TerminalColours, TonesContext, bandFor, tonesFor } from "./theme"
@@ -51,7 +52,8 @@ const POLL_MS = 2000
 
 type HomeProps = {
   root: string
-  change: HomeChange | undefined
+  firstChange: HomeChange | undefined
+  follow: FollowChange | undefined
   firstEntries: TrekEntry[]
   firstStatus: TrekStatus | undefined
   firstProposals: ProposedRepo[]
@@ -64,7 +66,8 @@ type HomeProps = {
 }
 
 function Home(props: HomeProps) {
-  const { root, change, onOpen, onQuit, onShowFile } = props
+  const { root, onOpen, onQuit, onShowFile } = props
+  const [change, setChange] = useState(props.firstChange)
   const [settings, setSettings] = useState(props.firstSettings)
   const editor = props.editors.find((each) => each.id === settings.editor)
 
@@ -111,6 +114,14 @@ function Home(props: HomeProps) {
       () => undefined,
     )
   }, [renderer])
+
+  // The worktree moves on while trek is open: a commit, a branch switched, a trek saved elsewhere.
+  useFollow(props.follow, async (next) => {
+    setChange(next)
+    setEntries(await loadTrekEntries(root))
+    setProposals(await loadProposals(root))
+    setStatus(await next.status())
+  })
 
   // Each trek's state takes git calls, so the list is drawn first and the states fill in.
   useEffect(() => {
@@ -188,13 +199,14 @@ function Home(props: HomeProps) {
 }
 
 /**
- * The home screen: the treks saved under `root`, each opened in Neovim on enter, and where
- * the trek of the change trek was started for stands.
+ * The home screen: the treks saved under `root`, each opened in the chosen editor on enter, and
+ * where the change's trek stands, kept up with the worktree through `follow`.
  */
 export async function startHome(
   root: string,
   change?: HomeChange,
   settings: Settings = {},
+  follow?: FollowChange,
 ): Promise<void> {
   const firstEntries = await loadTrekEntries(root)
   const firstStatus = await change?.status()
@@ -205,7 +217,8 @@ export async function startHome(
   createRoot(renderer).render(
     <Home
       root={root}
-      change={change}
+      firstChange={change}
+      follow={follow}
       firstEntries={firstEntries}
       firstStatus={firstStatus}
       firstProposals={firstProposals}
