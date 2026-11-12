@@ -3,16 +3,19 @@ import { directoryIn } from "../files"
 import { detectBase } from "../git/base"
 import { checkedOutBranch } from "../git/refs"
 import { runGit } from "../git/run"
+import { parsePullRequestUrl } from "../repos/pull-request"
 import { readChangeArguments } from "./arguments"
 import { resolveChange } from "./resolve"
 
 /**
  * Which change trek is about, as the user chooses it on screen: their own branch (with or without
- * work not yet committed), another branch of the same repo, or what trek's arguments named.
+ * work not yet committed), another branch of the same repo, a pull request by its link, or what
+ * trek's arguments named.
  */
 export type ChangeChoice = Readonly<
   | { kind: "own"; uncommitted: boolean }
   | { kind: "branch"; name: string }
+  | { kind: "pull-request"; url: string }
   | { kind: "given"; args: readonly string[] }
 >
 
@@ -22,17 +25,34 @@ export function choiceArguments(choice: ChangeChoice): string[] {
     return choice.uncommitted ? ["--uncommitted"] : []
   }
 
-  return choice.kind === "branch" ? [`...${choice.name}`] : [...choice.args]
+  if (choice.kind === "branch") {
+    return [`...${choice.name}`]
+  }
+
+  return choice.kind === "pull-request" ? [choice.url] : [...choice.args]
 }
 
-/** The choice trek's arguments make: none, or only --uncommitted, is the user's own branch. */
+/**
+ * The choice trek's arguments make: none, or only --uncommitted, is the user's own branch; one
+ * pull request's link alone is that pull request.
+ */
 export function choiceOfArguments(args: readonly string[]): ChangeChoice {
-  if (args.length === 0) {
+  const [only] = args
+  if (only === undefined) {
     return { kind: "own", uncommitted: false }
   }
 
-  const onlyUncommitted = args.length === 1 && args[0] === "--uncommitted"
-  return onlyUncommitted ? { kind: "own", uncommitted: true } : { kind: "given", args }
+  if (args.length > 1) {
+    return { kind: "given", args }
+  }
+
+  if (only === "--uncommitted") {
+    return { kind: "own", uncommitted: true }
+  }
+
+  return parsePullRequestUrl(only) === undefined
+    ? { kind: "given", args }
+    : { kind: "pull-request", url: only }
 }
 
 /** A branch to choose, and how many commits it has since it left the base. */

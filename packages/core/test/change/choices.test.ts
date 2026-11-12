@@ -20,6 +20,14 @@ describe("choiceArguments and choiceOfArguments", () => {
     expect(choiceArguments({ kind: "own", uncommitted: true })).toEqual(["--uncommitted"])
   })
 
+  test("a pull request's link alone is that pull request, and back again", () => {
+    const url = "https://github.com/acme/api/pull/12"
+
+    expect(choiceOfArguments([url])).toEqual({ kind: "pull-request", url })
+    expect(choiceArguments({ kind: "pull-request", url })).toEqual([url])
+    expect(choiceOfArguments([url, "../web"])).toEqual({ kind: "given", args: [url, "../web"] })
+  })
+
   test("other arguments are kept as given", () => {
     const given = choiceOfArguments(["main...feature", "../api"])
 
