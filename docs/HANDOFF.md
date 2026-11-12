@@ -388,6 +388,8 @@ The screen:
   (`]t next · [t back · <leader>tt details · ? keys`) with the full list behind `?`. Check how
   long the agent's overviews run in the evals, and whether the prompt needs a limit.
 - Check the name before going public.
+- A build can't be stopped once it's started: not from the home screen, `trek serve`, or the
+  editors. For Milestone 8's rough-edges list, or a key on a building trek.
 - Stop ignoring the .srctrek folder once treks are written with portable sources; clear
   out local-only files (demo treks, changed-lines files) first.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.

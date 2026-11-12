@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-12 — Every change can be chosen in the terminal; trek follows the worktree
+
+`trek` with no arguments is the main way in: it opens on the worktree's branch and follows it
+while open, picking up new commits, a branch switch, and treks built elsewhere. Every other way
+of choosing a change (another branch, a pull request, more repos) can be done from the terminal;
+arguments stay as a shortcut for scripts. A repo named without a range will mean its checked-out
+branch, passed through unchanged when that's its default branch.
+
+trek is opened once per workspace and left open, so a change worked out at startup goes stale.
+Branches across repos rarely share a name, and the argument grammar (a range applies to the repo
+before it) is hard to read; choosing on screen needs neither.
+
 ## 2026-11-10 — Secondary text is mixed from the terminal's own colours
 
 Once the terminal reports its text and background colours, secondary text (help, details,
