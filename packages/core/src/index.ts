@@ -105,6 +105,14 @@ export type { RangeHead } from "./change/head"
 export { summarizeChange, type ChangeSummary, type ChangedRepoSummary } from "./change/summary"
 export { worktreeStamp } from "./change/stamp"
 export {
+  branchChoices,
+  choiceArguments,
+  choiceOfArguments,
+  type BranchChoice,
+  type BranchChoices,
+  type ChangeChoice,
+} from "./change/choices"
+export {
   hasRange,
   resolveChange,
   withRouteRepo,
