@@ -111,6 +111,11 @@
   checked-out branch and commit, and each saved trek's file time) and the agent in the
   settings, and when either moves it works the change out again (`openChange` in the CLI), so a
   commit, a branch switch, a trek saved elsewhere, or an agent just set shows without a restart.
+- The change can be chosen on screen: `C` opens a picker with the user's own branch first (with or
+  without work not yet committed) and the repo's other branches (`branchChoices`), each saying
+  what it opens; a pick becomes trek's arguments (`choiceArguments`), so following the worktree
+  reopens it, and the title bar marks it `· picked`. Pull requests, more repos, and code as it
+  is come next.
 
 ## 2026-11-03 — Milestone 6: the editors
 

@@ -35,11 +35,12 @@ export function choiceOfArguments(args: readonly string[]): ChangeChoice {
 export type BranchChoice = Readonly<{ name: string; commits: number }>
 
 /**
- * The branches of the repo at `cwd` to choose from: the one checked out, the files changed and
- * not yet committed there, and the others most recently committed to first, leaving out the base
- * and branches with nothing since it.
+ * The branches of the repo at `cwd` to choose from: the base they're counted from, the one checked
+ * out, the files changed and not yet committed there, and the others most recently committed to
+ * first, leaving out the base and branches with nothing since it.
  */
 export type BranchChoices = Readonly<{
+  base: string
   own: BranchChoice | undefined
   uncommittedFiles: number
   others: readonly BranchChoice[]
@@ -86,6 +87,7 @@ export async function branchChoices(cwd: string): Promise<BranchChoices> {
       : { name: current, commits: await commitsSince(cwd, base, current) }
 
   return {
+    base,
     own,
     uncommittedFiles: await uncommittedFiles(cwd),
     others: counted.filter((branch) => branch.commits > 0),

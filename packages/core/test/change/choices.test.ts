@@ -48,6 +48,7 @@ describe("branchChoices", () => {
 
     const choices = await branchChoices(dir)
 
+    expect(choices.base).toBe("main")
     expect(choices.own).toEqual({ name: "feature/refunds", commits: 1 })
     expect(choices.uncommittedFiles).toBe(1)
     expect(choices.others).toEqual([{ name: "fix/rounding", commits: 1 }])

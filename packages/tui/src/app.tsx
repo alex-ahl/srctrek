@@ -1,4 +1,6 @@
 import type {
+  BranchChoices,
+  ChangeChoice,
   ChangeSummary,
   ProposedRepo,
   Settings as UserSettings,
@@ -9,6 +11,7 @@ import type {
 import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { type ReactNode, useState } from "react"
+import { ChangePicker } from "./change-picker"
 import { ChangeStatus } from "./change-status"
 import { EditorPicker } from "./editor-picker"
 import { type SettingChange, SettingsScreen } from "./settings-screen"
@@ -30,6 +33,13 @@ import { visibleWindow } from "./window"
 
 type Action = (() => void) | undefined
 
+/** What the change picker needs: the change chosen now, the changes to offer, and the pick. */
+export type Choosing = Readonly<{
+  choice: ChangeChoice
+  load: () => Promise<BranchChoices>
+  onPick: (choice: ChangeChoice) => void
+}>
+
 type Props = {
   entries: TrekEntry[]
   onOpen: (entry: TrekEntry) => void
@@ -49,8 +59,8 @@ type Props = {
   onDismissRepo?: ((name: string) => void) | undefined
   // what the change is, for the title bar; absent when trek was started without one
   summary?: ChangeSummary | undefined
-  // whether the change is one picked, not the user's own branch
-  picked?: boolean | undefined
+  // the change chosen, the changes to choose from, and what picking one does; absent, C does nothing
+  choosing?: Choosing | undefined
   // where each saved trek stands against its branches, by name, as far as it's known yet
   states?: ReadonlyMap<string, TrekState> | undefined
   // the time "built today" is measured from; now, unless a test fixes it
@@ -153,13 +163,19 @@ function shownItems(visible: readonly ListLine[], total: number): string {
   return `${first + 1}–${last + 1} of ${total}`
 }
 
-// What enter, b, l, and d do here, for the footer; only keys that do something are listed.
+// A change other than the user's own branch, picked on screen or named by trek's arguments.
+function isPicked(choosing: Choosing | undefined): boolean {
+  return choosing !== undefined && choosing.choice.kind !== "own"
+}
+
+// What enter, b, l, d, and C do here, for the footer; only keys that do something are listed.
 function keyHints(
   item: Item | undefined,
   status: TrekStatus | undefined,
   actions: RowActions,
-  editor: Editor | undefined,
+  props: Props,
 ) {
+  const { editor } = props
   const row = item?.kind === "row" ? item.row : undefined
   const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row, editor)
 
@@ -167,6 +183,7 @@ function keyHints(
     build: actions.build === undefined ? undefined : buildVerb(status),
     log: actions.showLog !== undefined,
     dismiss: actions.dismiss !== undefined,
+    change: props.choosing !== undefined,
   })
 }
 
@@ -268,7 +285,49 @@ function Bottom({
   )
 }
 
-// The settings screen, over the list, which keeps its selection for when it closes.
+// The change picker, over the list; picking closes it and reopens the home screen on the pick.
+function Picker({
+  choosing,
+  tint,
+  close,
+}: {
+  choosing: Choosing
+  tint: RGBA | undefined
+  close: () => void
+}) {
+  const pick = (choice: ChangeChoice) => {
+    close()
+    choosing.onPick(choice)
+  }
+
+  return (
+    <ChangePicker
+      choice={choosing.choice}
+      load={choosing.load}
+      onPick={pick}
+      onBack={close}
+      tint={tint}
+    />
+  )
+}
+
+// What can open over the list, which keeps its selection for when it closes.
+type Over = "settings" | "picker"
+
+// The screen open over the list, if any: the picker only where there's a change to choose.
+function overlayFor(over: Over | undefined, props: Props, close: () => void): ReactNode {
+  if (over === "settings") {
+    return <Settings props={props} close={close} />
+  }
+
+  if (over !== "picker" || props.choosing === undefined) {
+    return undefined
+  }
+
+  return <Picker choosing={props.choosing} tint={props.tint} close={close} />
+}
+
+// The settings screen, over the list.
 function Settings({ props, close }: { props: Props; close: () => void }) {
   return (
     <SettingsScreen
@@ -290,7 +349,7 @@ export function App(props: Props) {
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
   const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
-  const [inSettings, setInSettings] = useState(false)
+  const [over, setOver] = useState<Over | undefined>(undefined)
   // when the screen opened, which "built today" is measured from
   const [now] = useState(() => props.now ?? new Date())
 
@@ -326,10 +385,13 @@ export function App(props: Props) {
   ])
   const shifted = new Map([
     ["e", () => setPrompt({ kind: "editor" })],
-    ["s", () => setInSettings(true)],
+    ["s", () => setOver("settings")],
+    ["c", () => setOver("picker")],
   ])
-  // While a prompt or settings is open, keys go there, not to the list.
-  useKeyboard((key) => prompt === undefined && !inSettings && listKey(key, actions, shifted))
+  // While a prompt, settings, or the picker is open, keys go there, not to the list.
+  const overlay = overlayFor(over, props, () => setOver(undefined))
+  const onList = prompt === undefined && overlay === undefined
+  useKeyboard((key) => onList && listKey(key, actions, shifted))
 
   const { width, height } = useTerminalDimensions()
   const changeEntry = entries.find((entry) => entry.name === status?.name)
@@ -345,13 +407,13 @@ export function App(props: Props) {
   const columns = columnsOf(visibleRows, width, { status, states, now })
   const context = { width, now, columns, status, states, tint: props.tint }
 
-  if (inSettings) {
-    return <Settings props={props} close={() => setInSettings(false)} />
+  if (overlay !== undefined) {
+    return overlay
   }
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <TitleBar summary={props.summary} picked={props.picked === true} />
+      <TitleBar summary={props.summary} picked={isPicked(props.choosing)} />
       <box
         flexDirection="column"
         style={{
@@ -381,7 +443,7 @@ export function App(props: Props) {
         prompt={prompt}
         props={props}
         footer={
-          <Footer keys={keyHints(item, status, { ...rowActions, pick }, editor)} shown={shown} />
+          <Footer keys={keyHints(item, status, { ...rowActions, pick }, props)} shown={shown} />
         }
         close={() => setPrompt(undefined)}
       />

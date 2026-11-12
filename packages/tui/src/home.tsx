@@ -7,6 +7,8 @@ import {
   type TrekState,
   type TrekStatus,
   acceptProposal,
+  branchChoices,
+  choiceArguments,
   buildFiles,
   dismissProposal,
   loadProposals,
@@ -17,8 +19,8 @@ import {
 } from "@srctrek/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot, useRenderer } from "@opentui/react"
-import { useEffect, useState } from "react"
-import { App } from "./app"
+import { useCallback, useEffect, useState } from "react"
+import { App, type Choosing } from "./app"
 import { type Editor, availableEditors, openInEditor } from "./editors"
 import { type FollowChange, useFollow } from "./follow"
 import { openInPager } from "./pager"
@@ -54,6 +56,30 @@ const SETTINGS_POLL_MS = 2000
 // A build takes minutes, so checking every couple of seconds is plenty.
 const POLL_MS = 2000
 
+/**
+ * What the change picker needs from here: the choice now, this repo's branches, and a pick that
+ * works out the picked change before handing it on. Without a way to reopen, there's no picker.
+ */
+function useChoosing(
+  root: string,
+  follow: FollowChange | undefined,
+  choice: ChangeChoice,
+  onPicked: (choice: ChangeChoice, change: HomeChange) => void,
+): Choosing | undefined {
+  const load = useCallback(() => branchChoices(root), [root])
+  if (follow === undefined) {
+    return undefined
+  }
+
+  const onPick = (picked: ChangeChoice) =>
+    void follow.open(choiceArguments(picked)).then(
+      (next) => onPicked(picked, next),
+      () => undefined,
+    )
+
+  return { choice, load, onPick }
+}
+
 type HomeProps = {
   root: string
   firstChange: HomeChange | undefined
@@ -73,7 +99,7 @@ type HomeProps = {
 function Home(props: HomeProps) {
   const { root, onOpen, onQuit, onShowFile } = props
   const [change, setChange] = useState(props.firstChange)
-  const [choice] = useState(props.firstChoice)
+  const [choice, setChoice] = useState(props.firstChoice)
   const [settings, setSettings] = useState(props.firstSettings)
   const editor = props.editors.find((each) => each.id === settings.editor)
 
@@ -121,12 +147,19 @@ function Home(props: HomeProps) {
     )
   }, [renderer])
 
-  // The worktree moves on while trek is open: a commit, a branch switched, a trek saved elsewhere.
-  useFollow(props.follow, choice, async (next) => {
+  // A change worked out anew: the list, proposals, and where its trek stands come with it.
+  const show = async (next: HomeChange) => {
     setChange(next)
     setEntries(await loadTrekEntries(root))
     setProposals(await loadProposals(root))
     setStatus(await next.status())
+  }
+
+  // The worktree moves on while trek is open: a commit, a branch switched, a trek saved elsewhere.
+  useFollow(props.follow, choice, show)
+  const choosing = useChoosing(root, props.follow, choice, (picked, next) => {
+    setChoice(picked)
+    void show(next)
   })
 
   // Each trek's state takes git calls, so the list is drawn first and the states fill in.
@@ -197,7 +230,7 @@ function Home(props: HomeProps) {
         onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
         onDismissRepo={(name) => void settle(dismissProposal(root, name))}
         summary={change?.summary}
-        picked={choice.kind !== "own"}
+        choosing={choosing}
         states={states}
         tint={tint}
       />

@@ -382,6 +382,79 @@
         </div>
       </div>
     </figure>
+    <p class="note">Trying: choosing the change on screen. <code>C</code> opens a picker over the list; picking reopens the home screen on that change. Your own branch is first and selected when it opens; each row says what it would open and whether a trek of it exists. The line above the footer spells out the result.</p>
+    <figure><figcaption>Trying: the change picker, in a plain clone of web on feature/refunds</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="dim">change</span></span><span>web</span></div>
+        <div class="pane">
+          <div class="ln dim">YOUR WORK</div>
+          <div class="ln sel">  <span class="a">●</span> <span class="bold">feature/refunds</span>          <span class="dim">3 commits since main</span>        <span class="g">● trek ready</span></div>
+          <div class="ln">    with uncommitted work      <span class="dim">2 files changed</span>             <span class="dim">○ no trek yet</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">OTHER BRANCHES</div>
+          <div class="ln">    fix/rounding               <span class="dim">1 commit since main</span>         <span class="dim">○ no trek yet</span></div>
+          <div class="ln">    feature/partial-refunds    <span class="dim">5 commits since main</span>        <span class="y">≠ trek stale</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">A PULL REQUEST</div>
+          <div class="ln">    paste its link             <span class="dim">a pull or merge request URL</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">MORE REPOS</div>
+          <div class="ln">    <span class="dim">[ ]</span> api                    <span class="dim">../api      on refunds-api · 4 commits since main</span></div>
+          <div class="ln">    <span class="dim">[ ]</span> worker                 <span class="dim">../worker   on main · passed through</span></div>
+          <div class="ln"> </div>
+          <div class="ln dim">CODE AS IT IS</div>
+          <div class="ln">    walk web as it is          <span class="dim">from a trigger you name or the agent finds</span></div>
+        </div>
+        <div class="help-panel">
+          <div class="ln"><span class="dim">Opens:</span> feature/refunds in web <span class="dim">· 3 commits since main</span></div>
+        </div>
+        <div class="foot">↑/↓ choose · enter review this · space add repo · esc keep current</div>
+      </div>
+    </figure>
+    <figure><figcaption>Trying: the picker with two repos ticked, the result spelled out</figcaption>
+      <div class="term screen">
+        <div class="pane">
+          <div class="ln dim">MORE REPOS</div>
+          <div class="ln sel">    <span class="a">[x]</span> api                    <span class="dim">../api      on refunds-api · 4 commits since main</span></div>
+          <div class="ln">    <span class="a">[x]</span> worker                 <span class="dim">../worker   on main · passed through</span></div>
+        </div>
+        <div class="help-panel">
+          <div class="ln"><span class="dim">Opens:</span> feature/refunds in web, refunds-api in api <span class="dim">· worker passed through · 7 commits</span></div>
+        </div>
+        <div class="foot">↑/↓ choose · enter review this · space remove repo · esc keep current</div>
+      </div>
+    </figure>
+    <p class="note">Trying: once something other than your branch is picked, the title bar says so; on your branch nothing is labelled. <code>C</code> opens the picker on your branch either way, so going back is <code>C</code> then enter. Three ways to draw it, after picking pull request 12 in api:</p>
+    <figure><figcaption>1. A word in the title bar</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">pr 12</span> <span class="dim">· picked</span></span><span>api · 4 commits</span></div>
+        <div class="pane">
+          <div class="ln"><span class="g">● ready</span>  <span class="bold">pr-12</span>  <span class="dim">14 steps · 1 repo</span></div>
+          <div class="ln dim">  Partial refund of order o_1002: from the refund endpoint to the ledger</div>
+        </div>
+        <div class="foot">↑/↓ choose · enter open in Neovim · C change · S settings · q quit</div>
+      </div>
+    </figure>
+    <figure><figcaption>2. The footer only</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">pr 12</span></span><span>api · 4 commits</span></div>
+        <div class="pane">
+          <div class="ln"><span class="g">● ready</span>  <span class="bold">pr-12</span>  <span class="dim">14 steps · 1 repo</span></div>
+          <div class="ln dim">  Partial refund of order o_1002: from the refund endpoint to the ledger</div>
+        </div>
+        <div class="foot">↑/↓ choose · enter open in Neovim · C change · S settings · q quit</div>
+      </div>
+    </figure>
+    <figure><figcaption>3. An accent marker on the name</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="a">◆ pr 12</span></span><span>api · 4 commits</span></div>
+        <div class="pane">
+          <div class="ln"><span class="g">● ready</span>  <span class="bold">pr-12</span>  <span class="dim">14 steps · 1 repo</span></div>
+          <div class="ln dim">  Partial refund of order o_1002: from the refund endpoint to the ledger</div>
+        </div>
+        <div class="foot">↑/↓ choose · enter open in Neovim · C change · S settings · q quit</div>
+      </div>
+    </figure>
   </section>
 
   <section>

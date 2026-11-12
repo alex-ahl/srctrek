@@ -114,7 +114,13 @@ test("marks a change picked rather than the user's own branch", async () => {
     code: false,
   }
 
-  expect(await frameOf({ summary, picked: true })).toContain("srctrek › fix/rounding · picked ")
+  const choosing = {
+    choice: { kind: "branch" as const, name: "fix/rounding" },
+    load: () => Promise.reject(new Error("unused")),
+    onPick: () => undefined,
+  }
+
+  expect(await frameOf({ summary, choosing })).toContain("srctrek › fix/rounding · picked ")
   expect(await frameOf({ summary })).not.toContain("picked")
 })
 
