@@ -2,6 +2,7 @@ import {
   type ResolvedChange,
   agentSetting,
   buildChangeTrek,
+  choiceOfArguments,
   directoryIn,
   loadSettings,
   readChangeArguments,
@@ -64,7 +65,11 @@ async function changeStamp(cwd: string): Promise<string> {
 async function trek(args: string[]): Promise<void> {
   const cwd = process.cwd()
   const change = await openChange(cwd, args)
-  const follow = { stamp: () => changeStamp(cwd), reopen: () => openChange(cwd, args) }
+  const follow = {
+    choice: choiceOfArguments(args),
+    stamp: () => changeStamp(cwd),
+    open: (chosen: string[]) => openChange(cwd, chosen),
+  }
 
   await startHome(cwd, change, await loadSettings(), follow)
 }

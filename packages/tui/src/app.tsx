@@ -49,6 +49,8 @@ type Props = {
   onDismissRepo?: ((name: string) => void) | undefined
   // what the change is, for the title bar; absent when trek was started without one
   summary?: ChangeSummary | undefined
+  // whether the change is one picked, not the user's own branch
+  picked?: boolean | undefined
   // where each saved trek stands against its branches, by name, as far as it's known yet
   states?: ReadonlyMap<string, TrekState> | undefined
   // the time "built today" is measured from; now, unless a test fixes it
@@ -349,7 +351,7 @@ export function App(props: Props) {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <TitleBar summary={props.summary} />
+      <TitleBar summary={props.summary} picked={props.picked === true} />
       <box
         flexDirection="column"
         style={{

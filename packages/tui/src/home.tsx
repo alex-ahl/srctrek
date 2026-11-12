@@ -1,4 +1,5 @@
 import {
+  type ChangeChoice,
   type ChangeSummary,
   type ProposedRepo,
   type Settings,
@@ -44,6 +45,9 @@ function isBuilding(status: TrekStatus | undefined): boolean {
   return status?.kind === "building"
 }
 
+// What trek is about when nothing else was chosen.
+const OWN_BRANCH: ChangeChoice = { kind: "own", uncommitted: false }
+
 // Often enough that an agent's save shows up while the user waits for it.
 const SETTINGS_POLL_MS = 2000
 
@@ -53,6 +57,7 @@ const POLL_MS = 2000
 type HomeProps = {
   root: string
   firstChange: HomeChange | undefined
+  firstChoice: ChangeChoice
   follow: FollowChange | undefined
   firstEntries: TrekEntry[]
   firstStatus: TrekStatus | undefined
@@ -68,6 +73,7 @@ type HomeProps = {
 function Home(props: HomeProps) {
   const { root, onOpen, onQuit, onShowFile } = props
   const [change, setChange] = useState(props.firstChange)
+  const [choice] = useState(props.firstChoice)
   const [settings, setSettings] = useState(props.firstSettings)
   const editor = props.editors.find((each) => each.id === settings.editor)
 
@@ -116,7 +122,7 @@ function Home(props: HomeProps) {
   }, [renderer])
 
   // The worktree moves on while trek is open: a commit, a branch switched, a trek saved elsewhere.
-  useFollow(props.follow, async (next) => {
+  useFollow(props.follow, choice, async (next) => {
     setChange(next)
     setEntries(await loadTrekEntries(root))
     setProposals(await loadProposals(root))
@@ -191,6 +197,7 @@ function Home(props: HomeProps) {
         onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
         onDismissRepo={(name) => void settle(dismissProposal(root, name))}
         summary={change?.summary}
+        picked={choice.kind !== "own"}
         states={states}
         tint={tint}
       />
@@ -218,6 +225,7 @@ export async function startHome(
     <Home
       root={root}
       firstChange={change}
+      firstChoice={follow?.choice ?? OWN_BRANCH}
       follow={follow}
       firstEntries={firstEntries}
       firstStatus={firstStatus}

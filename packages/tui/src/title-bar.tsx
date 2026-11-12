@@ -71,24 +71,44 @@ function sizeText(summary: ChangeSummary): string {
 }
 
 const NAME = "srctrek"
+const PICKED = " · picked"
 /** Between srctrek and what the screen is about, in every title bar. */
 export const TITLE_SEPARATOR = " › "
 // Below this, the right side is left out rather than cut to a stub.
 const MIN_SIZE_WIDTH = 12
 
+// The bar's texts cut to a terminal `width` wide: the change gets its room first, and the size
+// gives way, left out entirely below a stub's width.
+function fitted(summary: ChangeSummary, picked: boolean, width: number) {
+  const change = changeText(summary)
+  const label = picked ? PICKED : ""
+  const room = width - 2 * PADDING - NAME.length - TITLE_SEPARATOR.length - label.length
+  const sizeRoom = room - change.length - 2
+  const size = sizeRoom < MIN_SIZE_WIDTH ? "" : fit(sizeText(summary), sizeRoom)
+
+  return { change: fit(change, room - (size === "" ? 0 : size.length + 2)), label, size }
+}
+
+const NO_CHANGE = { change: "", label: "", size: "" }
+
 /**
- * The top line: srctrek and the change on the left, where it is and its size on the right, ruled
- * off below. The change is what the screen is about, so the right gives way first.
+ * The top line: srctrek and the change on the left, marked when it's one picked rather than the
+ * user's own branch, where it is and its size on the right, ruled off below.
  */
-export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
+export function TitleBar({
+  summary,
+  picked,
+}: {
+  summary: ChangeSummary | undefined
+  picked: boolean
+}) {
   const tones = useTones()
   const { width } = useTerminalDimensions()
-  const change = summary === undefined ? "" : changeText(summary)
-  const room = width - 2 * PADDING - NAME.length - TITLE_SEPARATOR.length
-  const sizeRoom = room - change.length - 2
-  const size =
-    summary === undefined || sizeRoom < MIN_SIZE_WIDTH ? "" : fit(sizeText(summary), sizeRoom)
-  const shownChange = fit(change, room - (size === "" ? 0 : size.length + 2))
+  const {
+    change: shownChange,
+    label,
+    size,
+  } = summary === undefined ? NO_CHANGE : fitted(summary, picked, width)
 
   return (
     <box
@@ -102,6 +122,7 @@ export function TitleBar({ summary }: { summary: ChangeSummary | undefined }) {
         <span attributes={TextAttributes.BOLD}>{NAME}</span>
         {shownChange !== "" && <span fg={tones.dim}>{TITLE_SEPARATOR}</span>}
         {shownChange !== "" && <span>{shownChange}</span>}
+        {label !== "" && <span fg={tones.dim}>{label}</span>}
       </text>
       {size !== "" && <text fg={tones.dim}>{size}</text>}
     </box>

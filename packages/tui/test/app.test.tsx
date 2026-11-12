@@ -100,6 +100,24 @@ test("leaves the repo unnamed for a change in just the one trek runs in", async 
   expect(frame).not.toContain("web")
 })
 
+test("marks a change picked rather than the user's own branch", async () => {
+  const summary: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "branch", name: "fix/rounding", uncommitted: false },
+        commits: 1,
+      },
+    ],
+    unchanged: [],
+    code: false,
+  }
+
+  expect(await frameOf({ summary, picked: true })).toContain("srctrek › fix/rounding · picked ")
+  expect(await frameOf({ summary })).not.toContain("picked")
+})
+
 test("gives the change the room before its size on a narrow terminal", async () => {
   const summary: ChangeSummary = {
     changed: [
