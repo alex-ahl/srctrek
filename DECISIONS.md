@@ -2,6 +2,18 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-13 — The website is static and self-hosted
+
+srctrek.dev is a static Astro site in `site/`, a package of its own outside the workspaces, built
+to plain files and served by a host of our choosing. The install script is a static file at
+`/install`; it downloads the binary for the platform from the GitHub release and checks it against
+the release's SHA256SUMS. Releases carry `trek-darwin-arm64`, `trek-linux-x64`,
+`trek-linux-arm64`, and SHA256SUMS, tagged `v<version>`.
+
+A landing page needs no server, and static files can move hosts without changes. Outside the
+workspaces, the site's dependencies stay out of the root lockfile and the binary's build. The
+release layout is fixed now so the script and the release workflow, still to come, agree on it.
+
 ## 2026-11-12 — Every change can be chosen in the terminal; trek follows the worktree
 
 `trek` with no arguments is the main way in: it opens on the worktree's branch and follows it

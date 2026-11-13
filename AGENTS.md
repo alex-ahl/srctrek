@@ -24,14 +24,15 @@ migration layers. When something changes, change it everywhere at once.
 
 ## Commands
 
-| Command               | Does                                                    |
-| --------------------- | ------------------------------------------------------- |
-| `bun install`         | Install dependencies (Bun >= 1.3.14)                    |
-| `bun run check`       | Typecheck, lint, format check, tests, docs check        |
-| `bun run format`      | Format everything with Prettier                         |
-| `bun run build`       | Compile the `trek` binary into dist                     |
-| `bun run build:smoke` | Compile the render smoke binary into dist               |
-| `bun run check:docs`  | Verify paths and links in current docs, package READMEs |
+| Command                    | Does                                                              |
+| -------------------------- | ----------------------------------------------------------------- |
+| `bun install`              | Install dependencies (Bun >= 1.3.14)                              |
+| `bun run check`            | Typecheck, lint, format check, tests, docs check                  |
+| `bun run format`           | Format everything with Prettier                                   |
+| `bun run build`            | Compile the `trek` binary into dist                               |
+| `bun run build:smoke`      | Compile the render smoke binary into dist                         |
+| `bun run check:docs`       | Verify paths and links in current docs, package READMEs           |
+| `bun run --cwd site build` | Build the website into site/dist (after `bun install --cwd site`) |
 
 ## Layout
 
@@ -47,3 +48,5 @@ migration layers. When something changes, change it everywhere at once.
 - `editors/vscode/` — the VS Code extension, for VS Code and its forks.
 - `evals/fixtures/` — sample repos for trek-quality evals.
 - `scripts/` — repo tooling.
+- `site/` — the website, srctrek.dev: a static Astro site in its own package, outside the
+  workspaces, with the install script at `site/public/install`.

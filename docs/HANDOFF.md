@@ -1,5 +1,23 @@
 # Handoff
 
+## 2026-11-13 — The website
+
+**Done**
+
+- `site/`: the landing page for srctrek.dev, static Astro with no outside requests, in dark and
+  light themes: the problem, how it works, what you get, and what it is not, with share cards.
+  `bun run --cwd site build` writes it to `site/dist`; CI builds it on every push.
+- `site/public/install`, served at `srctrek.dev/install`: `curl -fsSL https://srctrek.dev/install | sh`
+  installs `trek` to `~/.local/bin` from the latest GitHub release, checked against its
+  SHA256SUMS. `SRCTREK_VERSION` pins a release, `SRCTREK_INSTALL_DIR` picks the folder. The hero
+  shows the command with a Copy button.
+
+**Next**
+
+- A release workflow that publishes the binaries and SHA256SUMS the script expects. Until then
+  the install command fails, so the site isn't deployed.
+- The hero's clip: a trek stepped in the editor and the terminal, in place of the placeholder.
+
 ## 2026-11-09 — Milestone 7: the terminal
 
 **Done**
