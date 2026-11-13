@@ -296,6 +296,7 @@ function Bottom({
       current={props.editor}
       onPick={pick}
       onCancel={close}
+      tint={props.tint}
     />
   )
 }

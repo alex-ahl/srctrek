@@ -1,6 +1,7 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { SettingRow } from "./rows"
 import { fit } from "../ui/text"
+import { Selectable } from "../ui/selectable"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 
 const NAME_WIDTH = 24
@@ -49,11 +50,9 @@ function RowView({
 }) {
   const tones = useTones()
   const value = fit(row.value, lineWidth - 2 - NAME_WIDTH - extrasWidth(row))
-  const marked = selected && tint === undefined
 
-  const line = (
-    <text fg={COLOUR.text}>
-      <span fg={tones.accent}>{marked ? "▶ " : "  "}</span>
+  return (
+    <Selectable selected={selected} tint={tint}>
       <span>{row.name.padEnd(NAME_WIDTH)}</span>
       {row.tone === undefined ? (
         <span attributes={TextAttributes.BOLD}>{value}</span>
@@ -65,10 +64,8 @@ function RowView({
       )}
       {row.note !== undefined && <span fg={tones.dim}>{`${GAP}${row.note}`}</span>}
       {row.sample !== undefined && <Sample />}
-    </text>
+    </Selectable>
   )
-
-  return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
 }
 
 // The rows of each group under its heading, a blank line between groups.

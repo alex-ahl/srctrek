@@ -1,6 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 import type { Item, ListLine } from "./lines"
 import { type RowContext, RowView } from "./rows"
+import { Band } from "../../ui/selectable"
 import { COLOUR, useTones } from "../../ui/theme"
 import { count } from "../../ui/text"
 
@@ -50,10 +51,9 @@ export function ListLineView({
     return <FoldView item={item} selected={isSelected} />
   }
 
-  const row = <RowView row={item.row} selected={isSelected} context={context} />
-  if (!isSelected || context.tint === undefined) {
-    return row
-  }
-
-  return <box style={{ backgroundColor: context.tint }}>{row}</box>
+  return (
+    <Band selected={isSelected} tint={context.tint}>
+      <RowView row={item.row} selected={isSelected} context={context} />
+    </Band>
+  )
 }

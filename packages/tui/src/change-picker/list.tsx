@@ -1,10 +1,11 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
-import { type ReactNode, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { DropLines, type DropView } from "./drop-view"
 import { type FoldItem, type RepoItem, repoBranch, repoNotes } from "./repos"
 import { type PickerGroup, type PickerRow, sameChange } from "./rows"
 import { statusBlock } from "../home/status-block"
+import { Selectable } from "../ui/selectable"
 import { count, fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 
@@ -111,28 +112,6 @@ function itemKey(item: PickerItem): string {
   }
 
   return item.kind === "repo" ? `repo:${item.checkout.path}` : "fold"
-}
-
-// The selected line on the tint, or marked where the terminal's colours aren't known.
-function Selectable({
-  selected,
-  tint,
-  children,
-}: {
-  selected: boolean
-  tint: RGBA | undefined
-  children: ReactNode
-}) {
-  const tones = useTones()
-  const marked = selected && tint === undefined
-  const line = (
-    <text fg={COLOUR.text}>
-      <span fg={tones.accent}>{marked ? "▶ " : "  "}</span>
-      {children}
-    </text>
-  )
-
-  return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
 }
 
 // A repo beside this one: ticked or not, its name and path, its branch, with → to open its

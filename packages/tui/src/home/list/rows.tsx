@@ -3,6 +3,7 @@ import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/
 import { type Columns, EDGES, GAP, builtText, flagsText } from "./columns"
 import { type StateLabel, type States, detailOf, stateOf } from "./row-state"
 import { statusBlock } from "../status-block"
+import { selectionMarker } from "../../ui/selectable"
 import { COLOUR, useTones } from "../../ui/theme"
 import { fit } from "../../ui/text"
 
@@ -55,9 +56,7 @@ export type RowContext = Readonly<{
 
 // The selection's marker, where no tint shows it.
 function Marker({ selected, context }: { selected: boolean; context: RowContext }) {
-  const marked = selected && context.tint === undefined
-
-  return <span fg={useTones().accent}>{marked ? "▶ " : "  "}</span>
+  return <span fg={useTones().accent}>{selectionMarker(selected, context.tint)}</span>
 }
 
 // The row's title in its column, bold when selected, cut to leave a gap before the next column.

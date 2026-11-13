@@ -1,8 +1,9 @@
-import { TextAttributes } from "@opentui/core"
+import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useState } from "react"
 import type { Editor } from "./editors"
 import { PADDING } from "../ui/layout"
+import { Selectable } from "../ui/selectable"
 import { COLOUR, useTones } from "../ui/theme"
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
   current: Editor | undefined
   onPick: (editor: Editor) => void
   onCancel: () => void
+  // the chosen row's background, when the terminal's colours are known
+  tint: RGBA | undefined
 }
 
 const NONE_FOUND = "No editor to open treks in: install Neovim, or set $EDITOR."
@@ -20,7 +23,7 @@ const how = (editor: Editor) =>
   editor.steps ? editor.command : "at the first stop, without stepping"
 
 /** Asks which editor treks open in: the editors found here, j/k to choose, enter to pick, esc. */
-export function EditorPicker({ editors, current, onPick, onCancel }: Props) {
+export function EditorPicker({ editors, current, onPick, onCancel, tint }: Props) {
   const tones = useTones()
   const [chosen, setChosen] = useState(
     Math.max(
@@ -54,13 +57,12 @@ export function EditorPicker({ editors, current, onPick, onCancel }: Props) {
       <text fg={COLOUR.text}>Open treks in:</text>
       {editors.length === 0 && <text fg={tones.dim}>{NONE_FOUND}</text>}
       {editors.map((editor, i) => (
-        <text key={editor.id} fg={COLOUR.text}>
-          <span fg={tones.accent}>{i === chosen ? "▶ " : "  "}</span>
+        <Selectable key={editor.id} selected={i === chosen} tint={tint}>
           <span {...(i === chosen ? { attributes: TextAttributes.BOLD } : {})}>
             {editor.label.padEnd(width)}
           </span>
           <span fg={tones.dim}>{how(editor)}</span>
-        </text>
+        </Selectable>
       ))}
       <text fg={tones.dim}>↑/↓ choose · enter pick · esc cancel</text>
     </box>

@@ -56,7 +56,13 @@ function Bottom({
       props.onChange("editor", picked.id)
     }
     return (
-      <EditorPicker editors={props.editors} current={props.editor} onPick={pick} onCancel={close} />
+      <EditorPicker
+        editors={props.editors}
+        current={props.editor}
+        onPick={pick}
+        onCancel={close}
+        tint={props.tint}
+      />
     )
   }
 

@@ -2,6 +2,7 @@ import { type RGBA, TextAttributes } from "@opentui/core"
 import type { RepoPick } from "@srctrek/core"
 import type { Drop, DropRow } from "./drop"
 import { fit, shortAge } from "../ui/text"
+import { Selectable } from "../ui/selectable"
 import { COLOUR, useTones } from "../ui/theme"
 
 /**
@@ -119,21 +120,14 @@ export function DropLines({ view, tint }: { view: DropView; tint: RGBA | undefin
       <Fetching drop={drop} />
       {rows.length === 0 && <text fg={tones.dim}>{`${INDENT}└ no branch matches`}</text>}
       {rows.map((row, index) => {
-        const marked = index === drop.at && tint === undefined
-        const line = (
-          <text fg={COLOUR.text}>
-            <span fg={tones.accent}>{marked ? "    ▶ " : INDENT}</span>
-            <span fg={tones.dim}>{corner(index, last)}</span>
-            <RowText row={row} taken={isTaken(row, pick)} now={now} />
-          </text>
-        )
         const key = row.kind === "branch" ? row.branch.name : row.kind
-        return index === drop.at && tint !== undefined ? (
-          <box key={key} style={{ backgroundColor: tint }}>
-            {line}
+        return (
+          <box key={key}>
+            <Selectable selected={index === drop.at} tint={tint} indent="    ">
+              <span fg={tones.dim}>{corner(index, last)}</span>
+              <RowText row={row} taken={isTaken(row, pick)} now={now} />
+            </Selectable>
           </box>
-        ) : (
-          <box key={key}>{line}</box>
         )
       })}
     </box>
