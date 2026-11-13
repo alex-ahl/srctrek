@@ -2,6 +2,7 @@ import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useState } from "react"
 import type { Editor } from "./editors"
+import { keysText } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
 import { COLOUR, useTones } from "../ui/theme"
@@ -15,6 +16,12 @@ type Props = {
   // the chosen row's background, when the terminal's colours are known
   tint: RGBA | undefined
 }
+
+const KEYS = [
+  { key: "↑/↓", does: "choose" },
+  { key: "enter", does: "pick" },
+  { key: "esc", does: "cancel" },
+]
 
 const NONE_FOUND = "No editor to open treks in: install Neovim, or set $EDITOR."
 
@@ -64,7 +71,7 @@ export function EditorPicker({ editors, current, onPick, onCancel, tint }: Props
           <span fg={tones.dim}>{how(editor)}</span>
         </Selectable>
       ))}
-      <text fg={tones.dim}>↑/↓ choose · enter pick · esc cancel</text>
+      <text fg={tones.dim}>{keysText(KEYS)}</text>
     </box>
   )
 }

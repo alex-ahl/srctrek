@@ -1,3 +1,4 @@
+import type { KeyHint } from "../ui/footer"
 import { type Settings, agentSetting } from "@srctrek/core"
 import type { Editor } from "../editors/editors"
 import type { Tone } from "../ui/theme"
@@ -105,9 +106,11 @@ export function settingRows(actions: RowActions): SettingRow[] {
 }
 
 /** The footer for a row: what enter does to it, and c on the agent. */
-export function rowKeys(row: SettingRow | undefined): string {
-  const enter = row === undefined ? "" : ` · enter ${row.enter}`
-  const copy = row?.copy === undefined ? "" : " · c copy for your agent"
-
-  return `↑/↓ choose${enter}${copy} · esc back`
+export function rowKeys(row: SettingRow | undefined): KeyHint[] {
+  return [
+    { key: "↑/↓", does: "choose" },
+    ...(row === undefined ? [] : [{ key: "enter", does: row.enter }]),
+    ...(row?.copy === undefined ? [] : [{ key: "c", does: "copy for your agent" }]),
+    { key: "esc", does: "back" },
+  ]
 }

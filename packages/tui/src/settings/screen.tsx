@@ -3,6 +3,7 @@ import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { SETUP_REQUEST, type Settings, agentSetting, checkAgent, settingsPath } from "@srctrek/core"
 import { homedir } from "node:os"
 import { useEffect, useRef, useState } from "react"
+import { Footer, type KeyHint } from "../ui/footer"
 import { EditorPicker } from "../editors/editor-picker"
 import type { Editor } from "../editors/editors"
 import { PADDING } from "../ui/layout"
@@ -45,11 +46,10 @@ function Bottom({
 }: {
   prompt: Prompt | undefined
   props: Props
-  keys: string
+  keys: readonly KeyHint[]
   close: () => void
   onAgent: (command: string) => void
 }) {
-  const tones = useTones()
   if (prompt === "editor") {
     const pick = (picked: Editor) => {
       close()
@@ -81,15 +81,7 @@ function Bottom({
     )
   }
 
-  return (
-    <box
-      border={["top"]}
-      borderColor={tones.dim}
-      style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
-    >
-      <text fg={tones.dim}>{keys}</text>
-    </box>
-  )
+  return <Footer keys={keys} shown="" />
 }
 
 /**
