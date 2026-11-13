@@ -1,5 +1,6 @@
 import { type RepoBranches, type RepoPick, errorText } from "@srctrek/core"
 import { useRef, useState } from "react"
+import { stepped } from "../ui/move"
 import { type Drop, type DropRow, dropRows, opened } from "./drop"
 
 /** A key as the picker hands it on: its name, and the text it types, if any. */
@@ -80,12 +81,12 @@ export function useDrop(
       return false
     }
 
-    const last = Math.max((rows?.length ?? 1) - 1, 0)
+    const count = rows?.length ?? 0
     const actions = new Map([
       ["escape", () => setDrop(undefined)],
       ["left", () => setDrop(undefined)],
-      ["down", () => update((now) => ({ at: Math.min(now.at + 1, last) }))],
-      ["up", () => update((now) => ({ at: Math.max(now.at - 1, 0) }))],
+      ["down", () => update((now) => ({ at: stepped(now.at, 1, count) }))],
+      ["up", () => update((now) => ({ at: stepped(now.at, -1, count) }))],
       ["return", () => take(rowAt(latest.current))],
       ["backspace", () => update((now) => ({ query: now.query.slice(0, -1), at: 0 }))],
     ])

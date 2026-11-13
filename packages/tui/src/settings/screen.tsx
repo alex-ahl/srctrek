@@ -4,6 +4,7 @@ import { SETUP_REQUEST, type Settings, agentSetting, checkAgent, settingsPath } 
 import { homedir } from "node:os"
 import { useEffect, useRef, useState } from "react"
 import { Footer, type KeyHint } from "../ui/footer"
+import { moveKeys, stepped } from "../ui/move"
 import { EditorPicker } from "../editors/editor-picker"
 import type { Editor } from "../editors/editors"
 import { PADDING } from "../ui/layout"
@@ -213,16 +214,13 @@ export function SettingsScreen(props: Props) {
     void checkAgent(command).then((check) => setNotice({ kind: "checked", check }))
   }
 
-  const down = () => setChosen(Math.min(chosen + 1, rows.length - 1))
-  const up = () => setChosen(Math.max(chosen - 1, 0))
+  // from the selection as it is, so keys pressed faster than the screen redraws each count
+  const move = (by: number) => setChosen((at) => stepped(at, by, rows.length))
   const keyActions = new Map([
     ["escape", props.onBack],
     ["return", () => row?.change()],
     ["c", () => row?.copy?.()],
-    ["down", down],
-    ["j", down],
-    ["up", up],
-    ["k", up],
+    ...moveKeys(move),
   ])
   // While a prompt is open, keys go to it.
   useKeyboard((key) => prompt === undefined && keyActions.get(key.name)?.())

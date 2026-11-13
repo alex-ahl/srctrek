@@ -22,6 +22,7 @@ import type { SettingChange } from "../settings/rows"
 import { SettingsScreen } from "../settings/screen"
 import type { Editor } from "../editors/editors"
 import { Footer } from "../ui/footer"
+import { moveKeys, stepped } from "../ui/move"
 import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
 import { PADDING, listHeight } from "../ui/layout"
 import { type Item, type ListLine, itemKey, itemsOf, lineOfItem, listLines } from "./list/lines"
@@ -392,16 +393,18 @@ export function App(props: Props) {
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
   const { build, showLog, dismiss } = rowActions
 
-  const moveTo = (index: number) => setChosen(keys[Math.min(Math.max(index, 0), keys.length - 1)])
+  // from the selection as it is, so keys pressed faster than the screen redraws each count
+  const move = (by: number) =>
+    setChosen((key) => {
+      const at = key === undefined ? -1 : keys.indexOf(key)
+      return keys[stepped(at === -1 ? selected : at, by, keys.length)]
+    })
   const actions = new Map([
     ["q", onQuit],
     ["b", () => build?.()],
     ["l", () => showLog?.()],
     ["d", () => dismiss?.()],
-    ["down", () => moveTo(selected + 1)],
-    ["j", () => moveTo(selected + 1)],
-    ["up", () => moveTo(selected - 1)],
-    ["k", () => moveTo(selected - 1)],
+    ...moveKeys(move),
     ["return", () => pick?.()],
   ])
   const shifted = new Map([

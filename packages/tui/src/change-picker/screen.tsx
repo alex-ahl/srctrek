@@ -20,6 +20,7 @@ import { choiceName } from "../home/opening-line"
 import { Footer } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { COLOUR, useTones } from "../ui/theme"
+import { moveKeys, stepped } from "../ui/move"
 import { TitleBar } from "../ui/title-bar"
 
 type Props = {
@@ -195,8 +196,7 @@ export function ChangePicker(props: Props) {
   )
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
-  const move = (by: number) =>
-    setChosen((at) => Math.min(Math.max(at + by, 0), Math.max(items.length - 1, 0)))
+  const move = (by: number) => setChosen((at) => stepped(at, by, items.length))
   const enter = () =>
     item?.kind === "fold" ? setFoldOpen(true) : props.onPick(pickOf(item, props.choice, repos))
   const keyActions = new Map([
@@ -205,10 +205,7 @@ export function ChangePicker(props: Props) {
     ["space", () => item?.kind === "repo" && setTicked(toggled(ticked, item.checkout))],
     ["right", openDrop],
     ["l", openDrop],
-    ["down", () => move(1)],
-    ["j", () => move(1)],
-    ["up", () => move(-1)],
-    ["k", () => move(-1)],
+    ...moveKeys(move),
   ])
   // While a repo's branches are open, keys go there.
   useKeyboard((key) => drop.key(key) || keyActions.get(key.name)?.())

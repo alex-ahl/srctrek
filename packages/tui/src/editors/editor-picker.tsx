@@ -3,6 +3,7 @@ import { useKeyboard } from "@opentui/react"
 import { useState } from "react"
 import type { Editor } from "./editors"
 import { keysText } from "../ui/footer"
+import { moveKeys, stepped } from "../ui/move"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
 import { COLOUR, useTones } from "../ui/theme"
@@ -39,18 +40,17 @@ export function EditorPicker({ editors, current, onPick, onCancel, tint }: Props
     ),
   )
 
-  useKeyboard((key) => {
-    const picked = editors[chosen]
-    if (key.name === "escape") {
-      onCancel()
-    } else if ((key.name === "return" || key.name === "enter") && picked !== undefined) {
-      onPick(picked)
-    } else if (key.name === "down" || key.name === "j") {
-      setChosen(Math.min(chosen + 1, editors.length - 1))
-    } else if (key.name === "up" || key.name === "k") {
-      setChosen(Math.max(chosen - 1, 0))
-    }
-  })
+  const picked = editors[chosen]
+  const pick = () => picked !== undefined && onPick(picked)
+  // from the selection as it is, so keys pressed faster than the screen redraws each count
+  const move = (by: number) => setChosen((at) => stepped(at, by, editors.length))
+  const keyActions = new Map([
+    ["escape", onCancel],
+    ["return", pick],
+    ["enter", pick],
+    ...moveKeys(move),
+  ])
+  useKeyboard((key) => keyActions.get(key.name)?.())
 
   const width = Math.max(0, ...editors.map((editor) => editor.label.length)) + 3
 

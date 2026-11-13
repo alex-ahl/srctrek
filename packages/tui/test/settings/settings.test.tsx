@@ -61,6 +61,19 @@ test("says beside the agent when SRCTREK_AGENT sets it", async () => {
   }
 })
 
+test("keys pressed faster than the screen redraws each move the selection", async () => {
+  const frame = await frameAfter(app({ editor: "nvim" }), async (input) => {
+    input.pressKey("S", { shift: true })
+    await Bun.sleep(20)
+    input.pressKey("j")
+    input.pressKey("j")
+    input.pressKey("j")
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toMatch(/▶ Colours/)
+})
+
 test("enter on building automatically or colours turns it the other way", async () => {
   const change = mock<SettingChange>(() => undefined)
   await pressOn(app({}, change), async (input) => {
