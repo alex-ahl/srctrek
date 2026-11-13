@@ -1,7 +1,7 @@
 import type { TrekStatus } from "@srctrek/core"
 import type { Editor } from "../editors/editors"
 import type { KeyHint } from "../ui/footer"
-import type { Row } from "./rows"
+import type { Row } from "./list/rows"
 import { hasTrek } from "./states"
 
 /** What b does: "build" a trek, "update" an out-of-date one, or "rebuild" one built with an

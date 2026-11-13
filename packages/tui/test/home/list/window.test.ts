@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { visibleWindow } from "../../src/home/window"
+import { visibleWindow } from "../../../src/home/list/window"
 
 test("shows everything when everything fits", () => {
   expect(visibleWindow(4, 3, 10)).toEqual({ start: 0, end: 4 })

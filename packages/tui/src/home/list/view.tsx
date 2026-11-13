@@ -1,8 +1,8 @@
 import { TextAttributes } from "@opentui/core"
-import type { Item, ListLine } from "./list-lines"
+import type { Item, ListLine } from "./lines"
 import { type RowContext, RowView } from "./rows"
-import { COLOUR, useTones } from "../ui/theme"
-import { count } from "../ui/text"
+import { COLOUR, useTones } from "../../ui/theme"
+import { count } from "../../ui/text"
 
 // A folding section's heading where other headings sit, "▸ DONE  31 treks", which enter opens or
 // closes; selected, its arrow takes the selection's colour and its title is bold.

@@ -1,10 +1,10 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
-import { type Columns, EDGES, GAP, builtText, flagsText } from "./row-columns"
+import { type Columns, EDGES, GAP, builtText, flagsText } from "./columns"
 import { type StateLabel, type States, detailOf, stateOf } from "./row-state"
-import { statusBlock } from "./status-block"
-import { COLOUR, useTones } from "../ui/theme"
-import { fit } from "../ui/text"
+import { statusBlock } from "../status-block"
+import { COLOUR, useTones } from "../../ui/theme"
+import { fit } from "../../ui/text"
 
 /**
  * A line in the home screen's list: a repo the agent proposes adding, a trigger found in the

@@ -1,7 +1,7 @@
 import type { TrekEntry, TrekState, TrekStatus, UnreachableRepo } from "@srctrek/core"
 import type { Row } from "./rows"
-import { type StatusBlock, statusBlock } from "./status-block"
-import { count } from "../ui/text"
+import { type StatusBlock, statusBlock } from "../status-block"
+import { count } from "../../ui/text"
 
 /** A row's state: its symbol and word, and the tone they're drawn in. */
 export type StateLabel = Pick<StatusBlock, "symbol" | "state" | "tone">

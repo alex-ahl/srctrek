@@ -1,8 +1,8 @@
 import type { TrekEntry, TrekStatus } from "@srctrek/core"
 import { type States, detailOf, stateOf } from "./row-state"
 import type { Row } from "./rows"
-import { PADDING } from "../ui/layout"
-import { builtWhen } from "../ui/text"
+import { PADDING } from "../../ui/layout"
+import { builtWhen } from "../../ui/text"
 
 /**
  * How wide each column is, from what the rows hold, 0 for a column no row fills; the title is as
