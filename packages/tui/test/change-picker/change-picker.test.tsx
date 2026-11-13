@@ -9,8 +9,8 @@ import type {
   TrekStatus,
 } from "@srctrek/core"
 import { App } from "../../src/home/app"
-import { dropRows, opened } from "../../src/picker/drop"
-import { pickerRows, pullRequestRows } from "../../src/picker/rows"
+import { dropRows, opened } from "../../src/change-picker/drop"
+import { pickerRows, pullRequestRows } from "../../src/change-picker/rows"
 import { frameAfter } from "../support/keys"
 
 const choices: BranchChoices = {

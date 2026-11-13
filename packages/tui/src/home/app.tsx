@@ -14,7 +14,7 @@ import type {
 import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import { type ReactNode, useState } from "react"
-import { ChangePicker } from "../picker/picker"
+import { ChangePicker } from "../change-picker/screen"
 import { ChangeStatus } from "./change-status"
 import { type Opening, OpeningLine } from "./opening-line"
 import { EditorPicker } from "../editors/editor-picker"
