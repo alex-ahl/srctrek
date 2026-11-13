@@ -13,6 +13,7 @@ import {
   readChangeArguments,
   resolveChange,
   trekStatus,
+  errorText,
 } from "@srctrek/core"
 import { RequestError } from "./errors"
 
@@ -24,7 +25,7 @@ export async function changeNow(cwd: string, args: string[]): Promise<ResolvedCh
   try {
     return await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
+    const reason = errorText(error)
     throw new RequestError(ErrorCode.unreadableChange, `can't read the change: ${reason}`)
   }
 }

@@ -32,6 +32,7 @@ import {
   withRouteRepo,
   workBranches,
   triggerProblems,
+  errorText,
 } from "@srctrek/core"
 
 // Rejected rounds a draft may take before its build stops, so an agent can't loop on it.
@@ -240,7 +241,7 @@ async function openProposed(
 
     return { session: widened(session, added.change), answer: { opened, readAt: added.readAt } }
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
+    const reason = errorText(error)
     return { session, answer: { notOpened: reason } }
   }
 }

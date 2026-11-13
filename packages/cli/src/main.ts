@@ -11,6 +11,7 @@ import {
   summarizeChange,
   trekStatus,
   worktreeStamp,
+  errorText,
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
 import { startServe } from "@srctrek/serve"
@@ -101,6 +102,6 @@ async function run(args: string[]): Promise<void> {
 try {
   await run(process.argv.slice(2))
 } catch (error) {
-  console.error(`trek: ${error instanceof Error ? error.message : String(error)}`)
+  console.error(`trek: ${errorText(error)}`)
   process.exit(1)
 }

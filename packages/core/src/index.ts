@@ -195,3 +195,4 @@ export {
 } from "./repos/nearby"
 export { workBranches } from "./repos/branch"
 export { carryOver, type CarriedOver, type Redo } from "./build/carry"
+export { errorText } from "./error-text"

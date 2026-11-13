@@ -1,4 +1,4 @@
-import type { RepoBranches, RepoPick } from "@srctrek/core"
+import { type RepoBranches, type RepoPick, errorText } from "@srctrek/core"
 import { useRef, useState } from "react"
 import { type Drop, type DropRow, dropRows, opened } from "./drop"
 
@@ -8,8 +8,6 @@ type DropKey = Readonly<{ name: string; sequence?: string; ctrl?: boolean; meta?
 // A letter, digit, or sign typed to narrow the branches, not a key that does something.
 const typed = (key: DropKey) =>
   key.ctrl !== true && key.meta !== true && key.sequence?.length === 1 && key.sequence >= " "
-
-const reason = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
 /**
  * A repo's branches open under its row: which repo, its branches once read, the lines they make,
@@ -35,7 +33,7 @@ export function useDrop(
   const read = (path: string) =>
     repoBranches(path).then(
       (branches) => setFound((known) => new Map(known).set(path, branches)),
-      (error: unknown) => setProblem(reason(error)),
+      (error: unknown) => setProblem(errorText(error)),
     )
   const open = (path: string) => {
     setDrop(opened(path))
@@ -62,7 +60,7 @@ export function useDrop(
       .then(() => read(path))
       .then(
         () => set({ fetch: undefined, all: true }),
-        (error: unknown) => set({ fetch: { kind: "failed", why: reason(error) } }),
+        (error: unknown) => set({ fetch: { kind: "failed", why: errorText(error) } }),
       )
   }
   const take = (row: DropRow | undefined) => {

@@ -1,4 +1,4 @@
-import { type ChangeChoice, GitError, parsePullRequestUrl } from "@srctrek/core"
+import { type ChangeChoice, GitError, errorText, parsePullRequestUrl } from "@srctrek/core"
 import { useTones } from "../ui/theme"
 
 /** A picked change on its way: still being worked out, or why it couldn't be. */
@@ -12,7 +12,7 @@ export type Opening = Readonly<
  */
 export function failureReason(error: unknown): string {
   if (!(error instanceof GitError)) {
-    return error instanceof Error ? error.message : String(error)
+    return errorText(error)
   }
 
   const said = error.stderr.trim().split("\n").at(-1) ?? ""

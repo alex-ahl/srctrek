@@ -1,3 +1,4 @@
+import { errorText } from "../error-text"
 import { rangeCommits } from "../schema/recorded-range"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
@@ -32,11 +33,7 @@ export class UnreachableRepoError extends Error {
 // The repo's git data, holding the trek's commit: a cached clone fetches it when it's missing.
 async function gitDirOf(root: string, repo: TrekRepo, cacheDir: string): Promise<string> {
   const dir = await repoDir(root, repo, cacheDir).catch((error: unknown) => {
-    throw new UnreachableRepoError(
-      repo.name,
-      repo.source,
-      error instanceof Error ? error.message : String(error),
-    )
+    throw new UnreachableRepoError(repo.name, repo.source, errorText(error))
   })
   if (await hasCommit(dir, repo.revision)) {
     return dir

@@ -1,3 +1,4 @@
+import { errorText } from "@srctrek/core"
 import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import type {
@@ -50,8 +51,7 @@ function useLoaded<T>(load: () => Promise<T>, toRows: (found: T) => PickerRow[])
   useEffect(() => {
     void load().then(
       (found) => setLoaded({ kind: "ready", rows: toRows(found) }),
-      (error: unknown) =>
-        setLoaded({ kind: "failed", why: error instanceof Error ? error.message : String(error) }),
+      (error: unknown) => setLoaded({ kind: "failed", why: errorText(error) }),
     )
     // toRows makes rows from what's found; only a new load asks again
     // oxlint-disable-next-line react-hooks/exhaustive-deps
