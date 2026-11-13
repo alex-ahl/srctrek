@@ -1,1 +1,1 @@
-export { startHome, type HomeChange } from "./home"
+export { startHome, type HomeChange } from "./home/home"

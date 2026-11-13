@@ -1,5 +1,5 @@
 // Compiled by CI into its own binary to prove the native renderer loads from a single file.
-import { App } from "./app"
+import { App } from "./home/app"
 import { renderFrame } from "./render-frame"
 
 const frame = await renderFrame(

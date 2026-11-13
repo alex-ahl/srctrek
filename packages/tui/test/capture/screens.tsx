@@ -1,6 +1,6 @@
 import type { ChangeSummary, ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
 import type { ReactNode } from "react"
-import { App } from "../../src/app"
+import { App } from "../../src/home/app"
 
 const noop = () => undefined
 
