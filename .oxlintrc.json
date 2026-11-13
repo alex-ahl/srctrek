@@ -5,7 +5,7 @@
     "correctness": "error",
     "suspicious": "error"
   },
-  "ignorePatterns": ["dist/", "evals/fixtures/"],
+  "ignorePatterns": ["dist/", "evals/fixtures/", "site/"],
   "rules": {
     "complexity": ["error", 10],
     "max-depth": ["error", 3],
