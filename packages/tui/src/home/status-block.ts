@@ -1,5 +1,5 @@
 import type { TrekEntry, TrekStatus } from "@srctrek/core"
-import type { Tone } from "../ui/theme"
+import { STATE_LABELS, type StateLabel } from "../ui/state-labels"
 import { count } from "../ui/text"
 
 /**
@@ -7,17 +7,15 @@ import { count } from "../ui/text"
  * state's tone, the trek's name and what it holds, then dim lines saying why and the keys that
  * act on it.
  */
-export type StatusBlock = Readonly<{
-  symbol: string
-  state: string
-  tone: Tone
-  name?: string
-  holds?: string
-  // a likely-wrong count, drawn in the bad colour
-  flag?: string
-  details: readonly string[]
-  keys?: string
-}>
+export type StatusBlock = StateLabel &
+  Readonly<{
+    name?: string
+    holds?: string
+    // a likely-wrong count, drawn in the bad colour
+    flag?: string
+    details: readonly string[]
+    keys?: string
+  }>
 
 // Enough of a build's log to see what it's doing or why it ended; l shows the rest.
 const LOG_LINES = 3
@@ -27,13 +25,11 @@ type Of<K extends TrekStatus["kind"]> = Extract<TrekStatus, { kind: K }>
 // "15 steps · 3 repos", the flag, and the trek's title below it, for a trek that's saved.
 function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
   if (entry === undefined || !entry.valid) {
-    return { symbol: "●", state: "ready", tone: "good", name, details: [] }
+    return { ...STATE_LABELS.ready, name, details: [] }
   }
 
   return {
-    symbol: "●",
-    state: "ready",
-    tone: "good",
+    ...STATE_LABELS.ready,
     name,
     holds: `${count(entry.steps, "step")} · ${count(entry.repos, "repo")}`,
     ...(entry.highFlags > 0 ? { flag: `⚠ ${entry.highFlags} likely wrong` } : {}),
@@ -48,9 +44,7 @@ function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean)
       : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
 
   return {
-    symbol: "≠",
-    state: "stale",
-    tone: "warn",
+    ...STATE_LABELS.stale,
     name,
     details: [changed],
     ...(canBuild ? { keys: "b update it" } : {}),
@@ -58,7 +52,7 @@ function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean)
 }
 
 function missingBlock(name: string, canBuild: boolean): StatusBlock {
-  const block = { symbol: "○", state: "no trek yet", tone: "dim" as const, name }
+  const block = { ...STATE_LABELS.missing, name }
   if (canBuild) {
     return { ...block, details: [], keys: "b build it" }
   }
@@ -75,9 +69,7 @@ function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): Statu
   const details = status.logTail.slice(-LOG_LINES).map((line) => line.replace(/^trek: /, ""))
   if (status.kind === "building") {
     return {
-      symbol: "◐",
-      state: "building",
-      tone: "busy",
+      ...STATE_LABELS.building,
       name: status.name,
       details,
       keys: "l log",
@@ -85,9 +77,7 @@ function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): Statu
   }
 
   return {
-    symbol: "✕",
-    state: "build failed",
-    tone: "bad",
+    ...STATE_LABELS.failed,
     name: status.name,
     details: details.length === 0 ? ["its log is empty"] : details,
     keys: canBuild ? "b build again · l whole log" : "l whole log",
@@ -105,7 +95,7 @@ function unreachableBlock({ name, unreachable }: Of<"unreachable">): StatusBlock
           "fetch it there to open this trek",
         ]
 
-  return { symbol: "✕", state: "can't open", tone: "bad", name, details }
+  return { ...STATE_LABELS.unreachable, name, details }
 }
 
 type NameOnly = "ready" | "older-guide" | "missing" | "empty"
@@ -123,9 +113,7 @@ function nameOnlyBlock(
 
   if (kind === "older-guide") {
     return {
-      symbol: "↻",
-      state: "older guide",
-      tone: "warn",
+      ...STATE_LABELS["older-guide"],
       name,
       details: ["built before the guide last changed"],
       keys: canBuild ? "b rebuild with the current guide · enter open it" : "enter open it",
@@ -134,9 +122,7 @@ function nameOnlyBlock(
 
   if (kind === "empty") {
     return {
-      symbol: "○",
-      state: "nothing to trek",
-      tone: "dim",
+      ...STATE_LABELS.empty,
       details: [
         "this change has no commits",
         "give trek a range, such as trek HEAD~5..HEAD, or try --uncommitted",
@@ -163,9 +149,7 @@ export function statusBlock(
 
   if (status.kind === "unreadable") {
     return {
-      symbol: "✕",
-      state: "can't read",
-      tone: "bad",
+      ...STATE_LABELS.unreadable,
       name: status.name,
       details: [status.problem],
       ...(canBuild ? { keys: "b rebuild it" } : {}),

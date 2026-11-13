@@ -6,6 +6,7 @@ import { type FoldItem, type RepoItem, repoBranch, repoNotes } from "./repos"
 import { type PickerGroup, type PickerRow, sameChange } from "./rows"
 import { statusBlock } from "../home/status-block"
 import { Selectable } from "../ui/selectable"
+import { STATE_LABELS } from "../ui/state-labels"
 import { count, fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 
@@ -45,8 +46,8 @@ export function useStatuses(
 
 // The block's words read as the trek's state on a row; "ready" alone could be the branch.
 const STATE_WORDS: Readonly<Record<string, string>> = {
-  ready: "trek ready",
-  stale: "trek stale",
+  [STATE_LABELS.ready.state]: "trek ready",
+  [STATE_LABELS.stale.state]: "trek stale",
 }
 
 // "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours the home screen uses.

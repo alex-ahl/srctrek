@@ -1,9 +1,10 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
 import { type Columns, EDGES, GAP, builtText, flagsText } from "./columns"
-import { type StateLabel, type States, detailOf, stateOf } from "./row-state"
+import { type States, detailOf, stateOf } from "./row-state"
 import { statusBlock } from "../status-block"
 import { selectionMarker } from "../../ui/selectable"
+import { STATE_LABELS, type StateLabel } from "../../ui/state-labels"
 import { COLOUR, useTones } from "../../ui/theme"
 import { fit } from "../../ui/text"
 
@@ -78,8 +79,6 @@ function State({ label, width }: { label: StateLabel | undefined; width: number 
 const rest = (context: RowContext) =>
   Math.max(0, context.width - EDGES - context.columns.state - context.columns.title)
 
-const PROPOSED: StateLabel = { symbol: "+", state: "proposed", tone: "warn" }
-
 // A proposed repo's name, where it lives, and why, across the title and the columns after it;
 // the keys that settle it at the end.
 function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRepo>) {
@@ -93,7 +92,7 @@ function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRep
   return (
     <text fg={COLOUR.text}>
       <Marker selected={selected} context={context} />
-      <State label={PROPOSED} width={columns.state} />
+      <State label={STATE_LABELS.proposed} width={columns.state} />
       <span
         {...(selected ? { attributes: TextAttributes.BOLD } : {})}
       >{`${name}${" ".repeat(GAP)}`}</span>
