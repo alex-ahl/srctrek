@@ -76,3 +76,8 @@ export async function branchToRead(
 
   return ref === undefined ? undefined : { ref, shown: ref.replace(/^refs\/remotes\//, "") }
 }
+
+/** How many commits `to` has that `from` doesn't: "4" for a branch 4 commits past its base. */
+export async function commitsBetween(dir: string, from: string, to: string): Promise<number> {
+  return Number(await runGit(dir, ["rev-list", "--count", `${from}..${to}`]))
+}

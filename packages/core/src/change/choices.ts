@@ -1,7 +1,7 @@
 import { type TrekStatus, trekStatus } from "../build/status"
 import { directoryIn } from "../files"
 import { detectBase } from "../git/base"
-import { checkedOutBranch } from "../git/refs"
+import { checkedOutBranch, commitsBetween } from "../git/refs"
 import { runGit } from "../git/run"
 import { parsePullRequestUrl } from "../repos/pull-request"
 import { readChangeArguments } from "./arguments"
@@ -99,10 +99,6 @@ export type BranchChoices = Readonly<{
 // Enough to find recent work without a git call per branch in a repo that keeps hundreds.
 const OTHERS_LIMIT = 15
 
-async function commitsSince(cwd: string, base: string, branch: string): Promise<number> {
-  return Number(await runGit(cwd, ["rev-list", "--count", `${base}..${branch}`]))
-}
-
 async function uncommittedFiles(cwd: string): Promise<number> {
   const status = await runGit(cwd, ["status", "--porcelain"])
   return status === "" ? 0 : status.split("\n").length
@@ -128,13 +124,13 @@ export async function branchChoices(cwd: string): Promise<BranchChoices> {
   const counted = await Promise.all(
     names.slice(0, OTHERS_LIMIT).map(async (name) => ({
       name,
-      commits: await commitsSince(cwd, base, name),
+      commits: await commitsBetween(cwd, base, name),
     })),
   )
   const own =
     current === undefined
       ? undefined
-      : { name: current, commits: await commitsSince(cwd, base, current) }
+      : { name: current, commits: await commitsBetween(cwd, base, current) }
 
   return {
     base,

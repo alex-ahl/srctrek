@@ -1,4 +1,4 @@
-import { runGit } from "../git/run"
+import { commitsBetween } from "../git/refs"
 import { type RangeHead, rangeHead } from "./head"
 import { type RepoWithRange, type ResolvedChange, hasRange } from "./resolve"
 
@@ -22,9 +22,9 @@ export type ChangeSummary = Readonly<{
 
 async function summarizeRepo(repo: RepoWithRange): Promise<ChangedRepoSummary> {
   const { base, baseCommit, headCommit } = repo.range
-  const commits = await runGit(repo.dir, ["rev-list", "--count", `${baseCommit}..${headCommit}`])
+  const commits = await commitsBetween(repo.dir, baseCommit, headCommit)
 
-  return { repo: repo.name, base, head: await rangeHead(repo), commits: Number(commits) }
+  return { repo: repo.name, base, head: await rangeHead(repo), commits }
 }
 
 export async function summarizeChange(change: ResolvedChange): Promise<ChangeSummary> {

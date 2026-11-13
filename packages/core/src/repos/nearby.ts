@@ -5,9 +5,8 @@ import { workBranches } from "./branch"
 import { gitDataOf } from "./git-files"
 import { folderName } from "./entry"
 import { detectBase } from "../git/base"
-import { runGit } from "../git/run"
 import { commonDir, projectHome } from "./project"
-import { branchToRead, checkedOutBranch } from "../git/refs"
+import { branchToRead, checkedOutBranch, commitsBetween } from "../git/refs"
 
 // A folder of checkouts can hold hundreds; the agent needs candidates, not all of them.
 const NEARBY_LIMIT = 50
@@ -124,8 +123,7 @@ async function commitsSinceBase(dir: string): Promise<number> {
     return 0
   }
 
-  const count = await runGit(dir, ["rev-list", "--count", `${base}..HEAD`]).catch(() => "0")
-  return Number(count)
+  return commitsBetween(dir, base, "HEAD").catch(() => 0)
 }
 
 async function nearbyCheckout(from: string, dir: string): Promise<NearbyCheckout> {

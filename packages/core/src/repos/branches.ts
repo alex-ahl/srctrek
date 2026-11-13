@@ -1,5 +1,5 @@
 import { detectBase } from "../git/base"
-import { checkedOutBranch } from "../git/refs"
+import { checkedOutBranch, commitsBetween } from "../git/refs"
 import { NO_PROMPT, runGit } from "../git/run"
 
 /**
@@ -93,7 +93,7 @@ export async function repoBranches(dir: string): Promise<RepoBranches> {
       author: branch.author,
       mine: email !== "" && branch.email === `<${email}>`,
       subject: branch.subject,
-      commits: Number(await runGit(dir, ["rev-list", "--count", `${base}..${branch.name}`])),
+      commits: await commitsBetween(dir, base, branch.name),
       checkedOut: branch.name === current,
     })),
   )

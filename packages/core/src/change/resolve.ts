@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import type { ResolvedRange } from "../git/range"
-import { branchToRead } from "../git/refs"
+import { branchToRead, commitsBetween } from "../git/refs"
 import { GitError, runGit } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
 import { type RepoEntry, isRemote } from "../repos/entry"
@@ -186,7 +186,7 @@ export type ReadAt =
 async function behindUpstream(dir: string, branch: string): Promise<Behind | undefined> {
   try {
     const upstream = await runGit(dir, ["rev-parse", "--abbrev-ref", `${branch}@{upstream}`])
-    const commits = Number(await runGit(dir, ["rev-list", "--count", `${branch}..${upstream}`]))
+    const commits = await commitsBetween(dir, branch, upstream)
 
     return commits > 0 ? { commits, upstream } : undefined
   } catch (error) {
