@@ -1,19 +1,17 @@
 import {
   type BuildResult,
-  ErrorCode,
   type LogResult,
   type ResolvedChange,
   type TreksResult,
   agentSetting,
   buildChangeTrek,
   buildLogTail,
-  directoryIn,
+  changeFromArguments,
+  ErrorCode,
+  errorText,
   loadSettings,
   loadTrekEntries,
-  readChangeArguments,
-  resolveChange,
   trekStatus,
-  errorText,
 } from "@srctrek/core"
 import { RequestError } from "./errors"
 
@@ -23,7 +21,7 @@ const LOG_LINES = 200
 /** The change trek's `args` name in `cwd`, as it is now. */
 export async function changeNow(cwd: string, args: string[]): Promise<ResolvedChange> {
   try {
-    return await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
+    return await changeFromArguments(cwd, args)
   } catch (error) {
     const reason = errorText(error)
     throw new RequestError(ErrorCode.unreadableChange, `can't read the change: ${reason}`)

@@ -1,14 +1,12 @@
 import {
-  BUILD_LOG_PREFIX,
   type BuildMode,
   type Trek,
+  BUILD_LOG_PREFIX,
   buildLogTail,
   buildState,
   carryOver,
-  directoryIn,
+  changeFromArguments,
   loadTrek,
-  readChangeArguments,
-  resolveChange,
   startBuild,
   trekPath,
 } from "@srctrek/core"
@@ -79,7 +77,7 @@ export type EvalOptions = { run?: Run | undefined; asReviewer?: boolean; update?
 
 // What the change looks like to trek started with `args` in `root`, as it is now.
 async function changeAt(root: string, args: string[]) {
-  return resolveChange(root, readChangeArguments(args, directoryIn(root)))
+  return changeFromArguments(root, args)
 }
 
 // Commits the follow-ups, then has the agent update the trek: how much of it should carry

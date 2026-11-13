@@ -1,5 +1,4 @@
 import {
-  BUILD_STOPPED,
   type Draft,
   type ProposedRepo,
   type ReadAt,
@@ -8,31 +7,30 @@ import {
   type SubmittedStep,
   type Trek,
   type TrekHeader,
-  type UpdateStep,
   type Trigger,
-  TrekValidationError,
+  type UpdateStep,
   addSteps,
+  BUILD_STOPPED,
   carryOver,
-  directoryIn,
+  changeFromArguments,
   draftToTrek,
+  errorText,
   loadTrek,
   newDraft,
   parseRepoEntry,
   proposalProblems,
-  readChangeArguments,
   repoNamed,
-  resolveChange,
   saveProposal,
   saveTrek,
   saveTriggers,
   stepIds,
   trekNameFor,
   trekPath,
+  TrekValidationError,
+  triggerProblems,
   withChange,
   withRouteRepo,
   workBranches,
-  triggerProblems,
-  errorText,
 } from "@srctrek/core"
 
 // Rejected rounds a draft may take before its build stops, so an agent can't loop on it.
@@ -74,8 +72,7 @@ function openDraft(session: Session): Draft {
 }
 
 export async function open(session: Session, args: string[]): Promise<Outcome<ResolvedChange>> {
-  const read = readChangeArguments(args, directoryIn(session.cwd))
-  const change = await resolveChange(session.cwd, read, session.cacheDir)
+  const change = await changeFromArguments(session.cwd, args, session.cacheDir)
 
   return { session: { ...session, change, draft: undefined }, answer: change }
 }

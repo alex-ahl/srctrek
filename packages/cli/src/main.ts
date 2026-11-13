@@ -2,16 +2,14 @@ import {
   type ResolvedChange,
   agentSetting,
   buildChangeTrek,
+  changeFromArguments,
   choiceOfArguments,
-  directoryIn,
+  errorText,
   loadSettings,
-  readChangeArguments,
-  resolveChange,
   startBuild,
   summarizeChange,
   trekStatus,
   worktreeStamp,
-  errorText,
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
 import { startServe } from "@srctrek/serve"
@@ -38,7 +36,7 @@ async function buildTriggerTrek(
 // change with no trek gets one started right away, when the user asked for that and there's an
 // agent to build it.
 async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
-  const change = await resolveChange(cwd, readChangeArguments(args, directoryIn(cwd)))
+  const change = await changeFromArguments(cwd, args)
   const settings = await loadSettings()
   const agent = agentSetting(settings).command
 
