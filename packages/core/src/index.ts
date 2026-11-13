@@ -80,15 +80,8 @@ export {
   type LineChange,
 } from "./git/diff"
 export { blobAt, readFileAt } from "./git/read"
-export {
-  findRepoEntry,
-  folderName,
-  isRemote,
-  parseRepoEntry,
-  repoName,
-  type RepoEntry,
-} from "./repos/entry"
-export { REPOS_LIST, parseReposList, readReposList } from "./repos/list"
+export { folderName, isRemote, parseRepoEntry, type RepoEntry } from "./repos/entry"
+export { REPOS_LIST, readReposList } from "./repos/list"
 export {
   resolvePullRequest,
   resolveRangeChange,
@@ -99,7 +92,7 @@ export {
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
 export { openPullRequests, type OpenPullRequest } from "./repos/open-pull-requests"
 export { fetchRepo, repoBranches, type RepoBranch, type RepoBranches } from "./repos/branches"
-export { cachePath, cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
+export { cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
 export type { CodeTrek } from "./change/options"
@@ -161,7 +154,7 @@ export { snapshotWorkingTree } from "./git/snapshot"
 export { existingTrekFor } from "./build/existing"
 export { trekNameFor } from "./build/name"
 export type { UnreachableRepo } from "./build/reachable"
-export { trekState, trekStates, type TrekState } from "./build/trek-state"
+export { trekStates, type TrekState } from "./build/trek-state"
 export {
   BUILD_LOG_ENV,
   BUILD_LOG_PREFIX,
@@ -178,16 +171,13 @@ export { loadTrekEntries, type TrekEntry } from "./trek-entries"
 export { buildTrekPrompt } from "./guide"
 export { buildFiles, type BuildFiles } from "./build/files"
 export {
-  TRIGGERS_DIR,
   TriggerSchema,
   loadTriggers,
   saveTriggers,
   triggerProblems,
-  triggersPath,
   type Trigger,
 } from "./build/triggers"
 export {
-  PROPOSED_REPOS,
   ProposedRepoSchema,
   acceptProposal,
   dismissProposal,

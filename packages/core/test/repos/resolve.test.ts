@@ -2,13 +2,13 @@ import { describe, expect, test } from "bun:test"
 import { mkdir, realpath, writeFile } from "node:fs/promises"
 import { basename, dirname, join } from "node:path"
 import {
-  cachePath,
   parsePullRequestUrl,
   readReposList,
   resolvePullRequest,
   resolveUnchangedRepo,
   runGit,
 } from "../../src"
+import { cachePath } from "../../src/repos/cache"
 import { commit, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
 import { makeCacheDir, makeRemote } from "../support/remote"

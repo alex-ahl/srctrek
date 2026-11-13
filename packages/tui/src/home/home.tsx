@@ -31,7 +31,7 @@ import { type Editor, availableEditors, openInEditor } from "../editors/editors"
 import { type FollowChange, useFollow } from "./follow"
 import { type Opening, failureReason } from "./opening-line"
 import { openInPager } from "../editors/pager"
-import type { SettingChange } from "../settings/screen"
+import type { SettingChange } from "../settings/rows"
 import { TERMINAL_TONES, type TerminalColours, TonesContext, bandFor, tonesFor } from "../ui/theme"
 
 /** What the home screen needs for the change trek was started for. */

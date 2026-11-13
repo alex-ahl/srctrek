@@ -28,7 +28,7 @@ export const ProposedRepoSchema = z.object({
 
 export type ProposedRepo = z.infer<typeof ProposedRepoSchema>
 
-export const PROPOSED_REPOS = join(".srctrek", "proposed-repos.json")
+const PROPOSED_REPOS = join(".srctrek", "proposed-repos.json")
 
 /** Why `proposal` can't be recorded: its name is taken, or its evidence doesn't hold. */
 export async function proposalProblems(

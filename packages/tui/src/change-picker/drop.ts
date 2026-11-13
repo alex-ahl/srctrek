@@ -32,7 +32,7 @@ export function opened(path: string): Drop {
 }
 
 // "origin/main" is the default branch the user knows as "main".
-export const shortBase = (base: string) => base.replace(/^origin\//, "")
+const shortBase = (base: string) => base.replace(/^origin\//, "")
 
 const matching = (query: string) => (branch: RepoBranch) => {
   const typed = query.toLowerCase()

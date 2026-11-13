@@ -14,8 +14,6 @@ import { TITLE_SEPARATOR } from "../home/title-bar"
 import { wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 
-export type { SettingChange } from "./rows"
-
 type Props = {
   settings: Settings
   // the editors treks can open in here, and the one chosen

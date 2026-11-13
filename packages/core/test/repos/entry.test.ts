@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { findRepoEntry, isRemote, parseRepoEntry, parseReposList, repoName } from "../../src"
+import { isRemote, parseRepoEntry } from "../../src"
+import { parseReposList } from "../../src/repos/list"
 
 describe("parseRepoEntry", () => {
   test("reads a path, with or without a pinned revision", () => {
@@ -25,26 +26,6 @@ describe("parseRepoEntry", () => {
       name: "auth",
       source: "git@host:org/auth.git",
     })
-  })
-})
-
-describe("repoName", () => {
-  test("is the given name, else the folder without .git", () => {
-    expect(repoName({ name: "payments", source: "../payments-service" })).toBe("payments")
-    expect(repoName({ source: "../gateway/" })).toBe("gateway")
-    expect(repoName({ source: "git@host:org/auth.git" })).toBe("auth")
-  })
-})
-
-describe("findRepoEntry", () => {
-  test("finds the repo a call names", () => {
-    const entries = parseReposList("payments = ../payments-service\n../gateway\n")
-    expect(findRepoEntry(entries, "payments")).toEqual({
-      name: "payments",
-      source: "../payments-service",
-    })
-    expect(findRepoEntry(entries, "gateway")).toEqual({ source: "../gateway" })
-    expect(findRepoEntry(entries, "billing")).toBeUndefined()
   })
 })
 

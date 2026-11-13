@@ -3,7 +3,7 @@ import type { Settings, TrekEntry } from "@srctrek/core"
 import { useEffect, useState } from "react"
 import { App } from "../../src/home/app"
 import type { Editor } from "../../src/editors/editors"
-import type { SettingChange } from "../../src/settings/screen"
+import type { SettingChange } from "../../src/settings/rows"
 import { frameAfter, pressOn } from "../support/keys"
 
 const noop = () => undefined

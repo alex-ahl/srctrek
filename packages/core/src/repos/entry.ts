@@ -33,16 +33,6 @@ export function folderName(path: string): string {
   return basename(path.replace(/\/+$/, "")).replace(/\.git$/, "")
 }
 
-/** The given name, else the folder's. */
-export function repoName(entry: RepoEntry): string {
-  return entry.name ?? folderName(entry.source)
-}
-
-/** The entry for the repo a call names, if the list has one. */
-export function findRepoEntry(entries: RepoEntry[], name: string): RepoEntry | undefined {
-  return entries.find((entry) => repoName(entry) === name)
-}
-
 /** "git@host:org/repo", "https://…", "ssh://…": anything that isn't a local path. */
 export function isRemote(source: string): boolean {
   return /^[a-z][a-z0-9+.-]*:\/\//i.test(source) || /^[^/\s]+@[^/\s]+:/.test(source)

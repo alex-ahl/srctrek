@@ -10,7 +10,7 @@ const PLUGIN_IN_CHECKOUT = [
   join(dirname(process.execPath), "../editors/nvim"),
 ]
 
-export function checkoutPluginDir(): string | null {
+function checkoutPluginDir(): string | null {
   return PLUGIN_IN_CHECKOUT.find((dir) => existsSync(dir)) ?? null
 }
 
@@ -18,7 +18,7 @@ export function checkoutPluginDir(): string | null {
  * This trek's own `trek serve`, so the plugin talks to the same version: the binary itself
  * when compiled (its entry point is inside the binary), or bun with the entry point.
  */
-export function serveCommand(): string[] {
+function serveCommand(): string[] {
   const compiled = Bun.main.startsWith("/$bunfs/")
 
   return compiled ? [process.execPath, "serve"] : [process.execPath, Bun.main, "serve"]
