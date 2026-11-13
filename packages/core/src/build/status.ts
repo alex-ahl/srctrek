@@ -6,8 +6,7 @@ import { staleStepIds } from "./stale"
 import { stopIds } from "./stops"
 import { pathExists } from "../files"
 import { PROMPT_HASH } from "../prompts"
-import type { Trek } from "../schema/trek"
-import { TrekValidationError, loadTrek, trekPath } from "../treks"
+import { loadTrek, loadTrekOrProblem, trekPath } from "../treks"
 import { trekNameFor } from "./name"
 import { type Trigger, loadTriggers } from "./triggers"
 
@@ -84,21 +83,6 @@ async function triggersStatus(root: string, change: ResolvedChange): Promise<Tre
   return buildStatus(root, name)
 }
 
-type Saved = Readonly<{ trek: Trek } | { problem: string }>
-
-// The trek saved at `path`, or its first problem when it isn't a valid trek.
-async function loadSaved(path: string): Promise<Saved> {
-  try {
-    return { trek: await loadTrek(path) }
-  } catch (error) {
-    if (error instanceof TrekValidationError) {
-      return { problem: error.issues[0] ?? "invalid trek" }
-    }
-
-    throw error
-  }
-}
-
 // A trek saved under the change's name that doesn't cover it: built at older commits, or not a
 // valid trek at all, such as one from another format version.
 async function savedStatus(
@@ -111,7 +95,7 @@ async function savedStatus(
     return undefined
   }
 
-  const saved = await loadSaved(path)
+  const saved = await loadTrekOrProblem(path)
   if ("problem" in saved) {
     return { kind: "unreadable", name, problem: saved.problem }
   }

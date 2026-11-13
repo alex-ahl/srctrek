@@ -2,7 +2,7 @@ import { recordedRange } from "../schema/recorded-range"
 import { type ResolvedChange, hasRange } from "../change/resolve"
 import type { Trek } from "../schema/trek"
 import { pathExists } from "../files"
-import { TrekValidationError, listTreks, loadTrek, trekPath } from "../treks"
+import { listTreks, loadTrekOrProblem, trekPath } from "../treks"
 import { trekNameFor } from "./name"
 
 // A trek covers the change when it has every changed repo at the same commits. Repos on the
@@ -19,17 +19,10 @@ function covers(trek: Trek, change: ResolvedChange): boolean {
     )
 }
 
-/** The trek saved at `path`, or none when it isn't valid. */
-export async function loadValid(path: string): Promise<Trek | undefined> {
-  try {
-    return await loadTrek(path)
-  } catch (error) {
-    if (error instanceof TrekValidationError) {
-      return undefined
-    }
-
-    throw error
-  }
+// The trek saved at `path`, or none when it isn't valid.
+async function validTrek(path: string): Promise<Trek | undefined> {
+  const loaded = await loadTrekOrProblem(path)
+  return "trek" in loaded ? loaded.trek : undefined
 }
 
 // A code trek of the same code: no ranges, and each repo it read at the revision it has now.
@@ -50,7 +43,7 @@ async function existingCodeTrek(root: string, change: ResolvedChange): Promise<s
     return undefined
   }
 
-  const trek = await loadValid(path)
+  const trek = await validTrek(path)
   return trek !== undefined && readsSameCode(trek, change) ? name : undefined
 }
 
@@ -64,7 +57,7 @@ export async function existingTrekFor(
   }
 
   for (const name of await listTreks(root)) {
-    const trek = await loadValid(trekPath(root, name))
+    const trek = await validTrek(trekPath(root, name))
     if (trek !== undefined && covers(trek, change)) {
       return name
     }

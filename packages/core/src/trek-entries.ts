@@ -1,6 +1,7 @@
 import { stopIds } from "./build/stops"
 import type { RangeHead } from "./change/head"
-import { TrekValidationError, listTreks, loadTrek, trekPath } from "./treks"
+import type { Trek } from "./schema/trek"
+import { listTreks, loadTrekOrProblem, trekPath } from "./treks"
 
 /**
  * A saved trek, for lists of treks: a valid one's title, stops, likely-wrong flags, when it was
@@ -22,37 +23,36 @@ export type TrekEntry =
     }
   | { name: string; path: string; valid: false; problem: string }
 
+// A valid trek as the list shows it.
+function entryOf(name: string, path: string, trek: Trek): TrekEntry {
+  const highFlags = trek.steps.filter((s) => s.uncertain?.severity === "high").length
+
+  // a code trek reads every repo at a revision; a change trek has a range in at least one
+  const code = trek.repos.every((repo) => repo.range === undefined)
+
+  return {
+    name,
+    path,
+    valid: true,
+    title: trek.title,
+    steps: stopIds(trek).size,
+    highFlags,
+    createdAt: trek.created_at,
+    repos: trek.repos.length,
+    code,
+    heads: trek.repos.flatMap((repo) =>
+      repo.head === undefined ? [] : [{ repo: repo.name, head: repo.head }],
+    ),
+  }
+}
+
 async function loadEntry(root: string, name: string): Promise<TrekEntry> {
   const path = trekPath(root, name)
-  try {
-    const trek = await loadTrek(path)
-    const highFlags = trek.steps.filter((s) => s.uncertain?.severity === "high").length
-    const steps = stopIds(trek).size
+  const loaded = await loadTrekOrProblem(path)
 
-    // a code trek reads every repo at a revision; a change trek has a range in at least one
-    const code = trek.repos.every((repo) => repo.range === undefined)
-
-    return {
-      name,
-      path,
-      valid: true,
-      title: trek.title,
-      steps,
-      highFlags,
-      createdAt: trek.created_at,
-      repos: trek.repos.length,
-      code,
-      heads: trek.repos.flatMap((repo) =>
-        repo.head === undefined ? [] : [{ repo: repo.name, head: repo.head }],
-      ),
-    }
-  } catch (error) {
-    if (!(error instanceof TrekValidationError)) {
-      throw error
-    }
-
-    return { name, path, valid: false, problem: error.issues[0] ?? "invalid trek" }
-  }
+  return "trek" in loaded
+    ? entryOf(name, path, loaded.trek)
+    : { name, path, valid: false, problem: loaded.problem }
 }
 
 /** Every saved trek under `root`; invalid ones stay listed with their first problem. */

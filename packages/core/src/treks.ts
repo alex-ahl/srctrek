@@ -103,6 +103,22 @@ export async function loadTrek(path: string): Promise<Trek> {
   return parseTrek(await readJson(path), path)
 }
 
+/** A saved trek, or the first problem that keeps it from being one. */
+export type LoadedTrek = Readonly<{ trek: Trek } | { problem: string }>
+
+/** The trek saved at `path`, or its first problem when it isn't a valid trek. */
+export async function loadTrekOrProblem(path: string): Promise<LoadedTrek> {
+  try {
+    return { trek: await loadTrek(path) }
+  } catch (error) {
+    if (error instanceof TrekValidationError) {
+      return { problem: error.issues[0] ?? "invalid trek" }
+    }
+
+    throw error
+  }
+}
+
 /** Names of saved treks under `root`, sorted; files whose names aren't trek names are skipped. */
 export async function listTreks(root: string): Promise<string[]> {
   const files = await readdir(join(root, TREKS_DIR)).catch(() => [])
