@@ -439,3 +439,25 @@ test("← closes a repo's branches without taking one", async () => {
   expect(frame).not.toContain("┌")
   expect(frame).toMatch(/\[ \] api +\.\.\/api +refunds-api ▸/)
 })
+
+test("says why a repo's branches couldn't be read, instead of waiting for them", async () => {
+  const choosing = {
+    choice: own,
+    load: () => Promise.resolve(choices),
+    pullRequests: () => Promise.resolve(open),
+    nearby: () => Promise.resolve(nearby),
+    repoBranches: () => Promise.reject(new Error("no base branch")),
+    fetchRepo,
+    status: statusOf,
+    onPick: () => undefined,
+  }
+  const frame = await frameAfter(
+    <App entries={[]} onOpen={() => undefined} onQuit={() => undefined} choosing={choosing} />,
+    openDrop,
+    120,
+    34,
+  )
+
+  expect(frame).toContain("└ ✕ no base branch")
+  expect(frame).not.toContain("finding branches")
+})

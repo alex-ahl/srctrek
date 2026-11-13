@@ -250,6 +250,7 @@ export function ChangePicker(props: Props) {
                 : {
                     drop: drop.drop,
                     rows: drop.rows,
+                    problem: drop.problem,
                     pick: ticked.get(drop.drop.path),
                     now,
                   }

@@ -4,10 +4,14 @@ import type { Drop, DropRow } from "./drop"
 import { fit, shortAge } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 
-/** What the drop under a repo's row shows: its lines, if loaded, and the repo's tick now. */
+/**
+ * What the drop under a repo's row shows: its lines, if loaded, or why they couldn't be, and the
+ * repo's tick now.
+ */
 export type DropView = Readonly<{
   drop: Drop
   rows: readonly DropRow[] | undefined
+  problem: string | undefined
   pick: RepoPick | undefined
   now: Date
 }>
@@ -101,7 +105,11 @@ export function DropLines({ view, tint }: { view: DropView; tint: RGBA | undefin
   const tones = useTones()
   const { drop, rows, pick, now } = view
   if (rows === undefined) {
-    return <text fg={tones.dim}>{`${INDENT}└ finding branches…`}</text>
+    return view.problem === undefined ? (
+      <text fg={tones.dim}>{`${INDENT}└ finding branches…`}</text>
+    ) : (
+      <text fg={tones.bad}>{`${INDENT}└ ✕ ${view.problem}`}</text>
+    )
   }
 
   const last = rows.length - 1
