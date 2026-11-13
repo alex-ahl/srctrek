@@ -39,3 +39,13 @@ export async function detectBase(cwd: string): Promise<string> {
 
   throw new Error("no base branch: origin/HEAD is unset and there is no main or master")
 }
+
+/** The base branch as people name it: "origin/main" is "main". */
+export function baseName(base: string): string {
+  return base.replace(/^origin\//, "")
+}
+
+/** Whether `branch` is the base branch, named locally ("main") or as the remote has it. */
+export function isBaseBranch(base: string, branch: string): boolean {
+  return baseName(branch) === baseName(base)
+}

@@ -1,4 +1,4 @@
-import type { RepoBranch, RepoBranches, RepoPick } from "@srctrek/core"
+import { type RepoBranch, type RepoBranches, type RepoPick, baseName } from "@srctrek/core"
 
 /**
  * A repo's branches open under its row: which line is selected, whether all are shown or the few
@@ -31,9 +31,6 @@ export function opened(path: string): Drop {
   return { path, at: 0, all: false, query: "", fetch: undefined }
 }
 
-// "origin/main" is the default branch the user knows as "main".
-const shortBase = (base: string) => base.replace(/^origin\//, "")
-
 const matching = (query: string) => (branch: RepoBranch) => {
   const typed = query.toLowerCase()
   return [branch.name, branch.author, branch.subject].some((text) =>
@@ -61,7 +58,7 @@ export function dropRows(found: RepoBranches, drop: Drop): DropRow[] {
   const branches = found.branches.filter(matching(drop.query))
   const listed = shown(branches, drop)
   const hidden = branches.length - listed.length
-  const base = shortBase(found.base)
+  const base = baseName(found.base)
 
   const rows: DropRow[] = listed.map((branch) => ({
     kind: "branch",

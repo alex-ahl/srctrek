@@ -1,4 +1,4 @@
-import { detectBase } from "../git/base"
+import { detectBase, isBaseBranch } from "../git/base"
 import { branchToRead, isAncestor } from "../git/refs"
 import { runGit } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
@@ -40,9 +40,7 @@ const rangeEnd = (repo: TrekRepo) => repo.range?.split(/\.{2,3}/)[1] ?? repo.rev
 // A branch's work is merged when its last commit is in the base branch, unless it is the base.
 async function isMerged(dir: string, branch: string, work: string): Promise<boolean> {
   const base = await detectBase(dir)
-  const isBase = base === branch || base.endsWith(`/${branch}`)
-
-  return !isBase && isAncestor(dir, work, base)
+  return !isBaseBranch(base, branch) && isAncestor(dir, work, base)
 }
 
 // A changed repo's branch now. A snapshot of uncommitted work is in no branch, so it's compared

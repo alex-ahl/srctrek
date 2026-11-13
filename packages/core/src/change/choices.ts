@@ -1,6 +1,6 @@
 import { type TrekStatus, trekStatus } from "../build/status"
 import { directoryIn } from "../files"
-import { detectBase } from "../git/base"
+import { detectBase, isBaseBranch } from "../git/base"
 import { checkedOutBranch, commitsBetween } from "../git/refs"
 import { runGit } from "../git/run"
 import { parsePullRequestUrl } from "../repos/pull-request"
@@ -118,9 +118,10 @@ async function localBranches(cwd: string): Promise<string[]> {
 export async function branchChoices(cwd: string): Promise<BranchChoices> {
   const base = await detectBase(cwd)
   const current = await checkedOutBranch(cwd)
-  const isBase = (name: string) => name === base || `origin/${name}` === base
 
-  const names = (await localBranches(cwd)).filter((name) => name !== current && !isBase(name))
+  const names = (await localBranches(cwd)).filter(
+    (name) => name !== current && !isBaseBranch(base, name),
+  )
   const counted = await Promise.all(
     names.slice(0, OTHERS_LIMIT).map(async (name) => ({
       name,

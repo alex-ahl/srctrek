@@ -1,5 +1,5 @@
 import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
-import { detectBase } from "../git/base"
+import { detectBase, isBaseBranch } from "../git/base"
 import { checkedOutBranch, hasBranch, hasRef, isSnapshot } from "../git/refs"
 import { NO_PROMPT, runGit } from "../git/run"
 import { isRemote } from "./entry"
@@ -69,7 +69,7 @@ async function workBranchOf(dir: string, branch: string | undefined): Promise<st
   }
 
   const base = await detectBase(dir).catch(() => undefined)
-  return branch === base || `origin/${branch}` === base ? [] : [branch]
+  return base !== undefined && isBaseBranch(base, branch) ? [] : [branch]
 }
 
 /**

@@ -69,7 +69,7 @@ export {
   saveTrek,
   trekPath,
 } from "./treks"
-export { detectBase } from "./git/base"
+export { baseName, detectBase } from "./git/base"
 export { parseRange, resolveRange, type RangeSpec, type ResolvedRange } from "./git/range"
 export { GitError, runGit } from "./git/run"
 export {
