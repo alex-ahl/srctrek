@@ -12,6 +12,8 @@ const FLAGS = {
   low: { mark: "●", wording: "worth knowing" },
 } as const
 
+// The keys srctrek binds by default; VS Code doesn't tell an extension what they're rebound to,
+// so the page names the commands beside them.
 const KEYS = [
   ["F8", "next stop"],
   ["Shift+F8", "previous stop"],
@@ -71,9 +73,10 @@ function overviewBody(view: OverviewView): string {
     "</table>",
     "<h2>Keys</h2>",
     `<table>${keys.join("")}</table>`,
+    `<p class="muted">the default keys; rebound ones show in Keyboard Shortcuts under srctrek</p>`,
     "<h2>On screen</h2>",
     `<table>${onScreen.join("")}</table>`,
-    `<p class="muted">${String(view.count)} stops · F8 to start</p>`,
+    `<p class="muted">${String(view.count)} stops · srctrek: Next Stop (F8 by default) to start</p>`,
   ].join("\n")
 }
 
@@ -100,7 +103,7 @@ function endBody(view: EndView): string {
     "<h2>End of the trek</h2>",
     `<p class="story">${escapeHtml(view.outcome)}</p>`,
     flags,
-    `<p class="muted">a flag goes to its stop · Shift+F8 back to the last stop</p>`,
+    `<p class="muted">a flag goes to its stop · srctrek: Previous Stop (Shift+F8 by default) back to the last stop</p>`,
   ].join("\n")
 }
 

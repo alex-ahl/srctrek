@@ -205,7 +205,10 @@ local function finish(view)
     doc.add("    " .. flag.note, go_to(flag.id))
   end
   doc.add("")
-  doc.add("enter on a flag goes to its step · [t last step · <leader>tq ends the trek", nil, "SrctrekUnchanged")
+  local back = state.keys.previous or ":TrekPrev"
+  local quit = state.keys.quit or ":TrekQuit"
+  local hint = "enter on a flag goes to its step · " .. back .. " last step · " .. quit .. " ends the trek"
+  doc.add(hint, nil, "SrctrekUnchanged")
   popup.document(doc, view.title)
 end
 

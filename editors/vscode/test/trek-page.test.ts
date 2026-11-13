@@ -43,7 +43,7 @@ test("the overview tells the story, its trigger and outcome, repos, flags, and t
   expect(html).toContain("<td>api, web</td>")
   expect(html).toContain("<td>1 likely wrong · 2 worth knowing</td>")
   expect(html).toContain("<kbd>F8</kbd>")
-  expect(html).toContain("4 stops · F8 to start")
+  expect(html).toContain("4 stops · srctrek: Next Stop (F8 by default) to start")
 })
 
 test("the overview says once what the trek draws in the code", () => {
