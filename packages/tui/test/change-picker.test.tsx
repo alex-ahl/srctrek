@@ -1,12 +1,15 @@
 import { expect, mock, test } from "bun:test"
 import type {
   BranchChoices,
+  RepoBranch,
+  RepoBranches,
   ChangeChoice,
   NearbyCheckout,
   OpenPullRequest,
   TrekStatus,
 } from "@srctrek/core"
 import { App } from "../src/app"
+import { dropRows, opened } from "../src/change-picker-drop"
 import { pickerRows, pullRequestRows } from "../src/change-picker-rows"
 import { frameAfter } from "./support/keys"
 
@@ -53,12 +56,38 @@ const open: OpenPullRequest[] = [
   },
 ]
 
+// api's branches, most recent first: refunds-v2 by alice, refunds-api checked out, then older.
+const HOUR = 60 * 60 * 1000
+const ago = (hours: number) => new Date(Date.now() - hours * HOUR).toISOString()
+const branch = (name: string, hours: number, extra: Partial<RepoBranch> = {}): RepoBranch => ({
+  name,
+  committedAt: ago(hours),
+  author: "alice",
+  mine: false,
+  subject: `Work on ${name}`,
+  commits: 2,
+  checkedOut: false,
+  ...extra,
+})
+const apiBranches: RepoBranches = {
+  base: "origin/main",
+  branches: [
+    branch("refunds-v2", 2, { subject: "Split partial refunds into their own handler" }),
+    branch("spike/ledger", 30, { author: "bo" }),
+    branch("fix/timeouts", 60),
+    branch("refunds-api", 80, { mine: true, commits: 4, checkedOut: true }),
+    branch("old/refunds-poc", 900),
+  ],
+}
+
 // Beside web: api with work on refunds-api, worker and docs on main.
 const nearby: NearbyCheckout[] = [
   { path: "../api", name: "api", branch: "refunds-api", commits: 4 },
   { path: "../docs", name: "docs", branch: "main", commits: 0 },
   { path: "../worker", name: "worker", branch: "main", commits: 0 },
 ]
+
+const fetchRepo = mock((_path: string) => Promise.resolve())
 
 function app(
   onPick: (choice: ChangeChoice) => void,
@@ -69,6 +98,8 @@ function app(
     load: () => Promise.resolve(choices),
     pullRequests,
     nearby: () => Promise.resolve(nearby),
+    repoBranches: () => Promise.resolve(apiBranches),
+    fetchRepo,
     status: statusOf,
     onPick,
   }
@@ -223,7 +254,7 @@ test("lists the repos with work beside this one, folding the rest under a count"
   )
 
   expect(frame).toContain("MORE REPOS")
-  expect(frame).toMatch(/\[ \] api +\.\.\/api +on refunds-api · 4 commits/)
+  expect(frame).toMatch(/\[ \] api +\.\.\/api +refunds-api +4 commits/)
   expect(frame).toContain("▸ 2 more repos")
   expect(frame).not.toContain("worker")
 })
@@ -280,6 +311,131 @@ test("enter on the fold lists the rest, and a repo on its default branch is pass
     30,
   )
 
-  expect(frame).toMatch(/\[x\] worker +\.\.\/worker +on main · passed through/)
+  expect(frame).toMatch(/\[x\] worker +\.\.\/worker +main ▸ +passed through/)
   expect(frame).toContain("· worker passed through")
+})
+
+test("a repo's drop: the few latest and the checked-out one, the rest under a count, then main", () => {
+  const rows = dropRows(apiBranches, opened("../api"))
+
+  expect(rows.map((row) => (row.kind === "branch" ? row.branch.name : row.kind))).toEqual([
+    "refunds-v2",
+    "spike/ledger",
+    "fix/timeouts",
+    "refunds-api",
+    "more",
+    "base",
+    "fetch",
+  ])
+  expect(rows[4]).toEqual({ kind: "more", count: 1 })
+  expect(rows[5]).toMatchObject({ name: "main", pick: { changed: false, branch: "main" } })
+  expect(rows[3]).toMatchObject({ pick: { path: "../api", changed: true } })
+})
+
+test("typing narrows a repo's branches by name, author, or message", () => {
+  const byAuthor = dropRows(apiBranches, { ...opened("../api"), query: "bo" })
+  const byMessage = dropRows(apiBranches, { ...opened("../api"), query: "handler" })
+
+  expect(byAuthor.flatMap((row) => (row.kind === "branch" ? [row.branch.name] : []))).toEqual([
+    "spike/ledger",
+  ])
+  expect(byMessage.flatMap((row) => (row.kind === "branch" ? [row.branch.name] : []))).toEqual([
+    "refunds-v2",
+  ])
+})
+
+// The picker open on api's branches.
+const openDrop = async (input: Parameters<Parameters<typeof frameAfter>[1]>[0]) => {
+  await openListed(input)
+  down(input, 6)
+  await Bun.sleep(20)
+  input.pressArrow("right")
+  await Bun.sleep(50)
+}
+
+test("→ on a repo opens its branches under it, with when, who, and what", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    openDrop,
+    120,
+    34,
+  )
+
+  expect(frame).toMatch(/┌ refunds-v2 +2h ago +alice +Split partial refunds into their own handler/)
+  expect(frame).toMatch(/│ refunds-api +3d ago +you +Work on refunds-api +checked out/)
+  expect(frame).toContain("▸ 1 more branches")
+  expect(frame).toMatch(/│ main +its default branch · passes it through/)
+  expect(frame).toContain("└ ↻ look for new branches on the remote")
+  expect(frame).toContain("type to narrow · ↑/↓ choose · enter take · ←/esc close")
+})
+
+test("enter takes a branch, ticking the repo on it", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    async (input) => {
+      await openDrop(input)
+      input.pressEnter()
+      await Bun.sleep(20)
+    },
+    120,
+    34,
+  )
+
+  expect(frame).toMatch(/\[x\] api +\.\.\/api +refunds-v2 ▸ +you have refunds-api out/)
+  expect(frame).toContain("refunds-v2 in api")
+  expect(frame).not.toContain("┌")
+})
+
+test("typed letters narrow the open branches; the default branch passes the repo through", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    async (input) => {
+      await openDrop(input)
+      input.pressKey("m")
+      input.pressKey("a")
+      await Bun.sleep(30)
+      input.pressEnter()
+      await Bun.sleep(20)
+    },
+    120,
+    34,
+  )
+
+  expect(frame).toMatch(/\[x\] api +\.\.\/api +main ▸ +passed through · you have refunds-api out/)
+})
+
+test("the fetch line fetches the repo, then lists its branches again", async () => {
+  fetchRepo.mockClear()
+  await frameAfter(
+    app(() => undefined),
+    async (input) => {
+      await openDrop(input)
+      for (const _ of Array.from({ length: 6 })) {
+        input.pressArrow("down")
+      }
+      await Bun.sleep(20)
+      input.pressEnter()
+      await Bun.sleep(50)
+    },
+    120,
+    34,
+  )
+
+  expect(fetchRepo).toHaveBeenCalledWith("../api")
+})
+
+test("← closes a repo's branches without taking one", async () => {
+  const frame = await frameAfter(
+    app(() => undefined),
+    async (input) => {
+      await openDrop(input)
+      input.pressArrow("left")
+      await Bun.sleep(20)
+    },
+    120,
+    34,
+  )
+
+  expect(frame).not.toContain("┌")
+  expect(frame).toMatch(/\[ \] api +\.\.\/api +refunds-api ▸/)
 })

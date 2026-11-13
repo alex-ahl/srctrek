@@ -49,3 +49,20 @@ export function builtWhen(createdAt: string, now: Date): string {
     ...(sameYear ? {} : { year: "numeric" }),
   })
 }
+
+const AGES: ReadonlyArray<readonly [number, string]> = [
+  [365 * DAY_MS, "y"],
+  [30 * DAY_MS, "mo"],
+  [7 * DAY_MS, "w"],
+  [DAY_MS, "d"],
+  [60 * 60 * 1000, "h"],
+  [60 * 1000, "m"],
+]
+
+/** How long ago, in the largest unit that fits: "10m ago", "2h ago", "3w ago"; "just now" first. */
+export function shortAge(at: string, now: Date): string {
+  const ago = now.getTime() - new Date(at).getTime()
+  const unit = AGES.find(([size]) => ago >= size)
+
+  return unit === undefined ? "just now" : `${Math.floor(ago / unit[0])}${unit[1]} ago`
+}

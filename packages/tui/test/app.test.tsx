@@ -119,6 +119,8 @@ test("marks a change picked rather than the user's own branch", async () => {
     load: () => Promise.reject(new Error("unused")),
     pullRequests: () => Promise.reject(new Error("unused")),
     nearby: () => Promise.reject(new Error("unused")),
+    repoBranches: () => Promise.reject(new Error("unused")),
+    fetchRepo: () => Promise.reject(new Error("unused")),
     status: () => Promise.reject(new Error("unused")),
     onPick: () => undefined,
   }

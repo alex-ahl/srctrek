@@ -19,13 +19,10 @@ export function tickedOf(repos: readonly RepoPick[] | undefined): Ticked {
   return new Map((repos ?? []).map((repo) => [repo.path, repo]))
 }
 
-// Work on it, or ticked: worth listing without opening the fold.
-const shows = (checkout: NearbyCheckout, ticked: Ticked) =>
-  checkout.commits > 0 || ticked.has(checkout.path)
-
 /**
- * The repos to list under MORE REPOS: those with work on them and those ticked, then the rest,
- * folded under a count until `open`.
+ * The repos to list under MORE REPOS: those with work on them, then, while the rest are folded,
+ * those ticked and a count of the others; once opened, the rest in their own order, so ticking
+ * one never moves the line under the cursor.
  */
 export function repoItems(
   checkouts: readonly NearbyCheckout[],
@@ -37,13 +34,17 @@ export function repoItems(
     checkout,
     pick: ticked.get(checkout.path),
   })
-  const listed = checkouts.filter((checkout) => shows(checkout, ticked)).map(item)
-  const rest = checkouts.filter((checkout) => !shows(checkout, ticked)).map(item)
-  if (rest.length === 0) {
-    return listed
+  const withWork = checkouts.filter((checkout) => checkout.commits > 0).map(item)
+  const rest = checkouts.filter((checkout) => checkout.commits === 0)
+  if (open) {
+    return [...withWork, ...rest.map(item)]
   }
 
-  return open ? [...listed, ...rest] : [...listed, { kind: "fold", count: rest.length }]
+  const tickedRest = rest.filter((checkout) => ticked.has(checkout.path)).map(item)
+  const folded = rest.length - tickedRest.length
+  const fold: FoldItem[] = folded === 0 ? [] : [{ kind: "fold", count: folded }]
+
+  return [...withWork, ...tickedRest, ...fold]
 }
 
 /** The ticks with `checkout` ticked, as changed when it has work on it, or unticked. */
@@ -58,14 +59,34 @@ export function toggled(ticked: Ticked, checkout: NearbyCheckout): Ticked {
   return next
 }
 
-/** "on refunds-api · 4 commits", "on main · passed through": what a repo row says after its path. */
-export function repoDetail({ checkout, pick }: RepoItem): string {
-  const on = `on ${checkout.branch ?? "a detached commit"}`
-  if (pick !== undefined && !pick.changed) {
-    return `${on} · passed through`
-  }
+/** The branch a repo row names: the one taken for it, else what it has checked out. */
+export function repoBranch({ checkout, pick }: RepoItem): string {
+  return pick?.branch ?? checkout.branch ?? "a detached commit"
+}
 
-  return checkout.commits > 0 ? `${on} · ${count(checkout.commits, "commit")}` : on
+/**
+ * What a repo row says after its branch: "4 commits", "passed through", "passed through · you
+ * have spike/ledger out".
+ */
+export function repoNotes(item: RepoItem): string {
+  return [workNote(item), passedNote(item), elsewhereNote(item)].filter(Boolean).join(" · ")
+}
+
+// Its commits, while it's read on what it has checked out.
+function workNote({ checkout, pick }: RepoItem): string {
+  const onCheckout = pick?.branch === undefined
+  return onCheckout && checkout.commits > 0 ? count(checkout.commits, "commit") : ""
+}
+
+function passedNote({ pick }: RepoItem): string {
+  return pick !== undefined && !pick.changed ? "passed through" : ""
+}
+
+// A branch taken that isn't the one checked out says what is.
+function elsewhereNote({ checkout, pick }: RepoItem): string {
+  const taken = pick?.branch
+  const out = checkout.branch
+  return taken === undefined || out === undefined || taken === out ? "" : `you have ${out} out`
 }
 
 const names = (items: readonly string[]) =>
@@ -83,7 +104,10 @@ export function opensWith(
   const picked = checkouts.filter((checkout) => ticked.has(checkout.path))
   const changed = picked
     .filter((checkout) => ticked.get(checkout.path)?.changed === true)
-    .map((checkout) => `${checkout.branch ?? "HEAD"} in ${checkout.name}`)
+    .map(
+      (checkout) =>
+        `${ticked.get(checkout.path)?.branch ?? checkout.branch ?? "HEAD"} in ${checkout.name}`,
+    )
   const passed = picked
     .filter((checkout) => ticked.get(checkout.path)?.changed === false)
     .map((checkout) => checkout.name)

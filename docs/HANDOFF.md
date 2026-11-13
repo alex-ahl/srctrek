@@ -121,8 +121,11 @@
   in git's last words (`failureReason`), until the next pick. Under MORE REPOS, the repos beside
   this one with work on them (`nearbyCheckouts`), the rest folded under a count; `space` ticks
   one to go with the change, changed on what it has checked out or passed through when that's
-  its default branch, and enter on a repo opens the current change with them. Switching a repo
-  between the two, choosing its branch, following ticked repos, and code as it is come next.
+  its default branch, and enter on a repo opens the current change with them. `→` on a repo opens
+  its branches under its row (`repoBranches`): the few latest and the one checked out, each with
+  when, who, and what about, the rest under a count, its default branch to pass it through, and a
+  line that fetches it (`fetchRepo`); typing narrows them, and enter takes one.
+  Following ticked repos, adding a repo by path, and code as it is come next.
 
 ## 2026-11-03 — Milestone 6: the editors
 

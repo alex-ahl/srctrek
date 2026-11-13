@@ -5,12 +5,15 @@ import type {
   ChangeChoice,
   NearbyCheckout,
   OpenPullRequest,
+  RepoBranches,
   RepoPick,
   TrekStatus,
 } from "@srctrek/core"
 import { useEffect, useMemo, useState } from "react"
 import { type PickerItem, type PickerNote, PickerList, useStatuses } from "./change-picker-list"
 import { type Ticked, opensWith, repoItems, tickedOf, toggled } from "./change-picker-repos"
+import type { DropRow } from "./change-picker-drop"
+import { useDrop } from "./use-drop"
 import { type PickerRow, pickerRows, pullRequestRows, sameChange } from "./change-picker-rows"
 import { choiceName } from "./opening-line"
 import { Footer } from "./footer"
@@ -24,6 +27,9 @@ type Props = {
   load: () => Promise<BranchChoices>
   pullRequests: () => Promise<OpenPullRequest[]>
   nearby: () => Promise<NearbyCheckout[]>
+  // the branches of a repo beside this one, by its path, and fetching it on the user's word
+  repoBranches: (path: string) => Promise<RepoBranches>
+  fetchRepo: (path: string) => Promise<void>
   // where the trek of each change stands, filled in as each is worked out
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
@@ -91,6 +97,20 @@ function useCheckouts(nearby: () => Promise<NearbyCheckout[]>): readonly NearbyC
   return found
 }
 
+const DROP_KEYS = [
+  { key: "type", does: "to narrow" },
+  { key: "↑/↓", does: "choose" },
+  { key: "enter", does: "take" },
+  { key: "←/esc", does: "close" },
+]
+
+// The ticks as taking the drop's chosen line would leave them, for the line above the footer.
+function withDropPick(ticked: Ticked, row: DropRow | undefined): Ticked {
+  return row === undefined || row.kind === "more" || row.kind === "fetch"
+    ? ticked
+    : new Map(ticked).set(row.pick.path, row.pick)
+}
+
 // The ticked repos in the order they're listed.
 const picksOf = (ticked: Ticked, checkouts: readonly NearbyCheckout[]): RepoPick[] =>
   checkouts.flatMap((checkout) => {
@@ -127,7 +147,10 @@ function keysFor(item: PickerItem | undefined) {
   const enter = item?.kind === "fold" ? "show" : "review this"
   const space =
     item?.kind === "repo"
-      ? [{ key: "space", does: item.pick === undefined ? "add repo" : "remove repo" }]
+      ? [
+          { key: "space", does: item.pick === undefined ? "add repo" : "remove repo" },
+          { key: "→", does: "branches" },
+        ]
       : []
 
   return [
@@ -151,6 +174,8 @@ export function ChangePicker(props: Props) {
   const [foldOpen, setFoldOpen] = useState(false)
   const [chosen, setChosen] = useState(0)
   const statuses = useStatuses(rows, props.status)
+  // when the picker opened, which branches' ages are measured from
+  const [now] = useState(() => new Date())
 
   const items: PickerItem[] = [
     ...rows.map((row) => ({ kind: "change" as const, row })),
@@ -158,7 +183,16 @@ export function ChangePicker(props: Props) {
   ]
   const item = items[chosen]
   const repos = picksOf(ticked, checkouts)
-  const opens = opensWith(opensOf(item, rows, props.choice), ticked, checkouts)
+  const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
+    setTicked(new Map(ticked).set(pick.path, pick)),
+  )
+  const openDrop = () => item?.kind === "repo" && drop.open(item.checkout.path)
+  // while a repo's branches are open, the line chosen there says what it would open
+  const opens = opensWith(
+    opensOf(item, rows, props.choice),
+    withDropPick(ticked, drop.rows?.[drop.drop?.at ?? 0]),
+    checkouts,
+  )
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
   const move = (by: number) =>
@@ -169,12 +203,15 @@ export function ChangePicker(props: Props) {
     ["escape", props.onBack],
     ["return", enter],
     ["space", () => item?.kind === "repo" && setTicked(toggled(ticked, item.checkout))],
+    ["right", openDrop],
+    ["l", openDrop],
     ["down", () => move(1)],
     ["j", () => move(1)],
     ["up", () => move(-1)],
     ["k", () => move(-1)],
   ])
-  useKeyboard((key) => keyActions.get(key.name)?.())
+  // While a repo's branches are open, keys go there.
+  useKeyboard((key) => drop.key(key) || keyActions.get(key.name)?.())
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
@@ -207,6 +244,16 @@ export function ChangePicker(props: Props) {
             choice={props.choice}
             statuses={statuses}
             note={note}
+            drop={
+              drop.drop === undefined
+                ? undefined
+                : {
+                    drop: drop.drop,
+                    rows: drop.rows,
+                    pick: ticked.get(drop.drop.path),
+                    now,
+                  }
+            }
             tint={props.tint}
           />
         )}
@@ -223,7 +270,7 @@ export function ChangePicker(props: Props) {
           </text>
         </box>
       )}
-      <Footer keys={keysFor(item)} shown="" />
+      <Footer keys={drop.drop === undefined ? keysFor(item) : DROP_KEYS} shown="" />
     </box>
   )
 }

@@ -411,21 +411,39 @@
         <div class="foot">↑/↓ choose · enter review this · space add repo · esc keep current</div>
       </div>
     </figure>
-    <p class="note">Trying: more repos. The repos beside this one with work on them (a branch with commits since their default branch) and those ticked are listed, each with the branch it has checked out; the rest fold under a count that enter opens. A ticked repo counts as changed when that branch has commits since its default branch, and as passed through when it doesn't; <code>p</code> switches a ticked repo between the two, for a repo left on a branch that isn't part of this work. Ticked repos go with whatever is picked above them, and the line above the footer spells out the whole change.</p>
-    <figure><figcaption>Trying: three repos ticked — api changed, worker passed through as it's on main (ticked from the fold, so it stays listed), billing switched to passed through with p</figcaption>
+    <p class="note">Trying: more repos. The repos beside this one with work on them (a branch with commits since their default branch) and those ticked are listed, each with the branch it has checked out; the rest fold under a count that enter opens. A ticked repo counts as changed when that branch has commits since its default branch, and as passed through when it doesn't. <code>→</code> on a repo opens its branches under its row: the few latest and the one checked out, each with when, who, and what about; the rest under a count; its default branch, which passes it through; and a line to fetch from the remote. Typing narrows them by name, author, or message; enter takes one and ticks the repo on it. Ticked repos go with whatever is picked above them, and the line above the footer spells out the whole change.</p>
+    <figure><figcaption>Trying: three repos ticked — api changed, worker passed through as it's on main (ticked from the fold, so it stays listed), billing taken on main though spike/ledger is checked out</figcaption>
       <div class="term screen">
         <div class="pane">
           <div class="ln dim">MORE REPOS</div>
           <div class="ln">    <span class="a">[x]</span> api                    <span class="dim">../api       on refunds-api · 4 commits since main</span></div>
           <div class="ln">    <span class="a">[x]</span> worker                 <span class="dim">../worker    on main · passed through</span></div>
-          <div class="ln sel">    <span class="a">[x]</span> billing                <span class="dim">../billing   on spike/ledger · 2 commits ·</span> passed through</div>
+          <div class="ln sel">    <span class="a">[x]</span> billing                <span class="dim">../billing</span>   main <span class="a">▸</span>  <span class="dim">passed through · you have spike/ledger out</span></div>
           <div class="ln"> </div>
           <div class="ln dim">▸ 21 more repos</div>
         </div>
         <div class="help-panel">
           <div class="ln"><span class="dim">Opens:</span> feature/refunds in web, refunds-api in api <span class="dim">· worker and billing passed through · 7 commits</span></div>
         </div>
-        <div class="foot">↑/↓ choose · enter review this · space remove repo · p count as changed · esc keep current</div>
+        <div class="foot">↑/↓ choose · enter review this · space remove repo · → branches · esc keep current</div>
+      </div>
+    </figure>
+    <figure><figcaption>Trying: → on api opens its branches under its row</figcaption>
+      <div class="term screen">
+        <div class="pane">
+          <div class="ln dim">MORE REPOS</div>
+          <div class="ln">    <span class="a">[x]</span> api   <span class="dim">../api</span>   refunds-api <span class="a">▾</span>  <span class="dim">4 commits</span></div>
+          <div class="ln sel">        <span class="dim">┌</span> refunds-v2        <span class="dim">2h ago    alice   </span>Split partial refunds into their own handler</div>
+          <div class="ln">        <span class="dim">│</span> <span class="bold">refunds-api</span>       <span class="dim">1d ago    you     </span>Add the refund endpoint                       <span class="dim">checked out</span></div>
+          <div class="ln">        <span class="dim">│</span> spike/ledger      <span class="dim">3w ago    bo      </span>Try a ledger table</div>
+          <div class="ln">        <span class="dim">│ ▸ 3 more branches</span></div>
+          <div class="ln">        <span class="dim">│</span> main              <span class="dim">its default branch · passes it through</span></div>
+          <div class="ln">        <span class="dim">└ ↻ look for new branches on the remote</span></div>
+        </div>
+        <div class="help-panel">
+          <div class="ln"><span class="dim">Opens:</span> feature/refunds in web, refunds-v2 in api</div>
+        </div>
+        <div class="foot">type to narrow · ↑/↓ choose · enter take · ←/esc close</div>
       </div>
     </figure>
     <figure><figcaption>Trying: a pull request picked above, with api ticked below</figcaption>

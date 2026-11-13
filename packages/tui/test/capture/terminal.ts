@@ -92,6 +92,8 @@ export async function runInTerminal(run: TerminalRun, palette: Palette): Promise
     await send(KEYS[key] ?? key)
     await Bun.sleep(KEY_GAP_MS)
   }
+  // the screen the keys leave: quitting comes after, and q is typed into a field that's open
+  const left = output
   await send("q")
 
   // q can be taken by a prompt; ctrl-c always quits trek; a program past both is killed. Its
@@ -108,7 +110,7 @@ export async function runInTerminal(run: TerminalRun, palette: Palette): Promise
   await input.close()
   await rm(dir, { recursive: true, force: true })
 
-  return output
+  return left
 }
 
 // A cell's colour as OpenTUI names it: the terminal's default, an ANSI colour, or RGB.

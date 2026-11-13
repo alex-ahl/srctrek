@@ -5,6 +5,7 @@ import type {
   NearbyCheckout,
   OpenPullRequest,
   ProposedRepo,
+  RepoBranches,
   Settings as UserSettings,
   TrekEntry,
   TrekState,
@@ -45,6 +46,8 @@ export type Choosing = Readonly<{
   load: () => Promise<BranchChoices>
   pullRequests: () => Promise<OpenPullRequest[]>
   nearby: () => Promise<NearbyCheckout[]>
+  repoBranches: (path: string) => Promise<RepoBranches>
+  fetchRepo: (path: string) => Promise<void>
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   onPick: (choice: ChangeChoice) => void
 }>
@@ -317,6 +320,8 @@ function Picker({
       load={choosing.load}
       pullRequests={choosing.pullRequests}
       nearby={choosing.nearby}
+      repoBranches={choosing.repoBranches}
+      fetchRepo={choosing.fetchRepo}
       status={choosing.status}
       onPick={pick}
       onBack={close}

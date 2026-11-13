@@ -1,7 +1,8 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { type ReactNode, useEffect, useState } from "react"
-import { type FoldItem, type RepoItem, repoDetail } from "./change-picker-repos"
+import { DropLines, type DropView } from "./change-picker-drop-view"
+import { type FoldItem, type RepoItem, repoBranch, repoNotes } from "./change-picker-repos"
 import { type PickerGroup, type PickerRow, sameChange } from "./change-picker-rows"
 import { statusBlock } from "./status-block"
 import { count, fit } from "./text"
@@ -59,7 +60,7 @@ function StatusView({ status }: { status: TrekStatus | undefined }) {
 }
 
 // The columns, as wide as their longest, so what follows them lines up.
-type Widths = Readonly<{ name: number; detail: number; path: number }>
+type Widths = Readonly<{ name: number; detail: number; repo: number; path: number }>
 
 // One change to pick: the current one marked, names lined up, what it holds dimmed after.
 function ChangeView({
@@ -134,29 +135,47 @@ function Selectable({
   return selected && tint !== undefined ? <box style={{ backgroundColor: tint }}>{line}</box> : line
 }
 
-// A repo beside this one: ticked or not, its name, then its path and what it has checked out.
-function RepoView({ item, widths }: { item: RepoItem; widths: Widths }) {
+// A repo beside this one: ticked or not, its name and path, its branch, with → to open its
+// branches on the selected row (▾ while they're open), and what it holds.
+function RepoView({
+  item,
+  selected,
+  open,
+  widths,
+}: {
+  item: RepoItem
+  selected: boolean
+  open: boolean
+  widths: Widths
+}) {
   const tones = useTones()
   const ticked = item.pick !== undefined
+  const notes = repoNotes(item)
+  const arrow = open ? " ▾" : " ▸"
 
   return (
     <span>
       <span fg={ticked ? tones.accent : tones.dim}>{ticked ? "[x] " : "[ ] "}</span>
-      <span>{fit(item.checkout.name, widths.name - 2).padEnd(widths.name - 2)}</span>
-      <span
-        fg={tones.dim}
-      >{`  ${item.checkout.path.padEnd(widths.path)}  ${repoDetail(item)}`}</span>
+      <span>{item.checkout.name.padEnd(widths.repo)}</span>
+      <span fg={tones.dim}>{`  ${item.checkout.path.padEnd(widths.path)}  `}</span>
+      <span>{repoBranch(item)}</span>
+      {(selected || open) && <span fg={tones.accent}>{arrow}</span>}
+      {notes !== "" && <span fg={tones.dim}>{`  ${notes}`}</span>}
     </span>
   )
 }
 
 function ItemView({
   item,
+  selected,
+  open,
   choice,
   widths,
   statuses,
 }: {
   item: PickerItem
+  selected: boolean
+  open: boolean
   choice: ChangeChoice
   widths: Widths
   statuses: ReadonlyMap<string, TrekStatus>
@@ -167,7 +186,7 @@ function ItemView({
   }
 
   if (item.kind === "repo") {
-    return <RepoView item={item} widths={widths} />
+    return <RepoView item={item} selected={selected} open={open} widths={widths} />
   }
 
   return (
@@ -190,6 +209,7 @@ export function PickerList({
   choice,
   statuses,
   note,
+  drop,
   tint,
 }: {
   items: readonly PickerItem[]
@@ -197,6 +217,8 @@ export function PickerList({
   choice: ChangeChoice
   statuses: ReadonlyMap<string, TrekStatus>
   note: PickerNote | undefined
+  // a repo's branches open under its row
+  drop: DropView | undefined
   tint: RGBA | undefined
 }) {
   const widths = widthsOf(items)
@@ -210,15 +232,27 @@ export function PickerList({
           {startsGroup(items[index - 1], item) && (
             <Heading group={groupOf(item)} first={index === 0 && noteAt !== 0} />
           )}
-          <Selectable selected={index === chosen} tint={tint}>
-            <ItemView item={item} choice={choice} widths={widths} statuses={statuses} />
+          <Selectable selected={index === chosen && drop === undefined} tint={tint}>
+            <ItemView
+              item={item}
+              selected={index === chosen}
+              open={isOpen(item, drop)}
+              choice={choice}
+              widths={widths}
+              statuses={statuses}
+            />
           </Selectable>
+          {drop !== undefined && isOpen(item, drop) && <DropLines view={drop} tint={tint} />}
         </box>
       ))}
       {noteAt === items.length && <Note note={note} first={items.length === 0} />}
     </box>
   )
 }
+
+// The repo whose branches are open under it.
+const isOpen = (item: PickerItem, drop: DropView | undefined) =>
+  item.kind === "repo" && item.checkout.path === drop?.drop.path
 
 // An item under a different heading from the one before it, or the first.
 const startsGroup = (previous: PickerItem | undefined, item: PickerItem) =>
@@ -244,18 +278,16 @@ function Note({ note, first }: { note: PickerNote | undefined; first: boolean })
   )
 }
 
-// Names, repo paths, and details as wide as their longest, so later columns line up.
+// Each column as wide as its longest: the changes' names and details, and the repos' names and
+// paths, which line up among themselves rather than with a long pull request title above them.
 function widthsOf(items: readonly PickerItem[]): Widths {
   const rows = items.flatMap((item) => (item.kind === "change" ? [item.row] : []))
   const repos = items.flatMap((item) => (item.kind === "repo" ? [item.checkout] : []))
-  const names = [
-    ...rows.map((row) => row.label.length),
-    ...repos.map((repo) => repo.name.length + 2),
-  ]
 
   return {
-    name: Math.min(MAX_NAME_WIDTH, Math.max(0, ...names)),
+    name: Math.min(MAX_NAME_WIDTH, Math.max(0, ...rows.map((row) => row.label.length))),
     detail: Math.max(0, ...rows.map((row) => row.detail.length)),
+    repo: Math.max(0, ...repos.map((repo) => repo.name.length)),
     path: Math.max(0, ...repos.map((repo) => repo.path.length)),
   }
 }
