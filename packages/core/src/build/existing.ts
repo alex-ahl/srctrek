@@ -1,13 +1,9 @@
-import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
+import { recordedRange } from "../schema/recorded-range"
+import { type ResolvedChange, hasRange } from "../change/resolve"
 import type { Trek } from "../schema/trek"
 import { pathExists } from "../files"
 import { TrekValidationError, listTreks, loadTrek, trekPath } from "../treks"
 import { trekNameFor } from "./name"
-
-// A trek records a changed repo's range as "<base commit>..<head commit>".
-function rangeText(repo: RepoWithRange): string {
-  return `${repo.range.baseCommit}..${repo.range.headCommit}`
-}
 
 // A trek covers the change when it has every changed repo at the same commits. Repos on the
 // route without changes don't decide it: the agent may visit fewer of them, or more.
@@ -16,7 +12,9 @@ function covers(trek: Trek, change: ResolvedChange): boolean {
     .filter(hasRange)
     .every((repo) =>
       trek.repos.some(
-        (recorded) => recorded.name === repo.name && recorded.range === rangeText(repo),
+        (recorded) =>
+          recorded.name === repo.name &&
+          recorded.range === recordedRange(repo.range.baseCommit, repo.range.headCommit),
       ),
     )
 }

@@ -1,3 +1,4 @@
+import { recordedRange } from "../schema/recorded-range"
 import { rangeHead } from "../change/head"
 import { type ResolvedChange, type ResolvedRepo, hasRange } from "../change/resolve"
 import { PROMPT_HASH } from "../prompts"
@@ -81,7 +82,7 @@ async function trekRepo(repo: ResolvedRepo): Promise<Trek["repos"][number]> {
     name,
     source,
     revision,
-    range: `${baseCommit}..${headCommit}`,
+    range: recordedRange(baseCommit, headCommit),
     head: await rangeHead(repo),
   }
 }

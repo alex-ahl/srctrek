@@ -1,3 +1,4 @@
+import { rangeCommits } from "../schema/recorded-range"
 import { detectBase, isBaseBranch } from "../git/base"
 import { branchToRead, isAncestor } from "../git/refs"
 import { runGit } from "../git/run"
@@ -35,7 +36,7 @@ type RepoState =
   | Done
   | { kind: "unchecked" }
 
-const rangeEnd = (repo: TrekRepo) => repo.range?.split(/\.{2,3}/)[1] ?? repo.revision
+const rangeEnd = (repo: TrekRepo) => rangeCommits(repo.range)?.head ?? repo.revision
 
 // A branch's work is merged when its last commit is in the base branch, unless it is the base.
 async function isMerged(dir: string, branch: string, work: string): Promise<boolean> {

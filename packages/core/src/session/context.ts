@@ -1,3 +1,4 @@
+import { rangeCommits } from "../schema/recorded-range"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { ResolvedChange } from "../change/resolve"
@@ -55,13 +56,15 @@ function filesVisited(trek: Trek, repo: TrekRepo): string[] {
 
 // The lines the repo's recorded range touches in each file the trek visits there.
 async function linesOf(dir: string, trek: Trek, repo: TrekRepo): Promise<LinesByFile> {
-  const [base, head] = repo.range?.split(/\.{2,3}/) ?? []
-  if (base === undefined || head === undefined) {
+  const range = rangeCommits(repo.range)
+  if (range === undefined) {
     return new Map()
   }
 
   const files = filesVisited(trek, repo)
-  const lines = await Promise.all(files.map((file) => changedLines(dir, base, head, file)))
+  const lines = await Promise.all(
+    files.map((file) => changedLines(dir, range.base, range.head, file)),
+  )
 
   return new Map(files.map((file, i) => [file, lines[i] ?? new Map()]))
 }
