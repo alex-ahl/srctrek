@@ -10,7 +10,7 @@ import { SettingsList } from "./list"
 import { type Notice, NoticeLine } from "./notice"
 import { type SettingChange, type SettingRow, rowKeys, settingRows } from "./rows"
 import { TextPrompt } from "../ui/text-prompt"
-import { TITLE_SEPARATOR } from "../home/title-bar"
+import { TitleBar, titleRoom } from "../ui/title-bar"
 import { wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 
@@ -29,7 +29,7 @@ type Props = {
 type Prompt = "editor" | "agent"
 
 // After srctrek in the title bar, as the change is on the home screen.
-const SUBTITLE = `${TITLE_SEPARATOR}settings`
+const SUBTITLE = "settings"
 // Help reads as a short paragraph, not one line across a wide terminal.
 const HELP_WIDTH = 76
 const AGENT_HINT =
@@ -121,7 +121,7 @@ function copied(renderer: CliRenderer): boolean {
 // start, so the end, which says which file, stays.
 function shownPath(width: number): string {
   const path = settingsPath().replace(homedir(), "~")
-  const room = width - 2 * PADDING - "srctrek".length - SUBTITLE.length - 2
+  const room = titleRoom(width) - SUBTITLE.length - 2
 
   return path.length <= room ? path : `…${path.slice(path.length - room + 1)}`
 }
@@ -231,19 +231,7 @@ export function SettingsScreen(props: Props) {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <box
-        flexDirection="row"
-        justifyContent="space-between"
-        border={["bottom"]}
-        borderColor={tones.dim}
-        style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
-      >
-        <text fg={COLOUR.text}>
-          <span attributes={TextAttributes.BOLD}>srctrek</span>
-          <span fg={tones.dim}>{SUBTITLE}</span>
-        </text>
-        <text fg={tones.dim}>{shownPath(width)}</text>
-      </box>
+      <TitleBar left={<span fg={tones.dim}>{SUBTITLE}</span>} right={shownPath(width)} />
       <box
         flexDirection="column"
         style={{

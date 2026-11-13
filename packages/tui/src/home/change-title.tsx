@@ -1,9 +1,8 @@
-import { TextAttributes } from "@opentui/core"
-import type { ChangeSummary, ChangedRepoSummary, RangeHead } from "@srctrek/core"
-import { PADDING } from "../ui/layout"
-import { COLOUR, useTones } from "../ui/theme"
 import { useTerminalDimensions } from "@opentui/react"
+import type { ChangeSummary, ChangedRepoSummary, RangeHead } from "@srctrek/core"
 import { count, fit } from "../ui/text"
+import { useTones } from "../ui/theme"
+import { TitleBar, titleRoom } from "../ui/title-bar"
 
 // "feature/refunds", "feature/refunds + uncommitted", "pr 12".
 function headLabel(head: RangeHead): string {
@@ -70,10 +69,7 @@ function sizeText(summary: ChangeSummary): string {
   return repos === "" ? size : `${repos} · ${size}`
 }
 
-const NAME = "srctrek"
 const PICKED = " · picked"
-/** Between srctrek and what the screen is about, in every title bar. */
-export const TITLE_SEPARATOR = " › "
 // Below this, the right side is left out rather than cut to a stub.
 const MIN_SIZE_WIDTH = 12
 
@@ -82,20 +78,18 @@ const MIN_SIZE_WIDTH = 12
 function fitted(summary: ChangeSummary, picked: boolean, width: number) {
   const change = changeText(summary)
   const label = picked ? PICKED : ""
-  const room = width - 2 * PADDING - NAME.length - TITLE_SEPARATOR.length - label.length
+  const room = titleRoom(width) - label.length
   const sizeRoom = room - change.length - 2
   const size = sizeRoom < MIN_SIZE_WIDTH ? "" : fit(sizeText(summary), sizeRoom)
 
   return { change: fit(change, room - (size === "" ? 0 : size.length + 2)), label, size }
 }
 
-const NO_CHANGE = { change: "", label: "", size: "" }
-
 /**
- * The top line: srctrek and the change on the left, marked when it's one picked rather than the
- * user's own branch, where it is and its size on the right, ruled off below.
+ * The home screen's title bar: the change, marked when it's one picked rather than the user's own
+ * branch, and where it is and its size on the right.
  */
-export function TitleBar({
+export function ChangeTitleBar({
   summary,
   picked,
 }: {
@@ -104,27 +98,17 @@ export function TitleBar({
 }) {
   const tones = useTones()
   const { width } = useTerminalDimensions()
-  const {
-    change: shownChange,
-    label,
-    size,
-  } = summary === undefined ? NO_CHANGE : fitted(summary, picked, width)
+  if (summary === undefined) {
+    return <TitleBar />
+  }
 
-  return (
-    <box
-      flexDirection="row"
-      justifyContent="space-between"
-      border={["bottom"]}
-      borderColor={tones.dim}
-      style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
-    >
-      <text fg={COLOUR.text}>
-        <span attributes={TextAttributes.BOLD}>{NAME}</span>
-        {shownChange !== "" && <span fg={tones.dim}>{TITLE_SEPARATOR}</span>}
-        {shownChange !== "" && <span>{shownChange}</span>}
-        {label !== "" && <span fg={tones.dim}>{label}</span>}
-      </text>
-      {size !== "" && <text fg={tones.dim}>{size}</text>}
-    </box>
+  const { change, label, size } = fitted(summary, picked, width)
+  const left = (
+    <span>
+      <span>{change}</span>
+      {label !== "" && <span fg={tones.dim}>{label}</span>}
+    </span>
   )
+
+  return <TitleBar left={left} right={size} />
 }

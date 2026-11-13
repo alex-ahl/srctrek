@@ -33,7 +33,7 @@ import { type SectionId, sectionsOf } from "./list/sections"
 import { canStartBuild, hasLog, hasTrek } from "./states"
 import { statusBlock } from "./status-block"
 import { useTones } from "../ui/theme"
-import { TitleBar } from "./title-bar"
+import { ChangeTitleBar } from "./change-title"
 import { visibleWindow } from "./list/window"
 
 type Action = (() => void) | undefined
@@ -433,7 +433,7 @@ export function App(props: Props) {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <TitleBar summary={props.summary} picked={isPicked(props.choosing)} />
+      <ChangeTitleBar summary={props.summary} picked={isPicked(props.choosing)} />
       <box
         flexDirection="column"
         style={{

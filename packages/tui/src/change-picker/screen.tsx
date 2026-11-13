@@ -1,5 +1,5 @@
 import { errorText } from "@srctrek/core"
-import { type RGBA, TextAttributes } from "@opentui/core"
+import type { RGBA } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import type {
   BranchChoices,
@@ -20,7 +20,7 @@ import { choiceName } from "../home/opening-line"
 import { Footer } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { COLOUR, useTones } from "../ui/theme"
-import { TITLE_SEPARATOR } from "../home/title-bar"
+import { TitleBar } from "../ui/title-bar"
 
 type Props = {
   // the change the home screen is about now, marked in the list, and the changes to choose from
@@ -215,16 +215,7 @@ export function ChangePicker(props: Props) {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <box
-        border={["bottom"]}
-        borderColor={tones.dim}
-        style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
-      >
-        <text fg={COLOUR.text}>
-          <span attributes={TextAttributes.BOLD}>srctrek</span>
-          <span fg={tones.dim}>{`${TITLE_SEPARATOR}change`}</span>
-        </text>
-      </box>
+      <TitleBar left={<span fg={tones.dim}>change</span>} />
       <box
         flexDirection="column"
         style={{
