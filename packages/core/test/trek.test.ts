@@ -244,7 +244,7 @@ describe("saving and loading", () => {
   test("skips files that aren't named like treks", async () => {
     const root = await tempDir("treks-")
     await saveTrek(root, "refund", refundTrek())
-    await writeFile(join(root, ".srctrek/treks/refund.changed.json"), "{}")
+    await writeFile(join(root, ".srctrek/treks/refund.backup.json"), "{}")
     expect(await listTreks(root)).toEqual(["refund"])
   })
 

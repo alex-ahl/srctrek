@@ -22,7 +22,6 @@ import {
   readChangeArguments,
   repoNamed,
   resolveChange,
-  saveChangedLines,
   saveProposal,
   saveTrek,
   saveTriggers,
@@ -167,8 +166,6 @@ export async function finish(
     const rejected = reject(session, [result.invalid.message])
     return { session: rejected.session, answer: { problems: rejected.answer } }
   }
-
-  await saveChangedLines(draft.change, trek, result.path)
 
   return { session: { ...session, draft: undefined }, answer: { saved: result.path } }
 }

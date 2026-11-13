@@ -109,9 +109,6 @@ describe("building a trek over trek mcp", () => {
       ["s2", false],
     ])
     expect(trek.repos[0]?.range).toMatch(/^[0-9a-f]{40}\.\.[0-9a-f]{40}$/)
-    expect(await Bun.file(join(dir, ".srctrek/treks/total.changed.json")).json()).toEqual({
-      [repo]: { "src/app.ts": { "1": "changed" } },
-    })
   })
 
   test("stops the build at the third rejected round", async () => {

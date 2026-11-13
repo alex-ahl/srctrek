@@ -148,7 +148,6 @@ export {
 } from "./prompts"
 export { citationProblems } from "./build/citations"
 export { completeStep, type SubmittedStep } from "./build/complete"
-export { saveChangedLines } from "./build/changed-lines"
 export {
   addSteps,
   draftToTrek,

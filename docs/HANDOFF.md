@@ -410,7 +410,7 @@ The screen:
 - A build can't be stopped once it's started: not from the home screen, `trek serve`, or the
   editors. For Milestone 8's rough-edges list, or a key on a building trek.
 - Stop ignoring the .srctrek folder once treks are written with portable sources; clear
-  out local-only files (demo treks, changed-lines files) first.
+  out local-only files (demo treks) first.
 - OpenTUI stays, kept up to date with each release until 1.0; it's at 0.8.1.
   Revisit if an upgrade costs more than a day or a target platform fails to load it.
 - A context step's `for` names one step, so a context step can't explain several.
