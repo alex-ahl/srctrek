@@ -1,30 +1,15 @@
-import { GitError, runGit } from "./run"
+import { gitSucceeds, runGit, unlessGitFails } from "./run"
 
-async function refExists(cwd: string, ref: string): Promise<boolean> {
-  try {
-    await runGit(cwd, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`])
-    return true
-  } catch (error) {
-    if (error instanceof GitError) {
-      return false
-    }
-
-    throw error
-  }
+function refExists(cwd: string, ref: string): Promise<boolean> {
+  return gitSucceeds(cwd, ["rev-parse", "--verify", "--quiet", `${ref}^{commit}`])
 }
 
 // What origin/HEAD points to, e.g. "origin/main"; absent when the remote's default isn't known.
 async function remoteDefault(cwd: string): Promise<string | undefined> {
-  try {
-    const ref = await runGit(cwd, ["symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"])
-    return ref.replace(/^refs\/remotes\//, "")
-  } catch (error) {
-    if (error instanceof GitError) {
-      return undefined
-    }
-
-    throw error
-  }
+  const ref = await unlessGitFails(
+    runGit(cwd, ["symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"]),
+  )
+  return ref?.replace(/^refs\/remotes\//, "")
 }
 
 export async function isBare(cwd: string): Promise<boolean> {

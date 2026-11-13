@@ -42,3 +42,24 @@ export async function runGit(
 
   return trim ? stdout.trim() : stdout
 }
+
+/**
+ * What `work` answers, or none when git fails: git reports "no such ref", "no upstream", or "not
+ * a repo" as an ordinary failure, and that answer is "none". Anything else still throws.
+ */
+export async function unlessGitFails<T>(work: Promise<T>): Promise<T | undefined> {
+  try {
+    return await work
+  } catch (error) {
+    if (error instanceof GitError) {
+      return undefined
+    }
+
+    throw error
+  }
+}
+
+/** Whether git accepts `args` in `dir`: a git question answered through its exit code. */
+export async function gitSucceeds(dir: string, args: string[]): Promise<boolean> {
+  return (await unlessGitFails(runGit(dir, args))) !== undefined
+}

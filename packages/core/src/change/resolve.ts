@@ -1,7 +1,7 @@
 import { resolve } from "node:path"
 import type { ResolvedRange } from "../git/range"
 import { branchToRead, commitsBetween } from "../git/refs"
-import { GitError, runGit } from "../git/run"
+import { runGit, unlessGitFails } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
 import { type RepoEntry, isRemote } from "../repos/entry"
 import { readReposList } from "../repos/list"
@@ -68,16 +68,8 @@ function atHead(repo: ChangedRepo): ResolvedRepo {
  * The top of the repo trek runs in, which repo paths in the repos list and in proposals are
  * relative to; none when it runs outside one, as with a pull request given from anywhere.
  */
-export async function currentRepoTop(cwd: string): Promise<string | undefined> {
-  try {
-    return await runGit(cwd, ["rev-parse", "--show-toplevel"])
-  } catch (error) {
-    if (error instanceof GitError) {
-      return undefined
-    }
-
-    throw error
-  }
+export function currentRepoTop(cwd: string): Promise<string | undefined> {
+  return unlessGitFails(runGit(cwd, ["rev-parse", "--show-toplevel"]))
 }
 
 // The current repo's .srctrek/repos, its paths relative to that repo's top.
@@ -184,18 +176,15 @@ export type ReadAt =
 // How far a local branch lags behind the branch it tracks, as of the last fetch; none when it
 // tracks nothing or is level with it. Nothing is fetched: the user's repo is left as it is.
 async function behindUpstream(dir: string, branch: string): Promise<Behind | undefined> {
-  try {
-    const upstream = await runGit(dir, ["rev-parse", "--abbrev-ref", `${branch}@{upstream}`])
-    const commits = await commitsBetween(dir, branch, upstream)
-
-    return commits > 0 ? { commits, upstream } : undefined
-  } catch (error) {
-    if (error instanceof GitError) {
-      return undefined
-    }
-
-    throw error
+  const upstream = await unlessGitFails(
+    runGit(dir, ["rev-parse", "--abbrev-ref", `${branch}@{upstream}`]),
+  )
+  if (upstream === undefined) {
+    return undefined
   }
+
+  const commits = await unlessGitFails(commitsBetween(dir, branch, upstream))
+  return commits !== undefined && commits > 0 ? { commits, upstream } : undefined
 }
 
 // The repo as a change ending at the work's branch, from where it left its base, and the ref
@@ -216,15 +205,8 @@ async function onWorkBranch(
   }
 
   const spec = { base: undefined, head: toRead.ref, mode: "since-branch-point" as const }
-  try {
-    return { ...toRead, repo: atHead(await resolveRangeChange(top, entry, spec, cacheDir)) }
-  } catch (error) {
-    if (error instanceof GitError) {
-      return undefined
-    }
-
-    throw error
-  }
+  const repo = await unlessGitFails(resolveRangeChange(top, entry, spec, cacheDir))
+  return repo === undefined ? undefined : { ...toRead, repo: atHead(repo) }
 }
 
 function defaultWhy(entry: RepoEntry, branches: string[]): string {

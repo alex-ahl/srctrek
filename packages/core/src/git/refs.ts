@@ -1,50 +1,28 @@
-import { GitError, runGit } from "./run"
-
-// Whether git accepts `args` in `dir`: the answer to a git question asked through its exit code.
-async function succeeds(dir: string, args: string[]): Promise<boolean> {
-  try {
-    await runGit(dir, args)
-    return true
-  } catch (error) {
-    if (error instanceof GitError) {
-      return false
-    }
-
-    throw error
-  }
-}
+import { gitSucceeds, runGit, unlessGitFails } from "./run"
 
 /** The branch HEAD is on; none when it's detached. */
-export async function checkedOutBranch(dir: string): Promise<string | undefined> {
-  try {
-    return await runGit(dir, ["symbolic-ref", "--short", "--quiet", "HEAD"])
-  } catch (error) {
-    if (error instanceof GitError) {
-      return undefined
-    }
-
-    throw error
-  }
+export function checkedOutBranch(dir: string): Promise<string | undefined> {
+  return unlessGitFails(runGit(dir, ["symbolic-ref", "--short", "--quiet", "HEAD"]))
 }
 
 /** Whether `commit` is a snapshot srctrek made of uncommitted work. */
 export function isSnapshot(dir: string, commit: string): Promise<boolean> {
-  return succeeds(dir, ["rev-parse", "--verify", "--quiet", `refs/srctrek/snapshots/${commit}`])
+  return gitSucceeds(dir, ["rev-parse", "--verify", "--quiet", `refs/srctrek/snapshots/${commit}`])
 }
 
 /** Whether the repo has `revision` as a commit. */
 export function hasCommit(dir: string, revision: string): Promise<boolean> {
-  return succeeds(dir, ["cat-file", "-e", `${revision}^{commit}`])
+  return gitSucceeds(dir, ["cat-file", "-e", `${revision}^{commit}`])
 }
 
 /** Whether `commit` is in `ref`'s history: merged into it, or where it is. */
 export function isAncestor(dir: string, commit: string, ref: string): Promise<boolean> {
-  return succeeds(dir, ["merge-base", "--is-ancestor", commit, ref])
+  return gitSucceeds(dir, ["merge-base", "--is-ancestor", commit, ref])
 }
 
 /** Whether the repo has `ref`, written in full: "refs/remotes/origin/feature". */
 export function hasRef(dir: string, ref: string): Promise<boolean> {
-  return succeeds(dir, ["show-ref", "--verify", "--quiet", ref])
+  return gitSucceeds(dir, ["show-ref", "--verify", "--quiet", ref])
 }
 
 /** Whether the repo has a local branch named `name`. */
