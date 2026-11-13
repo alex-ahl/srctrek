@@ -113,5 +113,5 @@ test("questions get their own block; values stay in the code", () => {
 })
 
 test("with no stop open the page says how to start", () => {
-  expect(stopPageHtml(null, noCode, "n")).toContain("No stop open. Run Srctrek: Open Trek…")
+  expect(stopPageHtml(null, noCode, "n")).toContain("No stop open. Run srctrek: Open Trek…")
 })

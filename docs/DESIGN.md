@@ -212,11 +212,11 @@ command (`:TrekNext`) and a Lua function.
 | Next, previous      | `]t`, `[t`                 | `F8`, `Shift+F8`             |
 | Over                | `<leader>tn`               | `F10`                        |
 | Into, out           | `<leader>ti`, `<leader>to` | `F11`, `Shift+F11`           |
-| Back to the step    | `<leader>tc`               | Srctrek: Show Current Stop   |
-| Context code        | `<leader>tx`               | Srctrek: Show Context        |
+| Back to the step    | `<leader>tc`               | srctrek: Show Current Stop   |
+| Context code        | `<leader>tx`               | srctrek: Show Context        |
 | Details             | `<leader>tt`               | the sidebar's Stop view      |
-| Show or hide values | `<leader>tv`               | Srctrek: Show or Hide Values |
-| Ask (later)         | `<leader>ta`               | Srctrek: Ask                 |
+| Show or hide values | `<leader>tv`               | srctrek: Show or Hide Values |
+| Ask (later)         | `<leader>ta`               | srctrek: Ask                 |
 | Quit the trek       | `<leader>tq`               | `Escape` in the end tab      |
 
 In VS Code the keys step a trek only while no debug session runs.

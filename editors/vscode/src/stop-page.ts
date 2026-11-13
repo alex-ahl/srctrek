@@ -176,7 +176,7 @@ const STYLE = `
 /** The page for a stop, or a line saying how to start when the trek isn't on one. */
 export function stopPageHtml(view: StepView | null, codeAt: CodeAt, nonce: string): string {
   if (view === null) {
-    return pageHtml(`<p class="muted">No stop open. Run Srctrek: Open Trek…</p>`, nonce, STYLE)
+    return pageHtml(`<p class="muted">No stop open. Run srctrek: Open Trek…</p>`, nonce, STYLE)
   }
   const body = [
     leadSection(view),

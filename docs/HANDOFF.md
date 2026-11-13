@@ -212,7 +212,7 @@
 - A trek's read-only copy opens with its diagnostics hidden until the trek ends; the user's own
   files keep theirs.
 - Step 6g: the VS Code extension's skeleton, in `editors/vscode` (in the workspaces, under `bun run
-check`): "Srctrek: Open Trek…" lists the treks in a quick pick, `Alt+]` and `Alt+[` step, each
+check`): "srctrek: Open Trek…" lists the treks in a quick pick, `Alt+]` and `Alt+[` step, each
   step opens its file with its lines tinted, and the status bar shows the stop. Its client for
   `trek serve` has no VS Code API in it and is tested against the real server; the extension
   bundles none of core's code. The VS Code layer's checks run inside the installed VS Code, with a
@@ -236,7 +236,7 @@ check`): "Srctrek: Open Trek…" lists the treks in a quick pick, `Alt+]` and `A
   or new file, guessed link, context available, trek's version, stale). A trek's copy of a file
   opens read-only for the session.
 - VS Code shows predicted values at the ends of their lines, `name ≈ value` in the inlay-hint colour
-  and `≈?` in the warning colour, cut at 40 characters; "Srctrek: Show or Hide Values" toggles
+  and `≈?` in the warning colour, cut at 40 characters; "srctrek: Show or Hide Values" toggles
   them.
 - VS Code's overview and end open in a trek tab (a webview in the theme's colours, its own script
   only): the overview has the story, trigger, outcome, repos, flag counts, and the keys; the end has
@@ -251,8 +251,8 @@ check`): "Srctrek: Open Trek…" lists the treks in a quick pick, `Alt+]` and `A
 - The two views moved from the Explorer, where they sat collapsed under the files, to srctrek's own
   sidebar in the activity bar (`editors/vscode/media/trek.svg`), Treks above a taller Stop; opening a trek opens
   the sidebar on the stop.
-- VS Code: "Srctrek: Show Context" opens the stop's context code in VS Code's peek view over the
-  step; "Srctrek: Show Current Stop" goes back to the stop; `Escape` in the end tab ends the trek.
+- VS Code: "srctrek: Show Context" opens the stop's context code in VS Code's peek view over the
+  step; "srctrek: Show Current Stop" goes back to the stop; `Escape` in the end tab ends the trek.
 - `bun run --cwd editors/vscode package` builds srctrek.vsix in the extension's dist with
   `@vscode/vsce`: the bundled extension, its manifest, and its icon, nothing else
   (`.vscodeignore`). It's packaged without a license or repository field, as the repo has neither

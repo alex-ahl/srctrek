@@ -19,7 +19,7 @@ or Finder doesn't see your shell's `PATH`; there, set the full path.
 
 ## Stepping
 
-- Open a trek with "Srctrek: Open Trek…", or click one under Treks in the srctrek sidebar (its
+- Open a trek with "srctrek: Open Trek…", or click one under Treks in the srctrek sidebar (its
   icon is in the activity bar); its overview opens in a tab, with the keys and what the marks in
   the code mean.
 - The sidebar's Stop view starts with the stop's narration, its details, its flag, and where
@@ -38,10 +38,10 @@ or Finder doesn't see your shell's `PATH`; there, set the full path.
 | `F10`                        | Step over                                  |
 | `F11`                        | Step into the call on the cursor's line    |
 | `Shift+F11`                  | Step out                                   |
-| Srctrek: Show Current Stop   | Back to the stop after you've moved off it |
-| Srctrek: Show Context        | Scroll the Stop view to the context code   |
-| Srctrek: Show or Hide Values | Show or hide predicted values              |
-| `Escape` on the end tab      | End the trek (also Srctrek: End the Trek)  |
+| srctrek: Show Current Stop   | Back to the stop after you've moved off it |
+| srctrek: Show Context        | Scroll the Stop view to the context code   |
+| srctrek: Show or Hide Values | Show or hide predicted values              |
+| `Escape` on the end tab      | End the trek (also srctrek: End the Trek)  |
 
 The keys work while a trek is open and no debug session runs. On a Mac, the F-keys may need
 `fn`, and `F11` shows the desktop unless that shortcut is turned off.

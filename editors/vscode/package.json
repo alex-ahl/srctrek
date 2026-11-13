@@ -17,48 +17,59 @@
     "commands": [
       {
         "command": "srctrek.openTrek",
-        "title": "Srctrek: Open Trek…"
+        "category": "srctrek",
+        "title": "Open Trek…"
       },
       {
         "command": "srctrek.next",
-        "title": "Srctrek: Next Stop"
+        "category": "srctrek",
+        "title": "Next Stop"
       },
       {
         "command": "srctrek.previous",
-        "title": "Srctrek: Previous Stop"
+        "category": "srctrek",
+        "title": "Previous Stop"
       },
       {
         "command": "srctrek.over",
-        "title": "Srctrek: Step Over"
+        "category": "srctrek",
+        "title": "Step Over"
       },
       {
         "command": "srctrek.into",
-        "title": "Srctrek: Step Into"
+        "category": "srctrek",
+        "title": "Step Into"
       },
       {
         "command": "srctrek.out",
-        "title": "Srctrek: Step Out"
+        "category": "srctrek",
+        "title": "Step Out"
       },
       {
         "command": "srctrek.current",
-        "title": "Srctrek: Show Current Stop"
+        "category": "srctrek",
+        "title": "Show Current Stop"
       },
       {
         "command": "srctrek.context",
-        "title": "Srctrek: Show Context"
+        "category": "srctrek",
+        "title": "Show Context"
       },
       {
         "command": "srctrek.toggleValues",
-        "title": "Srctrek: Show or Hide Values"
+        "category": "srctrek",
+        "title": "Show or Hide Values"
       },
       {
         "command": "srctrek.refreshTreks",
-        "title": "Srctrek: Refresh Treks",
+        "category": "srctrek",
+        "title": "Refresh Treks",
         "icon": "$(refresh)"
       },
       {
         "command": "srctrek.quit",
-        "title": "Srctrek: End the Trek"
+        "category": "srctrek",
+        "title": "End the Trek"
       }
     ],
     "viewsContainers": {

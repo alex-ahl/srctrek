@@ -155,7 +155,7 @@ async function openTrek(name?: unknown): Promise<SessionView | undefined> {
 
 async function move(to: Move, params?: object): Promise<SessionView | undefined> {
   if (client === undefined) {
-    void vscode.window.showWarningMessage("srctrek: no trek is open; run Srctrek: Open Trek…")
+    void vscode.window.showWarningMessage("srctrek: no trek is open; run srctrek: Open Trek…")
     return undefined
   }
 
@@ -188,7 +188,7 @@ function into(): Promise<SessionView | undefined> {
 // Back to the stop the trek is on, without moving the trek.
 async function showCurrent(): Promise<SessionView | undefined> {
   if (current === undefined) {
-    void vscode.window.showWarningMessage("srctrek: no trek is open; run Srctrek: Open Trek…")
+    void vscode.window.showWarningMessage("srctrek: no trek is open; run srctrek: Open Trek…")
     return undefined
   }
   await show(current)
