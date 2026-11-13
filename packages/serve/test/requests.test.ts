@@ -32,7 +32,7 @@ describe("answering requests", () => {
     const old = await answerRequest(fresh, "initialize", { protocol_version: 0, client })
 
     expect(ok.answer).toEqual({
-      result: { protocol_version: PROTOCOL_VERSION, trail_version: "0.0.0" },
+      result: { protocol_version: PROTOCOL_VERSION, srctrek_version: "0.0.0" },
     })
     expect(errorCode(old.answer)).toBe(ErrorCode.versionMismatch)
     expect(old.state.initialized).toBe(false)

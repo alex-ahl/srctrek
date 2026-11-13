@@ -6,7 +6,7 @@ import type { TrekEntry } from "../trek-entries"
 export const PROTOCOL_VERSION = 1
 
 // Pre-release: there are no version numbers yet.
-export const TRAIL_VERSION = "0.0.0"
+export const SRCTREK_VERSION = "0.0.0"
 
 const nonEmpty = z.string().min(1)
 const none = z.object({}).strict().optional()
@@ -44,7 +44,7 @@ export const RequestParams = {
 
 export type Method = keyof typeof RequestParams
 
-export type InitializeResult = { protocol_version: number; trail_version: string }
+export type InitializeResult = { protocol_version: number; srctrek_version: string }
 
 /** What `treks` answers: every saved trek, and the change's trek as it stands. */
 export type TreksResult = { change: TrekStatus; treks: TrekEntry[] }

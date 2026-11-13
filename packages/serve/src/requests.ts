@@ -5,7 +5,7 @@ import {
   PROTOCOL_VERSION,
   RequestParams,
   type SteppingSession,
-  TRAIL_VERSION,
+  SRCTREK_VERSION,
   isMethod,
   sessionView,
   stepBack,
@@ -47,7 +47,7 @@ function initialize(state: ServeState, clientVersion: number): Moved {
 
   const result: InitializeResult = {
     protocol_version: PROTOCOL_VERSION,
-    trail_version: TRAIL_VERSION,
+    srctrek_version: SRCTREK_VERSION,
   }
 
   return { state: { ...state, initialized: true }, result }

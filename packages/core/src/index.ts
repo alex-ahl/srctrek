@@ -51,7 +51,7 @@ export {
   ErrorCode,
   PROTOCOL_VERSION,
   RequestParams,
-  TRAIL_VERSION,
+  SRCTREK_VERSION,
   isMethod,
   versionMismatch,
   type BuildResult,

@@ -14,7 +14,7 @@ view they answer with in `packages/core/src/session/view.ts`.
 The client's first request is `initialize`:
 
 - Client sends: `protocol_version` (integer) and `client: { name, version }`.
-- Core replies: `protocol_version` and `trail_version`.
+- Core replies: `protocol_version` and `srctrek_version`.
 - On a version mismatch core answers with an error saying which to update: the plugin or
   `trek`.
 

@@ -30,7 +30,7 @@ describe("trek serve, as an editor sees it", () => {
     ).toBe(ErrorCode.versionMismatch)
     expect(await client.initialize()).toEqual({
       protocol_version: PROTOCOL_VERSION,
-      trail_version: "0.0.0",
+      srctrek_version: "0.0.0",
     })
   })
 

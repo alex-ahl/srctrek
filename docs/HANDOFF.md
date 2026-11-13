@@ -468,7 +468,7 @@ The screen:
   trek records commits, not branches, so the caller supplies the change). A missing repo or
   commit is an `UnreachableRepoError` naming it.
 - Step 4g: the protocol's messages in core (`RequestParams`, `ErrorCode`, `PROTOCOL_VERSION`,
-  `TRAIL_VERSION`): requests answer with the view; open takes a trek by name and, for stale
+  `SRCTREK_VERSION`): requests answer with the view; open takes a trek by name and, for stale
   steps, trek's arguments. `docs/PROTOCOL.md` describes version 1: stepping.
 - Step 4h: `trek serve` (`packages/serve/`): JSON-RPC over stdio through `vscode-jsonrpc`, the
   handshake, and each request carried out on the stepping session in order, answered with its
