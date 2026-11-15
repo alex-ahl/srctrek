@@ -67,6 +67,28 @@ export const ErrorCode = {
   unreadableChange: 8,
 } as const
 
+/** A request's params that don't match what its method accepts. */
+export class InvalidParams extends Error {
+  constructor(method: Method, issues: string) {
+    super(`invalid params for ${method}: ${issues}`)
+    this.name = "InvalidParams"
+  }
+}
+
+/** A request's params as its method accepts them; throws InvalidParams when they don't match. */
+export function parseParams<M extends Method>(
+  method: M,
+  params: unknown,
+): z.infer<(typeof RequestParams)[M]>
+export function parseParams(method: Method, params: unknown): unknown {
+  const parsed = RequestParams[method].safeParse(params)
+  if (!parsed.success) {
+    throw new InvalidParams(method, parsed.error.message)
+  }
+
+  return parsed.data
+}
+
 /** Whether `method` names a request the protocol has. */
 export function isMethod(method: string): method is Method {
   return Object.hasOwn(RequestParams, method)

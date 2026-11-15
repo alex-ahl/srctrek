@@ -49,10 +49,12 @@ export {
 } from "./settings"
 export {
   ErrorCode,
+  InvalidParams,
   PROTOCOL_VERSION,
   RequestParams,
   SRCTREK_VERSION,
   isMethod,
+  parseParams,
   versionMismatch,
   type BuildResult,
   type InitializeResult,
