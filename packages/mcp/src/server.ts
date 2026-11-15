@@ -5,7 +5,8 @@ import { registerPrompts } from "./prompts"
 import { reportFor } from "./report"
 import { newSession } from "./session"
 import { registerSetupTools } from "./setup"
-import { registerBuildTools, registerReadTools } from "./tools"
+import { registerBuildTools } from "./build-tools"
+import { registerReadTools } from "./read-tools"
 
 /** `trek mcp`: an MCP server over stdin and stdout for the agent that builds a trek. */
 export async function startMcpServer(cwd: string): Promise<void> {
