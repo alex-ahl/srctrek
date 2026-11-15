@@ -1,7 +1,7 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { z } from "zod"
-import { type Trek, TrekSchema } from "./schema/trek"
+import { type Trek, TrekSchema } from "../schema/trek"
 
 export const TREKS_DIR = join(".srctrek", "treks")
 

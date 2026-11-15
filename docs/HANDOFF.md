@@ -724,7 +724,7 @@ treks are marked and updated; evals score quality and measure token use.
 **Done**
 
 - Milestone 2, step 1: the trek schema (`packages/core/src/schema/trek.ts`) and saving,
-  loading, and listing treks (`packages/core/src/treks.ts`).
+  loading, and listing treks (`packages/core/src/treks/store.ts`).
 - The spike's Neovim plugin moved into `editors/nvim/` as a prototype.
 - An interim TUI home screen, listing the .srctrek/treks folder and opening a trek in
   Neovim; started by `trek` since step 2m.

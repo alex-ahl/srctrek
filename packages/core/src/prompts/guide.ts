@@ -1,8 +1,8 @@
-import changeOpening from "../prompts/build_trek/change.md" with { type: "text" }
-import codeOpening from "../prompts/build_trek/code.md" with { type: "text" }
-import method from "../prompts/build_trek/method.md" with { type: "text" }
-import findTriggers from "../prompts/find_triggers.md" with { type: "text" }
-import { readOptions } from "./change/options"
+import changeOpening from "../../prompts/build_trek/change.md" with { type: "text" }
+import codeOpening from "../../prompts/build_trek/code.md" with { type: "text" }
+import method from "../../prompts/build_trek/method.md" with { type: "text" }
+import findTriggers from "../../prompts/find_triggers.md" with { type: "text" }
+import { readOptions } from "../change/options"
 
 /** Every part the guide is made from, for the prompt hash. */
 export const GUIDE_PARTS = { changeOpening, codeOpening, method, findTriggers }

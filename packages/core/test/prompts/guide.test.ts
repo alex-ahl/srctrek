@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { buildTrekPrompt } from "../src"
+import { buildTrekPrompt } from "../../src"
 
 describe("buildTrekPrompt", () => {
   test("guides a trek of a change, ending with open_change's args", () => {

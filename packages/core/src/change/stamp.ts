@@ -1,7 +1,7 @@
 import { readdir, stat } from "node:fs/promises"
 import { join } from "node:path"
 import { runGit } from "../git/run"
-import { TREKS_DIR } from "../treks"
+import { TREKS_DIR } from "../treks/store"
 
 // The checked-out branch and its commit; outside a repo, nothing.
 function headOf(root: string): Promise<string> {

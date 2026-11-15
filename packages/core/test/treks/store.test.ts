@@ -9,11 +9,11 @@ import {
   parseTrek,
   saveTrek,
   trekPath,
-} from "../src"
-import { rejection } from "./support/rejection"
-import { tempDir } from "./support/temp"
+} from "../../src"
+import { rejection } from "../support/rejection"
+import { tempDir } from "../support/temp"
 
-const fixturePath = join(import.meta.dir, "fixtures/refund-trek.json")
+const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
 const fixture = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
 
 function refundTrek(): Trek {

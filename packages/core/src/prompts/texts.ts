@@ -1,44 +1,44 @@
 import { createHash } from "node:crypto"
-import proposalOpened from "../prompts/answers/proposal_opened.md" with { type: "text" }
-import proposalUnopened from "../prompts/answers/proposal_unopened.md" with { type: "text" }
-import flagBehind from "../prompts/answers/flag_behind.md" with { type: "text" }
-import flagDefault from "../prompts/answers/flag_default.md" with { type: "text" }
-import readAtDefault from "../prompts/answers/read_at_default.md" with { type: "text" }
-import readAtPinned from "../prompts/answers/read_at_pinned.md" with { type: "text" }
-import readAtTracking from "../prompts/answers/read_at_tracking.md" with { type: "text" }
-import readAtWorkBranch from "../prompts/answers/read_at_work_branch.md" with { type: "text" }
-import buildHeadless from "../prompts/build_headless.md" with { type: "text" }
-import buildStopped from "../prompts/build_stopped.md" with { type: "text" }
-import saveAs from "../prompts/save_as.md" with { type: "text" }
-import updateAs from "../prompts/update_as.md" with { type: "text" }
-import agentSaved from "../prompts/answers/agent_saved.md" with { type: "text" }
-import agentUnsaved from "../prompts/answers/agent_unsaved.md" with { type: "text" }
-import setAgentCommand from "../prompts/tools/set_agent_command.md" with { type: "text" }
-import setupRequest from "../prompts/setup_request.md" with { type: "text" }
-import serverInstructions from "../prompts/server_instructions.md" with { type: "text" }
-import addSteps from "../prompts/tools/add_steps.md" with { type: "text" }
-import diff from "../prompts/tools/diff.md" with { type: "text" }
-import finishTrek from "../prompts/tools/finish_trek.md" with { type: "text" }
-import listFiles from "../prompts/tools/list_files.md" with { type: "text" }
-import openChange from "../prompts/tools/open_change.md" with { type: "text" }
-import proposeRepo from "../prompts/tools/propose_repo.md" with { type: "text" }
-import readFile from "../prompts/tools/read_file.md" with { type: "text" }
-import search from "../prompts/tools/search.md" with { type: "text" }
-import startTrek from "../prompts/tools/start_trek.md" with { type: "text" }
-import recordTriggers from "../prompts/tools/record_triggers.md" with { type: "text" }
-import trekGuide from "../prompts/tools/trek_guide.md" with { type: "text" }
-import updateTrek from "../prompts/tools/update_trek.md" with { type: "text" }
-import updateStarted from "../prompts/answers/update_started.md" with { type: "text" }
-import noChangeOpen from "../prompts/answers/no_change_open.md" with { type: "text" }
-import noTrekStarted from "../prompts/answers/no_trek_started.md" with { type: "text" }
-import trekStarted from "../prompts/answers/trek_started.md" with { type: "text" }
-import listingCut from "../prompts/notes/listing_cut.md" with { type: "text" }
-import linesPart from "../prompts/notes/lines_part.md" with { type: "text" }
-import matchesCut from "../prompts/notes/matches_cut.md" with { type: "text" }
-import changedFilesCut from "../prompts/notes/changed_files_cut.md" with { type: "text" }
-import patchCut from "../prompts/notes/patch_cut.md" with { type: "text" }
-import type { ReadAt } from "./change/resolve"
-import type { TrekStep } from "./schema/trek"
+import proposalOpened from "../../prompts/answers/proposal_opened.md" with { type: "text" }
+import proposalUnopened from "../../prompts/answers/proposal_unopened.md" with { type: "text" }
+import flagBehind from "../../prompts/answers/flag_behind.md" with { type: "text" }
+import flagDefault from "../../prompts/answers/flag_default.md" with { type: "text" }
+import readAtDefault from "../../prompts/answers/read_at_default.md" with { type: "text" }
+import readAtPinned from "../../prompts/answers/read_at_pinned.md" with { type: "text" }
+import readAtTracking from "../../prompts/answers/read_at_tracking.md" with { type: "text" }
+import readAtWorkBranch from "../../prompts/answers/read_at_work_branch.md" with { type: "text" }
+import buildHeadless from "../../prompts/build_headless.md" with { type: "text" }
+import buildStopped from "../../prompts/build_stopped.md" with { type: "text" }
+import saveAs from "../../prompts/save_as.md" with { type: "text" }
+import updateAs from "../../prompts/update_as.md" with { type: "text" }
+import agentSaved from "../../prompts/answers/agent_saved.md" with { type: "text" }
+import agentUnsaved from "../../prompts/answers/agent_unsaved.md" with { type: "text" }
+import setAgentCommand from "../../prompts/tools/set_agent_command.md" with { type: "text" }
+import setupRequest from "../../prompts/setup_request.md" with { type: "text" }
+import serverInstructions from "../../prompts/server_instructions.md" with { type: "text" }
+import addSteps from "../../prompts/tools/add_steps.md" with { type: "text" }
+import diff from "../../prompts/tools/diff.md" with { type: "text" }
+import finishTrek from "../../prompts/tools/finish_trek.md" with { type: "text" }
+import listFiles from "../../prompts/tools/list_files.md" with { type: "text" }
+import openChange from "../../prompts/tools/open_change.md" with { type: "text" }
+import proposeRepo from "../../prompts/tools/propose_repo.md" with { type: "text" }
+import readFile from "../../prompts/tools/read_file.md" with { type: "text" }
+import search from "../../prompts/tools/search.md" with { type: "text" }
+import startTrek from "../../prompts/tools/start_trek.md" with { type: "text" }
+import recordTriggers from "../../prompts/tools/record_triggers.md" with { type: "text" }
+import trekGuide from "../../prompts/tools/trek_guide.md" with { type: "text" }
+import updateTrek from "../../prompts/tools/update_trek.md" with { type: "text" }
+import updateStarted from "../../prompts/answers/update_started.md" with { type: "text" }
+import noChangeOpen from "../../prompts/answers/no_change_open.md" with { type: "text" }
+import noTrekStarted from "../../prompts/answers/no_trek_started.md" with { type: "text" }
+import trekStarted from "../../prompts/answers/trek_started.md" with { type: "text" }
+import listingCut from "../../prompts/notes/listing_cut.md" with { type: "text" }
+import linesPart from "../../prompts/notes/lines_part.md" with { type: "text" }
+import matchesCut from "../../prompts/notes/matches_cut.md" with { type: "text" }
+import changedFilesCut from "../../prompts/notes/changed_files_cut.md" with { type: "text" }
+import patchCut from "../../prompts/notes/patch_cut.md" with { type: "text" }
+import type { ReadAt } from "../change/resolve"
+import type { TrekStep } from "../schema/trek"
 import { GUIDE_PARTS, buildTrekPrompt, findsTriggers } from "./guide"
 
 /** What each tool tells the agent building a trek, by tool name. */

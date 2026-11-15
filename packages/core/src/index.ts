@@ -70,7 +70,7 @@ export {
   parseTrek,
   saveTrek,
   trekPath,
-} from "./treks"
+} from "./treks/store"
 export { baseName, detectBase } from "./git/base"
 export { parseRange, resolveRange, type RangeSpec, type ResolvedRange } from "./git/range"
 export { GitError, runGit } from "./git/run"
@@ -145,7 +145,7 @@ export {
   patchCutNote,
   trekStartedAnswer,
   type UpdateStep,
-} from "./prompts"
+} from "./prompts/texts"
 export { citationProblems } from "./build/draft/citations"
 export { completeStep, type SubmittedStep } from "./build/draft/complete"
 export {
@@ -174,8 +174,8 @@ export {
 export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status/status"
 export { buildChangeTrek } from "./build/agent/start"
 export { checkAgent, type AgentCheck } from "./build/agent/check"
-export { loadTrekEntries, type TrekEntry } from "./trek-entries"
-export { buildTrekPrompt } from "./guide"
+export { loadTrekEntries, type TrekEntry } from "./treks/entries"
+export { buildTrekPrompt } from "./prompts/guide"
 export { buildFiles, type BuildFiles } from "./build/agent/files"
 export {
   TriggerSchema,

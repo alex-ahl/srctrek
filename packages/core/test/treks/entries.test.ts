@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { loadTrekEntries, parseTrek, saveTrek, trekPath } from "../src"
-import { tempDir } from "./support/temp"
+import { loadTrekEntries, parseTrek, saveTrek, trekPath } from "../../src"
+import { tempDir } from "../support/temp"
 
-const fixturePath = join(import.meta.dir, "fixtures/refund-trek.json")
+const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
 
 test("summarises valid treks and keeps invalid ones with their problem", async () => {
   const root = await tempDir("treks-")

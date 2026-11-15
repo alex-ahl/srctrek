@@ -1,7 +1,7 @@
-import { stopIds } from "./build/status/stops"
-import type { RangeHead } from "./change/head"
-import type { Trek } from "./schema/trek"
-import { listTreks, loadTrekOrProblem, trekPath } from "./treks"
+import { stopIds } from "../build/status/stops"
+import type { RangeHead } from "../change/head"
+import type { Trek } from "../schema/trek"
+import { listTreks, loadTrekOrProblem, trekPath } from "./store"
 
 /**
  * A saved trek, for lists of treks: a valid one's title, stops, likely-wrong flags, when it was

@@ -2,7 +2,7 @@ import { recordedRange } from "../../schema/recorded-range"
 import { type ResolvedChange, hasRange } from "../../change/resolve"
 import type { Trek } from "../../schema/trek"
 import { pathExists } from "../../files"
-import { listTreks, loadTrekOrProblem, trekPath } from "../../treks"
+import { listTreks, loadTrekOrProblem, trekPath } from "../../treks/store"
 import { trekNameFor } from "./name"
 
 // A trek covers the change when it has every changed repo at the same commits. Repos on the

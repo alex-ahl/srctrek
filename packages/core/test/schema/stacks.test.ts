@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
-import { callStacks, parseTrek } from "../src"
+import { callStacks, parseTrek } from "../../src"
 
-const fixturePath = join(import.meta.dir, "fixtures/refund-trek.json")
+const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
 const trek = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
 const { stacks, beneath, continues, answeredHops, misplacedReturns } = callStacks(trek.steps)
 

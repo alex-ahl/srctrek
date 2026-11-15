@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { PROTOCOL_VERSION, RequestParams, isMethod, versionMismatch } from "../src"
+import { PROTOCOL_VERSION, RequestParams, isMethod, versionMismatch } from "../../src"
 
 describe("the editor protocol's requests", () => {
   test("knows its methods, and nothing else", () => {

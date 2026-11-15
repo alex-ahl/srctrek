@@ -1,6 +1,6 @@
 import { z } from "zod"
 import type { TrekStatus } from "../build/status/status"
-import type { TrekEntry } from "../trek-entries"
+import type { TrekEntry } from "../treks/entries"
 
 /** The editor protocol's version; client and core must agree on it. */
 export const PROTOCOL_VERSION = 1
