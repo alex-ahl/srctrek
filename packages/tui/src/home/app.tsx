@@ -13,31 +13,26 @@ import type {
 } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
-import { type ReactNode, useState } from "react"
-import { ChangePicker } from "../change-picker/screen"
+import { useState } from "react"
 import { ChangeStatus } from "./change-status"
 import { type Opening, OpeningLine } from "./opening-line"
-import { EditorPicker } from "../editors/editor-picker"
 import type { SettingChange } from "../settings/rows"
-import { SettingsScreen } from "../settings/screen"
 import type { Editor } from "../editors/editors"
 import { Footer } from "../ui/footer"
 import { moveKeys, stepped } from "../ui/move"
-import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
 import { PADDING, listHeight } from "../ui/layout"
-import { type Item, type ListLine, itemKey, itemsOf, lineOfItem, listLines } from "./list/lines"
+import { itemKey, itemsOf, lineOfItem, listLines } from "./list/lines"
 import { ListLineView } from "./list/view"
-import { TextPrompt } from "../ui/text-prompt"
 import { columnsOf } from "./list/columns"
-import { type Row, rowsOf } from "./list/rows"
+import { rowsOf } from "./list/rows"
 import { type SectionId, sectionsOf } from "./list/sections"
-import { canStartBuild, hasLog, hasTrek } from "./states"
 import { statusBlock } from "./status-block"
 import { useTones } from "../ui/theme"
 import { ChangeTitleBar } from "./change-title"
 import { visibleWindow } from "./list/window"
-
-type Action = (() => void) | undefined
+import { actionsFor, keyHints } from "./row-actions"
+import { listKey, pickFor, selectedIndex, shownItems, toggled } from "./selection"
+import { type Over, type Prompt, Bottom, overlayFor } from "./overlays"
 
 /**
  * What the change picker needs: the change chosen now, the changes to offer, where each one's
@@ -54,7 +49,7 @@ export type Choosing = Readonly<{
   onPick: (choice: ChangeChoice) => void
 }>
 
-type Props = {
+export type Props = {
   entries: TrekEntry[]
   onOpen: (entry: TrekEntry) => void
   onQuit: () => void
@@ -92,275 +87,9 @@ type Props = {
   onChangeSetting?: SettingChange | undefined
 }
 
-// Enter on a proposed repo adds it, or first asks where it lives when the agent didn't say.
-function addAction(proposal: ProposedRepo, props: Props, askLocation: (name: string) => void) {
-  const { onAddRepo } = props
-  if (onAddRepo === undefined) {
-    return undefined
-  }
-
-  const { name, source } = proposal
-  return source === undefined ? () => askLocation(name) : () => onAddRepo(name)
-}
-
-// A trek opens unless it isn't valid, or it's the change's trek and names a repo not here.
-function opens(entry: TrekEntry, status: TrekStatus | undefined): boolean {
-  const unreachable = status?.kind === "unreachable" && status.name === entry.name
-
-  return entry.valid && !unreachable
-}
-
-// What enter does on a row: add a proposed repo; open a trek; on a trigger, open its trek or
-// build it.
-function pickAction(row: Row, props: Props, askLocation: (name: string) => void): Action {
-  const { entries, onOpen, onBuildTrigger } = props
-  if (row.kind === "proposal") {
-    return addAction(row.proposal, props, askLocation)
-  }
-
-  if (row.kind === "trek") {
-    return opens(row.entry, props.status) ? () => onOpen(row.entry) : undefined
-  }
-
-  const { trigger, trek } = row.found
-  if (hasTrek(trek)) {
-    const entry = entries.find((e) => e.name === trek.name)
-    return entry?.valid ? () => onOpen(entry) : undefined
-  }
-
-  return canStartBuild(trek) && onBuildTrigger ? () => onBuildTrigger(trigger.name) : undefined
-}
-
-// Whose build log l shows: the selected trigger's, when it has one, else the change's.
-function logName(row: Row | undefined, status: TrekStatus | undefined): string | undefined {
-  if (row?.kind === "trigger" && hasLog(row.found.trek)) {
-    return row.found.trek.name
-  }
-
-  return hasLog(status) ? status.name : undefined
-}
-
-// What each key does on the selected row; undefined where it does nothing.
-type RowActions = { pick: Action; build: Action; showLog: Action; dismiss: Action }
-
-function dismissAction(row: Row | undefined, onDismissRepo: Props["onDismissRepo"]): Action {
-  if (row?.kind !== "proposal" || onDismissRepo === undefined) {
-    return undefined
-  }
-
-  const { name } = row.proposal
-  return () => onDismissRepo(name)
-}
-
-function actionsFor(
-  row: Row | undefined,
-  props: Props,
-  askLocation: (name: string) => void,
-): RowActions {
-  const { status, onBuild, onShowLog } = props
-  const log = logName(row, status)
-
-  return {
-    pick: row === undefined ? undefined : pickAction(row, props, askLocation),
-    build: canStartBuild(status) ? onBuild : undefined,
-    showLog: log !== undefined && onShowLog ? () => onShowLog(log) : undefined,
-    dismiss: dismissAction(row, props.onDismissRepo),
-  }
-}
-
-// "3–22 of 35": which items are on screen, when not all of them are.
-function shownItems(visible: readonly ListLine[], total: number): string {
-  const indexes = visible.flatMap((line) => (line.kind === "item" ? [line.index] : []))
-  const [first, last] = [indexes.at(0), indexes.at(-1)]
-  if (first === undefined || last === undefined || indexes.length === total) {
-    return ""
-  }
-
-  return `${first + 1}–${last + 1} of ${total}`
-}
-
 // A change other than the user's own branch, picked on screen or named by trek's arguments.
 function isPicked(choosing: Choosing | undefined): boolean {
   return choosing !== undefined && choosing.choice.kind !== "own"
-}
-
-// What enter, b, l, d, and C do here, for the footer; only keys that do something are listed.
-function keyHints(
-  item: Item | undefined,
-  status: TrekStatus | undefined,
-  actions: RowActions,
-  props: Props,
-) {
-  const { editor } = props
-  const row = item?.kind === "row" ? item.row : undefined
-  const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row, editor)
-
-  return footerKeys(actions.pick === undefined ? undefined : enter, {
-    build: actions.build === undefined ? undefined : buildVerb(status),
-    log: actions.showLog !== undefined,
-    dismiss: actions.dismiss !== undefined,
-    change: props.choosing !== undefined,
-  })
-}
-
-// The section opened if closed, closed if open.
-function toggled(open: ReadonlySet<SectionId>, id: SectionId): ReadonlySet<SectionId> {
-  return open.has(id) ? new Set([...open].filter((each) => each !== id)) : new Set([...open, id])
-}
-
-// Until the user moves, the change's trek is the one picked out, once it's listed; else the first.
-function defaultKey(items: readonly Item[], status: TrekStatus | undefined): string | undefined {
-  const change = hasTrek(status) ? `trek:${status?.name}` : undefined
-  const keys = items.map(itemKey)
-
-  return keys.find((key) => key === change) ?? keys[0]
-}
-
-// Which item is selected: the one the user chose while it's still listed, else the default.
-function selectedIndex(
-  items: readonly Item[],
-  chosen: string | undefined,
-  status: TrekStatus | undefined,
-) {
-  const keys = items.map(itemKey)
-  const found = chosen === undefined ? -1 : keys.indexOf(chosen)
-  if (found !== -1) {
-    return found
-  }
-
-  return Math.max(0, keys.indexOf(defaultKey(items, status) ?? ""))
-}
-
-// What enter does: open or close a fold, else what it does on the row.
-function pickFor(item: Item | undefined, onRow: Action, fold: (id: SectionId) => void): Action {
-  if (item?.kind !== "fold") {
-    return onRow
-  }
-
-  const { id } = item.section
-  return () => fold(id)
-}
-
-// A key on the list: E or S, with shift, opens the editor picker or settings; any other does
-// its action.
-function listKey(
-  key: { name: string; shift: boolean },
-  actions: ReadonlyMap<string, () => void>,
-  shifted: ReadonlyMap<string, () => void>,
-) {
-  const action = key.shift ? shifted.get(key.name) : actions.get(key.name)
-  action?.()
-}
-
-// What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or which
-// editor treks open in, with the trek to open once it's picked.
-type Prompt = { kind: "location"; name: string } | { kind: "editor"; then?: TrekEntry | undefined }
-
-// The bottom of the screen: the prompt that's open, else the footer.
-function Bottom({
-  prompt,
-  props,
-  footer,
-  close,
-}: {
-  prompt: Prompt | undefined
-  props: Props
-  footer: ReactNode
-  close: () => void
-}) {
-  if (prompt === undefined) {
-    return footer
-  }
-
-  if (prompt.kind === "location") {
-    const { name } = prompt
-    const add = (location: string) => {
-      close()
-      props.onAddRepo?.(name, location)
-    }
-    const question = `Where does ${name} live? A path or URL, esc to cancel:`
-    return <TextPrompt question={question} onSubmit={add} onCancel={close} />
-  }
-
-  const { then } = prompt
-  const pick = (editor: Editor) => {
-    close()
-    props.onChooseEditor?.(editor)
-    if (then !== undefined) {
-      props.onOpen(then)
-    }
-  }
-
-  return (
-    <EditorPicker
-      editors={props.editors ?? []}
-      current={props.editor}
-      onPick={pick}
-      onCancel={close}
-      tint={props.tint}
-    />
-  )
-}
-
-// The change picker, over the list; picking closes it and reopens the home screen on the pick.
-function Picker({
-  choosing,
-  tint,
-  close,
-}: {
-  choosing: Choosing
-  tint: RGBA | undefined
-  close: () => void
-}) {
-  const pick = (choice: ChangeChoice) => {
-    close()
-    choosing.onPick(choice)
-  }
-
-  return (
-    <ChangePicker
-      choice={choosing.choice}
-      load={choosing.load}
-      pullRequests={choosing.pullRequests}
-      nearby={choosing.nearby}
-      repoBranches={choosing.repoBranches}
-      fetchRepo={choosing.fetchRepo}
-      status={choosing.status}
-      onPick={pick}
-      onBack={close}
-      tint={tint}
-    />
-  )
-}
-
-// What can open over the list, which keeps its selection for when it closes.
-type Over = "settings" | "picker"
-
-// The screen open over the list, if any: the picker only where there's a change to choose.
-function overlayFor(over: Over | undefined, props: Props, close: () => void): ReactNode {
-  if (over === "settings") {
-    return <Settings props={props} close={close} />
-  }
-
-  if (over !== "picker" || props.choosing === undefined) {
-    return undefined
-  }
-
-  return <Picker choosing={props.choosing} tint={props.tint} close={close} />
-}
-
-// The settings screen, over the list.
-function Settings({ props, close }: { props: Props; close: () => void }) {
-  return (
-    <SettingsScreen
-      settings={props.settings ?? {}}
-      editors={props.editors ?? []}
-      editor={props.editor}
-      onChange={(key, value) => props.onChangeSetting?.(key, value)}
-      onBack={close}
-      tint={props.tint}
-    />
-  )
 }
 
 export function App(props: Props) {
