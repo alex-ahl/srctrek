@@ -9,8 +9,11 @@ import {
   type TrekHeader,
   type Trigger,
   type UpdateStep,
-  addSteps,
   BUILD_STOPPED,
+  NO_CHANGE_OPEN,
+  NO_TREK_STARTED,
+  TrekValidationError,
+  addSteps,
   carryOver,
   changeFromArguments,
   draftToTrek,
@@ -26,7 +29,6 @@ import {
   stepIds,
   trekNameFor,
   trekPath,
-  TrekValidationError,
   triggerProblems,
   withChange,
   withRouteRepo,
@@ -57,7 +59,7 @@ export function newSession(cwd: string, cacheDir?: string): Session {
 
 function openChange(session: Session): ResolvedChange {
   if (session.change === undefined) {
-    throw new Error("no change is open: call open_change first")
+    throw new Error(NO_CHANGE_OPEN)
   }
 
   return session.change
@@ -65,7 +67,7 @@ function openChange(session: Session): ResolvedChange {
 
 function openDraft(session: Session): Draft {
   if (session.draft === undefined) {
-    throw new Error("no trek is started: call start_trek first")
+    throw new Error(NO_TREK_STARTED)
   }
 
   return session.draft

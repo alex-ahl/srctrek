@@ -1,4 +1,5 @@
 // What each tool answers, as plain text for the agent to read.
+import { CUT_NOTES, linesPartNote, patchCutNote } from "@srctrek/core"
 import type {
   ChangedFiles,
   FileChange,
@@ -44,7 +45,7 @@ export function formatChange(change: ResolvedChange, nearby: Nearby): string {
 
 /** One path per line, folders ending in "/", and a note when the listing was cut. */
 export function formatListing({ paths, truncated }: Listing): string {
-  const cut = truncated ? ["(more entries were cut: list a folder inside this one)"] : []
+  const cut = truncated ? [CUT_NOTES.listing] : []
 
   return [...paths, ...cut].join("\n")
 }
@@ -60,9 +61,7 @@ export function formatLines({ path, start, lines, total }: NumberedLines): strin
     (text, offset) => `${String(start + offset).padStart(width)} | ${text}`,
   )
   const isPart = start > 1 || lastLine < total
-  const part = isPart
-    ? [`(lines ${start}-${lastLine} of ${total}; read others with from and to)`]
-    : []
+  const part = isPart ? [linesPartNote(start, lastLine, total)] : []
 
   return [path, ...numbered, ...part].join("\n")
 }
@@ -74,7 +73,7 @@ export function formatMatches({ matches, truncated }: SearchResult): string {
   }
 
   const lines = matches.map((match) => `${match.path}:${match.line}: ${match.text}`)
-  const cut = truncated ? ["(more matches were cut: narrow the pattern)"] : []
+  const cut = truncated ? [CUT_NOTES.matches] : []
 
   return [...lines, ...cut].join("\n")
 }
@@ -85,14 +84,14 @@ export function formatFileChanges({ files, truncated }: ChangedFiles): string {
     file.oldPath === undefined
       ? `${file.status} ${file.path}`
       : `${file.status} ${file.oldPath} -> ${file.path}`
-  const cut = truncated ? ["(more changed files were cut: search and list_files reach them)"] : []
+  const cut = truncated ? [CUT_NOTES.changedFiles] : []
 
   return [...files.map(describe), ...cut].join("\n")
 }
 
 /** A file's patch, and a note when its end was cut. */
 export function formatPatch({ patch, cutLines }: Patch): string {
-  const cut = cutLines > 0 ? [`(${cutLines} more lines of this patch were cut)`] : []
+  const cut = cutLines > 0 ? [patchCutNote(cutLines)] : []
 
   return [patch, ...cut].join("\n")
 }

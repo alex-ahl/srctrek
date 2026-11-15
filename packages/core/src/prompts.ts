@@ -29,6 +29,14 @@ import recordTriggers from "../prompts/tools/record_triggers.md" with { type: "t
 import trekGuide from "../prompts/tools/trek_guide.md" with { type: "text" }
 import updateTrek from "../prompts/tools/update_trek.md" with { type: "text" }
 import updateStarted from "../prompts/answers/update_started.md" with { type: "text" }
+import noChangeOpen from "../prompts/answers/no_change_open.md" with { type: "text" }
+import noTrekStarted from "../prompts/answers/no_trek_started.md" with { type: "text" }
+import trekStarted from "../prompts/answers/trek_started.md" with { type: "text" }
+import listingCut from "../prompts/notes/listing_cut.md" with { type: "text" }
+import linesPart from "../prompts/notes/lines_part.md" with { type: "text" }
+import matchesCut from "../prompts/notes/matches_cut.md" with { type: "text" }
+import changedFilesCut from "../prompts/notes/changed_files_cut.md" with { type: "text" }
+import patchCut from "../prompts/notes/patch_cut.md" with { type: "text" }
 import type { ReadAt } from "./change/resolve"
 import type { TrekStep } from "./schema/trek"
 import { GUIDE_PARTS, buildTrekPrompt, findsTriggers } from "./guide"
@@ -175,7 +183,36 @@ export function proposalOpenedAnswer(name: string, revision: string, readAt: Rea
 
 /** What the agent is told when the repo it proposed can't be opened: no source, or a failure. */
 export function proposalUnopenedAnswer(name: string, reason: string): string {
-  return proposalUnopened.trim().replace("{{name}}", name).replace("{{reason}}", reason)
+  return fill(proposalUnopened, { name, reason })
+}
+
+/** What the agent is told when it calls a tool that needs a change, or a trek, open first. */
+export const NO_CHANGE_OPEN = noChangeOpen.trim()
+export const NO_TREK_STARTED = noTrekStarted.trim()
+
+/** What the agent is told once its trek is started, and where to go next. */
+export function trekStartedAnswer(title: string): string {
+  return fill(trekStarted, { title })
+}
+
+/**
+ * The notes on a tool's answer that was cut short, each saying how to reach the rest: a folder's
+ * listing, search matches, changed files.
+ */
+export const CUT_NOTES = {
+  listing: listingCut.trim(),
+  matches: matchesCut.trim(),
+  changedFiles: changedFilesCut.trim(),
+}
+
+/** The note on a file read in part: which lines these are, and how to read others. */
+export function linesPartNote(from: number, to: number, total: number): string {
+  return fill(linesPart, { from: String(from), to: String(to), total: String(total) })
+}
+
+/** The note on a patch whose end was cut. */
+export function patchCutNote(lines: number): string {
+  return fill(patchCut, { lines: String(lines) })
 }
 
 /** Which prompts built a trek: a short hash of them all, recorded on every trek. */
@@ -195,6 +232,14 @@ export const PROMPT_HASH = createHash("sha256")
       flagBehind,
       saveAs,
       updateAs,
+      noChangeOpen,
+      noTrekStarted,
+      trekStarted,
+      listingCut,
+      linesPart,
+      matchesCut,
+      changedFilesCut,
+      patchCut,
       GUIDE_PARTS,
       SERVER_INSTRUCTIONS,
       TOOL_DESCRIPTIONS,

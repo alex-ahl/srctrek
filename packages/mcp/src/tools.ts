@@ -1,6 +1,6 @@
 import {
-  SubmittedStepSchema,
   ProposedRepoSchema,
+  SubmittedStepSchema,
   TOOL_DESCRIPTIONS,
   TrekHeaderSchema,
   TriggerSchema,
@@ -8,12 +8,13 @@ import {
   changeFiles,
   changePatch,
   listFiles,
+  nearbyRepos,
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
-  updateStartedAnswer,
-  nearbyRepos,
   readLines,
   search,
+  trekStartedAnswer,
+  updateStartedAnswer,
 } from "@srctrek/core"
 import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
@@ -182,7 +183,7 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
     async (header) => {
       cell.session = start(cell.session, header)
 
-      return tell(`started "${header.title}": add steps with add_steps`)
+      return tell(trekStartedAnswer(header.title))
     },
   )
 

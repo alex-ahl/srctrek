@@ -139,6 +139,12 @@ export {
   proposalOpenedAnswer,
   proposalUnopenedAnswer,
   updateStartedAnswer,
+  CUT_NOTES,
+  NO_CHANGE_OPEN,
+  NO_TREK_STARTED,
+  linesPartNote,
+  patchCutNote,
+  trekStartedAnswer,
   type UpdateStep,
 } from "./prompts"
 export { citationProblems } from "./build/citations"
