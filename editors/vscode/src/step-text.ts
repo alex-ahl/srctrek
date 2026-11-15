@@ -1,4 +1,4 @@
-import type { StepRef, StepView } from "@srctrek/core"
+import type { SessionView, StepRef, StepView } from "@srctrek/core"
 
 // What a stop says besides its narration, apart from VS Code: where next goes, its tags, and the
 // actions on the line above it.
@@ -80,4 +80,15 @@ export function stepLenses(view: StepView): Lens[] {
 export function isNewFile(view: StepView, lineCount: number): boolean {
   const added = view.changed_lines.filter((changed) => changed.change === "added")
   return added.length >= lineCount
+}
+
+/** The status bar's text for wherever the trek is; at a stop, its tags follow its number. */
+export function statusText(view: SessionView, tags: readonly string[] = []): string {
+  if (view.kind === "overview") {
+    return `srctrek · ${view.title}`
+  }
+  if (view.kind === "end") {
+    return `srctrek · end of the trek`
+  }
+  return [`srctrek ${String(view.number)}/${String(view.count)}`, ...tags].join(" · ")
 }

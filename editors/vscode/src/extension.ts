@@ -9,7 +9,11 @@ import { isNewFile, stepTags } from "./step-text"
 import { type StopView, createStopView } from "./sidebar/stop"
 import { type TrekTab, createTrekTab } from "./pages/trek-tab"
 import { createTreksView } from "./sidebar/treks"
-import { NOWHERE, callAt, lineAbove, placeOf, sameView, statusText, trekSummary } from "./view"
+import { callAt } from "./code/call-marks"
+import { NOWHERE, sameView } from "./moves"
+import { lineAbove, placeOf } from "./place"
+import { trekSummary } from "./sidebar/treks"
+import { statusText } from "./step-text"
 
 // The open trek's connection and where it is, at the edge as a server's current state is; one
 // trek at a time.

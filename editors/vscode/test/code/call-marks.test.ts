@@ -1,15 +1,7 @@
 import { expect, test } from "bun:test"
 import type { NextStop } from "@srctrek/core"
-import { callAt, callMarks, changedLinesShown, lineAbove, sameView } from "../src/view"
-import { call, stepWith } from "./support/views"
-
-test("the actions sit on the line above the step", () => {
-  expect(lineAbove({ path: "a.ts", first: 12, last: 20 })).toBe(11)
-})
-
-test("on a file's first line the actions sit on the step's first line", () => {
-  expect(lineAbove({ path: "a.ts", first: 0, last: 4 })).toBe(0)
-})
+import { callAt, callMarks } from "../../src/code/call-marks"
+import { call, stepWith } from "../support/views"
 
 const toPay: NextStop = { how: "into", to: null, line: 1 }
 
@@ -37,23 +29,4 @@ test("the call at the cursor is the one made on its line of the step's file", ()
   expect(callAt(view, "/app/main.ts", 2)?.id).toBe("s3")
   expect(callAt(view, "/app/main.ts", 3)).toBeUndefined()
   expect(callAt(view, "/app/other.ts", 2)).toBeUndefined()
-})
-
-test("a move answered with the step it started on went nowhere", () => {
-  const view = stepWith([], toPay)
-
-  expect(sameView(view, view)).toBe(true)
-  expect(sameView(view, { ...view, id: "s2" })).toBe(false)
-})
-
-test("changed lines are marked, except in a file the change adds whole", () => {
-  const changed_lines = [
-    { line: 2, change: "added" as const },
-    { line: 3, change: "changed" as const },
-    { line: 9, change: "added" as const },
-  ]
-  const view = stepWith([], toPay, { changed_lines })
-
-  expect(changedLinesShown(view, false, 4)).toEqual(changed_lines.slice(0, 2))
-  expect(changedLinesShown(view, true, 4)).toEqual([])
 })

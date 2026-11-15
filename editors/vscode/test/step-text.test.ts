@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import type { NextStop } from "@srctrek/core"
 import { isNewFile, stepLenses, stepTags, whereNext } from "../src/step-text"
-import { statusText } from "../src/view"
+import { statusText } from "../src/step-text"
 import { ref, stepWith } from "./support/views"
 
 const toRefund: NextStop = { how: "into", to: { ...ref, name: "refund" }, line: 11 }

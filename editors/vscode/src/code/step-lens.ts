@@ -1,7 +1,7 @@
 import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
 import { stepLenses } from "../step-text"
-import { placeOf } from "../view"
+import { placeOf } from "../place"
 
 export type StepLens = { show: (view: StepView | null) => void }
 

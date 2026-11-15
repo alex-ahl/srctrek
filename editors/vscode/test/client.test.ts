@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { repoWithTrek } from "../../../packages/serve/test/support/pay-trek"
 import { repoWithShowcase } from "../../../packages/serve/test/support/showcase-trek"
 import { TrekClient } from "../src/client"
-import { statusText } from "../src/view"
+import { statusText } from "../src/step-text"
 
 const TREK = join(import.meta.dir, "../../../packages/cli/src/main.ts")
 
