@@ -1,9 +1,9 @@
-import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
+import { type RepoWithRange, type ResolvedChange, hasRange } from "./resolve"
 import { detectBase, isBaseBranch } from "../git/base"
 import { checkedOutBranch, hasBranch, hasRef, isSnapshot } from "../git/refs"
 import { NO_PROMPT, runGit } from "../git/run"
-import { isRemote } from "./entry"
-import { pullRequestOfRef } from "./pull-request"
+import { isRemote } from "../repos/entry"
+import { pullRequestOfRef } from "../repos/pull-request"
 
 // Whether a range's head stands for what's checked out: HEAD itself, a snapshot of its
 // uncommitted work, or HEAD's commit, which is what a snapshot with nothing uncommitted is.

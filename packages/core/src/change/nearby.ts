@@ -1,11 +1,11 @@
 import { readdir, realpath } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
-import { type ResolvedChange, currentRepoTop } from "../change/resolve"
-import { workBranches } from "./branch"
-import { gitDataOf } from "./git-files"
-import { folderName } from "./entry"
+import { type ResolvedChange, currentRepoTop } from "./resolve"
+import { workBranches } from "./work-branches"
+import { gitDataOf } from "../repos/git-files"
+import { folderName } from "../repos/entry"
 import { detectBase } from "../git/base"
-import { commonDir, projectHome } from "./project"
+import { commonDir, projectHome } from "../repos/project"
 import { branchToRead, checkedOutBranch, commitsBetween } from "../git/refs"
 
 // A folder of checkouts can hold hundreds; the agent needs candidates, not all of them.

@@ -1,9 +1,7 @@
-import { type TrekStatus, trekStatus } from "../build/status"
 import { detectBase, isBaseBranch } from "../git/base"
 import { checkedOutBranch, commitsBetween } from "../git/refs"
 import { runGit } from "../git/run"
 import { parsePullRequestUrl } from "../repos/pull-request"
-import { changeFromArguments } from "./from-arguments"
 
 /**
  * A repo beside this one, ticked to go with the change: by its path, as changed or passed through
@@ -137,9 +135,4 @@ export async function branchChoices(cwd: string): Promise<BranchChoices> {
     uncommittedFiles: await uncommittedFiles(cwd),
     others: counted.filter((branch) => branch.commits > 0),
   }
-}
-
-/** Where the trek of a choice stands, worked out as trek would on opening that change. */
-export async function choiceStatus(cwd: string, choice: ChangeChoice): Promise<TrekStatus> {
-  return trekStatus(cwd, await changeFromArguments(cwd, choiceArguments(choice)))
 }

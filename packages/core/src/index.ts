@@ -105,7 +105,6 @@ export {
   branchChoices,
   choiceArguments,
   choiceOfArguments,
-  choiceStatus,
   type BranchChoice,
   type BranchChoices,
   type ChangeChoice,
@@ -200,8 +199,9 @@ export {
   type Nearby,
   type NearbyCheckout,
   type NearbyRepo,
-} from "./repos/nearby"
-export { workBranches } from "./repos/branch"
+} from "./change/nearby"
+export { workBranches } from "./change/work-branches"
 export { carryOver, type CarriedOver, type Redo } from "./build/carry"
 export { errorText } from "./error-text"
 export { changeFromArguments } from "./change/from-arguments"
+export { choiceStatus } from "./build/choice-status"
