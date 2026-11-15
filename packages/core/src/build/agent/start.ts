@@ -1,6 +1,6 @@
-import type { ResolvedChange } from "../change/resolve"
+import type { ResolvedChange } from "../../change/resolve"
 import { startBuild } from "./background"
-import { trekStatus } from "./status"
+import { trekStatus } from "../status/status"
 
 /**
  * Starts the agent on the change's trek, under the name its status gives: updating the trek

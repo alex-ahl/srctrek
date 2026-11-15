@@ -1,10 +1,16 @@
 import { describe, expect, test } from "bun:test"
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { existingTrekFor, resolveChange, runGit, snapshotWorkingTree, trekNameFor } from "../../src"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
-import { commit } from "../support/repo"
-import { makeCacheDir, makeRemote } from "../support/remote"
+import {
+  existingTrekFor,
+  resolveChange,
+  runGit,
+  snapshotWorkingTree,
+  trekNameFor,
+} from "../../../src/index"
+import { changeOf, makeBranchRepo, saveTrekOf } from "../../support/branch"
+import { commit } from "../../support/repo"
+import { makeCacheDir, makeRemote } from "../../support/remote"
 
 describe("existingTrekFor", () => {
   test("finds the saved trek of exactly this change, and none once the change moves on", async () => {

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { TREKS_DIR, firstStopPlace, loadTrek } from "../../src"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
+import { TREKS_DIR, firstStopPlace, loadTrek } from "../../../src/index"
+import { changeOf, makeBranchRepo, saveTrekOf } from "../../support/branch"
 
 describe("draftToTrek", () => {
   test("records the branch each changed repo's range ends at", async () => {

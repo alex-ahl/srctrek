@@ -1,6 +1,6 @@
-import type { ResolvedChange } from "../change/resolve"
-import { blobAt } from "../git/read"
-import type { Trek, TrekStep } from "../schema/trek"
+import type { ResolvedChange } from "../../change/resolve"
+import { blobAt } from "../../git/read"
+import type { Trek, TrekStep } from "../../schema/trek"
 
 // Whether the step's file is the same at the repo's revision now: same blob, or gone. A repo
 // the change no longer opens, such as one proposed but never added, can't be checked.

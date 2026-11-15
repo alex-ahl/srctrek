@@ -1,10 +1,17 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { TREKS_DIR, buildState, loadTrek, resolveChange, startBuild, trekStatus } from "../../src"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
-import { commit } from "../support/repo"
-import { makeCacheDir } from "../support/remote"
+import {
+  TREKS_DIR,
+  buildState,
+  loadTrek,
+  resolveChange,
+  startBuild,
+  trekStatus,
+} from "../../../src/index"
+import { changeOf, makeBranchRepo, saveTrekOf } from "../../support/branch"
+import { commit } from "../../support/repo"
+import { makeCacheDir } from "../../support/remote"
 
 // Rewrites one field of a saved trek, as an older srctrek would have written it.
 async function editSavedTrek(dir: string, name: string, field: string, value: unknown) {

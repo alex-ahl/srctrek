@@ -1,8 +1,8 @@
-import type { ResolvedChange } from "../change/resolve"
-import { readFileAt } from "../git/read"
-import { splitLines } from "../read/files"
-import { describeRepo } from "../read/repo"
-import type { TrekStep } from "../schema/trek"
+import type { ResolvedChange } from "../../change/resolve"
+import { readFileAt } from "../../git/read"
+import { splitLines } from "../../read/files"
+import { describeRepo } from "../../read/repo"
+import type { TrekStep } from "../../schema/trek"
 import type { SubmittedStep } from "./complete"
 
 /**

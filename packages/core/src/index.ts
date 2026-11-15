@@ -146,8 +146,8 @@ export {
   trekStartedAnswer,
   type UpdateStep,
 } from "./prompts"
-export { citationProblems } from "./build/citations"
-export { completeStep, type SubmittedStep } from "./build/complete"
+export { citationProblems } from "./build/draft/citations"
+export { completeStep, type SubmittedStep } from "./build/draft/complete"
 export {
   addSteps,
   draftToTrek,
@@ -156,12 +156,12 @@ export {
   withChange,
   type Added,
   type Draft,
-} from "./build/draft"
+} from "./build/draft/draft"
 export { snapshotWorkingTree } from "./git/snapshot"
-export { existingTrekFor } from "./build/existing"
-export { trekNameFor } from "./build/name"
-export type { UnreachableRepo } from "./build/reachable"
-export { trekStates, type TrekState } from "./build/trek-state"
+export { existingTrekFor } from "./build/status/existing"
+export { trekNameFor } from "./build/status/name"
+export type { UnreachableRepo } from "./build/status/reachable"
+export { trekStates, type TrekState } from "./build/status/trek-state"
 export {
   BUILD_LOG_ENV,
   BUILD_LOG_PREFIX,
@@ -170,13 +170,13 @@ export {
   buildState,
   startBuild,
   type BuildState,
-} from "./build/background"
-export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status"
-export { buildChangeTrek } from "./build/start"
-export { checkAgent, type AgentCheck } from "./build/check"
+} from "./build/agent/background"
+export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status/status"
+export { buildChangeTrek } from "./build/agent/start"
+export { checkAgent, type AgentCheck } from "./build/agent/check"
 export { loadTrekEntries, type TrekEntry } from "./trek-entries"
 export { buildTrekPrompt } from "./guide"
-export { buildFiles, type BuildFiles } from "./build/files"
+export { buildFiles, type BuildFiles } from "./build/agent/files"
 export {
   TriggerSchema,
   loadTriggers,
@@ -201,7 +201,7 @@ export {
   type NearbyRepo,
 } from "./change/nearby"
 export { workBranches } from "./change/work-branches"
-export { carryOver, type CarriedOver, type Redo } from "./build/carry"
+export { carryOver, type CarriedOver, type Redo } from "./build/draft/carry"
 export { errorText } from "./error-text"
 export { changeFromArguments } from "./change/from-arguments"
-export { choiceStatus } from "./build/choice-status"
+export { choiceStatus } from "./build/status/choice-status"

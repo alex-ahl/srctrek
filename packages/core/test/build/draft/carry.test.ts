@@ -8,9 +8,9 @@ import {
   draftToTrek,
   newDraft,
   stepIds,
-} from "../../src"
-import { changeOf, makeBranchRepo } from "../support/branch"
-import { commit } from "../support/repo"
+} from "../../../src/index"
+import { changeOf, makeBranchRepo } from "../../support/branch"
+import { commit } from "../../support/repo"
 
 const header = {
   title: "t",

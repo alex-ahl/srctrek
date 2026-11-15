@@ -1,14 +1,14 @@
-import { type ResolvedChange, hasRange } from "../change/resolve"
-import { buildLogTail, buildSavedTrek, buildState } from "./background"
+import { type ResolvedChange, hasRange } from "../../change/resolve"
+import { buildLogTail, buildSavedTrek, buildState } from "../agent/background"
 import { existingTrekFor } from "./existing"
 import { type UnreachableRepo, unreachableRepo } from "./reachable"
 import { staleStepIds } from "./stale"
 import { stopIds } from "./stops"
-import { pathExists } from "../files"
-import { PROMPT_HASH } from "../prompts"
-import { loadTrek, loadTrekOrProblem, trekPath } from "../treks"
+import { pathExists } from "../../files"
+import { PROMPT_HASH } from "../../prompts"
+import { loadTrek, loadTrekOrProblem, trekPath } from "../../treks"
 import { trekNameFor } from "./name"
-import { type Trigger, loadTriggers } from "./triggers"
+import { type Trigger, loadTriggers } from "../triggers"
 
 /**
  * Where a change's trek stands: saved and ready, or built with an older guide than today's, or

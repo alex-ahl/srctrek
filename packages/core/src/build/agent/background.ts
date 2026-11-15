@@ -1,9 +1,9 @@
 import { spawn } from "node:child_process"
 import { closeSync, openSync, writeFileSync } from "node:fs"
 import { mkdir, readFile, rm } from "node:fs/promises"
-import { pathExists } from "../files"
-import { type BuildMode, headlessBuildPrompt } from "../prompts"
-import { trekPath } from "../treks"
+import { pathExists } from "../../files"
+import { type BuildMode, headlessBuildPrompt } from "../../prompts"
+import { trekPath } from "../../treks"
 import { type BuildFiles, buildFiles } from "./files"
 
 /**

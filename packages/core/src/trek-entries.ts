@@ -1,4 +1,4 @@
-import { stopIds } from "./build/stops"
+import { stopIds } from "./build/status/stops"
 import type { RangeHead } from "./change/head"
 import type { Trek } from "./schema/trek"
 import { listTreks, loadTrekOrProblem, trekPath } from "./treks"

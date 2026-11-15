@@ -1,9 +1,9 @@
-import type { ResolvedChange, ResolvedRepo } from "../change/resolve"
-import { changedLines } from "../git/diff"
-import { blobAt } from "../git/read"
-import { describeRepo, repoNamed } from "../read/repo"
+import type { ResolvedChange, ResolvedRepo } from "../../change/resolve"
+import { changedLines } from "../../git/diff"
+import { blobAt } from "../../git/read"
+import { describeRepo, repoNamed } from "../../read/repo"
 import type { z } from "zod"
-import type { SubmittedStepSchema, TrekStep } from "../schema/trek"
+import type { SubmittedStepSchema, TrekStep } from "../../schema/trek"
 
 export type SubmittedStep = z.infer<typeof SubmittedStepSchema>
 

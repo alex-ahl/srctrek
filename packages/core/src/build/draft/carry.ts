@@ -1,6 +1,6 @@
-import type { ResolvedChange } from "../change/resolve"
-import { blobAt } from "../git/read"
-import { SubmittedStepSchema, type Trek, type TrekHeader, type TrekStep } from "../schema/trek"
+import type { ResolvedChange } from "../../change/resolve"
+import { blobAt } from "../../git/read"
+import { SubmittedStepSchema, type Trek, type TrekHeader, type TrekStep } from "../../schema/trek"
 import { citationProblems } from "./citations"
 import { type Draft, addSteps, newDraft } from "./draft"
 

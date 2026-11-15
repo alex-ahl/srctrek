@@ -1,4 +1,4 @@
-import type { Trek } from "../schema/trek"
+import type { Trek } from "../../schema/trek"
 
 /**
  * The ids of a trek's stops, the steps a reader steps through: context steps are opened from the

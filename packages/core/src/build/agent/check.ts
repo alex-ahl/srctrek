@@ -1,4 +1,4 @@
-import agentCheck from "../../prompts/agent_check.md" with { type: "text" }
+import agentCheck from "../../../prompts/agent_check.md" with { type: "text" }
 
 /** Whether the agent's command starts and answers; when it doesn't, the end of what it said. */
 export type AgentCheck = Readonly<{ ok: true } | { ok: false; problem: string }>

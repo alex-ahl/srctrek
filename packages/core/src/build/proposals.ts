@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { z } from "zod"
 import type { ResolvedChange } from "../change/resolve"
 import { REPOS_LIST } from "../repos/list"
-import { placeProblem } from "./citations"
+import { placeProblem } from "./draft/citations"
 
 /**
  * A repo the route leads into that the change doesn't include, proposed by the agent: the

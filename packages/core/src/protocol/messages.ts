@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { TrekStatus } from "../build/status"
+import type { TrekStatus } from "../build/status/status"
 import type { TrekEntry } from "../trek-entries"
 
 /** The editor protocol's version; client and core must agree on it. */

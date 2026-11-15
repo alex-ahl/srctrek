@@ -1,8 +1,8 @@
-import { recordedRange } from "../schema/recorded-range"
-import { rangeHead } from "../change/head"
-import { type ResolvedChange, type ResolvedRepo, hasRange } from "../change/resolve"
-import { PROMPT_HASH } from "../prompts"
-import { FORMAT_VERSION, type Trek, type TrekHeader, type TrekStep } from "../schema/trek"
+import { recordedRange } from "../../schema/recorded-range"
+import { rangeHead } from "../../change/head"
+import { type ResolvedChange, type ResolvedRepo, hasRange } from "../../change/resolve"
+import { PROMPT_HASH } from "../../prompts"
+import { FORMAT_VERSION, type Trek, type TrekHeader, type TrekStep } from "../../schema/trek"
 import { citationProblems } from "./citations"
 import { type SubmittedStep, completeStep } from "./complete"
 

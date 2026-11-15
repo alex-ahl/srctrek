@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
-import { type BuildState, buildState, headlessBuildPrompt, startBuild } from "../../src"
-import { makeRepo } from "../support/repo"
+import { type BuildState, buildState, headlessBuildPrompt, startBuild } from "../../../src/index"
+import { makeRepo } from "../../support/repo"
 
 // The build's state once it has ended; fails the test if it runs past `ms`.
 async function stateWhenEnded(

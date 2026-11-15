@@ -4,7 +4,7 @@ import { z } from "zod"
 import type { ResolvedChange } from "../change/resolve"
 import { pathExists } from "../files"
 import { TriggerKindSchema } from "../schema/trek"
-import { placeProblem } from "./citations"
+import { placeProblem } from "./draft/citations"
 
 /**
  * A way the code is used, found by the agent: its kind, a name in the user's words (what

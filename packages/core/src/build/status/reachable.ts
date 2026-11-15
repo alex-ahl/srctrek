@@ -1,8 +1,8 @@
-import { hasCommit } from "../git/refs"
-import { defaultCacheDir } from "../repos/cache"
-import { isRemote } from "../repos/entry"
-import { repoDir } from "../repos/resolve"
-import type { Trek } from "../schema/trek"
+import { hasCommit } from "../../git/refs"
+import { defaultCacheDir } from "../../repos/cache"
+import { isRemote } from "../../repos/entry"
+import { repoDir } from "../../repos/resolve"
+import type { Trek } from "../../schema/trek"
 
 /**
  * A repo a trek names that can't be opened here: nothing is where the trek says (`missing`), or

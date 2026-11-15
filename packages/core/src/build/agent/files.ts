@@ -1,5 +1,5 @@
 import { join, resolve } from "node:path"
-import { runGit } from "../git/run"
+import { runGit } from "../../git/run"
 
 /** Where a build's files live: its log (the agent's output, and trek mcp's lines) and exit code. */
 export type BuildFiles = Readonly<{ dir: string; log: string; exit: string }>

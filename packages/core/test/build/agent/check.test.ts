@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { checkAgent } from "../../src"
+import { checkAgent } from "../../../src/index"
 
 describe("checkAgent", () => {
   test("works when the command starts and exits cleanly, with the instruction as its last argument", async () => {

@@ -1,5 +1,5 @@
-import { type ChangeChoice, choiceArguments } from "../change/choices"
-import { changeFromArguments } from "../change/from-arguments"
+import { type ChangeChoice, choiceArguments } from "../../change/choices"
+import { changeFromArguments } from "../../change/from-arguments"
 import { type TrekStatus, trekStatus } from "./status"
 
 /** Where the trek of a choice stands, worked out as trek would on opening that change. */

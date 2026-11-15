@@ -1,5 +1,5 @@
-import { type RepoWithRange, type ResolvedChange, hasRange } from "../change/resolve"
-import { rangeHead } from "../change/head"
+import { type RepoWithRange, type ResolvedChange, hasRange } from "../../change/resolve"
+import { rangeHead } from "../../change/head"
 
 // Trek names are lowercase letters, digits, and dashes; long branch names are cut.
 function slug(text: string): string {
