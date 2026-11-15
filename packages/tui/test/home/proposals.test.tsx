@@ -1,6 +1,6 @@
 import { expect, mock, test } from "bun:test"
 import type { ProposedRepo, TrekEntry } from "@srctrek/core"
-import { App } from "../../src/home/app"
+import { App } from "../../src/home/screen"
 import { renderFrame } from "../../src/render-frame"
 import { pressEnterOn, pressKeyOn, pressOn } from "../support/keys"
 

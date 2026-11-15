@@ -6,7 +6,7 @@ import { EditorPicker } from "../editors/editor-picker"
 import { SettingsScreen } from "../settings/screen"
 import type { Editor } from "../editors/editors"
 import { TextPrompt } from "../ui/text-prompt"
-import type { Choosing, Props } from "./app"
+import type { Choosing, Props } from "./screen"
 
 // What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or which
 // editor treks open in, with the trek to open once it's picked.

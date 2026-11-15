@@ -14,17 +14,17 @@ import {
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { useState } from "react"
-import { App } from "./app"
+import { App } from "./screen"
 import { type Editor, availableEditors, openInEditor } from "../editors/editors"
-import { type FollowChange, useFollow } from "./follow"
+import { type FollowChange, useFollow } from "./watch/follow"
 import type { Opening } from "./opening-line"
 import { openInPager } from "../editors/pager"
 import { TonesContext } from "../ui/theme"
-import { useBuildWatch } from "./use-build-watch"
+import { useBuildWatch } from "./watch/use-build-watch"
 import { useChoosing } from "./use-choosing"
-import { useSettings } from "./use-settings"
-import { useTerminalTones } from "./use-terminal-tones"
-import { useTrekStates } from "./use-trek-states"
+import { useSettings } from "./watch/use-settings"
+import { useTerminalTones } from "./watch/use-terminal-tones"
+import { useTrekStates } from "./watch/use-trek-states"
 
 /** What the home screen needs for the change trek was started for. */
 export type HomeChange = {

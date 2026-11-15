@@ -1,6 +1,6 @@
 import { type ChangeChoice, choiceArguments } from "@srctrek/core"
 import { useEffect, useRef } from "react"
-import type { HomeChange } from "./home"
+import type { HomeChange } from "../start"
 
 /**
  * How the home screen keeps up with the worktree: the change chosen as trek started, what's moved

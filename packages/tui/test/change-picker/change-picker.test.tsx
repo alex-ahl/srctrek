@@ -8,7 +8,7 @@ import type {
   OpenPullRequest,
   TrekStatus,
 } from "@srctrek/core"
-import { App } from "../../src/home/app"
+import { App } from "../../src/home/screen"
 import { dropRows, opened } from "../../src/change-picker/drop"
 import { pickerRows, pullRequestRows } from "../../src/change-picker/rows"
 import { frameAfter } from "../support/keys"

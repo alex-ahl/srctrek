@@ -1,7 +1,7 @@
 import { expect, mock, test } from "bun:test"
 import type { Settings, TrekEntry } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import { App } from "../../src/home/app"
+import { App } from "../../src/home/screen"
 import type { Editor } from "../../src/editors/editors"
 import type { SettingChange } from "../../src/settings/rows"
 import { frameAfter, pressOn } from "../support/keys"

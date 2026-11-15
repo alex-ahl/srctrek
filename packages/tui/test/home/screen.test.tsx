@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import type { ChangeSummary, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
 import type { ComponentProps } from "react"
-import { App } from "../../src/home/app"
+import { App } from "../../src/home/screen"
 import { renderFrame } from "../../src/render-frame"
 import { TERMINAL_TONES, bandFor, tonesFor } from "../../src/ui/theme"
 import { frameAfter } from "../support/keys"

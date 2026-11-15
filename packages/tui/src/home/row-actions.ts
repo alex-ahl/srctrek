@@ -3,7 +3,7 @@ import { buildVerb, enterLabel, footerKeys } from "./footer-keys"
 import { type Item } from "./list/lines"
 import { type Row } from "./list/rows"
 import { canStartBuild, hasLog, hasTrek } from "./states"
-import type { Props } from "./app"
+import type { Props } from "./screen"
 
 export type Action = (() => void) | undefined
 

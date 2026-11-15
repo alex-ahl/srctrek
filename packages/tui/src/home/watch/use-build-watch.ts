@@ -1,6 +1,6 @@
 import type { TrekStatus } from "@srctrek/core"
 import { useEffect } from "react"
-import type { HomeChange } from "./home"
+import type { HomeChange } from "../start"
 
 // A build takes minutes, so checking every couple of seconds is plenty.
 const POLL_MS = 2000

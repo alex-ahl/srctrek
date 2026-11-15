@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test"
-import { App } from "../../src/home/app"
+import { App } from "../../src/home/screen"
 import type { TrekEntry } from "@srctrek/core"
 import type { Editor } from "../../src/editors/editors"
 import { frameAfter, pressEnterOn, pressOn } from "../support/keys"

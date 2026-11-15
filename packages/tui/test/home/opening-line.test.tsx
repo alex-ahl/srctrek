@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { type ChangeChoice, GitError } from "@srctrek/core"
-import { App } from "../../src/home/app"
+import { App } from "../../src/home/screen"
 import { type Opening, choiceName, failureReason } from "../../src/home/opening-line"
 import { frameAfter } from "../support/keys"
 

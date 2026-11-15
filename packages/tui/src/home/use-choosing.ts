@@ -10,9 +10,9 @@ import {
 } from "@srctrek/core"
 import { resolve } from "node:path"
 import { useCallback } from "react"
-import type { Choosing } from "./app"
-import type { FollowChange } from "./follow"
-import type { HomeChange } from "./home"
+import type { Choosing } from "./screen"
+import type { FollowChange } from "./watch/follow"
+import type { HomeChange } from "./start"
 import { failureReason } from "./opening-line"
 
 // What a pick tells the home screen: it's under way, it opened, or why it couldn't.

@@ -1,8 +1,8 @@
 import { expect, mock, test } from "bun:test"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
-import { type FollowChange, useFollow } from "../../src/home/follow"
-import type { HomeChange } from "../../src/home/home"
-import { pressOn } from "../support/keys"
+import { type FollowChange, useFollow } from "../../../src/home/watch/follow"
+import type { HomeChange } from "../../../src/home/start"
+import { pressOn } from "../../support/keys"
 
 const summary = { changed: [], unchanged: [], code: false }
 const empty: TrekStatus = { kind: "empty", name: "feature-refunds" }
