@@ -15,19 +15,26 @@ import { lineAbove, placeOf } from "./place"
 import { trekSummary } from "./sidebar/treks"
 import { statusText } from "./step-text"
 
-// The open trek's connection and where it is, at the edge as a server's current state is; one
-// trek at a time.
-let client: TrekClient | undefined
-let current: SessionView | undefined
-let stepTint: vscode.TextEditorDecorationType | undefined
-let arrows: Arrows | undefined
-let values: InlineValues | undefined
-let changeMarks: ChangeMarks | undefined
-let decorations: vscode.TextEditorDecorationType[] = []
-let status: vscode.StatusBarItem | undefined
-let stepLens: StepLens | undefined
-let trekTab: TrekTab | undefined
-let stopView: StopView | undefined
+// The pieces the extension draws with, made once when it starts.
+type Ui = Readonly<{
+  stepTint: vscode.TextEditorDecorationType
+  arrows: Arrows
+  values: InlineValues
+  changeMarks: ChangeMarks
+  // every decoration type, cleared together when the trek moves on
+  decorations: readonly vscode.TextEditorDecorationType[]
+  status: vscode.StatusBarItem
+  stepLens: StepLens & vscode.Disposable
+  trekTab: TrekTab & vscode.Disposable
+  stopView: StopView & vscode.Disposable
+}>
+
+// The open trek's connection and where it is: the one thing that changes, at the edge as a
+// server's current state is; one trek at a time.
+let session: Readonly<{ client: TrekClient | undefined; current: SessionView | undefined }> = {
+  client: undefined,
+  current: undefined,
+}
 
 function serveCommand(): string[] {
   return (
@@ -42,9 +49,9 @@ function reportFailure(error: unknown): void {
 }
 
 // The last step's tint and arrows stay in its editor otherwise, when it's still visible.
-function clearDecorations(): void {
+function clearDecorations(ui: Ui): void {
   for (const editor of vscode.window.visibleTextEditors) {
-    for (const type of decorations) {
+    for (const type of ui.decorations) {
       editor.setDecorations(type, [])
     }
   }
@@ -57,52 +64,56 @@ function isNewFileIn(document: vscode.TextDocument, view: StepView): boolean {
   return isNewFile(view, lines)
 }
 
-async function showStep(view: StepView): Promise<void> {
+// The step's lines tinted, its calls, values, and changed lines marked, in its editor.
+function markStep(ui: Ui, editor: vscode.TextEditor, view: StepView, newFile: boolean): void {
   const place = placeOf(view)
-  const uri = vscode.Uri.file(place.path)
+  clearDecorations(ui)
+  editor.setDecorations(ui.stepTint, [new vscode.Range(place.first, 0, place.last, 0)])
+  ui.arrows.show(editor, view)
+  ui.values.show(editor, view)
+  ui.changeMarks.show(editor, view, newFile)
+}
+
+// The cursor on the step's first line, the step shown from the line above, so the actions above
+// it show rather than sit off the top.
+function revealStep(editor: vscode.TextEditor, view: StepView): void {
+  const place = placeOf(view)
+  editor.selection = new vscode.Selection(place.first, 0, place.first, 0)
+  const shown = new vscode.Range(lineAbove(place), 0, place.last, 0)
+  editor.revealRange(shown, vscode.TextEditorRevealType.AtTop)
+}
+
+async function showStep(ui: Ui, view: StepView): Promise<void> {
+  const uri = vscode.Uri.file(placeOf(view).path)
   const editor = await vscode.window.showTextDocument(uri, { preview: false })
   const newFile = isNewFileIn(editor.document, view)
-  if (status !== undefined) {
-    status.text = statusText(view, stepTags(view, newFile))
-  }
-  const range = new vscode.Range(place.first, 0, place.last, 0)
-  editor.selection = new vscode.Selection(place.first, 0, place.first, 0)
-  clearDecorations()
-  if (stepTint !== undefined) {
-    editor.setDecorations(stepTint, [range])
-  }
-  arrows?.show(editor, view)
-  values?.show(editor, view)
-  changeMarks?.show(editor, view, newFile)
+  ui.status.text = statusText(view, stepTags(view, newFile))
+  markStep(ui, editor, view, newFile)
   if (view.trek_copy) {
     // the trek's version of a file, kept in srctrek's cache, isn't for editing
     await vscode.commands.executeCommand("workbench.action.files.setActiveEditorReadonlyInSession")
   }
 
-  stepLens?.show(view)
-  // from the line above, so the actions above the step show rather than sit off the top
-  const shown = new vscode.Range(lineAbove(place), 0, place.last, 0)
-  editor.revealRange(shown, vscode.TextEditorRevealType.AtTop)
+  ui.stepLens.show(view)
+  revealStep(editor, view)
 }
 
-async function show(view: SessionView): Promise<void> {
-  current = view
+async function show(ui: Ui, view: SessionView): Promise<void> {
+  session = { ...session, current: view }
   // Escape in the trek tab ends the trek only at its end, not on the overview
   await vscode.commands.executeCommand("setContext", "srctrek.atEnd", view.kind === "end")
-  await stopView?.show(view.kind === "step" ? view : null)
-  if (status !== undefined) {
-    status.text = statusText(view)
-    status.show()
-  }
+  await ui.stopView.show(view.kind === "step" ? view : null)
+  ui.status.text = statusText(view)
+  ui.status.show()
   if (view.kind === "step") {
-    trekTab?.hide()
-    await showStep(view)
+    ui.trekTab.hide()
+    await showStep(ui, view)
     return
   }
 
-  stepLens?.show(null)
-  clearDecorations()
-  trekTab?.show(view)
+  ui.stepLens.show(null)
+  clearDecorations(ui)
+  ui.trekTab.show(view)
 }
 
 function pickItem(entry: TrekEntry): vscode.QuickPickItem {
@@ -140,9 +151,10 @@ async function pickTrek(running: TrekClient): Promise<string | undefined> {
 }
 
 // Given a trek's name, as a test or a keybinding can, it opens that one without asking.
-async function openTrek(name?: unknown): Promise<SessionView | undefined> {
-  client?.close()
-  client = startClient()
+async function openTrek(ui: Ui, name?: unknown): Promise<SessionView | undefined> {
+  session.client?.close()
+  const client = startClient()
+  session = { client, current: undefined }
   await client.initialize()
   const trek = typeof name === "string" ? name : await pickTrek(client)
   if (trek === undefined) {
@@ -153,28 +165,33 @@ async function openTrek(name?: unknown): Promise<SessionView | undefined> {
   // opens srctrek's sidebar on the stop, as starting a debug session opens Run and Debug
   await vscode.commands.executeCommand("srctrek.stop.focus")
   const view = await client.open(trek)
-  await show(view)
+  await show(ui, view)
   return view
 }
 
-async function move(to: Move, params?: object): Promise<SessionView | undefined> {
+function warnNoTrek(): undefined {
+  void vscode.window.showWarningMessage("srctrek: no trek is open; run srctrek: Open Trek…")
+  return undefined
+}
+
+async function move(ui: Ui, to: Move, params?: object): Promise<SessionView | undefined> {
+  const { client, current: before } = session
   if (client === undefined) {
-    void vscode.window.showWarningMessage("srctrek: no trek is open; run srctrek: Open Trek…")
-    return undefined
+    return warnNoTrek()
   }
 
-  const before = current
   const after = await client.move(to, params)
   // redrawing the same view would snap the cursor back to the step's first line
   if (before !== undefined && sameView(before, after)) {
     vscode.window.setStatusBarMessage(`srctrek: ${NOWHERE[to]}`, 4000)
     return after
   }
-  await show(after)
+  await show(ui, after)
   return after
 }
 
 function callAtCursor(): string | undefined {
+  const { current } = session
   const editor = vscode.window.activeTextEditor
   if (current?.kind !== "step" || editor === undefined) {
     return undefined
@@ -184,24 +201,26 @@ function callAtCursor(): string | undefined {
 }
 
 // Into the call on the cursor's line; elsewhere the server picks the first not yet visited.
-function into(): Promise<SessionView | undefined> {
+function into(ui: Ui): Promise<SessionView | undefined> {
   const target = callAtCursor()
-  return move("into", target === undefined ? undefined : { target })
+  return move(ui, "into", target === undefined ? undefined : { target })
 }
 
 // Back to the stop the trek is on, without moving the trek.
-async function showCurrent(): Promise<SessionView | undefined> {
+async function showCurrent(ui: Ui): Promise<SessionView | undefined> {
+  const { current } = session
   if (current === undefined) {
-    void vscode.window.showWarningMessage("srctrek: no trek is open; run srctrek: Open Trek…")
-    return undefined
+    return warnNoTrek()
   }
-  await show(current)
+
+  await show(ui, current)
   return current
 }
 
 // The stop's context code, each piece under its reason, in the Stop view; the trek stays where it
 // is.
-async function showContext(): Promise<void> {
+async function showContext(ui: Ui): Promise<void> {
+  const { current } = session
   if (current?.kind !== "step") {
     vscode.window.setStatusBarMessage("srctrek: context is shown at a stop", 3000)
     return
@@ -212,24 +231,23 @@ async function showContext(): Promise<void> {
   }
 
   await vscode.commands.executeCommand("srctrek.stop.focus")
-  stopView?.reveal("context")
+  ui.stopView.reveal("context")
 }
 
-function toggleValues(): Promise<void> {
-  const shown = values?.toggle() ?? false
+function toggleValues(ui: Ui): Promise<void> {
+  const shown = ui.values.toggle()
   vscode.window.setStatusBarMessage(`srctrek: values ${shown ? "shown" : "hidden"}`, 3000)
   return Promise.resolve()
 }
 
-async function quit(): Promise<void> {
-  client?.close()
-  client = undefined
-  current = undefined
-  status?.hide()
-  stepLens?.show(null)
-  trekTab?.hide()
-  await stopView?.show(null)
-  clearDecorations()
+async function quit(ui: Ui): Promise<void> {
+  session.client?.close()
+  session = { client: undefined, current: undefined }
+  ui.status.hide()
+  ui.stepLens.show(null)
+  ui.trekTab.hide()
+  await ui.stopView.show(null)
+  clearDecorations(ui)
   await vscode.commands.executeCommand("setContext", "srctrek.open", false)
 }
 
@@ -241,53 +259,59 @@ function command(name: string, run: (argument?: unknown) => Promise<unknown>): v
   )
 }
 
-export function activate(context: vscode.ExtensionContext): void {
-  stepTint = vscode.window.createTextEditorDecorationType({
+// The pieces the extension draws with; a stop clicked in its pages or views goes to it.
+function createUi(context: vscode.ExtensionContext, goTo: (step: string) => void): Ui {
+  const stepTint = vscode.window.createTextEditorDecorationType({
     backgroundColor: new vscode.ThemeColor("editor.rangeHighlightBackground"),
     isWholeLine: true,
   })
-  const callArrows = createArrows()
-  arrows = callArrows
-  const inlineValues = createInlineValues()
-  values = inlineValues
-  const marks = createChangeMarks(vscode.Uri.joinPath(context.extensionUri, "media"))
-  changeMarks = marks
-  decorations = [stepTint, ...callArrows.types, inlineValues.type, ...marks.types]
-  status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left)
-  const lens = createStepLens()
-  stepLens = lens
-  const goTo = (step: string): void => {
-    move("goto", { step }).catch(reportFailure)
+  const arrows = createArrows()
+  const values = createInlineValues()
+  const changeMarks = createChangeMarks(vscode.Uri.joinPath(context.extensionUri, "media"))
+
+  return {
+    stepTint,
+    arrows,
+    values,
+    changeMarks,
+    decorations: [stepTint, ...arrows.types, values.type, ...changeMarks.types],
+    status: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left),
+    stepLens: createStepLens(),
+    trekTab: createTrekTab(goTo),
+    stopView: createStopView(goTo),
   }
-  const tab = createTrekTab(goTo)
-  trekTab = tab
-  const stop = createStopView(goTo)
-  stopView = stop
+}
+
+export function activate(context: vscode.ExtensionContext): void {
+  const goTo = (step: string): void => {
+    move(ui, "goto", { step }).catch(reportFailure)
+  }
+  const ui = createUi(context, goTo)
   const treks = createTreksView(listTreks)
   context.subscriptions.push(
-    ...decorations,
-    status,
-    lens,
-    tab,
-    stop,
+    ...ui.decorations,
+    ui.status,
+    ui.stepLens,
+    ui.trekTab,
+    ui.stopView,
     treks,
     command("srctrek.refreshTreks", () => {
       treks.refresh()
       return Promise.resolve()
     }),
-    command("srctrek.openTrek", openTrek),
-    command("srctrek.next", () => move("next")),
-    command("srctrek.previous", () => move("prev")),
-    command("srctrek.over", () => move("over")),
-    command("srctrek.into", into),
-    command("srctrek.out", () => move("out")),
-    command("srctrek.toggleValues", toggleValues),
-    command("srctrek.current", showCurrent),
-    command("srctrek.context", showContext),
-    command("srctrek.quit", quit),
+    command("srctrek.openTrek", (name) => openTrek(ui, name)),
+    command("srctrek.next", () => move(ui, "next")),
+    command("srctrek.previous", () => move(ui, "prev")),
+    command("srctrek.over", () => move(ui, "over")),
+    command("srctrek.into", () => into(ui)),
+    command("srctrek.out", () => move(ui, "out")),
+    command("srctrek.toggleValues", () => toggleValues(ui)),
+    command("srctrek.current", () => showCurrent(ui)),
+    command("srctrek.context", () => showContext(ui)),
+    command("srctrek.quit", () => quit(ui)),
   )
 }
 
 export function deactivate(): void {
-  client?.close()
+  session.client?.close()
 }
