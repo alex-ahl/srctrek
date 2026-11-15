@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto"
 import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
-import { isPageMessage } from "./page"
-import { type CodeRange, codeRangesOf, stopPageHtml } from "./stop-page"
+import { isPageMessage } from "../pages/page"
+import { type CodeRange, codeRangesOf, stopPageHtml } from "../pages/stop"
 
 export type StopView = {
   show: (view: StepView | null) => Promise<void>

@@ -1,6 +1,6 @@
 import type { TrekEntry } from "@srctrek/core"
 import * as vscode from "vscode"
-import { trekSummary } from "./view"
+import { trekSummary } from "../view"
 
 export type TreksView = { refresh: () => void }
 

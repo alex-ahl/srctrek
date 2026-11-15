@@ -1,6 +1,6 @@
 import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
-import { changedLinesShown } from "./view"
+import { changedLinesShown } from "../view"
 
 export type ChangeMarks = {
   show: (editor: vscode.TextEditor, view: StepView, newFile: boolean) => void

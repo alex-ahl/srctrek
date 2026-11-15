@@ -1,6 +1,6 @@
 import type { CameFrom, Cite, Frame, StepRef, StepView } from "@srctrek/core"
 import { escapeHtml, gotoLink, openLink, pageHtml } from "./page"
-import { FLAG_WORDING, whereNext } from "./step-text"
+import { FLAG_WORDING, whereNext } from "../step-text"
 
 // The sidebar's page for the stop the trek is on, apart from VS Code: its narration, details,
 // flag, and where next goes, then the call stack, where it came from with its evidence, context

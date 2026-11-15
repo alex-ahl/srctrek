@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
-import { valueMarks } from "../src/value-marks"
-import { stepWith } from "./support/views"
+import { valueMarks } from "../../src/code/value-marks"
+import { stepWith } from "../support/views"
 
 const end = { how: "end", to: null, line: null } as const
 

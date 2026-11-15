@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
 import type { NextStop } from "@srctrek/core"
-import { stopPageHtml } from "../src/stop-page"
-import { ref, stepWith } from "./support/views"
+import { stopPageHtml } from "../../src/pages/stop"
+import { ref, stepWith } from "../support/views"
 
 const end: NextStop = { how: "end", to: null, line: null }
 const noCode = () => []

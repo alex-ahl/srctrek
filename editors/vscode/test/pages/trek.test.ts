@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test"
 import type { EndView, OverviewView } from "@srctrek/core"
-import { escapeHtml } from "../src/page"
-import { trekPageHtml } from "../src/trek-page"
-import { ref } from "./support/views"
+import { escapeHtml } from "../../src/pages/page"
+import { trekPageHtml } from "../../src/pages/trek"
+import { ref } from "../support/views"
 
 const overview: OverviewView = {
   kind: "overview",

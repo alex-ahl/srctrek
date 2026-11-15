@@ -1,6 +1,6 @@
 import type { StepView } from "@srctrek/core"
 import * as vscode from "vscode"
-import { type CallMark, callMarks } from "./view"
+import { type CallMark, callMarks } from "../view"
 
 export type Arrows = { show: (editor: vscode.TextEditor, view: StepView) => void }
 

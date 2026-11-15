@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto"
 import * as vscode from "vscode"
 import { isPageMessage } from "./page"
-import { type TrekPageView, trekPageHtml } from "./trek-page"
+import { type TrekPageView, trekPageHtml } from "./trek"
 
 export type TrekTab = { show: (view: TrekPageView) => void; hide: () => void }
 
