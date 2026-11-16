@@ -14,7 +14,7 @@ import { changeNow } from "./change"
 import { RequestError } from "./errors"
 
 /** A trek open for stepping: its session, and what its view needs from git. */
-export type OpenTrek = { session: SteppingSession; context: ViewContext }
+export type OpenTrek = Readonly<{ session: SteppingSession; context: ViewContext }>
 
 async function loadNamed(cwd: string, name: string) {
   const path = trekPath(cwd, name)

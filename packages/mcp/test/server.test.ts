@@ -1,16 +1,15 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
 import {
   SERVER_INSTRUCTIONS,
   SET_AGENT_COMMAND,
   TOOL_DESCRIPTIONS,
   buildTrekPrompt,
-  runGit,
 } from "@srctrek/core"
 import { z } from "zod"
-import { McpTestClient } from "./mcp-client"
-import { commit, commitStaged, makeRepo, tempDir } from "@srctrek/testing"
+import { McpTestClient } from "./support/mcp-client"
+import { makeFeatureRepo } from "./support/repos"
+import { repoAt, tempDir } from "@srctrek/testing"
 
 const PromptListSchema = z.object({
   prompts: z.array(
@@ -25,19 +24,6 @@ const PromptSchema = z.object({
 const ToolListSchema = z.object({
   tools: z.array(z.object({ name: z.string(), description: z.string() })),
 })
-
-// A repo on a feature branch that changes src/app.ts.
-async function makeFeatureRepo(): Promise<string> {
-  const dir = await makeRepo()
-  await mkdir(join(dir, "src"))
-  await writeFile(join(dir, "src/app.ts"), "const total = 100\nexport { total }\n")
-  await runGit(dir, ["add", "--all"])
-  await commitStaged(dir, "base")
-  await runGit(dir, ["switch", "--quiet", "-c", "feature"])
-  await commit(dir, "src/app.ts", "const total = 250\nexport { total }\n")
-
-  return dir
-}
 
 let client: McpTestClient | undefined
 
@@ -88,9 +74,7 @@ describe("trek mcp", () => {
   test("names the repos next to the current one that aren't opened", async () => {
     const parent = await tempDir("around-")
     for (const name of ["web", "api"]) {
-      await mkdir(join(parent, name))
-      await runGit(join(parent, name), ["init", "--quiet", "--initial-branch=main"])
-      await commit(join(parent, name), "README.md", `${name}\n`)
+      await repoAt(join(parent, name), `${name}\n`)
     }
     client = new McpTestClient(join(parent, "web"))
     await client.initialize()

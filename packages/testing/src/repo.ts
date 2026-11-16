@@ -12,10 +12,14 @@ const IDENTITY = ["-c", "user.name=test", "-c", "user.email=test@example.test"]
  */
 export async function makeRepo(): Promise<string> {
   const parent = await tempDir("git-")
-  const dir = join(parent, basename(parent))
+  return repoAt(join(parent, basename(parent)))
+}
+
+/** A new repo at `dir`, for repos side by side: on branch `main`, its README the one commit. */
+export async function repoAt(dir: string, readme = "base\n"): Promise<string> {
   await mkdir(dir)
   await runGit(dir, ["init", "--quiet", "--initial-branch=main"])
-  await commit(dir, "README.md", "base\n")
+  await commit(dir, "README.md", readme)
   return dir
 }
 

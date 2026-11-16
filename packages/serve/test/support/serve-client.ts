@@ -9,7 +9,7 @@ import {
   createMessageConnection,
 } from "vscode-jsonrpc/node"
 
-const TREK = join(import.meta.dir, "../../cli/src/main.ts")
+const TREK = join(import.meta.dir, "../../../cli/src/main.ts")
 
 /** An editor's side of the protocol, for tests: the real `trek serve` as a child process. */
 export class ServeTestClient {

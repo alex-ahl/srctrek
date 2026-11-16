@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { z } from "zod"
 
-const TREK = join(import.meta.dir, "../../cli/src/main.ts")
+const TREK = join(import.meta.dir, "../../../cli/src/main.ts")
 
 const ResponseSchema = z.object({
   id: z.number(),

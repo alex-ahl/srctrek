@@ -58,7 +58,7 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
       const recursive = input.recursive === true ? " (recursive)" : ""
       const asked = `list_files ${input.repo} ${input.folder ?? "."}${recursive}`
 
-      return answered(report, asked)(formatListing(listing))
+      return answered(report, asked, formatListing(listing))
     },
   )
 
@@ -82,7 +82,7 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
       )
       const range = `${input.from ?? 1}–${input.to ?? "end"}`
 
-      return answered(report, `read_file ${input.repo} ${input.path} ${range}`)(formatLines(lines))
+      return answered(report, `read_file ${input.repo} ${input.path} ${range}`, formatLines(lines))
     },
   )
 
@@ -97,7 +97,7 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
       const within = input.folder === undefined ? "" : ` in ${input.folder}`
       const asked = `search ${input.repo} ${JSON.stringify(input.pattern)}${within}`
 
-      return answered(report, asked)(formatMatches(result))
+      return answered(report, asked, formatMatches(result))
     },
   )
 
@@ -109,12 +109,12 @@ export function registerReadTools(server: McpServer, cell: SessionCell, report: 
     },
     async (input) => {
       const changed = repoIn(cell.session, input.repo)
-      const answer = answered(report, `diff ${input.repo} ${input.path ?? "(files)"}`)
+      const asked = `diff ${input.repo} ${input.path ?? "(files)"}`
       if (input.path === undefined) {
-        return answer(formatFileChanges(await changeFiles(changed)))
+        return answered(report, asked, formatFileChanges(await changeFiles(changed)))
       }
 
-      return answer(formatPatch(await changePatch(changed, input.path)))
+      return answered(report, asked, formatPatch(await changePatch(changed, input.path)))
     },
   )
 }

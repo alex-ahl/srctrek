@@ -9,14 +9,10 @@ import {
   resolveChange,
   runGit,
 } from "../../src"
-import { commit, makeCacheDir, tempDir } from "@srctrek/testing"
+import { commit, makeCacheDir, repoAt, tempDir } from "@srctrek/testing"
 
-async function repoIn(parent: string, name: string): Promise<string> {
-  const dir = join(parent, name)
-  await mkdir(dir)
-  await runGit(dir, ["init", "--quiet", "--initial-branch=main"])
-  await commit(dir, "README.md", `${name}\n`)
-  return dir
+function repoIn(parent: string, name: string): Promise<string> {
+  return repoAt(join(parent, name), `${name}\n`)
 }
 
 async function onBranch(dir: string, branch: string): Promise<void> {

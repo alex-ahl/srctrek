@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { realpath } from "node:fs/promises"
 import { join } from "node:path"
 import { ErrorCode, PROTOCOL_VERSION, runGit } from "@srctrek/core"
-import { ServeTestClient } from "./serve-client"
+import { ServeTestClient } from "./support/serve-client"
 import { commit, makeRepo, repoWithTrek, tempDir } from "@srctrek/testing"
 
 let client: ServeTestClient | undefined

@@ -29,13 +29,14 @@ export type ServeState = {
 }
 
 /** A request's answer: its result, or why it failed. */
-export type Answer = { result: unknown } | { error: { code: number; message: string } }
+export type Answer =
+  Readonly<{ result: unknown }> | Readonly<{ error: Readonly<{ code: number; message: string }> }>
 
 // JSON-RPC's own codes.
 const METHOD_NOT_FOUND = -32601
 const INVALID_PARAMS = -32602
 
-type Moved = { state: ServeState; result: unknown }
+type Moved = Readonly<{ state: ServeState; result: unknown }>
 
 export function newServeState(cwd: string): ServeState {
   return { cwd, initialized: false, open: undefined }

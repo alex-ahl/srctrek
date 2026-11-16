@@ -11,9 +11,18 @@ export function problem(answer: string) {
 
 // "read_file api src/pay.ts 1–40 → 1210 chars": what was asked, and how much came back, which
 // the agent carries from then on. The build log shows a build's reading as it happens.
-export function answered(report: Report, asked: string) {
-  return async (answer: string) => {
-    await report(`${asked} → ${answer.length} chars`)
-    return text(answer)
-  }
+export async function answered(report: Report, asked: string, answer: string) {
+  await report(`${asked} → ${answer.length} chars`)
+  return text(answer)
+}
+
+// The agent's answer, also written to the build's log, so the log shows what it was told.
+export async function tell(report: Report, answer: string) {
+  await report(answer)
+  return text(answer)
+}
+
+export async function refuse(report: Report, answer: string) {
+  await report(answer)
+  return problem(answer)
 }

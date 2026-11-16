@@ -57,7 +57,7 @@ export function newSession(cwd: string, cacheDir?: string): Session {
   return { cwd, cacheDir, rejectedRounds: 0 }
 }
 
-function openChange(session: Session): ResolvedChange {
+function currentChange(session: Session): ResolvedChange {
   if (session.change === undefined) {
     throw new Error(NO_CHANGE_OPEN)
   }
@@ -65,7 +65,7 @@ function openChange(session: Session): ResolvedChange {
   return session.change
 }
 
-function openDraft(session: Session): Draft {
+function currentDraft(session: Session): Draft {
   if (session.draft === undefined) {
     throw new Error(NO_TREK_STARTED)
   }
@@ -80,11 +80,13 @@ export async function open(session: Session, args: string[]): Promise<Outcome<Re
 }
 
 export function repoIn(session: Session, name: string): ResolvedRepo {
-  return repoNamed(openChange(session), name)
+  return repoNamed(currentChange(session), name)
 }
 
-export function start(session: Session, header: TrekHeader): Session {
-  return { ...session, draft: newDraft(openChange(session), header), rejectedRounds: 0 }
+export function start(session: Session, header: TrekHeader): Outcome<undefined> {
+  const draft = newDraft(currentChange(session), header)
+
+  return { session: { ...session, draft, rejectedRounds: 0 }, answer: undefined }
 }
 
 // A rejected round counts; the last one allowed drops the draft and says the build stopped.
@@ -105,7 +107,7 @@ export async function addStepsTo(
   session: Session,
   steps: SubmittedStep[],
 ): Promise<Outcome<string[]>> {
-  const { draft, problems } = await addSteps(openDraft(session), steps)
+  const { draft, problems } = await addSteps(currentDraft(session), steps)
   if (problems.length > 0) {
     return reject(session, problems)
   }
@@ -114,7 +116,7 @@ export async function addStepsTo(
 }
 
 export function draftStepIds(session: Session): string[] {
-  return stepIds(openDraft(session))
+  return stepIds(currentDraft(session))
 }
 
 // The saved trek's path, or the error saying why the trek isn't valid; other failures throw.
@@ -135,11 +137,11 @@ async function saveOrInvalid(
 }
 
 /** What the agent may revise when it finishes a trek it updated. */
-export type Revised = {
+export type Revised = Readonly<{
   title?: string | undefined
   overview?: string | undefined
   outcome?: string | undefined
-}
+}>
 
 // The draft with each revised part of its header in place of the one it had.
 function revisedDraft(draft: Draft, revised: Revised): Draft {
@@ -158,7 +160,7 @@ export async function finish(
   name: string,
   revised: Revised = {},
 ): Promise<Outcome<Finished>> {
-  const draft = revisedDraft(openDraft(session), revised)
+  const draft = revisedDraft(currentDraft(session), revised)
   const trek = await draftToTrek(draft)
 
   const result = await saveOrInvalid(session.cwd, name, trek)
@@ -178,7 +180,7 @@ export type Updating = readonly UpdateStep[]
  * still hold, at the new commits, and those to redo.
  */
 export async function update(session: Session, name: string): Promise<Outcome<Updating>> {
-  const change = openChange(session)
+  const change = currentChange(session)
   const trek = await loadTrek(trekPath(session.cwd, name)).catch(() => undefined)
   if (trek === undefined) {
     throw new Error(`no valid saved trek named ${name}`)
@@ -196,7 +198,7 @@ export async function update(session: Session, name: string): Promise<Outcome<Up
  * where they were saved, or the problems with their evidence.
  */
 export async function recordTriggers(session: Session, triggers: Trigger[]): Promise<Finished> {
-  const change = openChange(session)
+  const change = currentChange(session)
   if (change.code === undefined || change.code.trigger !== undefined) {
     throw new Error("record_triggers is for code opened with --code and no trigger")
   }
@@ -231,7 +233,7 @@ async function openProposed(
   name: string,
   source: string,
 ): Promise<Outcome<Proposed>> {
-  const change = openChange(session)
+  const change = currentChange(session)
   const entry = { ...parseRepoEntry(source), name }
   try {
     const branches = await workBranches(session.cwd, change)
@@ -253,7 +255,7 @@ export async function proposeRepo(
   session: Session,
   proposal: ProposedRepo,
 ): Promise<Outcome<Proposed>> {
-  const problems = await proposalProblems(openChange(session), proposal)
+  const problems = await proposalProblems(currentChange(session), proposal)
   if (problems.length > 0) {
     return { session, answer: { problems } }
   }

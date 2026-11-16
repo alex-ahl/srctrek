@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { mkdir, realpath, writeFile } from "node:fs/promises"
+import { realpath, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
 import {
   BUILD_LOG_ENV,
@@ -10,33 +10,9 @@ import {
   proposalUnopenedAnswer,
   runGit,
 } from "@srctrek/core"
-import { McpTestClient } from "./mcp-client"
-import { commit, commitStaged, makeRepo, tempDir } from "@srctrek/testing"
-
-// A repo on a feature branch that changes line 1 of src/app.ts.
-async function makeFeatureRepo(): Promise<string> {
-  return addFeature(await makeRepo())
-}
-
-// The same, at `dir`, for a test that needs repos side by side.
-async function featureRepoIn(dir: string): Promise<string> {
-  await mkdir(dir)
-  await runGit(dir, ["init", "--quiet", "--initial-branch=main"])
-  await commit(dir, "README.md", "base\n")
-  return addFeature(dir)
-}
-
-// Commits src/app.ts, then a feature branch that changes its line 1.
-async function addFeature(dir: string): Promise<string> {
-  await mkdir(join(dir, "src"))
-  await writeFile(join(dir, "src/app.ts"), "const total = 100\nexport { total }\n")
-  await runGit(dir, ["add", "--all"])
-  await commitStaged(dir, "base")
-  await runGit(dir, ["switch", "--quiet", "-c", "feature"])
-  await commit(dir, "src/app.ts", "const total = 250\nexport { total }\n")
-
-  return dir
-}
+import { McpTestClient } from "./support/mcp-client"
+import { featureRepoIn, makeFeatureRepo } from "./support/repos"
+import { commit, repoAt, tempDir } from "@srctrek/testing"
 
 const header = {
   title: "Total",
@@ -211,8 +187,7 @@ describe("building a trek over trek mcp", () => {
     const parent = await tempDir("route-")
     const web = await featureRepoIn(join(parent, "web"))
     const payments = join(parent, "payments")
-    await mkdir(payments)
-    await runGit(payments, ["init", "--quiet", "--initial-branch=main"])
+    await repoAt(payments)
     await commit(payments, "charge.ts", "export const charged = 250\n")
     client = new McpTestClient(web)
     await client.initialize()
@@ -255,8 +230,7 @@ describe("building a trek over trek mcp", () => {
     const parent = await tempDir("inside-")
     const web = await featureRepoIn(join(parent, "web"))
     const payments = join(parent, "payments")
-    await mkdir(payments)
-    await runGit(payments, ["init", "--quiet", "--initial-branch=main"])
+    await repoAt(payments)
     await commit(payments, "charge.ts", "export const charged = 250\n")
     client = new McpTestClient(join(web, "src"))
     await client.initialize()
