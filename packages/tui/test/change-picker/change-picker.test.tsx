@@ -461,3 +461,30 @@ test("says why a repo's branches couldn't be read, instead of waiting for them",
   expect(frame).toContain("└ ✕ no base branch")
   expect(frame).not.toContain("finding branches")
 })
+
+test("a ticked repo that isn't beside this one stays listed, and goes along with a pick", async () => {
+  const billing = { path: "../../work/billing", changed: true, branch: "invoices" }
+  const onPick = mock((_choice: ChangeChoice) => undefined)
+  const choosing = {
+    choice: { ...own, repos: [billing] },
+    load: () => Promise.resolve(choices),
+    pullRequests: () => Promise.resolve(open),
+    nearby: () => Promise.resolve(nearby),
+    repoBranches: () => Promise.resolve(apiBranches),
+    fetchRepo,
+    status: statusOf,
+    onPick,
+  }
+  const picker = (
+    <App entries={[]} onOpen={() => undefined} onQuit={() => undefined} choosing={choosing} />
+  )
+  const frame = await frameAfter(picker, openListed, 110, 30)
+  await frameAfter(picker, async (input) => {
+    await openListed(input)
+    input.pressEnter()
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toMatch(/\[x\] billing +\.\.\/\.\.\/work\/billing +invoices/)
+  expect(onPick).toHaveBeenCalledWith({ ...own, repos: [billing] })
+})

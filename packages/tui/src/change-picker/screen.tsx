@@ -1,4 +1,4 @@
-import { errorText } from "@srctrek/core"
+import { errorText, folderName } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import type {
@@ -112,6 +112,22 @@ function withDropPick(ticked: Ticked, row: DropRow | undefined): Ticked {
     : new Map(ticked).set(row.pick.path, row.pick)
 }
 
+// A ticked repo that isn't beside this one, such as one trek was started with by path or URL,
+// listed from its tick so picking keeps it.
+const fromPick = (pick: RepoPick): NearbyCheckout => ({
+  path: pick.path,
+  name: folderName(pick.path),
+  branch: pick.branch,
+  commits: 0,
+})
+
+// The repos beside this one, then any ticked that aren't among them.
+function listedCheckouts(nearby: readonly NearbyCheckout[], ticked: Ticked): NearbyCheckout[] {
+  const unlisted = [...ticked.values()].filter((pick) => !nearby.some((n) => n.path === pick.path))
+
+  return [...nearby, ...unlisted.map(fromPick)]
+}
+
 // The ticked repos in the order they're listed.
 const picksOf = (ticked: Ticked, checkouts: readonly NearbyCheckout[]): RepoPick[] =>
   checkouts.flatMap((checkout) => {
@@ -170,8 +186,9 @@ function keysFor(item: PickerItem | undefined) {
 export function ChangePicker(props: Props) {
   const tones = useTones()
   const { branches, rows, note } = useRows(props)
-  const checkouts = useCheckouts(props.nearby)
+  const nearby = useCheckouts(props.nearby)
   const [ticked, setTicked] = useState(() => tickedOf(props.choice.repos))
+  const checkouts = listedCheckouts(nearby, ticked)
   const [foldOpen, setFoldOpen] = useState(false)
   const [chosen, setChosen] = useState(0)
   const statuses = useStatuses(rows, props.status)
