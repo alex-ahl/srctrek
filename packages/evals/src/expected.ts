@@ -43,6 +43,8 @@ const ExpectedSchema = z.object({
 export type Expected = z.infer<typeof ExpectedSchema>
 export type ExpectedLine = z.infer<typeof Line>
 export type ExpectedPlace = z.infer<typeof Place>
+export type RouteEntry = Expected["route"][number]
+export type Link = Expected["links"][number]
 
 /** The fixture's expected.json, in the folder `dir`. */
 export async function readExpected(dir: string): Promise<Expected> {

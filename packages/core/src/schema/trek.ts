@@ -16,8 +16,11 @@ const Via = z.object({
   guessed: z.boolean(),
 })
 
+/** How strongly a step's flag says something is wrong, most severe first. */
+export const SeveritySchema = z.enum(["high", "medium", "low"])
+
 const Uncertain = z.object({
-  severity: z.enum(["high", "medium", "low"]),
+  severity: SeveritySchema,
   note: nonEmpty,
 })
 
@@ -160,6 +163,7 @@ export type TrekHeader = z.infer<typeof TrekHeaderSchema>
 
 export type Trek = z.infer<typeof TrekShape>
 export type TrekStep = Trek["steps"][number]
+export type Severity = z.infer<typeof SeveritySchema>
 
 export const TrekSchema = TrekShape.superRefine((trek, ctx) => {
   for (const rule of trekRules) {

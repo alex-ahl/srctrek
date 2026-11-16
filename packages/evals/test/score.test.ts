@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test"
 import { type Trek, type TrekStep, parseTrek } from "@srctrek/core"
-import { join } from "node:path"
 import { readExpected } from "../src/expected"
+import { fixtureDir } from "../src/fixture"
 import { scoreTrek } from "../src/score"
 import { REFUND_TREK_PATH } from "@srctrek/testing"
 
 const refundTrek = parseTrek(await Bun.file(REFUND_TREK_PATH).json(), REFUND_TREK_PATH)
-const expected = await readExpected(join(import.meta.dir, "../../../evals/fixtures/refund"))
+const expected = await readExpected(fixtureDir("refund"))
 
 function withoutStepsIn(trek: Trek, file: string): Trek {
   return { ...trek, steps: trek.steps.filter((step) => step.file !== file) }

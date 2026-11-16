@@ -75,11 +75,6 @@ async function buildTrek(root: string, args: string[], agent: string, mode: Buil
  */
 export type EvalOptions = { run?: Run | undefined; asReviewer?: boolean; update?: boolean }
 
-// What the change looks like to trek started with `args` in `root`, as it is now.
-async function changeAt(root: string, args: string[]) {
-  return changeFromArguments(root, args)
-}
-
 // Commits the follow-ups, then has the agent update the trek: how much of it should carry
 // over, worked out the way update_trek does, and what the update took.
 async function updateTrek(
@@ -94,7 +89,7 @@ async function updateTrek(
     throw new Error("this fixture has no followup.patch to update the trek after")
   }
 
-  const { draft, redo } = await carryOver(built, await changeAt(root, args))
+  const { draft, redo } = await carryOver(built, await changeFromArguments(root, args))
   const { seconds } = await buildTrek(root, args, agent, "update")
 
   return {
@@ -113,37 +108,40 @@ export async function runEval(
 ): Promise<string> {
   const fixture = await buildFixture(name, { asReviewer })
   const expected = await readExpected(fixture.dir)
-  const { in: repo, args } = run ?? expected.run
-  const root = runsIn(fixture, { in: repo, args })
+  const runs = run ?? expected.run
+  const root = runsIn(fixture, runs)
+  const trek = trekPath(root, TREK_NAME)
 
-  const { seconds, log } = await buildTrek(root, args, agent)
-  const built = await loadTrek(trekPath(root, TREK_NAME))
+  const { seconds, log } = await buildTrek(root, runs.args, agent)
+  const built = await loadTrek(trek)
   const facts: RunFacts = {
     seconds,
     steps: built.steps.length,
     agentSummary: await agentSummary(root),
     log,
-    trek: trekPath(root, TREK_NAME),
+    trek,
   }
   if (!update) {
-    return formatReport(name, scoreTrek(built, expected, repo), facts)
+    return formatReport(name, scoreTrek(built, expected, runs.in), facts)
   }
 
-  const updated = await updateTrek(fixture, root, args, agent, built)
-  const trek = await loadTrek(trekPath(root, TREK_NAME))
+  const updated = await updateTrek(fixture, root, runs.args, agent, built)
+  const rebuilt = await loadTrek(trek)
 
-  return formatReport(name, scoreTrek(trek, expected, repo), { ...facts, update: updated })
+  return formatReport(name, scoreTrek(rebuilt, expected, runs.in), { ...facts, update: updated })
 }
 
 // "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trek in that repo;
 // --reviewer, anywhere, builds the repos as a reviewer has them; --update updates the trek
 // after the fixture's follow-up commits.
+const REVIEWER = "--reviewer"
+const UPDATE = "--update"
+
 function optionsFromArgs(words: string[]): EvalOptions {
-  const flags = ["--reviewer", "--update"]
-  const [repo, ...args] = words.filter((word) => !flags.includes(word))
+  const [repo, ...args] = words.filter((word) => word !== REVIEWER && word !== UPDATE)
   const run = repo === undefined ? undefined : { in: repo, args }
 
-  return { run, asReviewer: words.includes("--reviewer"), update: words.includes("--update") }
+  return { run, asReviewer: words.includes(REVIEWER), update: words.includes(UPDATE) }
 }
 
 if (import.meta.main) {

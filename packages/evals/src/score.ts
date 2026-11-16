@@ -1,39 +1,40 @@
-import { type Trek, type TrekStep, folderName, parseRepoEntry } from "@srctrek/core"
-import type { Expected, ExpectedLine } from "./expected"
+import {
+  type Severity,
+  type Trek,
+  type TrekStep,
+  SeveritySchema,
+  flagCounts,
+  folderName,
+  parseRepoEntry,
+} from "@srctrek/core"
+import type { Expected, ExpectedLine, Link, RouteEntry } from "./expected"
 import { covers, inFile } from "./places"
 import { type StackCheck, checkStacks } from "./stacks"
 
-type RouteEntry = Expected["route"][number]
-type Link = Expected["links"][number]
-
 /** How a trek reached one expected link: cited as the fixture does, guessed, or not at all. */
 export type LinkFound = "cited" | "cited, guessed" | "guessed" | "no evidence" | "not reached"
-
-type Severity = "high" | "medium" | "low"
 
 /** The strongest flag on the steps covering a bug's line; a bug is found when one is high. */
 export type LineFlag = Severity | "unflagged" | "not in a step"
 
 /** How a trek measures up to what its fixture expects. */
-export type Score = {
+export type Score = Readonly<{
   // found and total count the entries a trek must reach; skipped are optional ones it left out
-  route: {
+  route: Readonly<{
     found: number
     total: number
     inOrder: boolean
-    missing: RouteEntry[]
-    skipped: RouteEntry[]
-  }
-  links: { link: Link; found: LinkFound }[]
-  bugs: { summary: string; lines: LineFlag[] }[]
-  stacks: StackCheck[]
+    missing: readonly RouteEntry[]
+    skipped: readonly RouteEntry[]
+  }>
+  links: readonly Readonly<{ link: Link; found: LinkFound }>[]
+  bugs: readonly Readonly<{ summary: string; lines: readonly LineFlag[] }>[]
+  stacks: readonly StackCheck[]
   // how many of the trek's steps carry a flag, by severity
-  flags: { steps: number } & Record<Severity, number>
+  flags: Readonly<{ steps: number } & Record<Severity, number>>
   // the fixture's decoy repos the trek stepped into, and how many steps each
-  decoys: { repo: string; steps: number }[]
-}
-
-const SEVERITIES: Severity[] = ["high", "medium", "low"]
+  decoys: readonly Readonly<{ repo: string; steps: number }>[]
+}>
 
 function overlaps(step: TrekStep, entry: RouteEntry): boolean {
   const [start, end] = entry.lines
@@ -73,12 +74,17 @@ function scoreRoute(steps: TrekStep[], route: RouteEntry[]): Score["route"] {
 
 // The steps from the link's start to its target, in trek order: the evidence may be cited on
 // any of them, such as on a hop into the target's repo. A trek that never visits the start is
-// read from its first step.
+// read from its first step; one that visits it only after the target has no steps across.
 function stepsAcross(steps: TrekStep[], link: Link): TrekStep[] {
-  const start = steps.findIndex((step) => inFile(step, link.from))
   const end = steps.findIndex((step) => inFile(step, link.to))
+  if (end === -1) {
+    return []
+  }
 
-  return steps.slice(Math.max(start, 0), end + 1)
+  const start = steps.findIndex((step) => inFile(step, link.from))
+  const from = start === -1 ? 0 : start
+
+  return steps.slice(from, end + 1)
 }
 
 // Cited when a step on the way cites a file the fixture names as evidence, the exact line left
@@ -115,19 +121,7 @@ function lineFlag(steps: TrekStep[], line: ExpectedLine): LineFlag {
 
   const severities = covering.flatMap((step) => flagsOver(steps, step))
 
-  return SEVERITIES.find((severity) => severities.includes(severity)) ?? "unflagged"
-}
-
-function countFlags(steps: TrekStep[]): Score["flags"] {
-  const flagged = (severity: Severity) =>
-    steps.filter((step) => step.uncertain?.severity === severity).length
-
-  return {
-    steps: steps.length,
-    high: flagged("high"),
-    medium: flagged("medium"),
-    low: flagged("low"),
-  }
+  return SeveritySchema.options.find((severity) => severities.includes(severity)) ?? "unflagged"
 }
 
 // The fixture folder a trek's repo was read from: the one trek ran in for ".", else the last
@@ -170,7 +164,7 @@ export function scoreTrek(trek: Trek, expected: Expected, ranIn = expected.run.i
       lines: bug.files.map((line) => lineFlag(steps, line)),
     })),
     stacks: checkStacks(steps, expected.stacks),
-    flags: countFlags(steps),
+    flags: { steps: steps.length, ...flagCounts(steps) },
     decoys: decoysVisited(steps, expected.decoys),
   }
 }

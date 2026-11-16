@@ -8,11 +8,22 @@ const FIXTURES = join(import.meta.dir, "../../../evals/fixtures")
 // Commits need an identity; CI machines have none configured.
 const IDENTITY = ["-c", "user.name=eval", "-c", "user.email=eval@example.test"]
 
-export type Fixture = {
+export type Fixture = Readonly<{
   // repo name -> its directory, with `main` (the base) and `feature` (the change) branches;
   // for a reviewer, `feature` only as origin/feature
-  repos: Record<string, string>
+  repos: Readonly<Record<string, string>>
   dir: string // the fixture's source folder, where expected.json lives
+}>
+
+/** The source folder of fixture `name`, where its expected.json lives. */
+export function fixtureDir(name: string): string {
+  return join(FIXTURES, name)
+}
+
+async function subfolders(dir: string): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true })
+
+  return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name)
 }
 
 async function commitAll(dir: string, message: string): Promise<void> {
@@ -47,11 +58,10 @@ async function buildReviewerRepo(source: string, root: string, repo: string): Pr
  * `asReviewer`, as clones of stand-in hosts, the work only on their remote-tracking branches.
  */
 export async function buildFixture(name: string, { asReviewer = false } = {}): Promise<Fixture> {
-  const dir = join(FIXTURES, name)
+  const dir = fixtureDir(name)
   const root = await mkdtemp(join(tmpdir(), `srctrek-${name}-`))
 
-  const entries = await readdir(dir, { withFileTypes: true })
-  const repoNames = entries.filter((e) => e.isDirectory()).map((e) => e.name)
+  const repoNames = await subfolders(dir)
   const build = (repo: string) =>
     asReviewer
       ? buildReviewerRepo(join(dir, repo), root, repo)
@@ -83,8 +93,6 @@ export async function applyFollowups(fixture: Fixture): Promise<string[]> {
 }
 
 /** The fixtures under evals/fixtures, by name. */
-export async function fixtureNames(): Promise<string[]> {
-  const entries = await readdir(FIXTURES, { withFileTypes: true })
-
-  return entries.filter((e) => e.isDirectory()).map((e) => e.name)
+export function fixtureNames(): Promise<string[]> {
+  return subfolders(FIXTURES)
 }

@@ -1,13 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { readFileAt } from "@srctrek/core"
-import { type Expected, readExpected } from "../src/expected"
+import { type Expected, type ExpectedLine, type ExpectedPlace, readExpected } from "../src/expected"
 import { buildFixture, fixtureNames } from "../src/fixture"
-
-type Cited = { repo: string; file: string; line: number }
 
 // Every line expected.json points at: both ends of each route entry, link evidence, bug lines,
 // and the line each stack is checked at.
-function citedLines(expected: Expected): Cited[] {
+function citedLines(expected: Expected): ExpectedLine[] {
   const routeEnds = expected.route.flatMap(({ repo, file, lines }) =>
     lines.map((line) => ({ repo, file, line })),
   )
@@ -21,17 +19,17 @@ function citedLines(expected: Expected): Cited[] {
 // The files the expected stacks name as frames, which must exist at the change's end.
 async function missingFrameFiles(repos: Record<string, string>, expected: Expected) {
   const frames = expected.stacks.flatMap((stack) => stack.frames)
-  const exists = async ({ repo, file }: { repo: string; file: string }) => {
+  const missing = async ({ repo, file }: ExpectedPlace) => {
     const dir = repos[repo]
-    return dir !== undefined && (await readFileAt(dir, "feature", file)) !== undefined
+    const text = dir === undefined ? undefined : await readFileAt(dir, "feature", file)
+    return text === undefined ? [`${repo} ${file}: no such file`] : []
   }
-  const found = await Promise.all(frames.map(exists))
 
-  return frames.filter((_, i) => !found[i]).map(({ repo, file }) => `${repo} ${file}: no such file`)
+  return (await Promise.all(frames.map(missing))).flat()
 }
 
 // Why a cited line can't be what the fixture means, at the change's end: missing or blank.
-async function lineProblem(repos: Record<string, string>, cited: Cited): Promise<string[]> {
+async function lineProblem(repos: Record<string, string>, cited: ExpectedLine): Promise<string[]> {
   const where = `${cited.repo} ${cited.file}:${cited.line}`
   const dir = repos[cited.repo]
   const text = dir === undefined ? undefined : await readFileAt(dir, "feature", cited.file)

@@ -13,22 +13,24 @@ function parseFields(line: string): Fields | undefined {
   }
 }
 
-// "name value · name value" for the fields holding a number other than zero.
-function numbersIn(fields: Fields): string | undefined {
-  const shown = Object.entries(fields).filter(([, value]) => typeof value === "number" && value)
+// "name value · name value" for the fields holding a number other than zero, as one line; none
+// when there are none.
+function numbersIn(fields: Fields): string[] {
+  const shown = Object.entries(fields).filter(
+    ([, value]) => typeof value === "number" && value !== 0,
+  )
   if (shown.length === 0) {
-    return undefined
+    return []
   }
 
-  return shown.map(([name, value]) => `${name} ${String(value)}`).join(" · ")
+  return [shown.map(([name, value]) => `${name} ${String(value)}`).join(" · ")]
 }
 
 // One level down, each object's numbers on a line of their own, after the object's name.
 function nestedNumbers(fields: Fields): string[] {
-  return Object.entries(fields).flatMap(([name, value]) => {
-    const numbers = isFields(value) ? numbersIn(value) : undefined
-    return numbers === undefined ? [] : [`${name}: ${numbers}`]
-  })
+  return Object.entries(fields).flatMap(([name, value]) =>
+    isFields(value) ? numbersIn(value).map((numbers) => `${name}: ${numbers}`) : [],
+  )
 }
 
 /**
@@ -42,7 +44,5 @@ export function agentNumbers(line: string): string[] {
     return [line]
   }
 
-  const topLevel = numbersIn(fields)
-
-  return [...(topLevel === undefined ? [] : [topLevel]), ...nestedNumbers(fields)]
+  return [...numbersIn(fields), ...nestedNumbers(fields)]
 }

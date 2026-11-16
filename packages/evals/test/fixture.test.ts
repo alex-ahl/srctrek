@@ -14,8 +14,8 @@ import { REFUND_TREK_PATH } from "@srctrek/testing"
 const refund = await buildFixture("refund")
 const trek = parseTrek(await Bun.file(REFUND_TREK_PATH).json(), REFUND_TREK_PATH)
 
-function repoDir(name: string): string {
-  const dir = refund.repos[name]
+function repoDir(name: string, fixture = refund): string {
+  const dir = fixture.repos[name]
   if (dir === undefined) {
     throw new Error(`no repo ${name} in the fixture`)
   }
@@ -41,6 +41,16 @@ describe("buildFixture", () => {
       { path: "src/handlers/index.ts", status: "modified" },
       { path: "src/handlers/refunds.ts", status: "added" },
     ])
+  })
+
+  test("builds the repos as a reviewer has them: the work only on origin's branches", async () => {
+    const web = repoDir("web", await buildFixture("refund", { asReviewer: true }))
+
+    expect(await runGit(web, ["branch", "--format=%(refname:short)"])).toBe("main")
+    expect(await runGit(web, ["rev-parse", "--abbrev-ref", "origin/HEAD"])).toBe("origin/main")
+    expect(await runGit(web, ["rev-parse", "--verify", "--quiet", "origin/feature"])).toMatch(
+      /^[0-9a-f]{40}$/,
+    )
   })
 })
 

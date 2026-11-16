@@ -1,14 +1,17 @@
 // Public API of @srctrek/core. Front-ends import only from here.
 export {
   FORMAT_VERSION,
+  SeveritySchema,
   TriggerKindSchema,
   SubmittedStepSchema,
   TrekHeaderSchema,
   TrekSchema,
+  type Severity,
   type Trek,
   type TrekHeader,
   type TrekStep,
 } from "./schema/trek"
+export { flagCounts } from "./schema/flags"
 export { callStacks, type CallStacks } from "./schema/stacks"
 export { currentStep, openSession, type Position, type SteppingSession } from "./session/session"
 export {

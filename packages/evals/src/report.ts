@@ -1,23 +1,27 @@
 import { agentNumbers } from "./agent-numbers"
+import type { ExpectedPlace, RouteEntry } from "./expected"
 import type { LineFlag, LinkFound, Score } from "./score"
 
-type RouteEntry = Score["route"]["missing"][number]
-
 /** What an update took: how long, how many steps it carried over or redid, the agent's last line. */
-export type UpdateFacts = { seconds: number; kept: number; redo: number; agentSummary: string }
+export type UpdateFacts = Readonly<{
+  seconds: number
+  kept: number
+  redo: number
+  agentSummary: string
+}>
 
 /**
  * What a run took, besides the trek: how long, and what the agent said last; and, when the
  * trek was then updated, what the update took.
  */
-export type RunFacts = {
+export type RunFacts = Readonly<{
   seconds: number
   steps: number
   agentSummary: string
   log: string
   trek: string
   update?: UpdateFacts | undefined
-}
+}>
 
 const LABEL_WIDTH = 8
 
@@ -46,16 +50,17 @@ function routeLines(route: Score["route"]): string[] {
 }
 
 function linkLines(links: Score["links"]): string[] {
-  const ends = links.map(
-    ({ link }) => `${link.from.repo} ${link.from.file} → ${link.to.repo} ${link.to.file}`,
-  )
-  const width = Math.max(...ends.map((end) => end.length))
+  const rows = links.map(({ link, found }) => ({
+    ends: `${link.from.repo} ${link.from.file} → ${link.to.repo} ${link.to.file}`,
+    found,
+  }))
+  const width = Math.max(...rows.map((row) => row.ends.length))
 
-  return links.map(({ found }, i) => `${mark(linkOk(found))} ${ends[i]?.padEnd(width)}  ${found}`)
+  return rows.map(({ ends, found }) => `${mark(linkOk(found))} ${ends.padEnd(width)}  ${found}`)
 }
 
 // "medium 1, unflagged 2": how the lines not flagged high fell short.
-function shortfall(lines: LineFlag[]): string {
+function shortfall(lines: readonly LineFlag[]): string {
   const counts = Map.groupBy(lines, (flag) => flag)
   counts.delete("high")
 
@@ -73,12 +78,12 @@ function bugLines(bugs: Score["bugs"]): string[] {
 }
 
 // A place as the report names it: "web src/main.ts".
-function placeName({ repo, file }: { repo: string; file: string }): string {
+function placeName({ repo, file }: ExpectedPlace): string {
   return `${repo} ${file}`
 }
 
 // "web src/main.ts › web src/actions.ts", or "nothing" for an empty stack.
-function framesName(frames: { repo: string; file: string }[]): string {
+function framesName(frames: readonly ExpectedPlace[]): string {
   return frames.map(placeName).join(" › ") || "nothing"
 }
 
@@ -107,10 +112,6 @@ function stackLines(stacks: Score["stacks"]): string[] {
 }
 
 function decoyLines(decoys: Score["decoys"]): string[] {
-  if (decoys.length === 0) {
-    return []
-  }
-
   return decoys.map(({ repo, steps }) => `✗ stepped into ${repo} (${steps} steps)`)
 }
 

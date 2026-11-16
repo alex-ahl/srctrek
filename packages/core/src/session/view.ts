@@ -1,6 +1,7 @@
 import { join } from "node:path"
 import type { LineChange } from "../git/diff"
-import type { Trek, TrekStep } from "../schema/trek"
+import { flagCounts } from "../schema/flags"
+import type { Severity, Trek, TrekStep } from "../schema/trek"
 import { enteredFrom, stepNext } from "./moves"
 import { type SteppingSession, currentStep } from "./session"
 
@@ -100,7 +101,7 @@ export type OverviewView = Pick<Trek, "title" | "overview" | "trigger" | "outcom
   // the repos the trek goes through, by name
   repos: string[]
   // how many steps carry a flag of each severity
-  flags: Record<NonNullable<TrekStep["uncertain"]>["severity"], number>
+  flags: Record<Severity, number>
 }
 
 /** A flagged step, for the end of a trek: its stop number and what its flag says. */
@@ -308,13 +309,7 @@ export function sessionView(session: SteppingSession, context: ViewContext): Ses
 
   const { title, overview, trigger, outcome } = trek
   const repos = trek.repos.map((repo) => repo.name)
-  const severityCount = (severity: string) =>
-    trek.steps.filter((s) => s.uncertain?.severity === severity).length
-  const flags = {
-    high: severityCount("high"),
-    medium: severityCount("medium"),
-    low: severityCount("low"),
-  }
+  const flags = flagCounts(trek.steps)
 
   return { kind: "overview", title, overview, trigger, outcome, count, repos, flags }
 }

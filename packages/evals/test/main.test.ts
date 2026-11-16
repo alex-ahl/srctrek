@@ -1,8 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { runGit } from "@srctrek/core"
-import { buildFixture } from "../src/fixture"
 import { runEval } from "../src/main"
 import { REFUND_TREK_PATH, tempDir } from "@srctrek/testing"
 
@@ -41,17 +39,7 @@ describe("runEval", () => {
     expect(report).toMatch(/Trek    .*\/api\/\.srctrek\/treks\/eval\.json/)
   })
 
-  test("builds the repos as a reviewer has them: the work only on origin's branches", async () => {
-    const fixture = await buildFixture("refund", { asReviewer: true })
-    const web = fixture.repos["web"] ?? ""
-
-    expect(await runGit(web, ["branch", "--format=%(refname:short)"])).toBe("main")
-    expect(await runGit(web, ["rev-parse", "--abbrev-ref", "origin/HEAD"])).toBe("origin/main")
-    expect(await runGit(web, ["rev-parse", "--verify", "--quiet", "origin/feature"])).toMatch(
-      /^[0-9a-f]{40}$/,
-    )
-  })
-
+  // two builds, each polled every two seconds
   test("with --update, commits the follow-ups, updates the trek, and reports both runs", async () => {
     const report = await runEval("refund", await fakeAgent(), { update: true })
 
@@ -59,7 +47,6 @@ describe("runEval", () => {
     expect(report).toMatch(
       /Update  \d+ steps carried over, \d+ redone · \d+ s\n        used 1234 tokens/,
     )
-    // two builds, each polled every two seconds
   }, 20_000)
 
   test("refuses --update on a fixture with no follow-up", async () => {
