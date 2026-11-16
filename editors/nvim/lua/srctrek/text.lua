@@ -38,4 +38,15 @@ function M.place(ref)
   return short .. ":" .. ref.start_line
 end
 
+-- A step's name, or its place when it has none.
+function M.name_or_place(ref)
+  return ref.name ~= vim.NIL and ref.name or M.place(ref)
+end
+
+-- A step's place, then its name when it has one: handlers/refunds.ts:8 · refund.
+function M.place_named(ref)
+  local name = ref.name ~= vim.NIL and (" · " .. ref.name) or ""
+  return M.place(ref) .. name
+end
+
 return M

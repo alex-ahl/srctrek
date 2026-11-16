@@ -3,7 +3,7 @@ local details = require("srctrek.details")
 local popup = require("srctrek.popup")
 local server = require("srctrek.server")
 local state = require("srctrek.state")
-local step_view = require("srctrek.step_view")
+local step = require("srctrek.step")
 local winbar = require("srctrek.winbar")
 
 local M = {}
@@ -24,7 +24,7 @@ local function announce(view)
 end
 
 local function show_step(view)
-  local drawn = step_view.show(view)
+  local drawn = step.show(view)
   winbar.show(vim.api.nvim_get_current_win(), view, drawn.new_file)
   announce(view)
 end
@@ -36,7 +36,7 @@ function M.show(view)
   if view.kind == "step" then
     show_step(view)
   else
-    step_view.clear()
+    step.clear()
     winbar.restore()
     details.show()
   end

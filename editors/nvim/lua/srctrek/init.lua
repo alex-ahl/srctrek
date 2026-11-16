@@ -19,7 +19,7 @@ local origin = require("srctrek.origin")
 local popup = require("srctrek.popup")
 local server = require("srctrek.server")
 local state = require("srctrek.state")
-local step_view = require("srctrek.step_view")
+local step = require("srctrek.step")
 local winbar = require("srctrek.winbar")
 
 local M = {}
@@ -92,8 +92,8 @@ function M.quit()
     return
   end
   popup.close()
-  step_view.clear()
-  step_view.restore_diagnostics()
+  step.clear()
+  step.restore_diagnostics()
   -- the window's own buffer first: window options like the winbar follow the buffer shown
   origin.restore()
   winbar.restore()
@@ -150,7 +150,7 @@ end
 local function opened(overview)
   -- the "opening…" message has done its job
   vim.api.nvim_echo({}, false, {})
-  step_view.clear()
+  step.clear()
   state.opening = nil
   watch_cursor()
   navigation.show(overview)

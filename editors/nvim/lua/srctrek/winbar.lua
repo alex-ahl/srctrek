@@ -12,14 +12,10 @@ local function coloured(group, s)
   return "%#" .. group .. "#" .. s .. "%*"
 end
 
-local function label(ref)
-  return ref.name ~= vim.NIL and ref.name or text.place(ref)
-end
-
 -- A frame after a hop into another repo names that repo, so web and api don't read as one program.
 local function frame_text(frame, previous)
   local crossed = frame.hop and previous ~= nil and previous.repo ~= frame.repo
-  return escape((crossed and (frame.repo .. ": ") or "") .. label(frame))
+  return escape((crossed and (frame.repo .. ": ") or "") .. text.name_or_place(frame))
 end
 
 -- What started a stack that begins at a hop nobody waits on: shown dimmed, as it isn't running.
@@ -35,7 +31,7 @@ local function started_by_text(view)
   end
   local first = view.stack[1]
   local repo = (first == nil or first.repo ~= cause.repo) and (cause.repo .. ": ") or ""
-  return coloured("SrctrekHop", "started by " .. escape(repo .. label(cause)) .. " ↯ ")
+  return coloured("SrctrekHop", "started by " .. escape(repo .. text.name_or_place(cause)) .. " ↯ ")
 end
 
 -- Outermost first, as a path reads, with ↯ before the frame a hop started. Cut from the left
