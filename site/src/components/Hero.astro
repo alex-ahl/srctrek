@@ -1,6 +1,6 @@
 ---
 import iconUrl from "../../../docs/assets/srctrek-icon.svg?url"
-import Placeholder from "./Placeholder.astro"
+import HomeScreen from "./HomeScreen.astro"
 import InstallCommand from "./InstallCommand.astro"
 import { RELEASES_URL, REPO_URL } from "../links"
 import { RELEASED } from "../launch"
@@ -41,7 +41,7 @@ import { RELEASED } from "../launch"
         </div>
       </div>
 
-      <Placeholder label="Clip: a trek stepped in the editor and the TUI" />
+      <HomeScreen />
     </div>
   </div>
 </header>
@@ -75,12 +75,6 @@ import { RELEASED } from "../launch"
     display: grid;
     gap: 3rem;
     align-items: center;
-  }
-
-  @media (min-width: 60rem) {
-    .layout {
-      grid-template-columns: 1fr 1fr;
-    }
   }
 
   h1 {

@@ -69,6 +69,7 @@ h3 {
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin: 0;
+  text-wrap: balance;
 }
 
 h2 {

@@ -15,8 +15,11 @@
 **Next**
 
 - A release workflow that publishes the binaries and SHA256SUMS the script expects. Until then
-  the install command fails, so the site isn't deployed.
-- The hero's clip: a trek stepped in the editor and the terminal, in place of the placeholder.
+  `RELEASED` in `site/src/launch.ts` stays false, and the hero says the install is coming.
+- `INDEXED` in `site/src/launch.ts` stays false, keeping the site out of search results, until
+  the site is finished.
+- The hero's clip: a trek stepped in the editor and the terminal, in place of the home screen's
+  picture.
 
 ## 2026-11-09 — Milestone 7: the terminal
 
