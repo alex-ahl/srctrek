@@ -8,8 +8,9 @@ import type { HomeChange } from "../start"
  */
 export type FollowChange = Readonly<{
   choice: ChangeChoice
-  // changes whenever the change might have: a commit, a branch switched, a trek saved, the agent
-  stamp: () => Promise<string>
+  // changes whenever the choice's change might have: a commit or a branch switched, here or in a
+  // ticked repo, a trek saved, the agent
+  stamp: (choice: ChangeChoice) => Promise<string>
   open: (args: string[]) => Promise<HomeChange>
 }>
 
@@ -19,7 +20,8 @@ const FOLLOW_MS = 2000
 /**
  * Checks the stamp every couple of seconds and, when it's moved, reopens the chosen change and
  * hands it to `onMoved`. A change that can't be worked out now keeps the last one until the stamp
- * moves again, rather than retrying on every check.
+ * moves again, rather than retrying on every check. A new choice was opened as it was picked, so
+ * its first stamp is only taken, not compared.
  */
 export function useFollow(
   follow: FollowChange | undefined,
@@ -35,7 +37,7 @@ export function useFollow(
       return undefined
     }
 
-    let last: string | undefined
+    let last: { choice: ChangeChoice; stamp: string } | undefined
     let checking = false
     const check = async () => {
       if (checking) {
@@ -44,11 +46,12 @@ export function useFollow(
 
       checking = true
       try {
-        const stamp = await follow.stamp()
-        const moved = last !== undefined && stamp !== last
-        last = stamp
+        const now = chosen.current
+        const stamp = await follow.stamp(now)
+        const moved = last?.choice === now && last.stamp !== stamp
+        last = { choice: now, stamp }
         if (moved) {
-          await onMoved(await follow.open(choiceArguments(chosen.current)))
+          await onMoved(await follow.open(choiceArguments(now)))
         }
       } catch {
         // kept: the change as last worked out

@@ -1,4 +1,5 @@
 import { expect, mock, test } from "bun:test"
+import { useEffect, useState } from "react"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { type FollowChange, useFollow } from "../../../src/home/watch/follow"
 import type { HomeChange } from "../../../src/home/start"
@@ -19,7 +20,8 @@ test("reopens the chosen change once its stamp moves, and not before", async () 
   const stamps = ["one", "one", "two"]
   const open = mock((_args: string[]) => Promise.resolve(reopened))
   const onMoved = mock(() => Promise.resolve())
-  const follow = { choice: picked, stamp: () => Promise.resolve(stamps.shift() ?? "two"), open }
+  const stamp = mock((_choice: ChangeChoice) => Promise.resolve(stamps.shift() ?? "two"))
+  const follow = { choice: picked, stamp, open }
 
   await pressOn(<Following follow={follow} onMoved={onMoved} />, async () => {
     await Bun.sleep(100)
@@ -31,6 +33,30 @@ test("reopens the chosen change once its stamp moves, and not before", async () 
   expect(open).toHaveBeenCalledTimes(1)
   expect(open).toHaveBeenCalledWith(["...fix/rounding"])
   expect(onMoved).toHaveBeenCalledWith(reopened)
+  expect(stamp).toHaveBeenCalledWith(picked)
+})
+
+// Picks `next` a moment after it starts, as the change picker would.
+function PickingLater({ follow, next }: { follow: FollowChange; next: ChangeChoice }) {
+  const [choice, setChoice] = useState(follow.choice)
+  useEffect(() => {
+    const timer = setTimeout(() => setChoice(next), 1000)
+    return () => clearTimeout(timer)
+  }, [next])
+  useFollow(follow, choice, () => Promise.resolve())
+  return <text>following</text>
+}
+
+test("takes a new choice's first stamp without reopening it, as picking opened it", async () => {
+  const ticked: ChangeChoice = { ...picked, repos: [{ path: "../api", changed: true }] }
+  // the ticked repo's head joins the stamp, which moves it
+  const stamp = (choice: ChangeChoice) => Promise.resolve(choice.repos ? "one+api" : "one")
+  const open = mock((_args: string[]) => Promise.resolve(reopened))
+  const follow = { choice: picked, stamp, open }
+
+  await pressOn(<PickingLater follow={follow} next={ticked} />, () => Bun.sleep(4200))
+
+  expect(open).not.toHaveBeenCalled()
 })
 
 test("keeps the last change when it can't be worked out, without retrying until it moves", async () => {

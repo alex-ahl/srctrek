@@ -3,6 +3,7 @@ import {
   agentSetting,
   buildChangeTrek,
   changeFromArguments,
+  type ChangeChoice,
   choiceOfArguments,
   errorText,
   loadSettings,
@@ -55,10 +56,11 @@ async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
   return { summary: await summarizeChange(change), status, build, buildTrigger }
 }
 
-// What moves the change on while trek is open: the worktree, and the agent the settings name.
-async function changeStamp(cwd: string): Promise<string> {
+// What moves the change on while trek is open: the worktree, the repos ticked to go along, and
+// the agent the settings name.
+async function changeStamp(cwd: string, choice: ChangeChoice): Promise<string> {
   const agent = agentSetting(await loadSettings().catch(() => ({}))).command
-  return `${await worktreeStamp(cwd)}\n${agent ?? ""}`
+  return `${await worktreeStamp(cwd, choice.repos)}\n${agent ?? ""}`
 }
 
 async function trek(args: string[]): Promise<void> {
@@ -66,7 +68,7 @@ async function trek(args: string[]): Promise<void> {
   const change = await openChange(cwd, args)
   const follow = {
     choice: choiceOfArguments(args),
-    stamp: () => changeStamp(cwd),
+    stamp: (choice: ChangeChoice) => changeStamp(cwd, choice),
     open: (chosen: string[]) => openChange(cwd, chosen),
   }
 

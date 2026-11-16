@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { mkdir, utimes, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { runGit, worktreeStamp } from "../../src"
-import { commit, makeBranchRepo } from "@srctrek/testing"
+import { commit, makeBranchRepo, repoAt } from "@srctrek/testing"
 
 describe("worktreeStamp", () => {
   test("stays put while nothing moves", async () => {
@@ -21,6 +21,20 @@ describe("worktreeStamp", () => {
 
     expect(committed).not.toBe(before)
     expect(await worktreeStamp(dir)).not.toBe(committed)
+  })
+
+  test("moves on a commit in a repo ticked to go along, on its chosen branch", async () => {
+    const dir = await makeBranchRepo()
+    const api = await repoAt(join(dir, "..", "api"))
+    await runGit(api, ["branch", "work"])
+    const ticked = [{ path: "../api", changed: true, branch: "work" }]
+    const before = await worktreeStamp(dir, ticked)
+
+    await runGit(api, ["switch", "--quiet", "work"])
+    await commit(api, "pay.ts", "export const paid = true\n")
+    await runGit(api, ["switch", "--quiet", "main"])
+
+    expect(await worktreeStamp(dir, ticked)).not.toBe(before)
   })
 
   test("moves when a trek is saved, and when one is rewritten in place", async () => {
