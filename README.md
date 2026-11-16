@@ -117,6 +117,11 @@ narration and call stack for each stop and the trek's predicted values in the co
 
 Plans after version 1 are in `docs/ROADMAP.md`.
 
+## Contributing
+
+Issues and ideas are welcome; srctrek is pre-release, with no promise of support or timelines.
+Pull requests: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
