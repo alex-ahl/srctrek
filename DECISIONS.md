@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-16 — The site deploys from master, as a container image
+
+A push to `master` that changes the site builds it and publishes an nginx image with the built
+files and `site/nginx.conf` to GitHub's container registry, as `ghcr.io/<repo>-site`, tagged
+`latest` and with the commit. The server runs that image behind its own proxy. `development`
+stays where work lands; moving `master` forward is the release.
+
+An image carries the server config with the files, so the server needs no copy of either, and
+CI needs no access into the server: the server pulls. Deploying from a branch of its own keeps
+work on `development` from going live before it's meant to.
+
 ## 2026-11-13 — The website is static and self-hosted
 
 srctrek.dev is a static Astro site in `site/`, a package of its own outside the workspaces, built

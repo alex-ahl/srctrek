@@ -11,6 +11,8 @@
   installs `trek` to `~/.local/bin` from the latest GitHub release, checked against its
   SHA256SUMS. `SRCTREK_VERSION` pins a release, `SRCTREK_INSTALL_DIR` picks the folder. The hero
   shows the command with a Copy button.
+- Deploying: a push to `master` that changes the site publishes `ghcr.io/<repo>-site:latest`, an
+  nginx image serving the built site with `site/nginx.conf` (`.github/workflows/site.yml`).
 
 **Next**
 
