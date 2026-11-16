@@ -4,6 +4,7 @@ import { flagCounts } from "../schema/flags"
 import type { Severity, Trek, TrekStep } from "../schema/trek"
 import { enteredFrom, stepNext } from "./moves"
 import { type SteppingSession, currentStep } from "./session"
+import { cameFromLabel, nextText } from "./wording"
 
 /** The user's own checkout of a repo, and the files the trek visits that are the same there. */
 export type OwnCheckout = { readonly root: string; readonly files: ReadonlySet<string> }
@@ -47,6 +48,8 @@ export type Cite = { repo: string; file: string; line: number; path: string }
  */
 export type CameFrom = StepRef & {
   relation: "from" | "for"
+  // the relation in words, before the stop's number: "Reached from", "Explains"
+  label: string
   number: number
   guessed: boolean
   cites: Cite[]
@@ -60,6 +63,8 @@ export type NextStop = {
   how: "into" | "hop" | "back" | "on" | "end"
   to: StepRef | null
   line: number | null
+  // where it goes, in words: "next: into refund, line 12"
+  text: string
 }
 
 /** One frame of the call stack; `hop` marks the bottom of a stack a hop started. */
@@ -224,6 +229,7 @@ function cameFrom(session: SteppingSession, step: TrekStep, context: ViewContext
   return {
     ...refOf(earlier, context),
     relation,
+    label: cameFromLabel(relation, step.kind),
     number: stopNumber(session, earlier),
     guessed: step.via?.guessed ?? false,
     cites,
@@ -243,13 +249,15 @@ function howNextLeaves(step: TrekStep, next: TrekStep): NextStop["how"] {
 function nextOf(session: SteppingSession, step: TrekStep, context: ViewContext): NextStop {
   const next = currentStep(stepNext(session))
   if (next === undefined) {
-    return { how: "end", to: null, line: null }
+    const end = { how: "end" as const, to: null, line: null }
+    return { ...end, text: nextText(end, step.repo) }
   }
 
   const how = howNextLeaves(step, next)
   const line = how === "into" || how === "hop" ? callLine(step, next) : null
+  const leads = { how, to: refOf(next, context), line }
 
-  return { how, to: refOf(next, context), line }
+  return { ...leads, text: nextText(leads, step.repo) }
 }
 
 function stepView(session: SteppingSession, step: TrekStep, context: ViewContext): StepView {

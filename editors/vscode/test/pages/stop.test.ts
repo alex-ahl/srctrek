@@ -3,7 +3,7 @@ import type { NextStop } from "@srctrek/core"
 import { stopPageHtml } from "../../src/pages/stop"
 import { ref, stepWith } from "../support/views"
 
-const end: NextStop = { how: "end", to: null, line: null }
+const end: NextStop = { how: "end", to: null, line: null, text: "next: the end of the trek" }
 const noCode = () => []
 
 test("the page opens with the narration, its details, then the flag and where next goes", () => {
@@ -59,6 +59,7 @@ test("where the stop came from gives each cited line with its code, and says whe
       id: "s1",
       name: "main",
       relation: "from",
+      label: "Reached from",
       number: 1,
       guessed: true,
       cites: [
@@ -70,7 +71,7 @@ test("where the stop came from gives each cited line with its code, and says whe
 
   const html = stopPageHtml(view, () => ["  send(total)"], "n")
 
-  expect(html).toContain('From <a href="#" data-goto="s1">stop 1 · main · main.ts:1</a>')
+  expect(html).toContain('Reached from <a href="#" data-goto="s1">stop 1 · main · main.ts:1</a>')
   expect(html).toContain("guessed: matched by name")
   expect(html).toContain('data-line="2">main.ts:2</a> <code>send(total)</code>')
   expect(html).toContain('data-line="9">api: routes.ts:9</a>')

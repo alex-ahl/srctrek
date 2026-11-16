@@ -29,13 +29,6 @@ local function code_at(path, line)
   return ok and vim.trim(lines[line] or "") or ""
 end
 
-local function link_wording(view, link)
-  if link.relation == "for" then
-    return "Explains"
-  end
-  return view.step_kind == "hop" and "Reached by a hop from" or "Reached from"
-end
-
 -- Where the step came from, by stop and name, then each line its evidence cites with that line's
 -- code under it; a link with no evidence of its own says it's guessed.
 local function came_from_lines(view, doc)
@@ -45,7 +38,7 @@ local function came_from_lines(view, doc)
   end
   local name = link.name ~= vim.NIL and (" · " .. link.name) or ""
   local guessed = link.guessed and "   (guessed: matched by name)" or ""
-  local heading = string.format("%s stop %d%s%s", link_wording(view, link), link.number, name, guessed)
+  local heading = string.format("%s stop %d%s%s", link.label, link.number, name, guessed)
   doc.add("")
   doc.add(heading, document.go_to(link.id), link.guessed and "SrctrekGuessed" or nil)
 

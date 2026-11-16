@@ -20,33 +20,6 @@ export function placeText(ref: Pick<StepRef, "file" | "start_line">): string {
   return `${short}:${String(ref.start_line)}`
 }
 
-function labelOf(ref: StepRef | null): string {
-  if (ref === null) {
-    return "the end of the trek"
-  }
-  return ref.name ?? `${ref.file}:${String(ref.start_line)}`
-}
-
-/** Where next goes from here, in words, so the reader knows before pressing it. */
-export function whereNext(view: StepView): string {
-  const { how, to, line } = view.next
-  if (how === "end") {
-    return "next: the end of the trek"
-  }
-  if (how === "into") {
-    return `next: into ${labelOf(to)}${line === null ? "" : `, line ${String(line)}`}`
-  }
-  if (how === "hop") {
-    // a hop names its repo only when it leaves this one
-    const repo = to !== null && to.repo !== view.repo ? `${to.repo}: ` : ""
-    return `next: ↯ ${repo}${labelOf(to)}`
-  }
-  if (how === "back") {
-    return `next: back to ${labelOf(to)}`
-  }
-  return `next: ${labelOf(to)}`
-}
-
 // What kind of code the step is: code the change adds whole, or existing code the flow passes
 // through; code the change edits needs no word.
 function codeTag(view: StepView, newFile: boolean): string | null {
@@ -80,9 +53,7 @@ export function stepLenses(view: StepView): Lens[] {
     },
     view.flag ? { title: flagLabel(view.flag.severity), command: "srctrek.stop.focus" } : null,
     view.context.length > 0 ? { title: "context", command: "srctrek.context" } : null,
-    view.step_kind === "context"
-      ? null
-      : { title: `${whereNext(view)} ▸`, command: "srctrek.next" },
+    view.step_kind === "context" ? null : { title: `${view.next.text} ▸`, command: "srctrek.next" },
   ]
   return lenses.filter((lens) => lens !== null)
 }

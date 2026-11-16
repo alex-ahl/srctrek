@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { valueMarks } from "../../src/code/value-marks"
 import { stepWith } from "../support/views"
 
-const end = { how: "end", to: null, line: null } as const
+const end = { how: "end", to: null, line: null, text: "next: the end of the trek" } as const
 
 test("values read name ≈ value, a return as returns, a doubtful one as ≈?", () => {
   const view = stepWith([], end, {

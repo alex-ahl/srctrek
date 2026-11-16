@@ -3,7 +3,7 @@ import type { NextStop } from "@srctrek/core"
 import { changedLinesShown } from "../../src/code/changed-lines"
 import { stepWith } from "../support/views"
 
-const toPay: NextStop = { how: "into", to: null, line: 1 }
+const toPay: NextStop = { how: "into", to: null, line: 1, text: "next: into pay" }
 
 test("changed lines are marked, except in a file the change adds whole", () => {
   const changed_lines = [

@@ -1,6 +1,6 @@
-import type { CameFrom, Cite, Frame, StepRef, StepView } from "@srctrek/core"
+import type { Cite, Frame, StepRef, StepView } from "@srctrek/core"
 import { escapeHtml, gotoLink, openLink, pageHtml } from "./page"
-import { flagLabel, placeText, whereNext } from "../step-text"
+import { flagLabel, placeText } from "../step-text"
 
 // The sidebar's page for the stop the trek is on, apart from VS Code: its narration, details,
 // flag, and where next goes, then the call stack, where it came from with its evidence, context
@@ -60,13 +60,6 @@ function stackSection(view: StepView): string {
   return section("Call stack", `<ul class="rows">${frames.join("")}${cause}</ul>`)
 }
 
-function linkWording(view: StepView, link: CameFrom): string {
-  if (link.relation === "for") {
-    return "Explains"
-  }
-  return view.step_kind === "hop" ? "By a hop from" : "From"
-}
-
 // The cited place, its repo named only when it isn't the stop's, and the line's code beside it.
 function citeItem(view: StepView, cite: Cite, codeAt: CodeAt): string {
   const repo = cite.repo === view.repo ? "" : `${cite.repo}: `
@@ -89,7 +82,7 @@ function cameFromSection(view: StepView, codeAt: CodeAt): string {
   const cites = link.cites.map((cite) => citeItem(view, cite, codeAt)).join("")
   return section(
     "Came from",
-    `<p>${linkWording(view, link)} ${stop}${guessed}</p><ul class="rows">${cites}</ul>`,
+    `<p>${link.label} ${stop}${guessed}</p><ul class="rows">${cites}</ul>`,
   )
 }
 
@@ -103,7 +96,7 @@ function flagLine(view: StepView): string {
 }
 
 function nextLine(view: StepView): string {
-  return view.step_kind === "context" ? "" : `<p class="muted">${escapeHtml(whereNext(view))}</p>`
+  return view.step_kind === "context" ? "" : `<p class="muted">${escapeHtml(view.next.text)}</p>`
 }
 
 // Each piece's reason, then where it is, then its code, as the narration explains a step above

@@ -48,25 +48,6 @@ local function wrapped(line, group, layout)
 end
 
 
--- Where next goes from here, in words, so the reader knows before pressing it.
-local function where_next(view)
-  local next = view.next
-  if next.how == "end" then
-    return "next: the end of the trek"
-  end
-  local to = text.name_or_place(next.to)
-  if next.how == "into" then
-    return "next: into " .. to .. (next.line ~= vim.NIL and (", line " .. next.line) or "")
-  elseif next.how == "hop" then
-    -- a hop names its repo only when it leaves this one
-    local repo = next.to.repo ~= view.repo and (next.to.repo .. ": ") or ""
-    return "next: ↯ " .. repo .. to
-  elseif next.how == "back" then
-    return "next: back to " .. to
-  end
-  return "next: " .. to
-end
-
 -- What a reader stepping with next alone mustn't miss beyond the narration: a risky or
 -- worth-knowing flag, and where next goes.
 local function hints(view)
@@ -77,7 +58,7 @@ local function hints(view)
     table.insert(found, { flag.label, flag.group })
   end
   if view.step_kind ~= "context" then
-    table.insert(found, { where_next(view), "SrctrekUnchanged" })
+    table.insert(found, { view.next.text, "SrctrekUnchanged" })
   end
   return found
 end

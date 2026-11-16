@@ -3,7 +3,7 @@ import type { NextStop } from "@srctrek/core"
 import { callAt, callMarks } from "../../src/code/call-marks"
 import { call, stepWith } from "../support/views"
 
-const toPay: NextStop = { how: "into", to: null, line: 1 }
+const toPay: NextStop = { how: "into", to: null, line: 1, text: "next: into pay" }
 
 test("each line making a call gets an arrow, the one next enters from marked", () => {
   const view = stepWith([call("s2", 1), call("s3", 2)], toPay)
@@ -17,7 +17,7 @@ test("each line making a call gets an arrow, the one next enters from marked", (
 test("a guessed link gets a ?, a hop names its repo, and a call with no line gets no arrow", () => {
   const view = stepWith(
     [call("s2", 3, { guessed: true }), call("s3", 3, { repo: "api" }), call("s4", null)],
-    { how: "back", to: null, line: null },
+    { how: "back", to: null, line: null, text: "next: back" },
   )
 
   expect(callMarks(view)).toEqual([{ line: 2, text: "→? ↯ api", leadsNext: false }])
