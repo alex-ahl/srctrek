@@ -3,6 +3,7 @@ import iconUrl from "../../../docs/assets/srctrek-icon.svg?url"
 import Placeholder from "./Placeholder.astro"
 import InstallCommand from "./InstallCommand.astro"
 import { RELEASES_URL, REPO_URL } from "../links"
+import { RELEASED } from "../launch"
 ---
 
 <header class="hero">
@@ -21,10 +22,20 @@ import { RELEASES_URL, REPO_URL } from "../links"
           and follows one example scenario from its trigger to its outcome in execution order, moving
           your editor to each step.
         </p>
-        <InstallCommand />
-        <p class="platforms">
-          macOS on Apple silicon, and Linux. Or <a href={RELEASES_URL}>download a binary</a>.
-        </p>
+        {
+          RELEASED ? (
+            <>
+              <InstallCommand />
+              <p class="platforms">
+                macOS on Apple silicon, and Linux. Or <a href={RELEASES_URL}>download a binary</a>.
+              </p>
+            </>
+          ) : (
+            <p class="soon">
+              <span class="badge">Coming soon</span> Install with one command, on macOS and Linux.
+            </p>
+          )
+        }
         <div class="actions">
           <a class="button" href={REPO_URL}>View on GitHub</a>
         </div>
@@ -87,6 +98,22 @@ import { RELEASES_URL, REPO_URL } from "../links"
     margin-top: 0.6rem;
     color: var(--text-muted);
     font-size: 0.9rem;
+  }
+
+  .soon {
+    margin-top: 2rem;
+    color: var(--text-muted);
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--status);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    margin-right: 0.4rem;
   }
 
   .actions {

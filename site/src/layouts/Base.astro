@@ -2,6 +2,7 @@
 import globalCssUrl from "../styles/global.css?url"
 import iconUrl from "../../../docs/assets/srctrek-icon.svg?url"
 import cardImageUrl from "../../../docs/assets/srctrek-icon-1024.png?url"
+import { INDEXED } from "../launch"
 
 interface Props {
   title: string
@@ -22,6 +23,7 @@ const cardImage = new URL(cardImageUrl, Astro.site)
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {!INDEXED && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={pageUrl} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
