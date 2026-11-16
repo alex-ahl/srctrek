@@ -1,16 +1,5 @@
--- srctrek for Neovim: step through a trek with the editor following.
---   :Trek <trek>   a trek saved in Neovim's working directory, by name
--- Treks are loaded and stepped by `trek serve`, started in Neovim's working directory.
--- Default keys while a trek is open (configurable, see DEFAULT_KEYS below):
---   ]t / [t next / previous step   <leader>tn step over   <leader>tc back to the current step
---   <leader>ti step into           <leader>to step out    <leader>tx context code
---   <leader>tt details (overview before step 1)               <leader>tq quit
---   <leader>tv show or hide predicted values
--- Every action is also a command (:TrekNext, :TrekPrev, :TrekOver, :TrekInto, :TrekOut,
--- :TrekCurrent, :TrekContext, :TrekDetails, :TrekValues, :TrekQuit) and a function on this
--- module. Each step fires `User SrctrekStep` with { path, shown, line, repo } for file
--- explorers or user config to follow: `path` is the file in the user's project, `shown` the
--- file opened (the trek's copy when the user's file differs).
+-- srctrek for Neovim: step through a trek with the editor following. Keys, commands, and events
+-- are in the plugin's README.
 local context_code = require("srctrek.context_code")
 local details = require("srctrek.details")
 local inline_values = require("srctrek.inline_values")
@@ -85,8 +74,6 @@ local function unbind_keys(keys)
   state.saved_maps = {}
 end
 
-local active_keys = {}
-
 function M.quit()
   if not state.view then
     return
@@ -97,8 +84,8 @@ function M.quit()
   -- the window's own buffer first: window options like the winbar follow the buffer shown
   origin.restore()
   winbar.restore()
-  unbind_keys(active_keys)
-  active_keys = {}
+  unbind_keys(state.keys)
+  state.keys = {}
   vim.api.nvim_create_augroup("srctrek_trek", { clear = true })
   state.view = nil
   server.stop()
@@ -139,12 +126,11 @@ local function watch_cursor()
 end
 
 local function bind_trek_keys()
-  if next(active_keys) ~= nil then
-    unbind_keys(active_keys)
+  if next(state.keys) ~= nil then
+    unbind_keys(state.keys)
   end
-  active_keys = settings().keys or {}
-  state.keys = active_keys
-  bind_keys(active_keys)
+  state.keys = settings().keys or {}
+  bind_keys(state.keys)
 end
 
 local function opened(overview)
@@ -160,8 +146,8 @@ end
 local function not_opened()
   state.opening = nil
   if not state.view then
-    unbind_keys(active_keys)
-    active_keys = {}
+    unbind_keys(state.keys)
+    state.keys = {}
   end
 end
 

@@ -72,10 +72,6 @@ local function band_colour(bg, fg, accent)
   return band
 end
 
--- No single theme group is reliably distinct from the background in every theme (ColorColumn
--- is darker in some, CursorLine is the cursor's own), so the step's tint, the narration's band,
--- and the badge are mixed from the theme's text, background, and info colours. Without GUI
--- colours they fall back to theme groups.
 -- The gutter's signs and line numbers on a step's lines: their own colours on the step's tint.
 local IN_STEP = { "SrctrekStepBar", "SrctrekAdded", "SrctrekChanged", "SrctrekCurrent" }
 
@@ -86,6 +82,10 @@ local function define_in_step(tint)
   vim.api.nvim_set_hl(0, "SrctrekStepNumber", { fg = colour("LineNr", "fg"), bg = tint, default = true })
 end
 
+-- No single theme group is reliably distinct from the background in every theme (ColorColumn
+-- is darker in some, CursorLine is the cursor's own), so the step's tint, the narration's band,
+-- and the badge are mixed from the theme's text, background, and info colours. Without GUI
+-- colours they fall back to theme groups.
 local function define_mixed()
   local fg, accent = colour("Normal", "fg"), colour("DiagnosticInfo", "fg")
   -- a transparent theme leaves the background to the terminal
