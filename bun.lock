@@ -20,6 +20,7 @@
       },
       "devDependencies": {
         "@srctrek/core": "workspace:*",
+        "@srctrek/testing": "workspace:*",
         "@types/vscode": "1.99.1",
         "@vscode/vsce": "4.1.0",
       },
@@ -32,11 +33,17 @@
         "@srctrek/serve": "workspace:*",
         "@srctrek/tui": "workspace:*",
       },
+      "devDependencies": {
+        "@srctrek/testing": "workspace:*",
+      },
     },
     "packages/core": {
       "name": "@srctrek/core",
       "dependencies": {
         "zod": "4.6.7",
+      },
+      "devDependencies": {
+        "@srctrek/testing": "workspace:*",
       },
     },
     "packages/evals": {
@@ -44,6 +51,9 @@
       "dependencies": {
         "@srctrek/core": "workspace:*",
         "zod": "4.6.7",
+      },
+      "devDependencies": {
+        "@srctrek/testing": "workspace:*",
       },
     },
     "packages/mcp": {
@@ -53,12 +63,24 @@
         "@srctrek/core": "workspace:*",
         "zod": "4.6.7",
       },
+      "devDependencies": {
+        "@srctrek/testing": "workspace:*",
+      },
     },
     "packages/serve": {
       "name": "@srctrek/serve",
       "dependencies": {
         "@srctrek/core": "workspace:*",
         "vscode-jsonrpc": "10.0.0",
+      },
+      "devDependencies": {
+        "@srctrek/testing": "workspace:*",
+      },
+    },
+    "packages/testing": {
+      "name": "@srctrek/testing",
+      "dependencies": {
+        "@srctrek/core": "workspace:*",
       },
     },
     "packages/tui": {
@@ -221,6 +243,8 @@
     "@srctrek/mcp": ["@srctrek/mcp@workspace:packages/mcp"],
 
     "@srctrek/serve": ["@srctrek/serve@workspace:packages/serve"],
+
+    "@srctrek/testing": ["@srctrek/testing@workspace:packages/testing"],
 
     "@srctrek/tui": ["@srctrek/tui@workspace:packages/tui"],
 

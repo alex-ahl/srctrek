@@ -9,9 +9,7 @@ import {
   trekStatus,
   triggerProblems,
 } from "../../src"
-import { makeBranchRepo } from "../support/branch"
-import { commit } from "../support/repo"
-import { makeCacheDir } from "../support/remote"
+import { commit, makeBranchRepo, makeCacheDir } from "@srctrek/testing"
 
 async function codeOf(dir: string) {
   const args = {

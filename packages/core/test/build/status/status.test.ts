@@ -9,9 +9,7 @@ import {
   startBuild,
   trekStatus,
 } from "../../../src/index"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../../support/branch"
-import { commit } from "../../support/repo"
-import { makeCacheDir } from "../../support/remote"
+import { changeOf, commit, makeBranchRepo, makeCacheDir, saveTrekOf } from "@srctrek/testing"
 
 // Rewrites one field of a saved trek, as an older srctrek would have written it.
 async function editSavedTrek(dir: string, name: string, field: string, value: unknown) {

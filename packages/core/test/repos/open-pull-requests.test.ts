@@ -3,7 +3,7 @@ import { chmod, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { openPullRequests } from "../../src"
 import { rejection } from "../support/rejection"
-import { tempDir } from "../support/temp"
+import { tempDir } from "@srctrek/testing"
 
 const LISTED = [
   {

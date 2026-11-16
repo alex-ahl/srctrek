@@ -9,10 +9,8 @@ import {
   runGit,
 } from "../../src"
 import { cachePath } from "../../src/repos/cache"
-import { commit, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
-import { makeCacheDir, makeRemote } from "../support/remote"
-import { tempDir } from "../support/temp"
+import { commit, makeCacheDir, makeRemote, makeRepo, tempDir } from "@srctrek/testing"
 
 describe("resolveUnchangedRepo", () => {
   test("reads the base branch's commit when no revision is pinned", async () => {

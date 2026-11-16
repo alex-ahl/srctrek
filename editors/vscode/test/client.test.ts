@@ -1,9 +1,8 @@
 import { afterEach, expect, test } from "bun:test"
 import { join } from "node:path"
-import { repoWithTrek } from "../../../packages/serve/test/support/pay-trek"
-import { repoWithShowcase } from "../../../packages/serve/test/support/showcase-trek"
 import { TrekClient } from "../src/client"
 import { statusText } from "../src/step-text"
+import { repoWithShowcase, repoWithTrek } from "@srctrek/testing"
 
 const TREK = join(import.meta.dir, "../../../packages/cli/src/main.ts")
 

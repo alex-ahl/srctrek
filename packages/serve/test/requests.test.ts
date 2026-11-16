@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test"
 import { realpath } from "node:fs/promises"
 import { join } from "node:path"
 import { ErrorCode, PROTOCOL_VERSION } from "@srctrek/core"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../../core/test/support/branch"
 import { type ServeState, answerRequest, newServeState } from "../src/requests"
+import { changeOf, makeBranchRepo, saveTrekOf } from "@srctrek/testing"
 
 const client = { name: "test", version: "0" }
 

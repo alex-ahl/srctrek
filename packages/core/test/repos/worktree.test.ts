@@ -2,8 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { readFile, realpath, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { cachedRepo, editorCheckout, fetchRefs, runGit } from "../../src"
-import { commit, makeRepo } from "../support/repo"
-import { makeCacheDir, makeRemote } from "../support/remote"
+import { commit, makeCacheDir, makeRemote, makeRepo } from "@srctrek/testing"
 
 describe("editorCheckout", () => {
   test("uses the user's checkout when it's at the commit, untracked files aside", async () => {

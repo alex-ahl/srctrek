@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { blobAt, readFileAt, runGit } from "../../src"
-import { commit, makeRepo } from "../support/repo"
+import { commit, makeRepo } from "@srctrek/testing"
 
 describe("readFileAt", () => {
   test("reads the committed text exactly, even when the working copy has changed", async () => {

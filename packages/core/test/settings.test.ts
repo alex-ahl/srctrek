@@ -3,7 +3,7 @@ import { lstat, readFile, stat, symlink, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { agentSetting, loadSettings, saveSetting, settingsPath } from "../src"
 import { rejection } from "./support/rejection"
-import { tempDir } from "./support/temp"
+import { tempDir } from "@srctrek/testing"
 
 describe("settings", () => {
   test("live under XDG_CONFIG_HOME, else ~/.config", () => {

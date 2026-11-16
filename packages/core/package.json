@@ -7,5 +7,8 @@
   },
   "dependencies": {
     "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@srctrek/testing": "workspace:*"
   }
 }

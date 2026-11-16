@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { choiceStatus, runGit } from "../../../src/index"
-import { makeBranchRepo } from "../../support/branch"
-import { commit } from "../../support/repo"
+import { commit, makeBranchRepo } from "@srctrek/testing"
 
 describe("choiceStatus", () => {
   test("says whether a trek of the chosen branch exists, without switching to it", async () => {

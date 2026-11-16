@@ -3,9 +3,8 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { cachedRepo, fetchRefs, fetchRevision, runGit } from "../../src"
 import { cachePath } from "../../src/repos/cache"
-import { commit } from "../support/repo"
-import { makeCacheDir, makeRemote } from "../support/remote"
 import { rejection } from "../support/rejection"
+import { commit, makeCacheDir, makeRemote } from "@srctrek/testing"
 
 describe("cachePath", () => {
   test("gives the HTTPS and SSH URLs of one repo the same folder", () => {

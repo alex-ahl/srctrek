@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { changedFiles, changedLines, parseChangedLines, runGit } from "../../src"
-import { commit, commitStaged, makeRepo } from "../support/repo"
+import { commit, commitStaged, makeRepo } from "@srctrek/testing"
 
 describe("parseChangedLines", () => {
   test("marks lines that replace old ones as changed and the rest as added", () => {

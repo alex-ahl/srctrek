@@ -2,10 +2,8 @@ import { describe, expect, test } from "bun:test"
 import { readFile, realpath, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { UnreachableRepoError, type Trek, loadTrek, trekPath, viewContext } from "../../src"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../support/branch"
-import { makeCacheDir } from "../support/remote"
 import { rejection } from "../support/rejection"
-import { commit } from "../support/repo"
+import { changeOf, commit, makeBranchRepo, makeCacheDir, saveTrekOf } from "@srctrek/testing"
 
 // A repo on a feature branch, and the one-step trek of its change, saved there.
 async function repoWithTrek(): Promise<{ dir: string; trek: Trek; cacheDir: string }> {

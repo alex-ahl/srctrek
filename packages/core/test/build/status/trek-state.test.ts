@@ -3,9 +3,7 @@ import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { TREKS_DIR, loadTrek, resolveChange, runGit } from "../../../src/index"
 import { trekState } from "../../../src/build/status/trek-state"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../../support/branch"
-import { makeCacheDir } from "../../support/remote"
-import { commit } from "../../support/repo"
+import { changeOf, commit, makeBranchRepo, makeCacheDir, saveTrekOf } from "@srctrek/testing"
 
 // The trek saved as `name` in `dir`, where it stands now.
 async function stateOf(dir: string, name: string) {

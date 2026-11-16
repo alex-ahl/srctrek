@@ -10,8 +10,8 @@ import {
   resolveRange,
   runGit,
 } from "../../../src"
-import { commit, commitStaged, makeRepo } from "../../support/repo"
 import { rejection } from "../../support/rejection"
+import { commit, commitStaged, makeRepo } from "@srctrek/testing"
 
 // api changes src/app.ts line 1 and adds src/refund.ts; web is on the route unchanged.
 async function makeChange(): Promise<ResolvedChange> {

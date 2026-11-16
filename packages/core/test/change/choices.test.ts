@@ -8,8 +8,7 @@ import {
   readChangeArguments,
   runGit,
 } from "../../src"
-import { makeBranchRepo } from "../support/branch"
-import { commit } from "../support/repo"
+import { commit, makeBranchRepo } from "@srctrek/testing"
 
 describe("choiceArguments and choiceOfArguments", () => {
   test("no arguments, or only --uncommitted, is the user's own branch, and back again", () => {

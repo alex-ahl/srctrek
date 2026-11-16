@@ -159,6 +159,7 @@
   },
   "devDependencies": {
     "@srctrek/core": "workspace:*",
+    "@srctrek/testing": "workspace:*",
     "@types/vscode": "1.99.1",
     "@vscode/vsce": "4.1.0"
   }

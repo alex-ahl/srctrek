@@ -11,10 +11,9 @@ import {
   trekPath,
 } from "../../src"
 import { rejection } from "../support/rejection"
-import { tempDir } from "../support/temp"
+import { REFUND_TREK_PATH, tempDir } from "@srctrek/testing"
 
-const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
-const fixture = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
+const fixture = parseTrek(await Bun.file(REFUND_TREK_PATH).json(), REFUND_TREK_PATH)
 
 function refundTrek(): Trek {
   return structuredClone(fixture)

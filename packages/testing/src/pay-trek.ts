@@ -7,8 +7,8 @@ import {
   runGit,
   saveTrek,
 } from "@srctrek/core"
-import { changeOf } from "../../../core/test/support/branch"
-import { commit, makeRepo } from "../../../core/test/support/repo"
+import { changeOf } from "./branch"
+import { commit, makeRepo } from "./repo"
 
 const header = {
   title: "Pay",

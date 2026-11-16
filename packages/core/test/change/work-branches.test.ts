@@ -8,9 +8,7 @@ import {
   runGit,
   workBranches,
 } from "../../src"
-import { commit, makeRepo } from "../support/repo"
-import { makeCacheDir, makeRemote } from "../support/remote"
-import { tempDir } from "../support/temp"
+import { commit, makeCacheDir, makeRemote, makeRepo, tempDir } from "@srctrek/testing"
 
 async function changeOf(dir: string, args: Partial<ChangeArguments>) {
   const all = { changes: [], unchanged: [], uncommitted: false, ...args }

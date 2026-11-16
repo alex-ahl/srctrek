@@ -44,6 +44,8 @@ migration layers. When something changes, change it everywhere at once.
 - `packages/tui/` — OpenTUI + React front-end.
 - `packages/evals/` — the eval runner: an agent builds a fixture's trek, scored against
   expected.json.
+- `packages/testing/` — what every package's tests share: temporary folders, repos, saved
+  treks.
 - `editors/nvim/` — the Neovim plugin (Lua).
 - `editors/vscode/` — the VS Code extension, for VS Code and its forks.
 - `evals/fixtures/` — sample repos for trek-quality evals.

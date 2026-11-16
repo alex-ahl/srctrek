@@ -7,7 +7,7 @@ import {
   resolveChange,
   runGit,
   saveTrek,
-} from "../../src"
+} from "@srctrek/core"
 import { commit, makeRepo } from "./repo"
 import { makeCacheDir } from "./remote"
 

@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test"
-import { join } from "node:path"
 import {
   type SessionView,
   type StepView,
@@ -10,9 +9,9 @@ import {
   stepNext,
   stepTo,
 } from "../../src"
+import { REFUND_TREK_PATH } from "@srctrek/testing"
 
-const fixturePath = join(import.meta.dir, "../fixtures/refund-trek.json")
-const trek = parseTrek(await Bun.file(fixturePath).json(), fixturePath)
+const trek = parseTrek(await Bun.file(REFUND_TREK_PATH).json(), REFUND_TREK_PATH)
 const opened = openSession(trek)
 
 const context: ViewContext = {

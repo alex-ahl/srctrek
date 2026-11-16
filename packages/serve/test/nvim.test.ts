@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { realpath, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { tempDir } from "../../core/test/support/temp"
 import {
   LONG_NARRATION,
   LONG_VALUE,
@@ -9,7 +8,8 @@ import {
   repoWithLongNarration,
   repoWithTrek,
   repoWithTwoCalls,
-} from "./support/pay-trek"
+  tempDir,
+} from "@srctrek/testing"
 
 const PLUGIN = join(import.meta.dir, "../../../editors/nvim")
 const DRIVER = join(import.meta.dir, "nvim-driver.lua")

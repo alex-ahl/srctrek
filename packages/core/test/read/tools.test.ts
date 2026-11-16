@@ -12,8 +12,8 @@ import {
   runGit,
   search,
 } from "../../src"
-import { commit, commitStaged, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
+import { commit, commitStaged, makeRepo } from "@srctrek/testing"
 
 // "api": src/app.ts and docs/notes.md on main; the change edits app.ts and adds src/refund.ts.
 // A further edit to app.ts stays uncommitted and must never show.

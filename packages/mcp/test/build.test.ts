@@ -10,9 +10,8 @@ import {
   proposalUnopenedAnswer,
   runGit,
 } from "@srctrek/core"
-import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { McpTestClient } from "./mcp-client"
-import { tempDir } from "../../core/test/support/temp"
+import { commit, commitStaged, makeRepo, tempDir } from "@srctrek/testing"
 
 // A repo on a feature branch that changes line 1 of src/app.ts.
 async function makeFeatureRepo(): Promise<string> {

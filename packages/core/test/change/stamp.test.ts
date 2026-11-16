@@ -2,8 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { mkdir, utimes, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { runGit, worktreeStamp } from "../../src"
-import { makeBranchRepo } from "../support/branch"
-import { commit } from "../support/repo"
+import { commit, makeBranchRepo } from "@srctrek/testing"
 
 describe("worktreeStamp", () => {
   test("stays put while nothing moves", async () => {

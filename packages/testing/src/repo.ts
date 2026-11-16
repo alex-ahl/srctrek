@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
-import { runGit } from "../../src"
+import { runGit } from "@srctrek/core"
 import { tempDir } from "./temp"
 
 // Commits need an identity; CI machines have none configured.

@@ -9,8 +9,7 @@ import {
   newDraft,
   stepIds,
 } from "../../../src/index"
-import { changeOf, makeBranchRepo } from "../../support/branch"
-import { commit } from "../../support/repo"
+import { changeOf, commit, makeBranchRepo } from "@srctrek/testing"
 
 const header = {
   title: "t",

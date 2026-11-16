@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { GitError, detectBase, parseRange, resolveRange, runGit } from "../../src"
 import { rejection } from "../support/rejection"
-import { commit, makeRepo } from "../support/repo"
+import { commit, makeRepo } from "@srctrek/testing"
 
 describe("parseRange", () => {
   test("reads the three-dot form as changes since the branch point", () => {

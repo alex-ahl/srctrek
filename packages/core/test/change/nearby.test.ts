@@ -9,9 +9,7 @@ import {
   resolveChange,
   runGit,
 } from "../../src"
-import { commit } from "../support/repo"
-import { makeCacheDir } from "../support/remote"
-import { tempDir } from "../support/temp"
+import { commit, makeCacheDir, tempDir } from "@srctrek/testing"
 
 async function repoIn(parent: string, name: string): Promise<string> {
   const dir = join(parent, name)

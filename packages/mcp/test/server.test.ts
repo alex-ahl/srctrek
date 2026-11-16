@@ -8,10 +8,9 @@ import {
   buildTrekPrompt,
   runGit,
 } from "@srctrek/core"
-import { commit, commitStaged, makeRepo } from "../../core/test/support/repo"
 import { z } from "zod"
 import { McpTestClient } from "./mcp-client"
-import { tempDir } from "../../core/test/support/temp"
+import { commit, commitStaged, makeRepo, tempDir } from "@srctrek/testing"
 
 const PromptListSchema = z.object({
   prompts: z.array(

@@ -4,16 +4,14 @@ import { join } from "node:path"
 import { runGit } from "@srctrek/core"
 import { buildFixture } from "../src/fixture"
 import { runEval } from "../src/main"
-import { tempDir } from "../../core/test/support/temp"
-
-const refundTrek = join(import.meta.dir, "../../core/test/fixtures/refund-trek.json")
+import { REFUND_TREK_PATH, tempDir } from "@srctrek/testing"
 
 // An agent that saves the hand-made trek and prints a usage line, ignoring its instruction.
 async function fakeAgent(): Promise<string> {
   const script = join(await tempDir("agent-"), "agent.sh")
   await writeFile(
     script,
-    `mkdir -p .srctrek/treks\ncp '${refundTrek}' .srctrek/treks/eval.json\necho 'used 1234 tokens'\n`,
+    `mkdir -p .srctrek/treks\ncp '${REFUND_TREK_PATH}' .srctrek/treks/eval.json\necho 'used 1234 tokens'\n`,
   )
 
   return `sh '${script}'`

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
-import { makeRepo } from "../../core/test/support/repo"
+import { makeRepo } from "@srctrek/testing"
 
 const MAIN = join(import.meta.dir, "../src/main.ts")
 

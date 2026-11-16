@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test"
-import { join } from "node:path"
 import {
   blobAt,
   changedFiles,
@@ -10,10 +9,10 @@ import {
   runGit,
 } from "@srctrek/core"
 import { buildFixture } from "../src/fixture"
+import { REFUND_TREK_PATH } from "@srctrek/testing"
 
 const refund = await buildFixture("refund")
-const trekPath = join(import.meta.dir, "../../core/test/fixtures/refund-trek.json")
-const trek = parseTrek(await Bun.file(trekPath).json(), trekPath)
+const trek = parseTrek(await Bun.file(REFUND_TREK_PATH).json(), REFUND_TREK_PATH)
 
 function repoDir(name: string): string {
   const dir = refund.repos[name]

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
-import { tempDir } from "../../core/test/support/temp"
 import { McpTestClient } from "./mcp-client"
+import { tempDir } from "@srctrek/testing"
 
 let client: McpTestClient | undefined
 

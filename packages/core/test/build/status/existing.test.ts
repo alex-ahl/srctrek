@@ -8,9 +8,14 @@ import {
   snapshotWorkingTree,
   trekNameFor,
 } from "../../../src/index"
-import { changeOf, makeBranchRepo, saveTrekOf } from "../../support/branch"
-import { commit } from "../../support/repo"
-import { makeCacheDir, makeRemote } from "../../support/remote"
+import {
+  changeOf,
+  commit,
+  makeBranchRepo,
+  makeCacheDir,
+  makeRemote,
+  saveTrekOf,
+} from "@srctrek/testing"
 
 describe("existingTrekFor", () => {
   test("finds the saved trek of exactly this change, and none once the change moves on", async () => {

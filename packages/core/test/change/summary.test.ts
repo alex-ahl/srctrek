@@ -2,8 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
 import { summarizeChange } from "../../src"
-import { changeOf, makeBranchRepo } from "../support/branch"
-import { commit } from "../support/repo"
+import { changeOf, commit, makeBranchRepo } from "@srctrek/testing"
 
 describe("summarizeChange", () => {
   test("names the branch checked out, where the range starts, and its commits", async () => {

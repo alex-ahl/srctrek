@@ -1,8 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { join } from "node:path"
 import { fetchRepo, repoBranches, runGit } from "../../src"
-import { commit, makeRepo } from "../support/repo"
-import { tempDir } from "../support/temp"
+import { commit, makeRepo, tempDir } from "@srctrek/testing"
 
 // A remote with main and refunds-v3, cloned; the clone then gets refunds-api of its own.
 async function cloneWithBranches(): Promise<{ origin: string; clone: string }> {

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { mkdir, rm, stat, utimes, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { listFiles, readFileAt, runGit, snapshotWorkingTree } from "../../src"
-import { commit, makeRepo } from "../support/repo"
+import { commit, makeRepo } from "@srctrek/testing"
 
 // What a user would notice changing: the branch, its commit, the index, and the files.
 async function userState(dir: string): Promise<string[]> {

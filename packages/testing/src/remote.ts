@@ -1,4 +1,4 @@
-import { runGit } from "../../src"
+import { runGit } from "@srctrek/core"
 import { commit, makeRepo } from "./repo"
 import { tempDir } from "./temp"
 

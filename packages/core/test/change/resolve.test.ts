@@ -11,10 +11,8 @@ import {
   runGit,
   withRouteRepo,
 } from "../../src"
-import { commit, makeRepo } from "../support/repo"
 import { rejection } from "../support/rejection"
-import { makeCacheDir, makeRemote } from "../support/remote"
-import { tempDir } from "../support/temp"
+import { commit, makeCacheDir, makeRemote, makeRepo, tempDir } from "@srctrek/testing"
 
 async function writeReposList(repo: string, text: string): Promise<void> {
   await mkdir(join(repo, ".srctrek"))
