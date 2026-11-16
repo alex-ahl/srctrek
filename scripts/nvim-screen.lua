@@ -84,37 +84,56 @@ local function colours_of(cell)
   local attr = screen.attrs[cell[2]] or {}
   local fg, bg = attr.foreground or screen.fg, attr.background or screen.bg
   if attr.reverse then
-    return bg, fg, attr
+    return bg, fg
   end
-  return fg, bg, attr
+  return fg, bg
 end
 
--- The text, then each row's runs of one style that aren't the editor's own: col-col fg/bg.
+local function row_text(row)
+  local text = {}
+  for col = 0, W - 1 do
+    table.insert(text, screen.cells[row][col][1])
+  end
+  return string.format("%2d|%s", row, table.concat(text))
+end
+
+local function style_of(cell)
+  local attr = screen.attrs[cell[2]] or {}
+  return hex(attr.foreground) .. "/" .. hex(attr.background) .. (attr.italic and " italic" or "")
+end
+
+-- The row's runs of one style that aren't the editor's own, "col-col fg/bg"; nil when it has none.
+local function row_styles(row)
+  local runs = {}
+  for col = 0, W - 1 do
+    local style = style_of(screen.cells[row][col])
+    local last = runs[#runs]
+    if last and last.style == style then
+      last.to = col
+    else
+      table.insert(runs, { from = col, to = col, style = style })
+    end
+  end
+  local styled = vim.tbl_filter(function(run)
+    return run.style ~= "/"
+  end, runs)
+  if #styled == 0 then
+    return nil
+  end
+  local described = vim.tbl_map(function(run)
+    return run.from .. "-" .. run.to .. " " .. run.style
+  end, styled)
+  return string.format("%2d: %s", row, table.concat(described, "  "))
+end
+
+-- The text, then each row's styles.
 local function as_text()
   local lines, styles = { "editor fg/bg " .. hex(screen.fg) .. "/" .. hex(screen.bg) }, { "", "styles:" }
   for row = 0, H - 1 do
-    local text, runs = {}, {}
-    for col = 0, W - 1 do
-      local cell = screen.cells[row][col]
-      local attr = screen.attrs[cell[2]] or {}
-      local style = hex(attr.foreground) .. "/" .. hex(attr.background) .. (attr.italic and " italic" or "")
-      local last = runs[#runs]
-      if last and last.style == style then
-        last.to = col
-      else
-        table.insert(runs, { from = col, to = col, style = style })
-      end
-      table.insert(text, cell[1])
-    end
-    table.insert(lines, string.format("%2d|%s", row, table.concat(text)))
-    local styled = vim.tbl_filter(function(run)
-      return run.style ~= "/"
-    end, runs)
-    if #styled > 0 then
-      local described = vim.tbl_map(function(run)
-        return run.from .. "-" .. run.to .. " " .. run.style
-      end, styled)
-      table.insert(styles, string.format("%2d: %s", row, table.concat(described, "  ")))
+    table.insert(lines, row_text(row))
+    local styled = row_styles(row)
+    if styled then
+      table.insert(styles, styled)
     end
   end
   return vim.list_extend(lines, styles)
