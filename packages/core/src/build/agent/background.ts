@@ -94,7 +94,7 @@ export async function buildLogTail(root: string, name: string, count: number): P
 
 /**
  * Whether the build's log says its trek was saved: trek mcp answers a saved trek with
- * "saved <path>". Builds from before trek mcp wrote to the log never say so.
+ * "saved <path>".
  */
 export async function buildSavedTrek(root: string, name: string): Promise<boolean> {
   const files = await buildFiles(root, name)

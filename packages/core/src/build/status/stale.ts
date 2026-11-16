@@ -2,7 +2,7 @@ import type { ResolvedChange } from "../../change/resolve"
 import { blobAt } from "../../git/read"
 import type { Trek, TrekStep } from "../../schema/trek"
 
-// Whether the step's file is the same at the repo's revision now: same blob, or gone. A repo
+// Whether the step's file has changed at the repo's revision now: another blob, or gone. A repo
 // the change no longer opens, such as one proposed but never added, can't be checked.
 async function isStale(step: TrekStep, change: ResolvedChange): Promise<boolean> {
   const repo = change.repos.find((candidate) => candidate.name === step.repo)

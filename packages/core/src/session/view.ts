@@ -154,20 +154,26 @@ function framesOf(
 ): { stack: Frame[]; started_by: StepRef | null } {
   const { stacks, beneath, answeredHops } = session.stacks
   const byId = new Map(session.trek.steps.map((s) => [s.id, s]))
-  let startedBy: string | undefined
 
-  const chain = (id: string): readonly string[] => {
+  type Chain = { frames: readonly string[]; startedBy: string | undefined }
+  const chain = (id: string): Chain => {
     const frames = stacks.get(id) ?? []
     const below = beneath.get(id)
-    const hop = frames[0]
-    if (below !== undefined && hop !== undefined && !answeredHops.has(hop)) {
-      startedBy = below
-      return frames
+    if (below === undefined) {
+      return { frames, startedBy: undefined }
     }
-    return [...(below === undefined ? [] : chain(below)), ...frames]
+
+    const hop = frames[0]
+    if (hop !== undefined && !answeredHops.has(hop)) {
+      return { frames, startedBy: below }
+    }
+
+    const under = chain(below)
+    return { frames: [...under.frames, ...frames], startedBy: under.startedBy }
   }
 
-  const stack = chain(step.id).flatMap((id) => {
+  const { frames, startedBy } = chain(step.id)
+  const stack = frames.flatMap((id) => {
     const frame = byId.get(id)
     return frame === undefined ? [] : [{ ...refOf(frame, context), hop: frame.kind === "hop" }]
   })

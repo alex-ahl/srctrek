@@ -234,7 +234,7 @@ async function routeRepo(
     const found = await onWorkBranch(top, entry, branch, cacheDir)
     if (found !== undefined) {
       const { repo, ref, shown } = found
-      // only a local branch has an upstream to trek; a remote-tracking one is the upstream
+      // only a local branch has an upstream to track; a remote-tracking one is the upstream
       const behind = ref.startsWith("refs/heads/")
         ? await behindUpstream(repo.dir, branch)
         : undefined

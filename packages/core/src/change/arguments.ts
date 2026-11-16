@@ -65,32 +65,30 @@ type Group =
   { kind: "repo"; repo: RepoEntry; range?: string } | { kind: "pull-request"; pr: PullRequest }
 
 // A range belongs to the repo just before it, or to the current repo when it comes first.
-function attachRange(groups: Group[], text: string): void {
+function withRange(groups: readonly Group[], text: string): Group[] {
   const last = groups.at(-1)
   if (last === undefined) {
-    groups.push({ kind: "repo", repo: CURRENT_REPO, range: text })
-    return
+    return [{ kind: "repo", repo: CURRENT_REPO, range: text }]
   }
 
   if (last.kind !== "repo" || last.range !== undefined) {
     throw new Error(`a range must follow a repo: ${text}`)
   }
 
-  last.range = text
+  return [...groups.slice(0, -1), { ...last, range: text }]
+}
+
+function withToken(groups: readonly Group[], token: Token): Group[] {
+  if (token.kind === "range") {
+    return withRange(groups, token.text)
+  }
+
+  return [...groups, token.kind === "repo" ? { kind: "repo", repo: token.entry } : token]
 }
 
 // Read in order: which repo a range belongs to depends on what came before it.
-function groupTokens(tokens: Token[]): Group[] {
-  const groups: Group[] = []
-  for (const token of tokens) {
-    if (token.kind === "range") {
-      attachRange(groups, token.text)
-    } else {
-      groups.push(token.kind === "repo" ? { kind: "repo", repo: token.entry } : token)
-    }
-  }
-
-  return groups
+function groupTokens(tokens: readonly Token[]): Group[] {
+  return tokens.reduce<Group[]>(withToken, [])
 }
 
 function rangeFor(repo: RepoEntry, text: string): ChangeSource {
@@ -133,9 +131,10 @@ function codeRepos(words: string[], isDirectory: (path: string) => boolean): Rep
 }
 
 /**
- * Reads trek's arguments. With --code, every word is a repo to trek as it is. A range applies to the repo just before it, or to the current repo
- * when none is; a repo with no range after it is on the route without changes. No change
- * means the current repo's branch since it left the base branch.
+ * Reads trek's arguments. With --code, every word is a repo to trek as it is. A range applies to
+ * the repo just before it, or to the current repo when none is; a repo with no range after it is
+ * on the route without changes. No change means the current repo's branch since it left the base
+ * branch.
  */
 export function readChangeArguments(
   args: string[],
