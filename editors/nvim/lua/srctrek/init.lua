@@ -45,16 +45,19 @@ local function settings()
   return vim.tbl_deep_extend("force", defaults, vim.g.srctrek or {}, setup_opts)
 end
 
+-- The user's own mappings on the trek's keys, restored when it ends.
+local saved_maps = {}
+
 -- Global mappings for the open trek. Whatever the user had on those keys is saved and put
 -- back when the trek ends; buffer-local mappings, theirs or other plugins', are left alone.
 local function bind_keys(keys)
-  state.saved_maps = {}
+  saved_maps = {}
   for _, a in ipairs(actions) do
     local lhs = keys[a.name]
     if lhs then
       local existing = vim.fn.maparg(lhs, "n", false, true)
       if next(existing) ~= nil and existing.buffer == 0 then
-        table.insert(state.saved_maps, existing)
+        table.insert(saved_maps, existing)
       end
       vim.keymap.set("n", lhs, M[a.name], { desc = "srctrek: " .. a.desc })
     end
@@ -68,10 +71,10 @@ local function unbind_keys(keys)
       pcall(vim.keymap.del, "n", lhs)
     end
   end
-  for _, map in ipairs(state.saved_maps) do
+  for _, map in ipairs(saved_maps) do
     vim.fn.mapset("n", false, map)
   end
-  state.saved_maps = {}
+  saved_maps = {}
 end
 
 function M.quit()

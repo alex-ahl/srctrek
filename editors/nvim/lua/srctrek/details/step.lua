@@ -2,6 +2,7 @@
 -- context, and questions.
 local document = require("srctrek.details.doc")
 local FLAGS = require("srctrek.flags")
+local inline_values = require("srctrek.inline_values")
 local popup = require("srctrek.popup")
 local text = require("srctrek.text")
 
@@ -9,9 +10,8 @@ local M = {}
 
 -- In full, as the code's line shows it shortened.
 local function value_line(v)
-  local subject = v.role == "return" and "returns" or v.name
   local wording = v.uncertain and "predicted, unsure" or "predicted"
-  return string.format("  line %d: %s %s %s   %s", v.line, subject, v.uncertain and "≈?" or "≈", v.value, wording)
+  return string.format("  line %d: %s   %s", v.line, inline_values.describe(v, true), wording)
 end
 
 local function note_lines(notes)

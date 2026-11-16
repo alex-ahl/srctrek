@@ -1,5 +1,6 @@
 import type { TrekEntry } from "@srctrek/core"
 import * as vscode from "vscode"
+import { FLAGS } from "../step-text"
 
 export type TreksView = { refresh: () => void }
 
@@ -41,6 +42,6 @@ export function createTreksView(
 
 /** A valid trek's size and its likely-wrong flags, for the lists of treks. */
 export function trekSummary(entry: Extract<TrekEntry, { valid: true }>): string {
-  const flags = entry.highFlags > 0 ? ` · ${String(entry.highFlags)} likely wrong` : ""
+  const flags = entry.highFlags > 0 ? ` · ${String(entry.highFlags)} ${FLAGS.high.wording}` : ""
   return `${String(entry.steps)} stops${flags}`
 }

@@ -4,7 +4,6 @@ local M = {
   opening = nil, -- the trek being opened, until the server answers
   view = nil, -- the server's last answer: an overview, a step, or the end
   keys = {}, -- the trek's keys, by action, as configured
-  saved_maps = {}, -- the user's own mappings on the trek's keys, restored when it ends
   show_values = true, -- predicted values at the end of their lines
 }
 

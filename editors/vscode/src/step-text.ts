@@ -3,11 +3,22 @@ import type { SessionView, StepRef, StepView } from "@srctrek/core"
 // What a stop says besides its narration, apart from VS Code: where next goes, its tags, and the
 // actions on the line above it.
 
-export const FLAG_WORDING = {
-  high: "⚠ likely wrong",
-  medium: "● risky",
-  low: "● worth knowing",
+export const FLAGS = {
+  high: { mark: "⚠", wording: "likely wrong" },
+  medium: { mark: "●", wording: "risky" },
+  low: { mark: "●", wording: "worth knowing" },
 } as const
+
+/** A flag's mark and wording: "⚠ likely wrong". */
+export function flagLabel(severity: keyof typeof FLAGS): string {
+  return `${FLAGS[severity].mark} ${FLAGS[severity].wording}`
+}
+
+/** A place, short, as the narration and Neovim write it: the file's last two parts and its line. */
+export function placeText(ref: Pick<StepRef, "file" | "start_line">): string {
+  const short = ref.file.split("/").slice(-2).join("/")
+  return `${short}:${String(ref.start_line)}`
+}
 
 function labelOf(ref: StepRef | null): string {
   if (ref === null) {
@@ -67,7 +78,7 @@ export function stepLenses(view: StepView): Lens[] {
       title: `srctrek ${String(view.number)}/${String(view.count)}`,
       command: "srctrek.stop.focus",
     },
-    view.flag ? { title: FLAG_WORDING[view.flag.severity], command: "srctrek.stop.focus" } : null,
+    view.flag ? { title: flagLabel(view.flag.severity), command: "srctrek.stop.focus" } : null,
     view.context.length > 0 ? { title: "context", command: "srctrek.context" } : null,
     view.step_kind === "context"
       ? null

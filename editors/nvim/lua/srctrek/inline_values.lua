@@ -17,10 +17,11 @@ local function shortened(text)
   return vim.fn.strcharpart(text, 0, MAX_VALUE - 1) .. "…"
 end
 
-local function describe(value)
+-- `name ≈ value`, the value cut to fit a line's end unless `whole`.
+function M.describe(value, whole)
   local sign = value.uncertain and "≈?" or "≈"
   local subject = value.role == "return" and "returns" or value.name
-  return string.format("%s %s %s", subject, sign, shortened(value.value))
+  return string.format("%s %s %s", subject, sign, whole and value.value or shortened(value.value))
 end
 
 -- Each line's values, in the order the trek lists them, each in its own colour.
@@ -39,7 +40,7 @@ local function chunks_of(values)
     if i > 1 then
       table.insert(chunks, { ", ", "SrctrekPredicted" })
     end
-    table.insert(chunks, { describe(value), value.uncertain and "SrctrekDoubtful" or "SrctrekPredicted" })
+    table.insert(chunks, { M.describe(value), value.uncertain and "SrctrekDoubtful" or "SrctrekPredicted" })
   end
   return chunks
 end

@@ -1,6 +1,6 @@
 import type { CameFrom, Cite, Frame, StepRef, StepView } from "@srctrek/core"
 import { escapeHtml, gotoLink, openLink, pageHtml } from "./page"
-import { FLAG_WORDING, whereNext } from "../step-text"
+import { flagLabel, placeText, whereNext } from "../step-text"
 
 // The sidebar's page for the stop the trek is on, apart from VS Code: its narration, details,
 // flag, and where next goes, then the call stack, where it came from with its evidence, context
@@ -30,11 +30,6 @@ function contextRange(ref: StepRef): CodeRange {
 export function codeRangesOf(view: StepView): CodeRange[] {
   const cites = view.came_from?.cites.map(citeRange) ?? []
   return [...cites, ...view.context.map(contextRange)]
-}
-
-function placeText(ref: StepRef): string {
-  const short = ref.file.split("/").slice(-2).join("/")
-  return `${short}:${String(ref.start_line)}`
 }
 
 function refText(ref: StepRef): string {
@@ -104,7 +99,7 @@ function flagLine(view: StepView): string {
     return ""
   }
   const { severity, note } = view.flag
-  return `<p class="${severity}">${FLAG_WORDING[severity]} · ${escapeHtml(note)}</p>`
+  return `<p class="${severity}">${flagLabel(severity)} · ${escapeHtml(note)}</p>`
 }
 
 function nextLine(view: StepView): string {

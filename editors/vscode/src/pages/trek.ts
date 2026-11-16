@@ -1,16 +1,11 @@
 import type { EndView, FlaggedStep, OverviewView } from "@srctrek/core"
+import { FLAGS, placeText } from "../step-text"
 import { escapeHtml, gotoLink, pageHtml } from "./page"
 
 // The trek tab's page for the overview and the end, apart from VS Code: plain HTML in the theme's
 // colours, where a flag at the end is a link to its stop.
 
 export type TrekPageView = OverviewView | EndView
-
-const FLAGS = {
-  high: { mark: "⚠", wording: "likely wrong" },
-  medium: { mark: "●", wording: "risky" },
-  low: { mark: "●", wording: "worth knowing" },
-} as const
 
 // The keys srctrek binds by default; VS Code doesn't tell an extension what they're rebound to,
 // so the page names the commands beside them.
@@ -38,11 +33,9 @@ const ON_SCREEN = [
   ],
 ] as const
 
-// The file's last two parts and its line, as the narration and Neovim write a place.
-function placeText(ref: FlaggedStep): string {
-  const short = ref.file.split("/").slice(-2).join("/")
+function placeNamed(ref: FlaggedStep): string {
   const name = ref.name === null ? "" : ` · ${ref.name}`
-  return `${short}:${String(ref.start_line)}${name}`
+  return `${placeText(ref)}${name}`
 }
 
 function row(label: string, value: string): string {
@@ -86,7 +79,7 @@ function flagItem(flag: FlaggedStep): string {
     `<li class="${flag.severity}">`,
     gotoLink(
       flag.id,
-      `${style.mark} ${style.wording} · ${String(flag.number)} · ${escapeHtml(placeText(flag))}`,
+      `${style.mark} ${style.wording} · ${String(flag.number)} · ${escapeHtml(placeNamed(flag))}`,
     ),
     `<div>${escapeHtml(flag.note)}</div>`,
     "</li>",
