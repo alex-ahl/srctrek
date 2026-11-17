@@ -13,7 +13,7 @@ import {
 import type { McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import { type SessionCell, apply } from "./cell"
-import type { Report } from "./report"
+import type { RecordDraft, Report } from "./report"
 import {
   addStepsTo,
   draftStepIds,
@@ -26,7 +26,12 @@ import {
 import { wordsOf } from "./words"
 import { answered, refuse, tell } from "./answers"
 
-export function registerBuildTools(server: McpServer, cell: SessionCell, report: Report): void {
+export function registerBuildTools(
+  server: McpServer,
+  cell: SessionCell,
+  report: Report,
+  recordDraft: RecordDraft,
+): void {
   server.registerTool(
     "trek_guide",
     {
@@ -41,6 +46,7 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
     { description: TOOL_DESCRIPTIONS.start_trek, inputSchema: TrekHeaderSchema },
     async (header) => {
       await apply(cell, async (session) => start(session, header))
+      await recordDraft(cell.session.draft)
 
       return tell(report, trekStartedAnswer(header.title))
     },
@@ -58,6 +64,7 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
         return refuse(report, `nothing was added:\n${problems.join("\n")}`)
       }
 
+      await recordDraft(cell.session.draft)
       const added = steps.map((step) => step.id).join(", ")
       const all = draftStepIds(cell.session).join(", ")
 
@@ -91,6 +98,7 @@ export function registerBuildTools(server: McpServer, cell: SessionCell, report:
     { description: TOOL_DESCRIPTIONS.update_trek, inputSchema: z.object({ name: z.string() }) },
     async ({ name }) => {
       const updating = await apply(cell, (session) => update(session, name))
+      await recordDraft(cell.session.draft)
       return tell(report, updateStartedAnswer(name, updating))
     },
   )

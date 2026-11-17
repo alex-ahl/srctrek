@@ -29,6 +29,7 @@ const building: BuildRead = {
     "trek: nothing was added:",
     "trek: s3: cites web src/db.ts:88, which is blank",
   ],
+  steps: [],
   state: "building",
   started,
   ended: undefined,
@@ -88,6 +89,20 @@ test("says a build the user stopped is stopped, not failed, with no reason to gi
   expect(frame).toContain("■ stopped  Refunding an order  after 1m 12s")
   expect(frame).not.toContain("WHY")
   expect(frame).not.toContain("build failed")
+})
+
+test("lists each step's repo and summary once trek mcp keeps the draft, a hop and a flag marked", async () => {
+  const withDraft: BuildRead = {
+    ...building,
+    steps: [
+      { id: "s1", repo: "web", kind: "call", summary: "The refund button posts", flag: null },
+      { id: "s2", repo: "api", kind: "hop", summary: "POST /refunds is handled", flag: "high" },
+    ],
+  }
+  const frame = await frameAfter(screen(withDraft), settle, 100, 30)
+
+  expect(frame).toMatch(/s1 +web +The refund button posts/)
+  expect(frame).toMatch(/s2 +api +↯ POST \/refunds is handled +⚠ likely wrong/)
 })
 
 test("tab shows the log itself, following its end", async () => {

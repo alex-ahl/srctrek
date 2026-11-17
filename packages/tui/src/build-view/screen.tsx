@@ -1,6 +1,11 @@
 import { TextAttributes } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
-import { type BuildProgress, type ChangeSummary, buildProgress } from "@srctrek/core"
+import {
+  type BuildProgress,
+  type ChangeSummary,
+  type DraftStep,
+  buildProgress,
+} from "@srctrek/core"
 import { useState } from "react"
 import { ChangeLine } from "../home/change-line"
 import { Footer, type KeyHint } from "../ui/footer"
@@ -23,8 +28,16 @@ type Props = {
   onBack: () => void
 }
 
-// The last of the agent's reads shown; the count says how many there were.
+// The last of the agent's reads, and of the steps, shown; the counts say how many there were.
 const READS_SHOWN = 5
+const STEPS_SHOWN = 6
+// A step's id and repo columns, before its summary.
+const ID_WIDTH = 5
+const REPO_WIDTH = 8
+
+const FLAG_WORDS = { high: "⚠ likely wrong", medium: "● risky", low: "● worth knowing" } as const
+
+type StepsProps = { build: BuildRead; progress: BuildProgress; saved: boolean; width: number }
 // The title bar, the footer, and the lines above the sections: what's open and the state.
 const CHROME_LINES = 8
 
@@ -54,23 +67,38 @@ function Reading({ reads, width }: { reads: readonly string[]; width: number }) 
   )
 }
 
-function Steps({
-  progress,
-  saved,
-  width,
-}: {
-  progress: BuildProgress
-  saved: boolean
-  width: number
-}) {
-  const added = count(progress.steps.length, "step")
-  const ids = wrap(progress.steps.join("  "), width - 2)
+// A step of the draft: its id, repo, and summary, a hop marked, and its flag when it has one.
+function StepLine({ step, width }: { step: DraftStep; width: number }) {
+  const tones = useTones()
+  const flag = step.flag === null ? "" : FLAG_WORDS[step.flag]
+  const summary = `${step.kind === "hop" ? "↯ " : ""}${step.summary}`
+  const room = width - 2 - ID_WIDTH - REPO_WIDTH - (flag === "" ? 0 : flag.length + 2)
+
+  return (
+    <text fg={COLOUR.text}>
+      <span fg={tones.dim}>{`  ${step.id.padEnd(ID_WIDTH)}`}</span>
+      {fit(step.repo, REPO_WIDTH - 1).padEnd(REPO_WIDTH)}
+      {fit(summary, room)}
+      {flag !== "" && <span fg={step.flag === "high" ? tones.bad : tones.warn}>{`  ${flag}`}</span>}
+    </text>
+  )
+}
+
+function Steps({ build, progress, saved, width }: StepsProps) {
+  const tones = useTones()
+  const added = count(Math.max(build.steps.length, progress.steps.length), "step")
+  const latest = build.steps.slice(-STEPS_SHOWN)
+  const before = build.steps.length - latest.length
+
   return (
     <box flexDirection="column" style={{ marginBottom: 1, flexShrink: 0 }}>
       <Heading title="STEPS" detail={saved ? added : `${added} added`} />
-      {ids.map((line, i) => (
-        <text key={i} fg={COLOUR.text}>{`  ${line}`}</text>
-      ))}
+      {before > 0 && <text fg={tones.dim}>{`  … ${before} before`}</text>}
+      {latest.length > 0
+        ? latest.map((step) => <StepLine key={step.id} step={step} width={width} />)
+        : wrap(progress.steps.join("  "), width - 2).map((line, i) => (
+            <text key={i} fg={COLOUR.text}>{`  ${line}`}</text>
+          ))}
     </box>
   )
 }
@@ -126,7 +154,7 @@ function Sections({
     <>
       {progress.title === undefined && <Reading reads={progress.reads} width={width} />}
       {progress.title !== undefined && (
-        <Steps progress={progress} saved={build.state === "done"} width={width} />
+        <Steps build={build} progress={progress} saved={build.state === "done"} width={width} />
       )}
       {progress.title !== undefined && !ended && <Reading reads={progress.reads} width={width} />}
       {rejected && <Rejected rounds={progress.rejected} width={width} />}

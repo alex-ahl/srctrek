@@ -176,6 +176,7 @@ export {
   type BuildState,
 } from "./build/agent/background"
 export { buildProgress, buildTimes, type BuildProgress } from "./build/agent/progress"
+export { buildDraftSteps, writeBuildDraft, type DraftStep } from "./build/agent/draft-file"
 export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status/status"
 export { buildChangeTrek } from "./build/agent/start"
 export { checkAgent, type AgentCheck } from "./build/agent/check"

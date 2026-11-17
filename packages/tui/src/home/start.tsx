@@ -6,6 +6,7 @@ import {
   type TrekEntry,
   type TrekStatus,
   acceptProposal,
+  buildDraftSteps,
   buildLogTail,
   buildState,
   buildTimes,
@@ -97,12 +98,13 @@ function Home(props: HomeProps) {
   })
 
   const readBuild = async (name: string): Promise<BuildRead> => {
-    const [log, state, times] = await Promise.all([
+    const [log, steps, state, times] = await Promise.all([
       buildLogTail(root, name, Number.POSITIVE_INFINITY),
+      buildDraftSteps(root, name),
       buildState(root, name),
       buildTimes(root, name),
     ])
-    return { log, state, ...times }
+    return { log, steps, state, ...times }
   }
 
   // Adding or dismissing a proposed repo settles it, so it leaves the list.

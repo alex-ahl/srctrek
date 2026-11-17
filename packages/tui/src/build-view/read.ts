@@ -1,9 +1,13 @@
-import type { BuildProgress, BuildState } from "@srctrek/core"
+import type { BuildProgress, BuildState, DraftStep } from "@srctrek/core"
 import { STATE_LABELS, type StateLabel } from "../ui/state-labels"
 
-/** A build as the view reads it each time it looks: its log, where it stands, and its clock. */
+/**
+ * A build as the view reads it each time it looks: its log, its draft's steps so far, where it
+ * stands, and its clock.
+ */
 export type BuildRead = Readonly<{
   log: readonly string[]
+  steps: readonly DraftStep[]
   state: BuildState | undefined
   started: Date | undefined
   ended: Date | undefined

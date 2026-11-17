@@ -56,8 +56,8 @@ function rank(order: readonly string[], id: string): number {
   return place === -1 ? order.length : place
 }
 
-// The steps in trek order: as added, unless the draft keeps an updated trek's order.
-function orderedSteps({ steps, order }: Draft): TrekStep[] {
+/** The steps in trek order: as added, unless the draft keeps an updated trek's order. */
+export function orderedSteps({ steps, order }: Draft): TrekStep[] {
   if (order === undefined) {
     return [...steps]
   }

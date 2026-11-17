@@ -34,6 +34,7 @@ export async function startBuild(
   await mkdir(files.dir, { recursive: true })
   await rm(files.exit, { force: true })
   await rm(files.pid, { force: true })
+  await rm(files.draft, { force: true })
 
   // The user's command line with the instruction as its last argument, as for asking, then
   // the agent's exit code written where buildState looks for it.

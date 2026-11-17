@@ -16,6 +16,9 @@ const Via = z.object({
   guessed: z.boolean(),
 })
 
+/** What a step is: a call, a return to the caller, a hop to another repo, or context code. */
+export const StepKindSchema = z.enum(["call", "return", "hop", "context"])
+
 /** How strongly a step's flag says something is wrong, most severe first. */
 export const SeveritySchema = z.enum(["high", "medium", "low"])
 
@@ -49,7 +52,7 @@ const StepFields = z.object({
   end_line: z.number().int().positive(),
   // git blob id of the file at the trek's revision; a mismatch marks the step stale
   blob: z.string().regex(/^[0-9a-f]{40}$/),
-  kind: z.enum(["call", "return", "hop", "context"]),
+  kind: StepKindSchema,
   changed: z.boolean(),
   // the function, route, or handler the step shows, as the code names it
   name: nonEmpty.optional(),

@@ -138,6 +138,23 @@ describe("building a trek over trek mcp", () => {
     expect(lines.at(-1)).toBe("")
   })
 
+  test("keeps the draft's steps beside the build's log as they're added", async () => {
+    const dir = await makeFeatureRepo()
+    const { s1 } = stepsFor(basename(dir))
+    const log = join(dir, "build.log")
+    client = new McpTestClient(dir, { [BUILD_LOG_ENV]: log })
+    await client.initialize()
+    await client.call("open_change", { args: [] })
+    await client.call("start_trek", header)
+    await client.call("add_steps", { steps: [s1] })
+
+    const draft: unknown = JSON.parse(await Bun.file(join(dir, "build.draft.json")).text())
+    expect(draft).toEqual({
+      title: "Total",
+      steps: [{ id: "s1", repo: basename(dir), kind: "call", summary: s1.summary, flag: null }],
+    })
+  })
+
   test("records the triggers found in code opened with plain --code, checking their evidence", async () => {
     const dir = await makeFeatureRepo()
     const repo = basename(dir)
