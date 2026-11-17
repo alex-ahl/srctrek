@@ -18,8 +18,10 @@ const MAX_NAME_WIDTH = 44
 
 const rowKey = (row: PickerRow) => JSON.stringify(row.choice)
 
-// Working out a pull request's trek means fetching it first, too slow to do for each row.
-const hasQuickStatus = (row: PickerRow) => row.choice.kind !== "pull-request"
+// Working out a pull request's trek means fetching it first, too slow to do for each row; a row
+// that asks has no trek until it's answered.
+const hasQuickStatus = (row: PickerRow) =>
+  row.choice.kind !== "pull-request" && row.asks === undefined
 
 /** Each row's trek status as it's worked out; one that can't be worked out is left blank. */
 export function useStatuses(
@@ -238,10 +240,13 @@ const isOpen = (item: PickerItem, drop: DropView | undefined) =>
 const startsGroup = (previous: PickerItem | undefined, item: PickerItem) =>
   previous === undefined || groupOf(previous) !== groupOf(item)
 
-// The pull requests' note goes before the repos, or at the end when there are none.
+// The pull requests' note goes where they would: before code as it is and the repos.
 function noteIndex(items: readonly PickerItem[]): number {
-  const repos = items.findIndex((item) => item.kind !== "change")
-  return repos === -1 ? items.length : repos
+  const after = items.findIndex((item) => {
+    const group = groupOf(item)
+    return group === "CODE AS IT IS" || group === "MORE REPOS"
+  })
+  return after === -1 ? items.length : after
 }
 
 function Note({ note, first }: { note: PickerNote | undefined; first: boolean }) {

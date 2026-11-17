@@ -3,6 +3,8 @@ import { checkedOutBranch, commitsBetween } from "../git/refs"
 import { runGit } from "../git/run"
 import { parsePullRequestUrl } from "../repos/pull-request"
 
+const CODE = "--code"
+
 /**
  * A repo beside this one, ticked to go with the change: by its path, as changed or passed through
  * unchanged, and the branch chosen for it; without one, a changed repo is read on what it has
@@ -12,14 +14,16 @@ export type RepoPick = Readonly<{ path: string; changed: boolean; branch?: strin
 
 /**
  * Which change trek is about, as the user chooses it on screen: their own branch (with or without
- * work not yet committed), another branch of the same repo, a pull request by its link, or what
- * trek's arguments named; with the repos beside it ticked to go along.
+ * work not yet committed), another branch of the same repo, a pull request by its link, the code
+ * as it is (from a trigger the user names, or finding its ways in), or what trek's arguments
+ * named; with the repos beside it ticked to go along.
  */
 export type ChangeChoice = Readonly<
   (
     | { kind: "own"; uncommitted: boolean }
     | { kind: "branch"; name: string }
     | { kind: "pull-request"; url: string }
+    | { kind: "code"; trigger?: string }
     | { kind: "given"; args: readonly string[] }
   ) & { repos?: readonly RepoPick[] }
 >
@@ -36,13 +40,26 @@ const repoArguments = (repos: readonly RepoPick[]) =>
  */
 export function choiceArguments(choice: ChangeChoice): string[] {
   const repos = choice.repos ?? []
+  if (choice.kind === "code") {
+    return codeArguments(choice.trigger, repos)
+  }
+
   const change = changeArguments(choice)
   const own = choice.kind === "own" && repos.length > 0 ? ["...HEAD"] : []
 
   return [...change, ...own, ...repoArguments(repos)]
 }
 
-function changeArguments(choice: ChangeChoice): string[] {
+// Code as it is takes repos only, each read on what it has checked out; with any ticked, this repo
+// is named too, since trek only reads it by default when given no repos.
+function codeArguments(trigger: string | undefined, repos: readonly RepoPick[]): string[] {
+  const option = trigger === undefined ? CODE : `${CODE}=${trigger}`
+  const named = repos.length === 0 ? [] : [".", ...repos.map((repo) => repo.path)]
+
+  return [option, ...named]
+}
+
+function changeArguments(choice: Exclude<ChangeChoice, { kind: "code" }>): string[] {
   if (choice.kind === "own") {
     return choice.uncommitted ? ["--uncommitted"] : []
   }
@@ -56,7 +73,7 @@ function changeArguments(choice: ChangeChoice): string[] {
 
 /**
  * The choice trek's arguments make: none, or only --uncommitted, is the user's own branch; one
- * pull request's link alone is that pull request.
+ * pull request's link alone is that pull request; --code alone is the code as it is.
  */
 export function choiceOfArguments(args: readonly string[]): ChangeChoice {
   const [only] = args
@@ -70,6 +87,11 @@ export function choiceOfArguments(args: readonly string[]): ChangeChoice {
 
   if (only === "--uncommitted") {
     return { kind: "own", uncommitted: true }
+  }
+
+  if (only === CODE || only.startsWith(`${CODE}=`)) {
+    const trigger = only.slice(`${CODE}=`.length).trim()
+    return trigger === "" ? { kind: "code" } : { kind: "code", trigger }
   }
 
   return parsePullRequestUrl(only) === undefined

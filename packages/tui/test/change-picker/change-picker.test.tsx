@@ -265,7 +265,7 @@ test("space ticks a repo, which goes along with the change enter opens", async (
     app(onPick),
     async (input) => {
       await openListed(input)
-      down(input, 6)
+      down(input, 8)
       await Bun.sleep(20)
       input.pressKey(" ")
       await Bun.sleep(20)
@@ -282,7 +282,7 @@ test("enter on a repo opens the current change with the ticked repos", async () 
   const onPick = mock((_choice: ChangeChoice) => undefined)
   await frameAfter(app(onPick), async (input) => {
     await openListed(input)
-    down(input, 6)
+    down(input, 8)
     await Bun.sleep(20)
     input.pressKey(" ")
     await Bun.sleep(20)
@@ -298,7 +298,7 @@ test("enter on the fold lists the rest, and a repo on its default branch is pass
     app(() => undefined),
     async (input) => {
       await openListed(input)
-      down(input, 7)
+      down(input, 9)
       await Bun.sleep(20)
       input.pressEnter()
       await Bun.sleep(20)
@@ -347,7 +347,7 @@ test("typing narrows a repo's branches by name, author, or message", () => {
 // The picker open on api's branches.
 const openDrop = async (input: Parameters<Parameters<typeof frameAfter>[1]>[0]) => {
   await openListed(input)
-  down(input, 6)
+  down(input, 8)
   await Bun.sleep(20)
   input.pressArrow("right")
   await Bun.sleep(50)
@@ -487,4 +487,50 @@ test("a ticked repo that isn't beside this one stays listed, and goes along with
 
   expect(frame).toMatch(/\[x\] billing +\.\.\/\.\.\/work\/billing +invoices/)
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [billing] })
+})
+
+test("lists code as it is after the pull requests: its ways in, or a trigger to follow", async () => {
+  const onPick = mock((_choice: ChangeChoice) => undefined)
+  const frame = await frameAfter(app(onPick), openListed, 110, 34)
+  await frameAfter(app(onPick), async (input) => {
+    await openListed(input)
+    down(input, 6)
+    await Bun.sleep(20)
+    input.pressEnter()
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toMatch(/CODE AS IT IS\s+its ways in +routes, events, and commands to follow/)
+  expect(frame).toMatch(/follow a trigger… +one you name, through the code/)
+  expect(onPick).toHaveBeenCalledWith({ kind: "code" })
+})
+
+test("enter on follow a trigger asks for it, then opens the code from it", async () => {
+  const onPick = mock((_choice: ChangeChoice) => undefined)
+  const frame = await frameAfter(
+    app(onPick),
+    async (input) => {
+      await openListed(input)
+      down(input, 7)
+      await Bun.sleep(20)
+      input.pressEnter()
+      await Bun.sleep(20)
+    },
+    110,
+    34,
+  )
+  await frameAfter(app(onPick), async (input) => {
+    await openListed(input)
+    down(input, 7)
+    await Bun.sleep(20)
+    input.pressEnter()
+    await Bun.sleep(20)
+    await input.typeText("a refund request")
+    input.pressEnter()
+    await Bun.sleep(20)
+  })
+
+  expect(frame).toContain("Follow:")
+  expect(frame).toContain("a trigger in your words")
+  expect(onPick).toHaveBeenCalledWith({ kind: "code", trigger: "a refund request" })
 })

@@ -2,11 +2,13 @@ import type { BranchChoices, ChangeChoice, OpenPullRequest } from "@srctrek/core
 import { count } from "../ui/text"
 
 /** The headings the picker's rows sit under, in the order they're listed. */
-export type PickerGroup = "YOUR WORK" | "OTHER BRANCHES" | "PULL REQUESTS" | "MORE REPOS"
+export type PickerGroup =
+  "YOUR WORK" | "OTHER BRANCHES" | "PULL REQUESTS" | "CODE AS IT IS" | "MORE REPOS"
 
 /**
  * A change the picker offers: under its heading, its name and what it holds, the choice it makes,
- * and what picking it opens, in words.
+ * and what picking it opens, in words. A row that `asks` takes one more word first: the trigger
+ * for code as it is, made into its choice by `answered`.
  */
 export type PickerRow = Readonly<{
   group: PickerGroup
@@ -14,6 +16,7 @@ export type PickerRow = Readonly<{
   detail: string
   choice: ChangeChoice
   opens: string
+  asks?: Readonly<{ question: string; hint: string; answered: (answer: string) => ChangeChoice }>
 }>
 
 const since = (commits: number, base: string) => `${count(commits, "commit")} since ${base}`
@@ -57,6 +60,34 @@ export function pickerRows(choices: BranchChoices): PickerRow[] {
   }))
 
   return [...ownRows(choices), ...others]
+}
+
+/**
+ * Code as it is, with no change: finding its ways in, or following a trigger the user names
+ * through it.
+ */
+export function codeRows(): PickerRow[] {
+  return [
+    {
+      group: "CODE AS IT IS",
+      label: "its ways in",
+      detail: "routes, events, and commands to follow",
+      choice: { kind: "code" },
+      opens: "code as it is · its ways in",
+    },
+    {
+      group: "CODE AS IT IS",
+      label: "follow a trigger…",
+      detail: "one you name, through the code",
+      choice: { kind: "code", trigger: "" },
+      opens: "code as it is, from a trigger you name",
+      asks: {
+        question: "Follow:",
+        hint: "a trigger in your words: a refund request, the nightly import",
+        answered: (trigger) => ({ kind: "code", trigger }),
+      },
+    },
+  ]
 }
 
 // Who opened it, and what sets it apart: waiting on the user's review, or still a draft.

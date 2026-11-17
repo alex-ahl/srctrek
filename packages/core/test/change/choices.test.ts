@@ -78,6 +78,33 @@ describe("choiceArguments and choiceOfArguments", () => {
     expect(args).toEqual(["...feature/refunds"])
     expect(read.changes).toMatchObject([{ kind: "range", range: { head: "feature/refunds" } }])
   })
+
+  test("code as it is is --code, with the trigger named when there is one, and back again", () => {
+    expect(choiceArguments({ kind: "code" })).toEqual(["--code"])
+    expect(choiceArguments({ kind: "code", trigger: "a refund request" })).toEqual([
+      "--code=a refund request",
+    ])
+    expect(choiceOfArguments(["--code"])).toEqual({ kind: "code" })
+    expect(choiceOfArguments(["--code=a refund request"])).toEqual({
+      kind: "code",
+      trigger: "a refund request",
+    })
+  })
+
+  test("code as it is takes ticked repos as repos only, with this one named too", () => {
+    const args = choiceArguments({
+      kind: "code",
+      repos: [
+        { path: "../api", changed: true, branch: "refunds-api" },
+        { path: "../worker", changed: false },
+      ],
+    })
+
+    const read = readChangeArguments(args, () => true)
+
+    expect(args).toEqual(["--code", ".", "../api", "../worker"])
+    expect(read.unchanged.map((repo) => repo.source)).toEqual([".", "../api", "../worker"])
+  })
 })
 
 describe("branchChoices", () => {

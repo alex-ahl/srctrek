@@ -15,13 +15,14 @@ import { type PickerItem, type PickerNote, PickerList, useStatuses } from "./lis
 import { type Ticked, opensWith, repoItems, tickedOf, toggled } from "./repos"
 import type { DropRow } from "./drop"
 import { useDrop } from "./use-drop"
-import { type PickerRow, pickerRows, pullRequestRows, sameChange } from "./rows"
+import { type PickerRow, codeRows, pickerRows, pullRequestRows, sameChange } from "./rows"
 import { choiceName } from "../home/opening-line"
 import { Footer } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { COLOUR, useTones } from "../ui/theme"
 import { moveKeys, stepped } from "../ui/move"
 import { TitleBar } from "../ui/title-bar"
+import { TextPrompt } from "../ui/text-prompt"
 
 type Props = {
   // the change the home screen is about now, marked in the list, and the changes to choose from
@@ -83,7 +84,10 @@ function pullNote(pulls: Loaded): PickerNote | undefined {
 function useRows(props: Props) {
   const branches = useLoaded(props.load, pickerRows)
   const pulls = useLoaded(props.pullRequests, pullRequestRows)
-  const rows = useMemo(() => [...rowsOf(branches), ...rowsOf(pulls)], [branches, pulls])
+  const rows = useMemo(
+    () => [...rowsOf(branches), ...rowsOf(pulls), ...codeRows()],
+    [branches, pulls],
+  )
 
   return { branches, rows, note: pullNote(pulls) }
 }
@@ -190,6 +194,8 @@ export function ChangePicker(props: Props) {
   const [ticked, setTicked] = useState(() => tickedOf(props.choice.repos))
   const checkouts = listedCheckouts(nearby, ticked)
   const [foldOpen, setFoldOpen] = useState(false)
+  // the row whose question is open in the footer's place, until it's answered or left
+  const [asking, setAsking] = useState<PickerRow | undefined>(undefined)
   const [chosen, setChosen] = useState(0)
   const statuses = useStatuses(rows, props.status)
   // when the picker opened, which branches' ages are measured from
@@ -214,8 +220,21 @@ export function ChangePicker(props: Props) {
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
   const move = (by: number) => setChosen((at) => stepped(at, by, items.length))
-  const enter = () =>
-    item?.kind === "fold" ? setFoldOpen(true) : props.onPick(pickOf(item, props.choice, repos))
+  const enter = () => {
+    if (item?.kind === "fold") {
+      setFoldOpen(true)
+    } else if (item?.kind === "change" && item.row.asks !== undefined) {
+      setAsking(item.row)
+    } else {
+      props.onPick(pickOf(item, props.choice, repos))
+    }
+  }
+  const answer = (text: string) => {
+    const choice = asking?.asks?.answered(text)
+    if (choice !== undefined) {
+      props.onPick(repos.length === 0 ? choice : { ...choice, repos })
+    }
+  }
   const keyActions = new Map([
     ["escape", props.onBack],
     ["return", enter],
@@ -224,8 +243,8 @@ export function ChangePicker(props: Props) {
     ["l", openDrop],
     ...moveKeys(move),
   ])
-  // While a repo's branches are open, keys go there.
-  useKeyboard((key) => drop.key(key) || keyActions.get(key.name)?.())
+  // While a row's question is open, keys go to its field; while a repo's branches are, there.
+  useKeyboard((key) => asking !== undefined || drop.key(key) || keyActions.get(key.name)?.())
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
@@ -276,7 +295,16 @@ export function ChangePicker(props: Props) {
           </text>
         </box>
       )}
-      <Footer keys={drop.drop === undefined ? keysFor(item) : DROP_KEYS} shown="" />
+      {asking?.asks === undefined ? (
+        <Footer keys={drop.drop === undefined ? keysFor(item) : DROP_KEYS} shown="" />
+      ) : (
+        <TextPrompt
+          question={asking.asks.question}
+          hint={asking.asks.hint}
+          onSubmit={answer}
+          onCancel={() => setAsking(undefined)}
+        />
+      )}
     </box>
   )
 }

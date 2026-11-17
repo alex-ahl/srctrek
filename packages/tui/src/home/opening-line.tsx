@@ -19,7 +19,7 @@ export function failureReason(error: unknown): string {
   return said.replace(/^fatal: /, "") || error.message
 }
 
-/** A choice in a few words: "your branch", "fix/rounding", "pr 12". */
+/** A choice in a few words: "your branch", "fix/rounding", "pr 12", "code as it is". */
 export function choiceName(choice: ChangeChoice): string {
   if (choice.kind === "own") {
     return choice.uncommitted ? "your branch with uncommitted work" : "your branch"
@@ -31,6 +31,10 @@ export function choiceName(choice: ChangeChoice): string {
 
   if (choice.kind === "given") {
     return choice.args.join(" ")
+  }
+
+  if (choice.kind === "code") {
+    return choice.trigger === undefined ? "code as it is" : `code from "${choice.trigger}"`
   }
 
   const number = parsePullRequestUrl(choice.url)?.number
