@@ -1,5 +1,6 @@
 import type { TrekEntry, TrekState, TrekStatus, UnreachableRepo } from "@srctrek/core"
 import type { Row } from "./rows"
+import { isChangeTrek } from "./change-trek"
 import { statusBlock } from "../status-block"
 import { STATE_LABELS, type StateLabel, doneLabel } from "../../ui/state-labels"
 import { count } from "../../ui/text"
@@ -48,7 +49,7 @@ export function stateOf(
     return STATE_LABELS.invalid
   }
 
-  if (status?.name === row.entry.name) {
+  if (status !== undefined && isChangeTrek(row.entry.name, status)) {
     return statusBlock(status, row.entry, false)
   }
 
@@ -86,7 +87,9 @@ function savedDetail(state: TrekState | undefined): string | undefined {
  */
 export function detailOf(entry: Valid, status: TrekStatus | undefined, states: States): string {
   const own =
-    status?.name === entry.name ? statusDetail(status) : savedDetail(states.get(entry.name))
+    status !== undefined && isChangeTrek(entry.name, status)
+      ? statusDetail(status)
+      : savedDetail(states.get(entry.name))
 
   return own ?? count(entry.steps, "step")
 }

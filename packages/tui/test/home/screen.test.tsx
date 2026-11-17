@@ -298,6 +298,15 @@ test("says there's nothing to trek when the change has no commits, and offers no
   expect(frame).not.toContain("b build")
 })
 
+test("leaves a trek saved earlier under the change's name as its own, once the change is empty", async () => {
+  const status: TrekStatus = { kind: "empty", name: "feature-refunds" }
+  const frame = await frameOf({ status, entries: [refund] })
+
+  expect(frame).not.toContain("THIS CHANGE")
+  expect(frame).not.toMatch(/nothing to trek +Refund orders/)
+  expect(frame).toContain("Refund orders")
+})
+
 test("shows as many treks as fit, and says which", async () => {
   const many = Array.from({ length: 24 }, (_, i) => ({ ...refund, name: `t${i}` }))
   const frame = await frameOf({ entries: many }, 110, 12)

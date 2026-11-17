@@ -1,5 +1,6 @@
 import type { ChangeSummary, RangeHead, TrekEntry, TrekState, TrekStatus } from "@srctrek/core"
 import type { Row } from "./rows"
+import { isChangeTrek } from "./change-trek"
 
 /**
  * The home screen's sections, in order: repos the agent proposed and ways into the code, which
@@ -64,7 +65,7 @@ function trekSection(entry: TrekEntry, placing: Placing): SectionId {
     return "invalid"
   }
 
-  if (entry.name === placing.status?.name) {
+  if (isChangeTrek(entry.name, placing.status)) {
     return "change"
   }
 
