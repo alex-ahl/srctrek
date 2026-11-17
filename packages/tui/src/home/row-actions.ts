@@ -87,20 +87,28 @@ export function actionsFor(
   }
 }
 
-// What enter, b, l, d, and C do here, for the footer; only keys that do something are listed.
+// Whether the block's own keys line names `key`, "b" in "b build it", so the footer needn't.
+const names = (blockKeys: string | undefined, key: string) =>
+  blockKeys?.split(" · ").some((hint) => hint.startsWith(`${key} `)) === true
+
+/**
+ * What enter, b, l, d, and C do here, for the footer; only keys that do something are listed, and
+ * b and l only when the block above doesn't already say what they do.
+ */
 export function keyHints(
   item: Item | undefined,
   status: TrekStatus | undefined,
   actions: RowActions,
   props: Props,
+  blockKeys?: string,
 ) {
   const { editor } = props
   const row = item?.kind === "row" ? item.row : undefined
   const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row, editor)
 
   return footerKeys(actions.pick === undefined ? undefined : enter, {
-    build: actions.build === undefined ? undefined : buildVerb(status),
-    log: actions.showLog !== undefined,
+    build: actions.build === undefined || names(blockKeys, "b") ? undefined : buildVerb(status),
+    log: actions.showLog !== undefined && !names(blockKeys, "l"),
     dismiss: actions.dismiss !== undefined,
     change: props.choosing !== undefined,
   })

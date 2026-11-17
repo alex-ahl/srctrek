@@ -91,7 +91,7 @@ function missingBlock(canBuild: boolean, open: Opened): StatusBlock {
     }
   }
 
-  const keys = findsWaysIn(open) ? "b find them · then pick one, and b treks it" : "b build it"
+  const keys = findsWaysIn(open) ? "b find them · then enter on one treks it" : "b build it"
   return { ...label, details: [agentDoes(open)], keys }
 }
 
@@ -203,7 +203,7 @@ export function statusBlock(
       symbol: "◇",
       state: `found ${count(status.triggers.length, "way")} in`,
       tone: "accent",
-      details: ["pick one, b treks it · enter opens a trek that's built"],
+      details: ["enter on one treks it, or opens its trek once built"],
     }
   }
 

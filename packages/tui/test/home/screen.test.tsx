@@ -259,7 +259,7 @@ test("says what the agent does before a trek is built, and for code, that b find
 
   expect(change).toContain("   your agent walks the change from its trigger to its outcome")
   expect(waysIn).toMatch(/ ○ ways in not found yet +\n/)
-  expect(waysIn).toContain("   b find them · then pick one, and b treks it")
+  expect(waysIn).toContain("   b find them · then enter on one treks it")
   expect(trigger).toContain("   your agent follows it through the code, as it runs")
   expect(trigger).toContain("   b build it")
 })
@@ -363,7 +363,8 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   expect(frame).toContain("   built before the guide last changed")
   expect(frame).toContain("   b rebuild with the current guide · enter open it")
   expect(frame).toContain("▶ ↻ older guide   Refund orders   12 steps   built today 09:12")
-  expect(frame).toContain("enter open in Neovim · b rebuild")
+  expect(frame).toContain("enter open in Neovim · E editor")
+  expect(frame).not.toContain("· b rebuild ·")
 })
 
 test("says a trek that can't be read, with its problem, and offers to rebuild it", async () => {

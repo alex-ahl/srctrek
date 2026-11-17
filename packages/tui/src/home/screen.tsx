@@ -228,7 +228,10 @@ export function App(props: Props) {
         prompt={prompt}
         props={props}
         footer={
-          <Footer keys={keyHints(item, status, { ...rowActions, pick }, props)} shown={shown} />
+          <Footer
+            keys={keyHints(item, status, { ...rowActions, pick }, props, block?.keys)}
+            shown={shown}
+          />
         }
         close={() => setPrompt(undefined)}
       />
