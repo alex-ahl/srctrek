@@ -1,5 +1,45 @@
 # Handoff
 
+## 2026-11-17 — Milestone 7: the picker finished, the home screen, the build view
+
+**Done**
+
+- A review of the whole project against the coding rules: bugs, leftovers of the old name, rules
+  written more than once (git helpers, range text, loading a trek, error text), each package's
+  folders, and small fixes. Tests share their helpers and fixtures through `packages/testing`
+  (`@srctrek/testing`).
+- The step view carries its wording: where next goes, in words ("next: into refund, line 12"),
+  and how the step was reached ("Reached from", "Reached by a hop from", "Explains"), which VS
+  Code and Neovim print as they are.
+- The change picker: while trek is open, a commit or a branch switched in any ticked repo reopens
+  the change, a ticked repo on its chosen branch; a ticked repo that isn't beside this one, such
+  as one trek was started with, stays listed and goes along with a pick. CODE AS IT IS offers
+  finding the code's ways in (`--code`) or following a trigger the user types
+  (`--code="<trigger>"`), the ticked repos going along as repos.
+- The home screen says what's open: the title bar names the repo and whether it's a change or
+  code as it is; the block's first line names the branch or pull request and its size, the
+  other repos and their heads, those passed through, or the code and its trigger. Under it, the
+  state names a saved trek by its title, says what the agent will do before one is built, and
+  for code with no trigger says the ways in aren't found yet and that `b` finds them. Keys in the
+  block are in the text colour, and the footer leaves out keys the block names.
+- A trek of the base branch's unpushed commits reads as done (`✓ pushed`) once they're pushed;
+  a change whose name a done trek holds builds under the next free name (`development-2`). With
+  a change of no commits, a trek saved under its name shows its own state.
+- Builds: `x` stops one, the agent and its shell as one process group, and it reads as
+  `■ stopped`. `l` opens the build view: the build's state with the trek's title and a clock,
+  the steps added, what the agent read, a rejected round's problems, and why it failed; `tab`
+  shows the log itself, following its end. Core reads a build's log with `buildProgress`, and
+  every line of a `trek mcp` report is marked `trek: `. A building symbol turns wherever it shows.
+
+**Next**
+
+- The build view with the draft: each step's repo and summary as it's added, which needs
+  `trek mcp` to write the draft beside the build's log.
+- Stepping a trek in the terminal, the route map, VS Code in the editor picker, and versions.
+- Parked: the change as a selectable first row with a details panel
+  (`~/handoffs/home-select.html`), and adding a repo by path or URL in the picker
+  (`~/handoffs/picker-add-repo.patch`).
+
 ## 2026-11-13 — The website
 
 **Done**
