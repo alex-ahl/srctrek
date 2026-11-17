@@ -10,6 +10,7 @@ import {
   dismissProposal,
   loadProposals,
   loadTrekEntries,
+  stopBuild,
 } from "@srctrek/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
@@ -127,6 +128,7 @@ function Home(props: HomeProps) {
           buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
         }
         onShowLog={(name) => void showLog(name)}
+        onStopBuild={(name) => void started(stopBuild(root, name))}
         proposals={proposals}
         onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
         onDismissRepo={(name) => void settle(dismissProposal(root, name))}

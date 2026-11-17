@@ -1,8 +1,11 @@
 import { join, resolve } from "node:path"
 import { runGit } from "../../git/run"
 
-/** Where a build's files live: its log (the agent's output, and trek mcp's lines) and exit code. */
-export type BuildFiles = Readonly<{ dir: string; log: string; exit: string }>
+/**
+ * Where a build's files live: its log (the agent's output, and trek mcp's lines), its exit code,
+ * and the process it runs in, to stop it by.
+ */
+export type BuildFiles = Readonly<{ dir: string; log: string; exit: string; pid: string }>
 
 /**
  * A build's files, inside the repo's git folder (the shared one, for a worktree), so they're
@@ -16,5 +19,6 @@ export async function buildFiles(root: string, name: string): Promise<BuildFiles
     dir,
     log: join(dir, `${name}.log`),
     exit: join(dir, `${name}.exit`),
+    pid: join(dir, `${name}.pid`),
   }
 }

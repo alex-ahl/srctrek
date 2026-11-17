@@ -29,7 +29,13 @@ export function enterLabel(row: Row | undefined, editor: Editor | undefined): st
   return editor === undefined ? "open, choosing an editor" : `open in ${editor.label}`
 }
 
-type Offered = { build: string | undefined; log: boolean; dismiss: boolean; change: boolean }
+type Offered = {
+  build: string | undefined
+  log: boolean
+  stop: boolean
+  dismiss: boolean
+  change: boolean
+}
 
 /** The footer's keys, in the order a person reaches for them; only those that act are listed, so
  * enter is left out where it does nothing. */
@@ -39,7 +45,8 @@ export function footerKeys(enter: string | undefined, offered: Offered): KeyHint
     ...(enter === undefined ? [] : [{ key: "enter", does: enter }]),
     ...(offered.dismiss ? [{ key: "d", does: "dismiss" }] : []),
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
-    ...(offered.log ? [{ key: "l", does: "log" }] : []),
+    ...(offered.stop ? [{ key: "x", does: "stop" }] : []),
+    ...(offered.log ? [{ key: "l", does: "see the log" }] : []),
     ...(offered.change ? [{ key: "C", does: "change" }] : []),
     { key: "E", does: "editor" },
     { key: "S", does: "settings" },

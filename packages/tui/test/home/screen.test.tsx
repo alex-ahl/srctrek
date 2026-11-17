@@ -232,7 +232,7 @@ test("says a trek of the change is being built, with the end of its log", async 
 
   expect(frame).toMatch(/ ◐ building +\n/)
   expect(frame).toContain("   added s1, s2; the trek has s1, s2")
-  expect(frame).toContain("l log")
+  expect(frame).toContain("x stop · l see the log")
   expect(frame).not.toContain("b build")
 })
 
@@ -242,7 +242,7 @@ test("shows why a build failed, and offers to build again", async () => {
 
   expect(frame).toMatch(/ ✕ build failed +\n/)
   expect(frame).toContain("   no MCP server")
-  expect(frame).toContain("   b build again · l whole log")
+  expect(frame).toContain("   b build again · l see the whole log")
   expect(frame).toContain("b build")
 })
 

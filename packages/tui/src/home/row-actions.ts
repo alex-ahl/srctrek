@@ -59,8 +59,26 @@ export function logName(row: Row | undefined, status: TrekStatus | undefined): s
   return hasLog(status) ? status.name : undefined
 }
 
+// Which build x stops: the selected trigger's, while it runs, else the change's.
+export function buildingName(
+  row: Row | undefined,
+  status: TrekStatus | undefined,
+): string | undefined {
+  if (row?.kind === "trigger" && row.found.trek.kind === "building") {
+    return row.found.trek.name
+  }
+
+  return status?.kind === "building" ? status.name : undefined
+}
+
 // What each key does on the selected row; undefined where it does nothing.
-export type RowActions = { pick: Action; build: Action; showLog: Action; dismiss: Action }
+export type RowActions = {
+  pick: Action
+  build: Action
+  showLog: Action
+  stop: Action
+  dismiss: Action
+}
 
 export function dismissAction(row: Row | undefined, onDismissRepo: Props["onDismissRepo"]): Action {
   if (row?.kind !== "proposal" || onDismissRepo === undefined) {
@@ -76,13 +94,15 @@ export function actionsFor(
   props: Props,
   askLocation: (name: string) => void,
 ): RowActions {
-  const { status, onBuild, onShowLog } = props
+  const { status, onBuild, onShowLog, onStopBuild } = props
   const log = logName(row, status)
+  const building = buildingName(row, status)
 
   return {
     pick: row === undefined ? undefined : pickAction(row, props, askLocation),
     build: canStartBuild(status) ? onBuild : undefined,
     showLog: log !== undefined && onShowLog ? () => onShowLog(log) : undefined,
+    stop: building !== undefined && onStopBuild ? () => onStopBuild(building) : undefined,
     dismiss: dismissAction(row, props.onDismissRepo),
   }
 }
@@ -91,9 +111,13 @@ export function actionsFor(
 const names = (blockKeys: string | undefined, key: string) =>
   blockKeys?.split(" · ").some((hint) => hint.startsWith(`${key} `)) === true
 
+// A key the footer lists: one that acts here, and that the block doesn't already name.
+const offers = (action: Action, blockKeys: string | undefined, key: string) =>
+  action !== undefined && !names(blockKeys, key)
+
 /**
- * What enter, b, l, d, and C do here, for the footer; only keys that do something are listed, and
- * b and l only when the block above doesn't already say what they do.
+ * What enter, b, x, l, d, and C do here, for the footer; only keys that do something are listed,
+ * and b, x, and l only when the block above doesn't already say what they do.
  */
 export function keyHints(
   item: Item | undefined,
@@ -107,8 +131,9 @@ export function keyHints(
   const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row, editor)
 
   return footerKeys(actions.pick === undefined ? undefined : enter, {
-    build: actions.build === undefined || names(blockKeys, "b") ? undefined : buildVerb(status),
-    log: actions.showLog !== undefined && !names(blockKeys, "l"),
+    build: offers(actions.build, blockKeys, "b") ? buildVerb(status) : undefined,
+    log: offers(actions.showLog, blockKeys, "l"),
+    stop: offers(actions.stop, blockKeys, "x"),
     dismiss: actions.dismiss !== undefined,
     change: props.choosing !== undefined,
   })

@@ -1,6 +1,13 @@
 import { describe, expect, test } from "bun:test"
 import { readFile } from "node:fs/promises"
-import { type BuildState, buildState, headlessBuildPrompt, startBuild } from "../../../src/index"
+import {
+  type BuildState,
+  buildLogTail,
+  buildState,
+  headlessBuildPrompt,
+  startBuild,
+  stopBuild,
+} from "../../../src/index"
 import { makeRepo } from "@srctrek/testing"
 
 // The build's state once it has ended; fails the test if it runs past `ms`.
@@ -23,6 +30,19 @@ async function stateWhenEnded(
 }
 
 describe("background builds", () => {
+  test("stop with the agent they started, ending as failed with the log saying so", async () => {
+    const root = await makeRepo()
+    // the agent ignores its instruction and runs until stopped
+    const files = await startBuild(root, [], "refunds", "sleep 30; true")
+    const pid = Number(await readFile(files.pid, "utf8"))
+
+    await stopBuild(root, "refunds")
+
+    expect(await stateWhenEnded(root, "refunds")).toBe("failed")
+    expect(await buildLogTail(root, "refunds", 1)).toEqual(["trek: stopped"])
+    expect(() => process.kill(-pid, 0)).toThrow()
+  })
+
   test("give the agent the instruction as its last argument, and log what it says", async () => {
     const root = await makeRepo()
     const files = await startBuild(root, ["main...feature"], "refunds", "printf '%s\\n'")

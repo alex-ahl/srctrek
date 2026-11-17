@@ -62,6 +62,8 @@ export type Props = {
   onBuildTrigger?: ((trigger: string) => void) | undefined
   // shows the full log of the build with this name
   onShowLog?: ((name: string) => void) | undefined
+  // stops the build of the trek by this name
+  onStopBuild?: ((name: string) => void) | undefined
   // repos the agent proposed adding to the repos list, each added or dismissed by the user;
   // added at the location the user gives when the agent found none
   proposals?: ProposedRepo[] | undefined
@@ -154,7 +156,7 @@ export function App(props: Props) {
   const askLocation = (name: string) => setPrompt({ kind: "location", name })
   const rowActions = actionsFor(row, { ...props, onOpen }, askLocation)
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
-  const { build, showLog, dismiss } = rowActions
+  const { build, showLog, stop, dismiss } = rowActions
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
   const move = (by: number) =>
@@ -166,6 +168,7 @@ export function App(props: Props) {
     ["q", onQuit],
     ["b", () => build?.()],
     ["l", () => showLog?.()],
+    ["x", () => stop?.()],
     ["d", () => dismiss?.()],
     ...moveKeys(move),
     ["return", () => pick?.()],

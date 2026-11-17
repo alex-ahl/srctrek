@@ -108,14 +108,14 @@ function buildBlock(
     return {
       ...(findsWaysIn(open) ? FINDING : STATE_LABELS.building),
       details,
-      keys: "l log",
+      keys: "x stop · l see the log",
     }
   }
 
   return {
     ...STATE_LABELS.failed,
     details: details.length === 0 ? ["its log is empty"] : details,
-    keys: canBuild ? "b build again · l whole log" : "l whole log",
+    keys: canBuild ? "b build again · l see the whole log" : "l see the whole log",
   }
 }
 

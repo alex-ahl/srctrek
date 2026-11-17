@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process"
 import { closeSync, openSync, writeFileSync } from "node:fs"
-import { mkdir, readFile, rm } from "node:fs/promises"
+import { appendFile, mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { pathExists } from "../../files"
 import { type BuildMode, headlessBuildPrompt } from "../../prompts/texts"
 import { trekPath } from "../../treks/store"
@@ -33,6 +33,7 @@ export async function startBuild(
   const files = await buildFiles(root, name)
   await mkdir(files.dir, { recursive: true })
   await rm(files.exit, { force: true })
+  await rm(files.pid, { force: true })
 
   // The user's command line with the instruction as its last argument, as for asking, then
   // the agent's exit code written where buildState looks for it.
@@ -56,8 +57,31 @@ export async function startBuild(
   })
   agent.unref()
   closeSync(log)
+  // detached, the shell leads a process group of its own, which the agent it starts joins
+  if (agent.pid !== undefined) {
+    await writeFile(files.pid, String(agent.pid))
+  }
 
   return files
+}
+
+/**
+ * Stops the build of `name`: the shell and the agent it started, as one process group. The log
+ * says it was stopped, and the build ends as failed, so it can be built again.
+ */
+export async function stopBuild(root: string, name: string): Promise<void> {
+  const files = await buildFiles(root, name)
+  const pid = Number(await readFile(files.pid, "utf8").catch(() => ""))
+  if (pid > 0) {
+    try {
+      process.kill(-pid, "SIGTERM")
+    } catch {
+      // already ended
+    }
+  }
+
+  await appendFile(files.log, `${BUILD_LOG_PREFIX}stopped\n`)
+  await writeFile(files.exit, "stopped\n")
 }
 
 /** How the build of `name` stands; undefined when it was never started here. */

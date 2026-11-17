@@ -172,6 +172,7 @@ export {
   buildSavedTrek,
   buildState,
   startBuild,
+  stopBuild,
   type BuildState,
 } from "./build/agent/background"
 export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status/status"
