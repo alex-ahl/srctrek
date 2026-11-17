@@ -183,7 +183,9 @@ export function App(props: Props) {
   const { width, height } = useTerminalDimensions()
   const changeEntry = entries.find((entry) => entry.name === status?.name)
   const block =
-    status === undefined ? undefined : statusBlock(status, changeEntry, onBuild !== undefined)
+    status === undefined
+      ? undefined
+      : statusBlock(status, changeEntry, onBuild !== undefined, props.summary)
   const { start, end } = visibleWindow(
     lines.length,
     lineOfItem(lines, selected),

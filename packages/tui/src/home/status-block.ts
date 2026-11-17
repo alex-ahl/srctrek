@@ -20,9 +20,32 @@ export type StatusBlock = StateLabel &
 // Enough of a build's log to see what it's doing or why it ended; l shows the rest.
 const LOG_LINES = 3
 
+/** What's open, as far as the block words it: a change, or code as it is from a trigger or not. */
+export type Opened = Readonly<{ code: boolean; trigger?: string | undefined }>
+
+const A_CHANGE: Opened = { code: false }
+
+// Code as it is with no trigger named: the agent finds its ways in rather than building a trek.
+const findsWaysIn = (open: Opened) => open.code && open.trigger === undefined
+
+// What the agent does when b is pressed, in a reader's words.
+function agentDoes(open: Opened): string {
+  if (findsWaysIn(open)) {
+    return "your agent finds the routes, events, and commands that start things here"
+  }
+
+  return open.code
+    ? "your agent follows it through the code, as it runs"
+    : "your agent walks the change from its trigger to its outcome"
+}
+
+// A saved trek by its title; its file's name only when it can't be read.
+const titleOf = (name: string, entry: TrekEntry | undefined) =>
+  entry?.valid === true ? entry.title : name
+
 type Of<K extends TrekStatus["kind"]> = Extract<TrekStatus, { kind: K }>
 
-// "15 steps · 3 repos", the flag, and the trek's title below it, for a trek that's saved.
+// The trek's title, "15 steps · 3 repos", and the flag, for a trek that's saved.
 function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
   if (entry === undefined || !entry.valid) {
     return { ...STATE_LABELS.ready, name, details: [] }
@@ -30,14 +53,18 @@ function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
 
   return {
     ...STATE_LABELS.ready,
-    name,
+    name: entry.title,
     holds: `${count(entry.steps, "step")} · ${count(entry.repos, "repo")}`,
     ...(entry.highFlags > 0 ? { flag: `⚠ ${entry.highFlags} likely wrong` } : {}),
-    details: [entry.title],
+    details: [],
   }
 }
 
-function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean): StatusBlock {
+function staleBlock(
+  { name, staleStops, stops }: Of<"stale">,
+  entry: TrekEntry | undefined,
+  canBuild: boolean,
+): StatusBlock {
   const changed =
     staleStops === 0
       ? "built at older commits, though none of its steps' files changed"
@@ -45,32 +72,41 @@ function staleBlock({ name, staleStops, stops }: Of<"stale">, canBuild: boolean)
 
   return {
     ...STATE_LABELS.stale,
-    name,
+    name: titleOf(name, entry),
     details: [changed],
     ...(canBuild ? { keys: "b update it" } : {}),
   }
 }
 
-function missingBlock(name: string, canBuild: boolean): StatusBlock {
-  const block = { ...STATE_LABELS.missing, name }
-  if (canBuild) {
-    return { ...block, details: [], keys: "b build it" }
+const NOT_FOUND: StateLabel = { symbol: "○", state: "ways in not found yet", tone: "dim" }
+
+// Nothing built yet: what the agent would do, and the key that starts it.
+function missingBlock(canBuild: boolean, open: Opened): StatusBlock {
+  const label = findsWaysIn(open) ? NOT_FOUND : STATE_LABELS.missing
+  if (!canBuild) {
+    return {
+      ...label,
+      details: ["set an agent in settings, or ask your agent for a trek in chat"],
+      keys: "S settings",
+    }
   }
 
-  return {
-    ...block,
-    details: ["set an agent in settings, or ask your agent for a trek in chat"],
-    keys: "S settings",
-  }
+  const keys = findsWaysIn(open) ? "b find them · then pick one, and b treks it" : "b build it"
+  return { ...label, details: [agentDoes(open)], keys }
 }
 
-function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): StatusBlock {
+const FINDING: StateLabel = { ...STATE_LABELS.building, state: "finding its ways in" }
+
+function buildBlock(
+  status: Of<"building" | "failed">,
+  canBuild: boolean,
+  open: Opened,
+): StatusBlock {
   // trek mcp's own lines start "trek: ", which says nothing here
   const details = status.logTail.slice(-LOG_LINES).map((line) => line.replace(/^trek: /, ""))
   if (status.kind === "building") {
     return {
-      ...STATE_LABELS.building,
-      name: status.name,
+      ...(findsWaysIn(open) ? FINDING : STATE_LABELS.building),
       details,
       keys: "l log",
     }
@@ -78,7 +114,6 @@ function buildBlock(status: Of<"building" | "failed">, canBuild: boolean): Statu
 
   return {
     ...STATE_LABELS.failed,
-    name: status.name,
     details: details.length === 0 ? ["its log is empty"] : details,
     keys: canBuild ? "b build again · l whole log" : "l whole log",
   }
@@ -106,6 +141,7 @@ function nameOnlyBlock(
   name: string,
   entry: TrekEntry | undefined,
   canBuild: boolean,
+  open: Opened,
 ): StatusBlock {
   if (kind === "ready") {
     return readyBlock(name, entry)
@@ -114,7 +150,7 @@ function nameOnlyBlock(
   if (kind === "older-guide") {
     return {
       ...STATE_LABELS["older-guide"],
-      name,
+      name: titleOf(name, entry),
       details: ["built before the guide last changed"],
       keys: canBuild ? "b rebuild with the current guide · enter open it" : "enter open it",
     }
@@ -123,28 +159,30 @@ function nameOnlyBlock(
   if (kind === "empty") {
     return {
       ...STATE_LABELS.empty,
-      details: [
-        "this change has no commits",
-        "give trek a range, such as trek HEAD~5..HEAD, or try --uncommitted",
-      ],
+      details: ["this change has no commits"],
+      keys: "C choose another: a branch, a pull request, uncommitted work, or code as it is",
     }
   }
 
-  return missingBlock(name, canBuild)
+  return missingBlock(canBuild, open)
 }
 
-/** The block for each state of the change's trek; `entry` is its saved trek, when listed. */
+/**
+ * The block for each state of the change's trek; `entry` is its saved trek, when listed, and
+ * `open` what kind of thing it's a trek of.
+ */
 export function statusBlock(
   status: TrekStatus,
   entry: TrekEntry | undefined,
   canBuild: boolean,
+  open: Opened = A_CHANGE,
 ): StatusBlock {
   if (status.kind === "building" || status.kind === "failed") {
-    return buildBlock(status, canBuild)
+    return buildBlock(status, canBuild, open)
   }
 
   if (status.kind === "stale") {
-    return staleBlock(status, canBuild)
+    return staleBlock(status, entry, canBuild)
   }
 
   if (status.kind === "unreadable") {
@@ -165,11 +203,11 @@ export function statusBlock(
       symbol: "◇",
       state: `found ${count(status.triggers.length, "way")} in`,
       tone: "accent",
-      details: ["pick one below to trek it"],
+      details: ["pick one, b treks it · enter opens a trek that's built"],
     }
   }
 
-  return nameOnlyBlock(status.kind, status.name, entry, canBuild)
+  return nameOnlyBlock(status.kind, status.name, entry, canBuild, open)
 }
 
 /** How many lines a block takes. */

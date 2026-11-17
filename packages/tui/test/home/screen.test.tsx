@@ -230,7 +230,7 @@ test("says a trek of the change is being built, with the end of its log", async 
   }
   const frame = await frameOf({ status, onBuild: noop, onShowLog: noop })
 
-  expect(frame).toContain(" ◐ building  feature-refunds")
+  expect(frame).toMatch(/ ◐ building +\n/)
   expect(frame).toContain("   added s1, s2; the trek has s1, s2")
   expect(frame).toContain("l log")
   expect(frame).not.toContain("b build")
@@ -240,16 +240,41 @@ test("shows why a build failed, and offers to build again", async () => {
   const status: TrekStatus = { kind: "failed", name: "feature-refunds", logTail: ["no MCP server"] }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toContain(" ✕ build failed  feature-refunds")
+  expect(frame).toMatch(/ ✕ build failed +\n/)
   expect(frame).toContain("   no MCP server")
   expect(frame).toContain("   b build again · l whole log")
   expect(frame).toContain("b build")
 })
 
+test("says what the agent does before a trek is built, and for code, that b finds its ways in", async () => {
+  const missing: TrekStatus = { kind: "missing", name: "web-code" }
+  const code: ChangeSummary = { changed: [], unchanged: ["web"], code: true }
+  const change = await frameOf({ status: missing, onBuild: noop })
+  const waysIn = await frameOf({ status: missing, onBuild: noop, summary: code })
+  const trigger = await frameOf({
+    status: missing,
+    onBuild: noop,
+    summary: { ...code, trigger: "a refund request" },
+  })
+
+  expect(change).toContain("   your agent walks the change from its trigger to its outcome")
+  expect(waysIn).toMatch(/ ○ ways in not found yet +\n/)
+  expect(waysIn).toContain("   b find them · then pick one, and b treks it")
+  expect(trigger).toContain("   your agent follows it through the code, as it runs")
+  expect(trigger).toContain("   b build it")
+})
+
+test("says it's finding the code's ways in while the agent does", async () => {
+  const status: TrekStatus = { kind: "building", name: "web-code", logTail: [] }
+  const summary: ChangeSummary = { changed: [], unchanged: ["web"], code: true }
+
+  expect(await frameOf({ status, onBuild: noop, summary })).toMatch(/ ◐ finding its ways in +\n/)
+})
+
 test("points to settings when no agent is set", async () => {
   const frame = await frameOf({ status: { kind: "missing", name: "feature-refunds" } })
 
-  expect(frame).toContain(" ○ no trek yet  feature-refunds")
+  expect(frame).toMatch(/ ○ no trek yet +\n/)
   expect(frame).toContain("   set an agent in settings, or ask your agent for a trek in chat")
   expect(frame).toContain("   S settings")
   expect(frame).not.toContain("b build")
@@ -259,8 +284,7 @@ test("picks out the change's trek once it's ready, with what it holds", async ()
   const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
   const frame = await frameOf({ entries: [other, { ...refund, highFlags: 1 }], status })
 
-  expect(frame).toContain(" ● ready  feature-refunds  12 steps · 1 repo   ⚠ 1 likely wrong")
-  expect(frame).toContain("   Refund orders")
+  expect(frame).toContain(" ● ready  Refund orders  12 steps · 1 repo   ⚠ 1 likely wrong")
   expect(frame).toContain("▶ ● ready   Refund orders   12 steps   ⚠ 1   built today 09:12")
   expect(frame).not.toContain("▶ An older trek")
 })
@@ -270,6 +294,7 @@ test("says there's nothing to trek when the change has no commits, and offers no
 
   expect(frame).toContain(" ○ nothing to trek")
   expect(frame).toContain("   this change has no commits")
+  expect(frame).toContain("   C choose another: a branch, a pull request, uncommitted work")
   expect(frame).not.toContain("b build")
 })
 
@@ -325,7 +350,7 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   const editor = { id: "nvim", label: "Neovim", command: "nvim", steps: true }
   const frame = await frameOf({ entries: [refund], status, onBuild: noop, editor })
 
-  expect(frame).toContain(" ↻ older guide  feature-refunds")
+  expect(frame).toContain(" ↻ older guide  Refund orders")
   expect(frame).toContain("   built before the guide last changed")
   expect(frame).toContain("   b rebuild with the current guide · enter open it")
   expect(frame).toContain("▶ ↻ older guide   Refund orders   12 steps   built today 09:12")
