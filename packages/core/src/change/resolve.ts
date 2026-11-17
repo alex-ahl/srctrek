@@ -1,6 +1,6 @@
 import { resolve } from "node:path"
 import type { ResolvedRange } from "../git/range"
-import { branchToRead, commitsBetween } from "../git/refs"
+import { branchToRead, commitsBetween, upstreamOf } from "../git/refs"
 import { runGit, unlessGitFails } from "../git/run"
 import { defaultCacheDir } from "../repos/cache"
 import { type RepoEntry, isRemote } from "../repos/entry"
@@ -176,9 +176,7 @@ export type ReadAt =
 // How far a local branch lags behind the branch it tracks, as of the last fetch; none when it
 // tracks nothing or is level with it. Nothing is fetched: the user's repo is left as it is.
 async function behindUpstream(dir: string, branch: string): Promise<Behind | undefined> {
-  const upstream = await unlessGitFails(
-    runGit(dir, ["rev-parse", "--abbrev-ref", `${branch}@{upstream}`]),
-  )
+  const upstream = await upstreamOf(dir, branch)
   if (upstream === undefined) {
     return undefined
   }

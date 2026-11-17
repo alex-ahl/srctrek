@@ -20,6 +20,7 @@ export const STATE_LABELS = {
 
 const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], string>> = {
   merged: "merged",
+  pushed: "pushed",
   gone: "branch gone",
   committed: "committed",
 }

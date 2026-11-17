@@ -1,9 +1,17 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { TREKS_DIR, loadTrek, resolveChange, runGit } from "../../../src/index"
 import { trekState } from "../../../src/build/status/trek-state"
-import { changeOf, commit, makeBranchRepo, makeCacheDir, saveTrekOf } from "@srctrek/testing"
+import {
+  changeOf,
+  commit,
+  makeBranchRepo,
+  makeCacheDir,
+  makeRemote,
+  saveTrekOf,
+  tempDir,
+} from "@srctrek/testing"
 
 // The trek saved as `name` in `dir`, where it stands now.
 async function stateOf(dir: string, name: string) {
@@ -33,6 +41,21 @@ describe("trekState", () => {
     await runGit(dir, ["merge", "--quiet", "--ff-only", "feature/refunds"])
 
     expect(await stateOf(dir, "refunds")).toEqual({ kind: "done", why: "merged" })
+  })
+
+  test("of the base branch's own work is done once that work is pushed", async () => {
+    const host = await makeRemote()
+    const dir = join(await tempDir("clone-"), "web")
+    await runGit(dirname(dir), ["clone", "--quiet", host.url, "web"])
+    await commit(dir, "app.ts", "unpushed\n")
+    await saveTrekOf(dir, await changeOf(dir), "main")
+    expect(await stateOf(dir, "main")).toEqual({ kind: "current" })
+
+    // as a push leaves it: the branch it tracks at its last commit
+    await runGit(dir, ["update-ref", "refs/remotes/origin/main", "HEAD"])
+    await commit(dir, "app.ts", "next\n")
+
+    expect(await stateOf(dir, "main")).toEqual({ kind: "done", why: "pushed" })
   })
 
   test("is done once its branch is gone", async () => {

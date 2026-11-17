@@ -6,6 +6,7 @@ import {
   buildState,
   loadTrek,
   resolveChange,
+  runGit,
   startBuild,
   trekStatus,
 } from "../../../src/index"
@@ -31,6 +32,20 @@ describe("trekStatus", () => {
     expect(await trekStatus(dir, await changeOf(dir))).toEqual({
       kind: "missing",
       name: "feature-refunds",
+    })
+  })
+
+  test("names new work past a trek under the branch's name whose work has landed", async () => {
+    const dir = await makeBranchRepo()
+    await saveTrekOf(dir, await changeOf(dir), "feature-refunds")
+    await runGit(dir, ["switch", "--quiet", "main"])
+    await runGit(dir, ["merge", "--quiet", "--ff-only", "feature/refunds"])
+    await runGit(dir, ["switch", "--quiet", "feature/refunds"])
+    await commit(dir, "app.ts", "const total = 300\n")
+
+    expect(await trekStatus(dir, await changeOf(dir))).toEqual({
+      kind: "missing",
+      name: "feature-refunds-2",
     })
   })
 

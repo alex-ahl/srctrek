@@ -1,6 +1,6 @@
 import { rangeCommits } from "../../schema/recorded-range"
 import { detectBase, isBaseBranch } from "../../git/base"
-import { branchToRead, isAncestor } from "../../git/refs"
+import { branchToRead, isAncestor, upstreamOf } from "../../git/refs"
 import { runGit } from "../../git/run"
 import { defaultCacheDir } from "../../repos/cache"
 import { isRemote } from "../../repos/entry"
@@ -22,7 +22,7 @@ import { stopIds } from "./stops"
 export type TrekState = Readonly<
   | { kind: "current" | "unchecked" }
   | { kind: "stale"; staleStops: number; stops: number }
-  | { kind: "done"; why: "merged" | "gone" | "committed" }
+  | { kind: "done"; why: "merged" | "pushed" | "gone" | "committed" }
   | { kind: "unreachable"; unreachable: UnreachableRepo }
 >
 
@@ -38,10 +38,20 @@ type RepoState =
 
 const rangeEnd = (repo: TrekRepo) => rangeCommits(repo.range)?.head ?? repo.revision
 
-// A branch's work is merged when its last commit is in the base branch, unless it is the base.
-async function isMerged(dir: string, branch: string, work: string): Promise<boolean> {
+// How a branch's work has landed, if it has: merged, its last commit in the base branch; or, for
+// the base branch itself, whose treks are of work not yet pushed, pushed to the branch it tracks.
+async function landedAs(
+  dir: string,
+  branch: string,
+  work: string,
+): Promise<"merged" | "pushed" | undefined> {
   const base = await detectBase(dir)
-  return !isBaseBranch(base, branch) && isAncestor(dir, work, base)
+  if (!isBaseBranch(base, branch)) {
+    return (await isAncestor(dir, work, base)) ? "merged" : undefined
+  }
+
+  const upstream = await upstreamOf(dir, branch)
+  return upstream !== undefined && (await isAncestor(dir, work, upstream)) ? "pushed" : undefined
 }
 
 // A changed repo's branch now. A snapshot of uncommitted work is in no branch, so it's compared
@@ -59,8 +69,9 @@ async function changedRepoState(dir: string, repo: TrekRepo): Promise<RepoState>
 
   const end = rangeEnd(repo)
   const left = head.uncommitted ? await runGit(dir, ["rev-parse", `${end}^`]) : end
-  if (!head.uncommitted && (await isMerged(dir, head.name, end))) {
-    return { kind: "done", why: "merged" }
+  const landed = head.uncommitted ? undefined : await landedAs(dir, head.name, end)
+  if (landed !== undefined) {
+    return { kind: "done", why: landed }
   }
 
   const commit = await runGit(dir, ["rev-parse", branch.ref])

@@ -56,6 +56,11 @@ export async function branchToRead(
 }
 
 /** How many commits `to` has that `from` doesn't: "4" for a branch 4 commits past its base. */
+/** The branch `branch` tracks, "origin/development"; none when it tracks nothing. */
+export function upstreamOf(dir: string, branch: string): Promise<string | undefined> {
+  return unlessGitFails(runGit(dir, ["rev-parse", "--abbrev-ref", `${branch}@{upstream}`]))
+}
+
 export async function commitsBetween(dir: string, from: string, to: string): Promise<number> {
   return Number(await runGit(dir, ["rev-list", "--count", `${from}..${to}`]))
 }

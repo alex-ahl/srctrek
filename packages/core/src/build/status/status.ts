@@ -9,6 +9,7 @@ import { PROMPT_HASH } from "../../prompts/texts"
 import { loadTrek, loadTrekOrProblem, trekPath } from "../../treks/store"
 import { trekNameFor } from "./name"
 import { type Trigger, loadTriggers } from "../triggers"
+import { trekState } from "./trek-state"
 
 /**
  * Where a change's trek stands: saved and ready, or built with an older guide than today's, or
@@ -143,6 +144,31 @@ async function changedStatus(
   return (await savedStatus(root, name, change)) ?? buildStatus(root, name)
 }
 
+// Whether a trek saved under `name` is one whose work has landed: merged into the base, its branch
+// gone, or what it showed committed since. A long-lived branch, trekked again after a push,
+// reuses its name for new work.
+async function isDone(root: string, name: string): Promise<boolean> {
+  const path = trekPath(root, name)
+  if (!(await pathExists(path))) {
+    return false
+  }
+
+  const saved = await loadTrekOrProblem(path)
+  return "trek" in saved && (await trekState(root, saved.trek)).kind === "done"
+}
+
+// The change's name, or, while a trek whose work has landed holds it, the next one free:
+// "development-2", so that trek stays as it was, listed with the done ones.
+async function nameFor(root: string, change: ResolvedChange): Promise<string> {
+  const name = await trekNameFor(change)
+  let next = name
+  for (let n = 2; await isDone(root, next); n += 1) {
+    next = `${name}-${n}`
+  }
+
+  return next
+}
+
 /** The status of the change's trek, by the name a new trek of it would get. */
 export async function trekStatus(root: string, change: ResolvedChange): Promise<TrekStatus> {
   if (change.code !== undefined && change.code.trigger === undefined) {
@@ -158,5 +184,5 @@ export async function trekStatus(root: string, change: ResolvedChange): Promise<
     return readyStatus(root, existing)
   }
 
-  return changedStatus(root, change, await trekNameFor(change))
+  return changedStatus(root, change, await nameFor(root, change))
 }
