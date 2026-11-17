@@ -121,16 +121,21 @@ describe("building a trek over trek mcp", () => {
     const found = await client.call("search", { repo, pattern: "total", folder: "src" })
     await client.call("start_trek", header)
     await client.call("add_steps", { steps: [s1] })
+    await client.call("add_steps", { steps: [{ ...s1, id: "s9", end_line: 99 }] })
 
-    expect((await Bun.file(log).text()).split("\n")).toEqual([
+    const lines = (await Bun.file(log).text()).split("\n")
+    expect(lines.slice(0, -2)).toEqual([
       `trek: opened ${repo}`,
       `trek: trek_guide → ${guide.text.length} chars`,
       `trek: read_file ${repo} src/app.ts 1–1 → ${read.text.length} chars`,
       `trek: search ${repo} "total" in src → ${found.text.length} chars`,
       'trek: started "Total": add steps with add_steps',
       "trek: added s1; the trek has s1",
-      "",
+      "trek: nothing was added:",
     ])
+    // each of a rejected round's problems on a line of its own, marked as trek mcp's
+    expect(lines.at(-2)).toMatch(/^trek: .*s9/)
+    expect(lines.at(-1)).toBe("")
   })
 
   test("records the triggers found in code opened with plain --code, checking their evidence", async () => {

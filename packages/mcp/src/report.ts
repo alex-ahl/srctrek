@@ -1,7 +1,7 @@
 import { appendFile } from "node:fs/promises"
 import { BUILD_LOG_ENV, BUILD_LOG_PREFIX } from "@srctrek/core"
 
-/** Adds a line to the log of the build that started the agent. */
+/** Adds a report to the log of the build that started the agent, each of its lines marked. */
 export type Report = (line: string) => Promise<void>
 
 /**
@@ -15,7 +15,8 @@ export function reportFor(env = process.env): Report {
     return async () => {}
   }
 
-  return async (line) => {
-    await appendFile(log, `${BUILD_LOG_PREFIX}${line}\n`).catch(() => undefined)
+  return async (report) => {
+    const lines = report.split("\n").map((line) => `${BUILD_LOG_PREFIX}${line}\n`)
+    await appendFile(log, lines.join("")).catch(() => undefined)
   }
 }
