@@ -293,8 +293,7 @@ test("says there's nothing to trek when the change has no commits, and offers no
   const frame = await frameOf({ status: { kind: "empty", name: "master" }, onBuild: noop })
 
   expect(frame).toContain(" ○ nothing to trek")
-  expect(frame).toContain("   this change has no commits")
-  expect(frame).toContain("   C choose another: a branch, a pull request, uncommitted work")
+  expect(frame).toContain("   C choose another change, or code as it is")
   expect(frame).not.toContain("b build")
 })
 

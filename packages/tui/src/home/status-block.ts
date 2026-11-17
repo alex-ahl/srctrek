@@ -159,8 +159,8 @@ function nameOnlyBlock(
   if (kind === "empty") {
     return {
       ...STATE_LABELS.empty,
-      details: ["this change has no commits"],
-      keys: "C choose another: a branch, a pull request, uncommitted work, or code as it is",
+      details: [],
+      keys: "C choose another change, or code as it is",
     }
   }
 

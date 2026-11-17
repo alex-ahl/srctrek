@@ -22,7 +22,8 @@ function headLabel(head: RangeHead): string {
 // "3 commits since main"; a pull request's base is the host's, so it's left unsaid.
 function sizeOf(repo: ChangedRepoSummary): string {
   const since = repo.head.kind === "branch" ? ` since ${repo.base}` : ""
-  return `${count(repo.commits, "commit")}${since}`
+  const commits = repo.commits === 0 ? "no commits" : count(repo.commits, "commit")
+  return `${commits}${since}`
 }
 
 const names = (items: readonly string[]) =>

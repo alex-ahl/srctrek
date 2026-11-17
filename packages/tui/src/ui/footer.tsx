@@ -21,7 +21,7 @@ export function Footer({ keys, shown }: { keys: readonly KeyHint[]; shown: strin
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
       <text fg={tones.dim}>{keysText(keys)}</text>
-      <text fg={tones.dim}>{shown}</text>
+      <text fg={tones.dim}>{shown === "" ? "" : `  ${shown}`}</text>
     </box>
   )
 }

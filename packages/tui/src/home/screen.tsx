@@ -118,7 +118,7 @@ function Heading({
       )}
       <OpeningLine opening={opening} />
       {block !== undefined && (
-        <box style={{ marginBottom: 1, flexShrink: 0 }}>
+        <box style={{ marginBottom: 1, paddingLeft: summary === undefined ? 0 : 2, flexShrink: 0 }}>
           <ChangeStatus block={block} />
         </box>
       )}
