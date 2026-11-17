@@ -1,6 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 import type { StatusBlock } from "./status-block"
 import { COLOUR, useTones } from "../ui/theme"
+import { useStateText } from "../ui/turning"
 
 // A hint's key, when it starts with one: "b" in "b build it", "enter" in "enter open it".
 const keyOf = (hint: string) => {
@@ -35,13 +36,14 @@ function Keys({ keys }: { keys: string }) {
 
 /** Where the change's trek stands: the state in its colour, then dim lines on why and the keys. */
 export function ChangeStatus({ block }: { block: StatusBlock }) {
-  const { symbol, state, tone, name, holds, flag, details, keys } = block
+  const { tone, name, holds, flag, details, keys } = block
   const tones = useTones()
+  const state = useStateText(block)
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
       <text fg={COLOUR.text}>
-        <span fg={tones[tone]}>{`${symbol} ${state}`}</span>
+        <span fg={tones[tone]}>{state}</span>
         {name === undefined ? "" : "  "}
         {name !== undefined && <span attributes={TextAttributes.BOLD}>{name}</span>}
         {holds === undefined ? "" : <span fg={tones.dim}>{`  ${holds}`}</span>}

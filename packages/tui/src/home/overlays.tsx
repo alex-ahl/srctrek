@@ -1,9 +1,10 @@
 import type { ChangeChoice, TrekEntry } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
-import { type ReactNode } from "react"
+import { type ReactNode, useCallback } from "react"
 import { ChangePicker } from "../change-picker/screen"
 import { EditorPicker } from "../editors/editor-picker"
 import { SettingsScreen } from "../settings/screen"
+import { BuildScreen } from "../build-view/screen"
 import type { Editor } from "../editors/editors"
 import { TextPrompt } from "../ui/text-prompt"
 import type { Choosing, Props } from "./screen"
@@ -91,7 +92,7 @@ export function Picker({
 }
 
 // What can open over the list, which keeps its selection for when it closes.
-export type Over = "settings" | "picker"
+export type Over = "settings" | "picker" | Readonly<{ kind: "build"; name: string }>
 
 // The screen open over the list, if any: the picker only where there's a change to choose.
 export function overlayFor(over: Over | undefined, props: Props, close: () => void): ReactNode {
@@ -99,11 +100,36 @@ export function overlayFor(over: Over | undefined, props: Props, close: () => vo
     return <Settings props={props} close={close} />
   }
 
+  if (typeof over === "object") {
+    return <Build name={over.name} props={props} close={close} />
+  }
+
   if (over !== "picker" || props.choosing === undefined) {
     return undefined
   }
 
   return <Picker choosing={props.choosing} tint={props.tint} close={close} />
+}
+
+// A build as it happens, over the list: the change's own, which b builds again, or a way in's.
+function Build({ name, props, close }: { name: string; props: Props; close: () => void }) {
+  const { onReadBuild, onStopBuild, onBuild, status, summary } = props
+  const read = useCallback(
+    () => onReadBuild?.(name) ?? Promise.reject(new Error("unread")),
+    [onReadBuild, name],
+  )
+  const isChange = status?.name === name
+
+  return (
+    <BuildScreen
+      summary={summary}
+      findsWaysIn={isChange && summary?.code === true && summary.trigger === undefined}
+      read={read}
+      onStop={onStopBuild === undefined ? undefined : () => onStopBuild(name)}
+      onBuildAgain={isChange ? onBuild : undefined}
+      onBack={close}
+    />
+  )
 }
 
 // The settings screen, over the list.

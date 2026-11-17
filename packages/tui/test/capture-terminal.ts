@@ -6,7 +6,7 @@
 //   bun packages/tui/test/capture-terminal.ts <out-prefix> [--cwd <dir>] [--size <W>x<H>]
 //     [--keys "<key> <key>…"] [-- <trek args>…]
 //
-// Run from the repo root after `bun run build`. Keys are names (enter, esc, up, down, space) or
+// Run from the repo root after `bun run build`. Keys are names (enter, esc, up, down, space, tab) or
 // characters, sent one by one once the screen has drawn; macOS only, as it uses `script`.
 import { parseArgs } from "node:util"
 import { resolve } from "node:path"

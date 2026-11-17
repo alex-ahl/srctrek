@@ -222,17 +222,21 @@ test("leaves out when treks were built on a narrow terminal", async () => {
   expect(frame).not.toContain("today 09:12")
 })
 
-test("says a trek of the change is being built, with the end of its log", async () => {
+test("says a trek of the change is being built, leaving its detail to the build view", async () => {
   const status: TrekStatus = {
     kind: "building",
     name: "feature-refunds",
     logTail: ['trek: started "Refund orders"', "trek: added s1, s2; the trek has s1, s2"],
   }
-  const frame = await frameOf({ status, onBuild: noop, onShowLog: noop })
+  const frame = await frameOf({
+    status,
+    onBuild: noop,
+    onReadBuild: () => Promise.reject(new Error("unread")),
+  })
 
   expect(frame).toMatch(/ ◐ building +\n/)
-  expect(frame).toContain("   added s1, s2; the trek has s1, s2")
-  expect(frame).toContain("x stop · l see the log")
+  expect(frame).not.toContain("added s1, s2")
+  expect(frame).toContain("x stop · l watch it")
   expect(frame).not.toContain("b build")
 })
 
@@ -242,7 +246,7 @@ test("shows why a build failed, and offers to build again", async () => {
 
   expect(frame).toMatch(/ ✕ build failed +\n/)
   expect(frame).toContain("   no MCP server")
-  expect(frame).toContain("   b build again · l see the whole log")
+  expect(frame).toContain("   b build again · l see why")
   expect(frame).toContain("b build")
 })
 
@@ -269,6 +273,15 @@ test("says it's finding the code's ways in while the agent does", async () => {
   const summary: ChangeSummary = { changed: [], unchanged: ["web"], code: true }
 
   expect(await frameOf({ status, onBuild: noop, summary })).toMatch(/ ◐ finding its ways in +\n/)
+})
+
+test("says a build the user stopped is stopped, and offers to build again", async () => {
+  const status: TrekStatus = { kind: "failed", name: "feature-refunds", logTail: ["trek: stopped"] }
+  const frame = await frameOf({ status, onBuild: noop })
+
+  expect(frame).toMatch(/ ■ stopped +\n/)
+  expect(frame).toContain("b build again · l see where it got to")
+  expect(frame).not.toContain("build failed")
 })
 
 test("points to settings when no agent is set", async () => {

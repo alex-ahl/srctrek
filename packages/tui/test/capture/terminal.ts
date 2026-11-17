@@ -12,6 +12,7 @@ const KEYS: Readonly<Record<string, string>> = {
   up: "\x1b[A",
   down: "\x1b[B",
   space: " ",
+  tab: "\t",
 }
 
 export type TerminalRun = Readonly<{

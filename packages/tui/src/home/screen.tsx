@@ -34,6 +34,7 @@ import { visibleWindow } from "./list/window"
 import { actionsFor, keyHints } from "./row-actions"
 import { listKey, pickFor, selectedIndex, shownItems, toggled } from "./selection"
 import { type Over, type Prompt, Bottom, overlayFor } from "./overlays"
+import type { BuildRead } from "../build-view/read"
 
 /**
  * What the change picker needs: the change chosen now, the changes to offer, where each one's
@@ -61,7 +62,8 @@ export type Props = {
   // starts building the trek of a trigger found in the code; absent when no agent is set
   onBuildTrigger?: ((trigger: string) => void) | undefined
   // shows the full log of the build with this name
-  onShowLog?: ((name: string) => void) | undefined
+  // the build of the trek by this name, as it stands: its log, state, and clock
+  onReadBuild?: ((name: string) => Promise<BuildRead>) | undefined
   // stops the build of the trek by this name
   onStopBuild?: ((name: string) => void) | undefined
   // repos the agent proposed adding to the repos list, each added or dismissed by the user;
@@ -154,7 +156,8 @@ export function App(props: Props) {
   const onOpen = (entry: TrekEntry) =>
     editor === undefined ? setPrompt({ kind: "editor", then: entry }) : props.onOpen(entry)
   const askLocation = (name: string) => setPrompt({ kind: "location", name })
-  const rowActions = actionsFor(row, { ...props, onOpen }, askLocation)
+  const openBuild = (name: string) => setOver({ kind: "build", name })
+  const rowActions = actionsFor(row, { ...props, onOpen }, askLocation, openBuild)
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
   const { build, showLog, stop, dismiss } = rowActions
 

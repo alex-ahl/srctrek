@@ -6,7 +6,9 @@ import {
   type TrekEntry,
   type TrekStatus,
   acceptProposal,
-  buildFiles,
+  buildLogTail,
+  buildState,
+  buildTimes,
   dismissProposal,
   loadProposals,
   loadTrekEntries,
@@ -18,8 +20,8 @@ import { useState } from "react"
 import { App } from "./screen"
 import { type Editor, availableEditors, openInEditor } from "../editors/editors"
 import { type FollowChange, useFollow } from "./watch/follow"
+import type { BuildRead } from "../build-view/read"
 import type { Opening } from "./opening-line"
-import { openInPager } from "../editors/pager"
 import { TonesContext } from "../ui/theme"
 import { useBuildWatch } from "./watch/use-build-watch"
 import { useChoosing } from "./use-choosing"
@@ -54,11 +56,10 @@ type HomeProps = {
   firstSettings: Settings
   onOpen: (entry: TrekEntry, editor: Editor) => void
   onQuit: () => void
-  onShowFile: (path: string) => void
 }
 
 function Home(props: HomeProps) {
-  const { root, onOpen, onQuit, onShowFile } = props
+  const { root, onOpen, onQuit } = props
   const [change, setChange] = useState(props.firstChange)
   const [choice, setChoice] = useState(props.firstChoice)
   const [entries, setEntries] = useState(props.firstEntries)
@@ -95,7 +96,14 @@ function Home(props: HomeProps) {
     onFailed: (picked, why) => setOpening({ kind: "failed", choice: picked, why }),
   })
 
-  const showLog = async (name: string) => onShowFile((await buildFiles(root, name)).log)
+  const readBuild = async (name: string): Promise<BuildRead> => {
+    const [log, state, times] = await Promise.all([
+      buildLogTail(root, name, Number.POSITIVE_INFINITY),
+      buildState(root, name),
+      buildTimes(root, name),
+    ])
+    return { log, state, ...times }
+  }
 
   // Adding or dismissing a proposed repo settles it, so it leaves the list.
   const settle = async (settling: Promise<void>) => {
@@ -127,7 +135,7 @@ function Home(props: HomeProps) {
         onBuildTrigger={
           buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
         }
-        onShowLog={(name) => void showLog(name)}
+        onReadBuild={readBuild}
         onStopBuild={(name) => void started(stopBuild(root, name))}
         proposals={proposals}
         onAddRepo={(name, location) => void settle(acceptProposal(root, name, location))}
@@ -170,7 +178,6 @@ export async function startHome(
       editors={editors}
       firstSettings={settings}
       onOpen={(entry, editor) => void openInEditor(renderer, root, entry, editor)}
-      onShowFile={(path) => void openInPager(renderer, path)}
       onQuit={() => {
         renderer.destroy()
         process.exit(0)

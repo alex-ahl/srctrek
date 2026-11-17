@@ -134,7 +134,7 @@ function home(
       status={status}
       onBuild={build}
       onBuildTrigger={build}
-      onShowLog={noop}
+      onReadBuild={() => Promise.reject(new Error("unread"))}
       proposals={extra.proposals ?? []}
       onAddRepo={noop}
       onDismissRepo={noop}

@@ -1,4 +1,4 @@
-import type { TrekEntry, TrekStatus } from "@srctrek/core"
+import { type TrekEntry, type TrekStatus, buildProgress } from "@srctrek/core"
 import { STATE_LABELS, type StateLabel } from "../ui/state-labels"
 import { count } from "../ui/text"
 
@@ -105,17 +105,27 @@ function buildBlock(
   // trek mcp's own lines start "trek: ", which says nothing here
   const details = status.logTail.slice(-LOG_LINES).map((line) => line.replace(/^trek: /, ""))
   if (status.kind === "building") {
+    // the build view has the detail; here it's enough that it's going
     return {
       ...(findsWaysIn(open) ? FINDING : STATE_LABELS.building),
-      details,
-      keys: "x stop · l see the log",
+      details: [],
+      keys: "x stop · l watch it",
+    }
+  }
+
+  // a build the user stopped ended as they asked; it didn't fail
+  if (buildProgress(status.logTail).stopped) {
+    return {
+      ...STATE_LABELS.stopped,
+      details: [],
+      keys: canBuild ? "b build again · l see where it got to" : "l see where it got to",
     }
   }
 
   return {
     ...STATE_LABELS.failed,
     details: details.length === 0 ? ["its log is empty"] : details,
-    keys: canBuild ? "b build again · l see the whole log" : "l see the whole log",
+    keys: canBuild ? "b build again · l see why" : "l see why",
   }
 }
 

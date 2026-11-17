@@ -6,6 +6,7 @@ import { statusBlock } from "../status-block"
 import { selectionMarker } from "../../ui/selectable"
 import { STATE_LABELS, type StateLabel } from "../../ui/state-labels"
 import { COLOUR, useTones } from "../../ui/theme"
+import { useStateText } from "../../ui/turning"
 import { fit } from "../../ui/text"
 
 /**
@@ -68,7 +69,7 @@ function Title({ text, width, selected }: { text: string; width: number; selecte
 
 // The state in its column, symbol and word in the state's colour; blank when unknown.
 function State({ label, width }: { label: StateLabel | undefined; width: number }) {
-  const text = label === undefined ? "" : `${label.symbol} ${label.state}`
+  const text = useStateText(label)
 
   const tones = useTones()
 

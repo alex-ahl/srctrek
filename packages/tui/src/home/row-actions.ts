@@ -93,15 +93,16 @@ export function actionsFor(
   row: Row | undefined,
   props: Props,
   askLocation: (name: string) => void,
+  openBuild: (name: string) => void,
 ): RowActions {
-  const { status, onBuild, onShowLog, onStopBuild } = props
+  const { status, onBuild, onReadBuild, onStopBuild } = props
   const log = logName(row, status)
   const building = buildingName(row, status)
 
   return {
     pick: row === undefined ? undefined : pickAction(row, props, askLocation),
     build: canStartBuild(status) ? onBuild : undefined,
-    showLog: log !== undefined && onShowLog ? () => onShowLog(log) : undefined,
+    showLog: log !== undefined && onReadBuild ? () => openBuild(log) : undefined,
     stop: building !== undefined && onStopBuild ? () => onStopBuild(building) : undefined,
     dismiss: dismissAction(row, props.onDismissRepo),
   }

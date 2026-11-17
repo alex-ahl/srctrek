@@ -12,6 +12,7 @@ export const STATE_LABELS = {
   empty: { symbol: "○", state: "nothing to trek", tone: "dim" },
   building: { symbol: "◐", state: "building", tone: "busy" },
   failed: { symbol: "✕", state: "build failed", tone: "bad" },
+  stopped: { symbol: "■", state: "stopped", tone: "dim" },
   unreadable: { symbol: "✕", state: "can't read", tone: "bad" },
   unreachable: { symbol: "✕", state: "can't open", tone: "bad" },
   invalid: { symbol: "✕", state: "invalid", tone: "bad" },
