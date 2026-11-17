@@ -12,12 +12,14 @@ export type ChangedRepoSummary = Readonly<{
 
 /**
  * What a change is, for naming it on screen: the repos it touches, the repos it passes through
- * unchanged, and whether it's code as it is rather than a change.
+ * unchanged, and whether it's code as it is rather than a change, with the trigger it follows
+ * when the user named one.
  */
 export type ChangeSummary = Readonly<{
   changed: readonly ChangedRepoSummary[]
   unchanged: readonly string[]
   code: boolean
+  trigger?: string
 }>
 
 async function summarizeRepo(repo: RepoWithRange): Promise<ChangedRepoSummary> {
@@ -31,5 +33,8 @@ export async function summarizeChange(change: ResolvedChange): Promise<ChangeSum
   const changed = await Promise.all(change.repos.filter(hasRange).map(summarizeRepo))
   const unchanged = change.repos.filter((repo) => !hasRange(repo)).map((repo) => repo.name)
 
-  return { changed, unchanged, code: change.code !== undefined }
+  const trigger = change.code?.trigger
+  const code = { changed, unchanged, code: change.code !== undefined }
+
+  return trigger === undefined ? code : { ...code, trigger }
 }

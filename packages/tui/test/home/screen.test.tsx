@@ -38,7 +38,7 @@ test("renders the empty state", async () => {
   expect(await frameOf({})).toContain("No treks in .srctrek/treks yet.")
 })
 
-test("names each repo's head in the title bar where they differ, and counts the repos", async () => {
+test("says what's open above its trek: each repo's head where they differ", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
@@ -59,11 +59,13 @@ test("names each repo's head in the title bar where they differ, and counts the 
   }
   const frame = await frameOf({ summary })
 
-  expect(frame).toContain(" srctrek › web feature/refunds + uncommitted · api pr 12 ")
-  expect(frame).toContain("3 repos · 4 commits ")
+  expect(frame).toContain(" srctrek › web › a change ")
+  expect(frame).toContain(
+    "feature/refunds + uncommitted · 3 commits since main · with api on pr 12 · worker passed through",
+  )
 })
 
-test("leads with the branch, then the repos and how many commits since the base", async () => {
+test("leads with the branch and its commits since the base, then the repos passed through", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
@@ -78,10 +80,10 @@ test("leads with the branch, then the repos and how many commits since the base"
   }
   const frame = await frameOf({ summary })
 
-  expect(frame).toMatch(/srctrek › feature\/refunds +web \+ api, worker · 9 commits since main /)
+  expect(frame).toContain("feature/refunds · 9 commits since main · api and worker passed through")
 })
 
-test("leaves the repo unnamed for a change in just the one trek runs in", async () => {
+test("names the repo in the title bar, and only the change below for one repo", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
@@ -96,40 +98,11 @@ test("leaves the repo unnamed for a change in just the one trek runs in", async 
   }
   const frame = await frameOf({ summary })
 
-  expect(frame).toMatch(/srctrek › feature\/refunds +3 commits since main /)
-  expect(frame).not.toContain("web")
+  expect(frame).toContain(" srctrek › web › a change ")
+  expect(frame).toMatch(/\n {2}feature\/refunds · 3 commits since main +\n/)
 })
 
-test("marks a change picked rather than the user's own branch", async () => {
-  const summary: ChangeSummary = {
-    changed: [
-      {
-        repo: "web",
-        base: "main",
-        head: { kind: "branch", name: "fix/rounding", uncommitted: false },
-        commits: 1,
-      },
-    ],
-    unchanged: [],
-    code: false,
-  }
-
-  const choosing = {
-    choice: { kind: "branch" as const, name: "fix/rounding" },
-    load: () => Promise.reject(new Error("unused")),
-    pullRequests: () => Promise.reject(new Error("unused")),
-    nearby: () => Promise.reject(new Error("unused")),
-    repoBranches: () => Promise.reject(new Error("unused")),
-    fetchRepo: () => Promise.reject(new Error("unused")),
-    status: () => Promise.reject(new Error("unused")),
-    onPick: () => undefined,
-  }
-
-  expect(await frameOf({ summary, choosing })).toContain("srctrek › fix/rounding · picked ")
-  expect(await frameOf({ summary })).not.toContain("picked")
-})
-
-test("gives the change the room before its size on a narrow terminal", async () => {
+test("cuts what's open to a narrow terminal, the branch first", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
@@ -144,8 +117,20 @@ test("gives the change the room before its size on a narrow terminal", async () 
   }
   const frame = await frameOf({ summary }, 60)
 
-  expect(frame).toContain("srctrek › feature/a-long-branch-about-refunds + uncommi…")
-  expect(frame).not.toContain("since main")
+  expect(frame).toContain("feature/a-long-branch-about-refunds + uncommitted · 9 c…")
+})
+
+test("says code as it is, in which repos, and from the trigger named", async () => {
+  const summary: ChangeSummary = {
+    changed: [],
+    unchanged: ["web", "api"],
+    code: true,
+    trigger: "a refund request",
+  }
+  const frame = await frameOf({ summary })
+
+  expect(frame).toContain(" srctrek › web › code as it is ")
+  expect(frame).toContain('Code as it is in web · with api, from "a refund request"')
 })
 
 test("lists the treks in sections by what they're of, newest first, folding what can't be read", async () => {

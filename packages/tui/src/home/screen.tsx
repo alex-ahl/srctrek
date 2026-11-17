@@ -26,9 +26,10 @@ import { ListLineView } from "./list/view"
 import { columnsOf } from "./list/columns"
 import { rowsOf } from "./list/rows"
 import { type SectionId, sectionsOf } from "./list/sections"
-import { statusBlock } from "./status-block"
+import { type StatusBlock, statusBlock } from "./status-block"
 import { useTones } from "../ui/theme"
 import { ChangeTitleBar } from "./change-title"
+import { ChangeLine } from "./change-line"
 import { visibleWindow } from "./list/window"
 import { actionsFor, keyHints } from "./row-actions"
 import { listKey, pickFor, selectedIndex, shownItems, toggled } from "./selection"
@@ -87,9 +88,42 @@ export type Props = {
   onChangeSetting?: SettingChange | undefined
 }
 
-// A change other than the user's own branch, picked on screen or named by trek's arguments.
-function isPicked(choosing: Choosing | undefined): boolean {
-  return choosing !== undefined && choosing.choice.kind !== "own"
+// The change line, when there's a change to name, and the blank line under it when no block follows.
+function headingLines(summary: ChangeSummary | undefined, block: StatusBlock | undefined): number {
+  if (summary === undefined) {
+    return 0
+  }
+
+  return block === undefined ? 2 : 1
+}
+
+// Above the list: what's open, a pick still opening or why it couldn't, and where its trek stands.
+function Heading({
+  summary,
+  opening,
+  block,
+  width,
+}: {
+  summary: ChangeSummary | undefined
+  opening: Opening | undefined
+  block: StatusBlock | undefined
+  width: number
+}) {
+  return (
+    <>
+      {summary !== undefined && (
+        <box style={{ marginBottom: block === undefined ? 1 : 0, flexShrink: 0 }}>
+          <ChangeLine summary={summary} width={width - 2 * PADDING} />
+        </box>
+      )}
+      <OpeningLine opening={opening} />
+      {block !== undefined && (
+        <box style={{ marginBottom: 1, flexShrink: 0 }}>
+          <ChangeStatus block={block} />
+        </box>
+      )}
+    </>
+  )
 }
 
 export function App(props: Props) {
@@ -153,7 +187,7 @@ export function App(props: Props) {
   const { start, end } = visibleWindow(
     lines.length,
     lineOfItem(lines, selected),
-    listHeight(height, block),
+    listHeight(height, block, headingLines(props.summary, block)),
   )
   const shown = shownItems(lines.slice(start, end), items.length)
   const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
@@ -166,7 +200,7 @@ export function App(props: Props) {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <ChangeTitleBar summary={props.summary} picked={isPicked(props.choosing)} />
+      <ChangeTitleBar summary={props.summary} />
       <box
         flexDirection="column"
         style={{
@@ -177,12 +211,7 @@ export function App(props: Props) {
           overflow: "hidden",
         }}
       >
-        <OpeningLine opening={props.opening} />
-        {block !== undefined && (
-          <box style={{ marginBottom: 1, flexShrink: 0 }}>
-            <ChangeStatus block={block} />
-          </box>
-        )}
+        <Heading summary={props.summary} opening={props.opening} block={block} width={width} />
         {rows.length === 0 ? (
           <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>
         ) : (
