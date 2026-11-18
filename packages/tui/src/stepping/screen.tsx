@@ -12,7 +12,6 @@ import { End, Overview } from "./ends"
 import { SIDE_WIDTH, Side } from "./side"
 import { type Move, type Stepping, useStepping } from "./use-stepping"
 import { type Layer, LayerView, layerKeys, layerWhere, useLayer } from "./layers"
-import { RouteStrip } from "./route-map"
 import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf } from "./peek"
 import { openAtLine } from "../editors/editors"
@@ -52,11 +51,10 @@ type BodyProps = {
   onLayout: (layout: Layout) => void
   // what's open over the code, drawn in its place
   over: (width: number, height: number) => ReactNode
-  route: readonly RouteStop[]
   tint: RGBA | undefined
 }
 
-function Body({ view, width, height, place, onLayout, over, route, tint }: BodyProps) {
+function Body({ view, width, height, place, onLayout, over, tint }: BodyProps) {
   if (view.kind === "overview") {
     return <Overview view={view} width={width} />
   }
@@ -67,17 +65,18 @@ function Body({ view, width, height, place, onLayout, over, route, tint }: BodyP
 
   const side = width >= SIDE_FROM_WIDTH
   const code = side ? width - SIDE_WIDTH : width
-  const drawn = over(code, height - 2)
+  // no room beside the code: the call stack on a line over it
+  const room = side ? height : height - 1
+  const drawn = over(code, room)
   return (
     <box flexDirection="column" style={{ flexGrow: 1 }}>
-      <RouteStrip route={route} here={view.id} />
-      {side ? <text> </text> : <StackLine view={view} width={width} />}
+      {!side && <StackLine view={view} width={width} />}
       <box flexDirection="row" style={{ flexGrow: 1 }}>
         {drawn ?? (
           <Code
             view={view}
             width={code}
-            height={height - 2}
+            height={room}
             place={place}
             onLayout={onLayout}
             tint={tint}
@@ -105,8 +104,35 @@ function callAt(view: SessionView | undefined, cursor: number | undefined): stri
   return view.calls.find((call) => call.call_line === cursor)?.id
 }
 
-function stopText(view: SessionView): string {
-  return view.kind === "step" ? `  ${String(view.number)} / ${String(view.count)}` : ""
+// "  6 / 15 · api 2 of 5 · ⚠ 1 ahead": the stop among them all, its place in its repo's run of
+// stops, and the likely-wrong flags still to come.
+function stopText(view: SessionView, route: readonly RouteStop[]): string {
+  if (view.kind !== "step") {
+    return ""
+  }
+
+  return `  ${String(view.number)} / ${String(view.count)}${inRepo(route, view.id)}${flagsAhead(route, view.id)}`
+}
+
+// " · api 2 of 5": the stop's place among the stops of its repo, between hops.
+function inRepo(route: readonly RouteStop[], here: string): string {
+  const at = route.findIndex((stop) => stop.id === here)
+  const stop = route[at]
+  if (stop === undefined) {
+    return ""
+  }
+
+  const startsRun = (each: RouteStop) => each.repoChange !== undefined
+  const start = route.slice(0, at + 1).findLastIndex(startsRun)
+  const after = route.slice(at + 1).findIndex(startsRun)
+  const end = after === -1 ? route.length : at + 1 + after
+  return ` · ${stop.repo} ${String(at - start + 1)} of ${String(end - start)}`
+}
+
+function flagsAhead(route: readonly RouteStop[], here: string): string {
+  const at = route.findIndex((stop) => stop.id === here)
+  const ahead = route.slice(at + 1).filter((stop) => stop.flag === "high").length
+  return ahead === 0 ? "" : ` · ⚠ ${String(ahead)} ahead`
 }
 
 /**
@@ -144,17 +170,13 @@ function useCursor(height: number) {
 }
 
 const STEP_KEYS: readonly KeyHint[] = [
-  { key: "n", does: "next" },
-  { key: "p", does: "previous" },
-  { key: "i", does: "into" },
-  { key: "o", does: "out" },
-  { key: "O", does: "over" },
-  { key: "↑/↓", does: "line" },
+  { key: "n/p", does: "next/prev" },
+  { key: "i/o/O", does: "in/out/over" },
   { key: "d", does: "details" },
   { key: "c", does: "change" },
   { key: "r", does: "route" },
   { key: "enter", does: "look" },
-  { key: "e", does: "editor" },
+  { key: "e", does: "edit" },
   { key: "q", does: "home" },
 ]
 
@@ -320,12 +342,14 @@ function useActions(
 function StepTitle({
   title,
   view,
+  route,
   layer,
   cursor,
   note,
 }: {
   title: string
   view: SessionView | undefined
+  route: readonly RouteStop[]
   layer: Layer | undefined
   cursor: number | undefined
   // said in place of where the cursor is, until the next key
@@ -338,7 +362,7 @@ function StepTitle({
       left={
         <span>
           <span>{title}</span>
-          <span fg={tones.dim}>{view === undefined ? "" : stopText(view)}</span>
+          <span fg={tones.dim}>{view === undefined ? "" : stopText(view, route)}</span>
         </span>
       }
       right={(layer === undefined ? undefined : layerWhere(layer)) ?? where}
@@ -405,7 +429,14 @@ export function SteppingScreen({ root, name, title, editor, onBack, tint }: Prop
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <StepTitle title={title} view={view} layer={layer} cursor={place?.cursor} note={note} />
+      <StepTitle
+        title={title}
+        view={view}
+        route={opened?.route ?? []}
+        layer={layer}
+        cursor={place?.cursor}
+        note={note}
+      />
       <Main stepping={stepping}>
         {view !== undefined && (
           <Body
@@ -415,7 +446,6 @@ export function SteppingScreen({ root, name, title, editor, onBack, tint }: Prop
             place={place}
             onLayout={onLayout}
             over={over}
-            route={opened?.route ?? []}
             tint={tint}
           />
         )}

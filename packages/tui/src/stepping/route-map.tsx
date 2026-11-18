@@ -159,37 +159,3 @@ export function RouteMap({
     </box>
   )
 }
-
-/** One line on every stop: each repo's stops as dots, this one ▶, flags marked, hops as ↯. */
-export function RouteStrip({
-  route,
-  here,
-}: {
-  route: readonly RouteStop[]
-  here: string | undefined
-}) {
-  const tones = useTones()
-  return (
-    <text fg={tones.dim}>
-      {route.map((stop, i) => {
-        const hop = stop.repoChange !== undefined ? `${i === 0 ? "" : "  ↯  "}${stop.repo} ` : " "
-        const mark =
-          stop.id === here ? "▶" : stop.flag === "high" ? "⚠" : stop.flag === undefined ? "●" : "●"
-        const tone =
-          stop.id === here
-            ? tones.accent
-            : stop.flag === "high"
-              ? tones.bad
-              : stop.flag === undefined
-                ? tones.dim
-                : tones.warn
-        return (
-          <span key={stop.id}>
-            {hop}
-            <span fg={tone}>{mark}</span>
-          </span>
-        )
-      })}
-    </text>
-  )
-}
