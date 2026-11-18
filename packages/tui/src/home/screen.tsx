@@ -20,6 +20,7 @@ import type { SettingChange } from "../settings/rows"
 import type { Editor } from "../editors/editors"
 import { Footer } from "../ui/footer"
 import { moveKeys, stepped } from "../ui/move"
+import { useNow } from "../ui/clock"
 import { PADDING, listHeight } from "../ui/layout"
 import { itemKey, itemsOf, lineOfItem, listLines } from "./list/lines"
 import { ListLineView } from "./list/view"
@@ -138,8 +139,8 @@ export function App(props: Props) {
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
   const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
   const [over, setOver] = useState<Over | undefined>(undefined)
-  // when the screen opened, which "built today" is measured from
-  const [now] = useState(() => props.now ?? new Date())
+  // what "built today" is measured from, kept current while the screen is open
+  const now = useNow(props.now)
 
   const states = props.states ?? new Map<string, TrekState>()
   const sections = sectionsOf(rows, { status, summary: props.summary, states })

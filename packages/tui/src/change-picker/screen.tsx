@@ -21,6 +21,7 @@ import { Footer } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { COLOUR, useTones } from "../ui/theme"
 import { moveKeys, stepped } from "../ui/move"
+import { useNow } from "../ui/clock"
 import { TitleBar } from "../ui/title-bar"
 import { TextPrompt } from "../ui/text-prompt"
 
@@ -198,8 +199,8 @@ export function ChangePicker(props: Props) {
   const [asking, setAsking] = useState<PickerRow | undefined>(undefined)
   const [chosen, setChosen] = useState(0)
   const statuses = useStatuses(rows, props.status)
-  // when the picker opened, which branches' ages are measured from
-  const [now] = useState(() => new Date())
+  // what branches' ages are measured from
+  const now = useNow()
 
   const items: PickerItem[] = [
     ...rows.map((row) => ({ kind: "change" as const, row })),
