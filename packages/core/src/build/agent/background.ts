@@ -1,10 +1,11 @@
 import { spawn } from "node:child_process"
 import { closeSync, openSync, writeFileSync } from "node:fs"
-import { appendFile, mkdir, readFile, rm, writeFile } from "node:fs/promises"
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises"
 import { pathExists } from "../../files"
 import { type BuildMode, headlessBuildPrompt } from "../../prompts/texts"
 import { trekPath } from "../../treks/store"
 import { type BuildFiles, buildFiles } from "./files"
+import { keepBuild } from "./history"
 
 /**
  * Where the agent's trek mcp appends its own lines to the build's log, each starting
@@ -32,9 +33,7 @@ export async function startBuild(
 ): Promise<BuildFiles> {
   const files = await buildFiles(root, name)
   await mkdir(files.dir, { recursive: true })
-  await rm(files.exit, { force: true })
-  await rm(files.pid, { force: true })
-  await rm(files.draft, { force: true })
+  await keepBuild(files, name)
 
   // The user's command line with the instruction as its last argument, as for asking, then
   // the agent's exit code written where buildState looks for it.

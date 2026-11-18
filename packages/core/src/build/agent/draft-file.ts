@@ -39,9 +39,14 @@ function parseOrNothing(text: string): unknown {
   }
 }
 
-/** The steps of the build of `name` so far; none before the trek starts, or without a draft. */
-export async function buildDraftSteps(root: string, name: string): Promise<DraftStep[]> {
-  const text = await readFile((await buildFiles(root, name)).draft, "utf8").catch(() => "")
+/** The steps of the draft at `path`; none before the trek starts, or without a draft. */
+export async function readDraftSteps(path: string): Promise<DraftStep[]> {
+  const text = await readFile(path, "utf8").catch(() => "")
   const parsed = DraftFileSchema.safeParse(parseOrNothing(text))
   return parsed.success ? parsed.data.steps : []
+}
+
+/** The steps of the build of `name` so far; none before the trek starts, or without a draft. */
+export async function buildDraftSteps(root: string, name: string): Promise<DraftStep[]> {
+  return readDraftSteps((await buildFiles(root, name)).draft)
 }
