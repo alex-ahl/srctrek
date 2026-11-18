@@ -5,6 +5,7 @@ import { ChangePicker } from "../change-picker/screen"
 import { EditorPicker } from "../editors/editor-picker"
 import { SettingsScreen } from "../settings/screen"
 import { BuildScreen } from "../build-view/screen"
+import { SteppingScreen } from "../stepping/screen"
 import type { Editor } from "../editors/editors"
 import { TextPrompt } from "../ui/text-prompt"
 import type { Choosing, Props } from "./screen"
@@ -92,12 +93,20 @@ export function Picker({
 }
 
 // What can open over the list, which keeps its selection for when it closes.
-export type Over = "settings" | "picker" | Readonly<{ kind: "build"; name: string }>
+export type Over =
+  | "settings"
+  | "picker"
+  | Readonly<{ kind: "build"; name: string }>
+  | Readonly<{ kind: "step"; name: string }>
 
 // The screen open over the list, if any: the picker only where there's a change to choose.
 export function overlayFor(over: Over | undefined, props: Props, close: () => void): ReactNode {
   if (over === "settings") {
     return <Settings props={props} close={close} />
+  }
+
+  if (typeof over === "object" && over.kind === "step") {
+    return <Step name={over.name} props={props} close={close} />
   }
 
   if (typeof over === "object") {
@@ -109,6 +118,20 @@ export function overlayFor(over: Over | undefined, props: Props, close: () => vo
   }
 
   return <Picker choosing={props.choosing} tint={props.tint} close={close} />
+}
+
+// A trek stepped in the terminal, over the list.
+function Step({ name, props, close }: { name: string; props: Props; close: () => void }) {
+  const entry = props.entries.find((each) => each.name === name)
+  return (
+    <SteppingScreen
+      root={props.root ?? "."}
+      name={name}
+      title={entry?.valid === true ? entry.title : name}
+      onBack={close}
+      tint={props.tint}
+    />
+  )
 }
 
 // A trek's builds, over the list: the change's own, which b builds again, a way in's, or any

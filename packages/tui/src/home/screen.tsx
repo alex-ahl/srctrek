@@ -53,6 +53,8 @@ export type Choosing = Readonly<{
 }>
 
 export type Props = {
+  // the folder trek runs in, where treks are saved and stepped
+  root?: string | undefined
   entries: TrekEntry[]
   onOpen: (entry: TrekEntry) => void
   onQuit: () => void
@@ -156,10 +158,13 @@ export function App(props: Props) {
   const onOpen = (entry: TrekEntry) =>
     editor === undefined ? setPrompt({ kind: "editor", then: entry }) : props.onOpen(entry)
   const askLocation = (name: string) => setPrompt({ kind: "location", name })
-  const openBuild = (name: string) => setOver({ kind: "build", name })
-  const rowActions = actionsFor(row, { ...props, onOpen }, askLocation, openBuild)
+  const opens = {
+    build: (name: string) => setOver({ kind: "build", name }),
+    step: (name: string) => setOver({ kind: "step", name }),
+  }
+  const rowActions = actionsFor(row, { ...props, onOpen }, askLocation, opens)
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
-  const { build, showLog, stop, dismiss } = rowActions
+  const { build, showLog, stop, step, dismiss } = rowActions
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
   const move = (by: number) =>
@@ -171,6 +176,7 @@ export function App(props: Props) {
     ["q", onQuit],
     ["b", () => build?.()],
     ["l", () => showLog?.()],
+    ["s", () => step?.()],
     ["x", () => stop?.()],
     ["d", () => dismiss?.()],
     ...moveKeys(move),

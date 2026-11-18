@@ -33,6 +33,7 @@ type Offered = {
   build: string | undefined
   log: boolean
   stop: boolean
+  step: boolean
   dismiss: boolean
   change: boolean
 }
@@ -43,6 +44,7 @@ export function footerKeys(enter: string | undefined, offered: Offered): KeyHint
   return [
     { key: "↑/↓", does: "choose" },
     ...(enter === undefined ? [] : [{ key: "enter", does: enter }]),
+    ...(offered.step ? [{ key: "s", does: "step" }] : []),
     ...(offered.dismiss ? [{ key: "d", does: "dismiss" }] : []),
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
     ...(offered.stop ? [{ key: "x", does: "stop" }] : []),

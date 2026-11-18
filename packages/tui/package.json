@@ -12,6 +12,7 @@
     "react": "19.3.1"
   },
   "devDependencies": {
+    "@srctrek/testing": "workspace:*",
     "@types/react": "19.3.0",
     "@xterm/headless": "6.0.0"
   }

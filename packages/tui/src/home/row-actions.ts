@@ -82,8 +82,12 @@ export type RowActions = {
   build: Action
   showLog: Action
   stop: Action
+  step: Action
   dismiss: Action
 }
+
+/** The screens a row's keys open over the list: a trek's builds, and stepping a trek. */
+export type Opens = Readonly<{ build: (name: string) => void; step: (name: string) => void }>
 
 export function dismissAction(row: Row | undefined, onDismissRepo: Props["onDismissRepo"]): Action {
   if (row?.kind !== "proposal" || onDismissRepo === undefined) {
@@ -98,7 +102,7 @@ export function actionsFor(
   row: Row | undefined,
   props: Props,
   askLocation: (name: string) => void,
-  openBuild: (name: string) => void,
+  screens: Opens,
 ): RowActions {
   const { status, onBuild, onReadBuild, onStopBuild } = props
   const log = logName(row, status)
@@ -107,8 +111,9 @@ export function actionsFor(
   return {
     pick: row === undefined ? undefined : pickAction(row, props, askLocation),
     build: canStartBuild(status) ? onBuild : undefined,
-    showLog: log !== undefined && onReadBuild ? () => openBuild(log) : undefined,
+    showLog: log !== undefined && onReadBuild ? () => screens.build(log) : undefined,
     stop: building !== undefined && onStopBuild ? () => onStopBuild(building) : undefined,
+    step: row?.kind === "trek" && row.entry.valid ? () => screens.step(row.entry.name) : undefined,
     dismiss: dismissAction(row, props.onDismissRepo),
   }
 }
@@ -140,6 +145,7 @@ export function keyHints(
     build: offers(actions.build, blockKeys, "b") ? buildVerb(status) : undefined,
     log: offers(actions.showLog, blockKeys, "l"),
     stop: offers(actions.stop, blockKeys, "x"),
+    step: actions.step !== undefined,
     dismiss: actions.dismiss !== undefined,
     change: props.choosing !== undefined,
   })

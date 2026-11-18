@@ -130,6 +130,7 @@ function Home(props: HomeProps) {
   return (
     <TonesContext.Provider value={tones}>
       <App
+        root={root}
         entries={entries}
         onOpen={(entry) => editor !== undefined && onOpen(entry, editor)}
         editors={props.editors}
