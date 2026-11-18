@@ -10,6 +10,7 @@ import {
   stepNext,
   stepOut,
   stepOver,
+  stepTo,
   trekPath,
   viewContext,
 } from "@srctrek/core"
@@ -33,7 +34,13 @@ type Open = Readonly<{ session: SteppingSession; context: ViewContext }>
 /** Stepping as it stands: opening, open with the view where the trek is, or why it couldn't. */
 export type Stepping =
   | Readonly<{ kind: "opening" }>
-  | Readonly<{ kind: "open"; view: SessionView; move: (to: Move, target?: string) => void }>
+  | Readonly<{
+      kind: "open"
+      view: SessionView
+      move: (to: Move, target?: string) => void
+      // straight to a step, by id, as details and the route map go
+      go: (id: string) => void
+    }>
   | Readonly<{ kind: "failed"; why: string }>
 
 /** The trek saved as `name` under `root`, opened at its overview and moved through by key. */
@@ -70,5 +77,7 @@ export function useStepping(root: string, name: string): Stepping {
     setOpen((was) =>
       was === undefined ? was : { ...was, session: MOVES[to](was.session, target) },
     )
-  return { kind: "open", view: sessionView(open.session, open.context), move }
+  const go = (id: string) =>
+    setOpen((was) => (was === undefined ? was : { ...was, session: stepTo(was.session, id) }))
+  return { kind: "open", view: sessionView(open.session, open.context), move, go }
 }

@@ -1,15 +1,16 @@
 import type { RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import type { SessionView } from "@srctrek/core"
-import { Footer } from "../ui/footer"
+import { Footer, type KeyHint } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { useTones } from "../ui/theme"
 import { TitleBar } from "../ui/title-bar"
 import { Code } from "./code"
+import { DetailsPanel } from "./details-panel"
 import { type Layout, type Place, atStop, movedPlace } from "./lines"
 import { End, Overview } from "./ends"
 import { SIDE_WIDTH, Side } from "./side"
-import { type Move, useStepping } from "./use-stepping"
+import { type Move, type Stepping, useStepping } from "./use-stepping"
 import { useRef, useState } from "react"
 
 type Props = {
@@ -33,10 +34,12 @@ type BodyProps = {
   height: number
   place: Place | undefined
   onLayout: (layout: Layout) => void
+  // details open over the code, with where enter goes and how they close
+  details: Readonly<{ onGo: (id: string) => void; onClose: () => void }> | undefined
   tint: RGBA | undefined
 }
 
-function Body({ view, width, height, place, onLayout, tint }: BodyProps) {
+function Body({ view, width, height, place, onLayout, details, tint }: BodyProps) {
   if (view.kind === "overview") {
     return <Overview view={view} width={width} />
   }
@@ -49,14 +52,18 @@ function Body({ view, width, height, place, onLayout, tint }: BodyProps) {
   const code = side ? width - SIDE_WIDTH : width
   return (
     <box flexDirection="row" style={{ flexGrow: 1 }}>
-      <Code
-        view={view}
-        width={code}
-        height={height}
-        place={place}
-        onLayout={onLayout}
-        tint={tint}
-      />
+      {details === undefined ? (
+        <Code
+          view={view}
+          width={code}
+          height={height}
+          place={place}
+          onLayout={onLayout}
+          tint={tint}
+        />
+      ) : (
+        <DetailsPanel view={view} width={code} height={height} {...details} tint={tint} />
+      )}
       {side && <Side view={view} />}
     </box>
   )
@@ -116,6 +123,41 @@ function useCursor(height: number) {
   }
 }
 
+/** Details over the code, open or not: where enter in them goes, moving the trek, and closing. */
+function useDetails(stepping: Stepping, toStop: () => void) {
+  const [open, setOpen] = useState(false)
+  const details =
+    open && stepping.kind === "open"
+      ? {
+          onGo: (id: string) => {
+            stepping.go(id)
+            toStop()
+            setOpen(false)
+          },
+          onClose: () => setOpen(false),
+        }
+      : undefined
+
+  return { details, openDetails: () => setOpen(true) }
+}
+
+const STEP_KEYS: readonly KeyHint[] = [
+  { key: "n", does: "next" },
+  { key: "p", does: "previous" },
+  { key: "i", does: "into" },
+  { key: "o", does: "out" },
+  { key: "O", does: "over" },
+  { key: "↑/↓", does: "line" },
+  { key: "d", does: "details" },
+  { key: "q", does: "home" },
+]
+
+const DETAILS_KEYS: readonly KeyHint[] = [
+  { key: "↑/↓", does: "choose" },
+  { key: "enter", does: "go there" },
+  { key: "d", does: "close" },
+]
+
 const KEYS: readonly [string, Move][] = [
   ["n", "next"],
   ["p", "previous"],
@@ -134,6 +176,7 @@ export function SteppingScreen({ root, name, title, onBack, tint }: Props) {
   const stepping = useStepping(root, name)
   const { place, cursorKeys, onLayout, toStop } = useCursor(height)
   const view = stepping.kind === "open" ? stepping.view : undefined
+  const { details, openDetails } = useDetails(stepping, toStop)
   // a move lands on the new stop, wherever the cursor was; into takes the call on its line
   const move = (to: Move) => {
     if (stepping.kind === "open") {
@@ -142,24 +185,22 @@ export function SteppingScreen({ root, name, title, onBack, tint }: Props) {
     }
   }
 
+  const keys = new Map<string, () => void>([
+    ["q", onBack],
+    ["escape", onBack],
+    ["d", () => view?.kind === "step" && openDetails()],
+    ...KEYS.map(([letter, to]): [string, () => void] => [letter, () => move(to)]),
+    ...cursorKeys,
+  ])
   useKeyboard((key) => {
-    if (key.name === "q" || key.name === "escape") {
-      onBack()
+    // while details are open, keys are theirs
+    if (details !== undefined) {
       return
     }
 
-    if (key.name === "o" && key.shift) {
-      move("over")
-      return
-    }
-
-    const to = KEYS.find(([letter]) => letter === key.name)?.[1]
-    if (to !== undefined) {
-      move(to)
-      return
-    }
-
-    cursorKeys.get(key.name)?.()
+    // O, over, is o with shift
+    const run = key.name === "o" && key.shift ? () => move("over") : keys.get(key.name)
+    run?.()
   })
 
   const inner = width - 2 * PADDING
@@ -194,22 +235,12 @@ export function SteppingScreen({ root, name, title, onBack, tint }: Props) {
             height={height - CHROME_LINES - 1}
             place={place}
             onLayout={onLayout}
+            details={details}
             tint={tint}
           />
         )}
       </box>
-      <Footer
-        keys={[
-          { key: "n", does: "next" },
-          { key: "p", does: "previous" },
-          { key: "i", does: "into" },
-          { key: "o", does: "out" },
-          { key: "O", does: "over" },
-          { key: "↑/↓", does: "line" },
-          { key: "q", does: "home" },
-        ]}
-        shown=""
-      />
+      <Footer keys={details === undefined ? STEP_KEYS : DETAILS_KEYS} shown="" />
     </box>
   )
 }

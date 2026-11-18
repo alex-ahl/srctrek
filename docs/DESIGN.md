@@ -273,5 +273,6 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 | Build view | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` home         |
 | Route map  | `j`/`k` move · `enter` open the step in the editor · `s` step from here · `c` changed only · |
 |            | `f` flagged only · `esc` home                                                                |
-| Stepping   | `n`/`p` next, previous · `i` into · `o` out · `O` over · `t` details · `e` open in           |
+| Stepping   | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·       |
+|            | `↑`/`↓` the cursor · `.` back to the stop · `d` details · `c` the change · `e` open in       |
 |            | `$EDITOR` · `r` route map · `q` home                                                         |

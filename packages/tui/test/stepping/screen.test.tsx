@@ -85,3 +85,52 @@ test("the cursor marks its line, and i steps into the call made on it", async ()
   expect(frame).toContain("send.ts:1")
   expect(frame).toMatch(/›\s+1 ▶ +export function send\(total\)/)
 })
+
+test("d opens a step's details: how it was reached, with the cited line's code, and its context", async () => {
+  const root = await repoWithTwoCalls()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("i")
+      await settle()
+      input.pressKey("d")
+      await settle()
+    },
+    120,
+    34,
+  )
+
+  expect(frame).toContain("REACHED FROM")
+  expect(frame).toMatch(/› +stop 1/)
+  expect(frame).toMatch(/main\.ts:1\s+const total = pay\(\)/)
+  expect(frame).toContain("CONTEXT")
+  expect(frame).toContain("enter go there")
+})
+
+test("enter in details goes to the step chosen, closing them", async () => {
+  const root = await repoWithTwoCalls()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("i")
+      await settle()
+      input.pressKey("d")
+      await settle()
+      input.pressArrow("down")
+      await settle()
+      input.pressEnter()
+      await settle()
+    },
+    120,
+    34,
+  )
+
+  expect(frame).toMatch(/▌ +returns a fixed amount/)
+  expect(frame).not.toContain("REACHED FROM")
+})
