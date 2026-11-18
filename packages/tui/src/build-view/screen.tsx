@@ -28,9 +28,8 @@ type Props = {
   onBack: () => void
 }
 
-// The last of the agent's reads, and of the steps, shown; the counts say how many there were.
+// The last of the agent's reads shown; the count says how many there were, and the log has all.
 const READS_SHOWN = 5
-const STEPS_SHOWN = 6
 // A step's id and repo columns, before its summary.
 const ID_WIDTH = 5
 const REPO_WIDTH = 8
@@ -38,9 +37,6 @@ const REPO_WIDTH = 8
 const FLAG_WORDS = { high: "⚠ likely wrong", medium: "● risky", low: "● worth knowing" } as const
 
 type StepsProps = { build: BuildRead; progress: BuildProgress; saved: boolean; width: number }
-// The title bar, the footer, and the lines above the sections: what's open and the state.
-const CHROME_LINES = 8
-
 function Heading({ title, detail }: { title: string; detail: string }) {
   const tones = useTones()
   return (
@@ -85,17 +81,13 @@ function StepLine({ step, width }: { step: DraftStep; width: number }) {
 }
 
 function Steps({ build, progress, saved, width }: StepsProps) {
-  const tones = useTones()
   const added = count(Math.max(build.steps.length, progress.steps.length), "step")
-  const latest = build.steps.slice(-STEPS_SHOWN)
-  const before = build.steps.length - latest.length
 
   return (
     <box flexDirection="column" style={{ marginBottom: 1, flexShrink: 0 }}>
       <Heading title="STEPS" detail={saved ? added : `${added} added`} />
-      {before > 0 && <text fg={tones.dim}>{`  … ${before} before`}</text>}
-      {latest.length > 0
-        ? latest.map((step) => <StepLine key={step.id} step={step} width={width} />)
+      {build.steps.length > 0
+        ? build.steps.map((step) => <StepLine key={step.id} step={step} width={width} />)
         : wrap(progress.steps.join("  "), width - 2).map((line, i) => (
             <text key={i} fg={COLOUR.text}>{`  ${line}`}</text>
           ))}
@@ -163,19 +155,17 @@ function Sections({
   )
 }
 
-// Every line of the log, the end in view unless scrolled back; `back` lines up from the end.
-function Log({ log, back, height }: { log: readonly string[]; back: number; height: number }) {
+// Every line of the log, the end in view as lines arrive, until scrolled back.
+function Log({ log }: { log: readonly string[] }) {
   const tones = useTones()
-  const end = log.length - back
-  const shown = log.slice(Math.max(0, end - height), end)
   return (
-    <>
-      {shown.map((line, i) => (
+    <scrollbox focused stickyScroll stickyStart="bottom" style={{ flexGrow: 1 }}>
+      {log.map((line, i) => (
         <text key={i} fg={line.startsWith("trek: ") ? tones.dim : COLOUR.text}>
           {line}
         </text>
       ))}
-    </>
+    </scrollbox>
   )
 }
 
@@ -189,7 +179,7 @@ function actionsOf(build: BuildRead | undefined, props: Props) {
 
 function keysFor(onLog: boolean, actions: ReturnType<typeof actionsOf>): KeyHint[] {
   return [
-    ...(onLog ? [{ key: "↑/↓", does: "scroll" }] : []),
+    { key: "↑/↓", does: "scroll" },
     ...(actions.stop === undefined ? [] : [{ key: "x", does: "stop" }]),
     ...(actions.again === undefined ? [] : [{ key: "b", does: "build again" }]),
     { key: "tab", does: onLog ? "the build" : "the log" },
@@ -240,21 +230,17 @@ function Overview({
  */
 export function BuildScreen(props: Props) {
   const tones = useTones()
-  const { width, height } = useTerminalDimensions()
+  const { width } = useTerminalDimensions()
   const { build, now } = useBuild(props.read)
   const [onLog, setOnLog] = useState(false)
-  const [back, setBack] = useState(0)
 
   const actions = actionsOf(build, props)
   const log = build?.log ?? []
-  const room = Math.max(1, height - CHROME_LINES)
   const keys = new Map<string, () => void>([
     ["escape", props.onBack],
     ["tab", () => setOnLog(!onLog)],
     ["x", () => actions.stop?.()],
     ["b", () => actions.again?.()],
-    ["up", () => setBack((at) => Math.min(at + 1, Math.max(0, log.length - room)))],
-    ["down", () => setBack((at) => Math.max(0, at - 1))],
   ])
   useKeyboard((key) => keys.get(key.name)?.())
 
@@ -272,15 +258,17 @@ export function BuildScreen(props: Props) {
         }}
       >
         {onLog ? (
-          <Log log={log} back={back} height={room} />
+          <Log log={log} />
         ) : (
-          <Overview
-            build={build}
-            now={now}
-            summary={props.summary}
-            findsWaysIn={props.findsWaysIn}
-            width={width - 2 * PADDING}
-          />
+          <scrollbox focused style={{ flexGrow: 1 }}>
+            <Overview
+              build={build}
+              now={now}
+              summary={props.summary}
+              findsWaysIn={props.findsWaysIn}
+              width={width - 2 * PADDING}
+            />
+          </scrollbox>
         )}
       </box>
       <Footer keys={keysFor(onLog, actions)} shown="" />
