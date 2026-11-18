@@ -19,9 +19,10 @@ requests, across one or more repos — picks one concrete example scenario, and 
 from its trigger (a request, an event, a cron job, a command) to its outcome (a response,
 a write, an emitted event) in execution order.
 
-- **In your editor.** You step through the trek in your editor: step over, into, out, with
-  a call stack. The terminal is for everything around it: choosing a change, watching a
-  trek being built, and seeing the whole route at once.
+- **In your terminal or your editor.** You step through the trek where you like: step over, into,
+  out, with a call stack, the code and the narration together, in the terminal or in Neovim or
+  VS Code. The terminal also chooses the change, watches the trek being built, and shows the
+  whole route at once.
 - **Whole flow, change highlighted.** Unchanged code on the path is included and collapsed
   by default; changed code is where attention goes.
 - **Across repos.** One trek crosses repos and async boundaries (HTTP calls, queues,
@@ -29,8 +30,8 @@ a write, an emitted event) in execution order.
 - **No setup.** Reads code and history from git, local or remote; runs nothing.
 - **Checkable.** Every link from one step to the next cites the line that causes it.
   Predicted values are labeled as predicted; guessed links and risky spots are flagged.
-- **Any agent.** Neovim and VS Code (and its forks) get full editor integration; any other
-  editor gets the terminal view and opens steps at their line.
+- **Any agent, any editor.** Any coding agent builds treks. Neovim and VS Code (and its forks)
+  can step them too; from the terminal, any editor opens a step at its line.
 
 ## The trek on screen
 

@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-18 — Stepping in the terminal is as good as in the editor
+
+A trek can be stepped in the terminal or in an editor, and which is the user's choice. Stepping in
+the terminal is held to the same standard as the editors: the code in its language's colours, the
+narration, values, marks, call stack, details, and moves, none of them a lesser version. Both read
+the same step view from core, so neither words a step differently.
+
+Some users won't install an editor plugin, use an editor without one, or work over a remote shell;
+for them the terminal is the whole experience. Those who step in their editor should lose nothing
+by choosing it, and those in the terminal nothing by not.
+
 ## 2026-11-16 — The site deploys from master, as a container image
 
 A push to `master` that changes the site builds it and publishes an nginx image with the built

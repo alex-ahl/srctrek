@@ -6,8 +6,9 @@ terminal. Status: Milestone 5, in progress.
 ## Surfaces
 
 - **Terminal** (`trek`): choosing a change, watching its trek being built, the whole route at
-  once, and stepping for editors without a plugin.
-- **Editor** (the Neovim plugin, the VS Code extension): stepping through a trek.
+  once, and stepping through a trek.
+- **Editor** (the Neovim plugin, the VS Code extension): stepping through a trek in the editor.
+  Stepping is as good in either, from the same step view; which to use is the user's.
 - **The agent's chat:** building a trek by asking for one.
 - **GUI** (later): screens shared with the VS Code extension.
 
@@ -248,15 +249,18 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   default), and colours (srctrek's or the terminal's), each with its value; an environment
   variable overrides the settings file, and settings says so beside the value. The agent can set its own command
   from its chat, through srctrek's MCP server, and a test run says whether a command works.
-- **Build view,** a screen of its own opened from a building trek: the overview as soon as the
-  agent starts, steps as they arrive grouped by repo with hops between, what the agent is reading,
-  rejected rounds with their problems, and repos it proposed.
+- **Build view,** opened with `l` from any trek: the build's state with the trek's title and a
+  clock, the steps added with their repo and summary, what the agent read, a rejected round's
+  problems, and why a build failed; `tab` shows the log itself. The last ten builds of each trek
+  are kept, and `←`/`→` step between them.
 - **Route map:** one lane per repo, steps in the order they run, hops crossing between lanes,
   change signs and flags in place; a narrow terminal shows it as a list grouped by repo. Enter
   opens the selected step in the editor; `c` and `f` show only changed or flagged steps.
-- **Stepping:** the step's code with narration, values, and signs, the call stack beside it, for
-  anyone: `s` starts it from the home screen or the route map. `e` opens the step in `$EDITOR` at
-  its line.
+- **Stepping,** as good as in the editors: `s` starts it from the home screen or the route
+  map. At a step, its file with the step's lines tinted, change signs in the gutter, predicted
+  values and arrows at line ends, and the narration on a band over the step saying where next
+  goes; the call stack, context, and flag beside it on a wide terminal. The overview comes before
+  the first step, the flags after the last. `e` opens the step in `$EDITOR` at its line.
 
 ### Keys
 
@@ -266,7 +270,7 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 |            | `s` step here · `l` log · `d` dismiss a proposal · `E` pick the editor · `S` settings ·      |
 |            | `q` quit                                                                                     |
 | Settings   | `j`/`k` choose · `enter` change · `esc` back                                                 |
-| Build view | `l` full log · `esc` home                                                                    |
+| Build view | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` home         |
 | Route map  | `j`/`k` move · `enter` open the step in the editor · `s` step from here · `c` changed only · |
 |            | `f` flagged only · `esc` home                                                                |
 | Stepping   | `n`/`p` next, previous · `i` into · `o` out · `O` over · `t` details · `e` open in           |
