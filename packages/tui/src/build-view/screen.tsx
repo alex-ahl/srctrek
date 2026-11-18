@@ -6,11 +6,11 @@ import {
   type DraftStep,
   buildProgress,
 } from "@srctrek/core"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { ChangeLine } from "../home/change-line"
 import { Footer, type KeyHint } from "../ui/footer"
 import { PADDING } from "../ui/layout"
-import { count, fit, wrap } from "../ui/text"
+import { builtWhen, count, fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { TitleBar } from "../ui/title-bar"
 import { type BuildRead, buildLabel, clockText, whyEnded } from "./read"
@@ -18,10 +18,13 @@ import { useBuild } from "./use-build"
 import { useStateText } from "../ui/turning"
 
 type Props = {
+  // what's open, for the change's own trek; for any other, the trek by its title or name
   summary: ChangeSummary | undefined
+  name: string
   // code as it is with no trigger: the build finds its ways in rather than a trek
   findsWaysIn: boolean
-  read: () => Promise<BuildRead>
+  // the trek's build `back` before its latest, 0 the latest
+  read: (back: number) => Promise<BuildRead>
   // stops the build while it runs, and builds again once it failed, where either can
   onStop: (() => void) | undefined
   onBuildAgain: (() => void) | undefined
@@ -169,17 +172,20 @@ function Log({ log }: { log: readonly string[] }) {
   )
 }
 
-// What x and b do as the build stands: stop it while it runs, build again once it failed.
-function actionsOf(build: BuildRead | undefined, props: Props) {
+// What x and b do as the latest build stands: stop it while it runs, build again once it failed;
+// on an older one, nothing.
+function actionsOf(build: BuildRead | undefined, back: number, props: Props) {
+  const latest = back === 0
   return {
-    stop: build?.state === "building" ? props.onStop : undefined,
-    again: build?.state === "failed" ? props.onBuildAgain : undefined,
+    stop: latest && build?.state === "building" ? props.onStop : undefined,
+    again: latest && build?.state === "failed" ? props.onBuildAgain : undefined,
   }
 }
 
-function keysFor(onLog: boolean, actions: ReturnType<typeof actionsOf>): KeyHint[] {
+function keysFor(onLog: boolean, builds: number, actions: ReturnType<typeof actionsOf>): KeyHint[] {
   return [
     { key: "↑/↓", does: "scroll" },
+    ...(builds > 1 ? [{ key: "←/→", does: "older, newer" }] : []),
     ...(actions.stop === undefined ? [] : [{ key: "x", does: "stop" }]),
     ...(actions.again === undefined ? [] : [{ key: "b", does: "build again" }]),
     { key: "tab", does: onLog ? "the build" : "the log" },
@@ -187,30 +193,37 @@ function keysFor(onLog: boolean, actions: ReturnType<typeof actionsOf>): KeyHint
   ]
 }
 
-// What's open, how the build stands with its title and clock, then the sections.
-function Overview({
-  build,
-  now,
-  summary,
-  findsWaysIn,
-  width,
-}: {
+// Which of the trek's builds is shown, when it has kept more than one: "build 2 of 4 · started
+// yesterday"; or that it has none to show.
+function whichBuild(build: BuildRead, back: number, now: Date): string {
+  if (build.count <= 1) {
+    return ""
+  }
+
+  const started =
+    build.started === undefined ? "" : ` · started ${builtWhen(build.started.toISOString(), now)}`
+  return `build ${build.count - back} of ${build.count}${started}`
+}
+
+type StateProps = {
   build: BuildRead | undefined
+  progress: BuildProgress
+  back: number
   now: Date
-  summary: ChangeSummary | undefined
   findsWaysIn: boolean
-  width: number
-}) {
+}
+
+// How the build stands, with the trek's title and the clock, and which build it is.
+function StateLine({ build, progress, back, now, findsWaysIn }: StateProps) {
   const tones = useTones()
-  const progress = buildProgress(build?.log ?? [])
   const label = buildLabel(build?.state, progress, findsWaysIn)
   const state = useStateText(label)
   const clock = build === undefined ? "" : clockText(build, now)
+  const which = build === undefined ? "" : whichBuild(build, back, now)
 
   return (
-    <>
-      {summary !== undefined && <ChangeLine summary={summary} width={width} />}
-      <text fg={COLOUR.text} style={{ marginBottom: 1 }}>
+    <box flexDirection="column" style={{ marginBottom: 1, flexShrink: 0 }}>
+      <text fg={COLOUR.text}>
         {"  "}
         <span fg={tones[label.tone]}>{state}</span>
         {progress.title !== undefined && (
@@ -218,7 +231,32 @@ function Overview({
         )}
         <span fg={tones.dim}>{clock === "" ? "" : `  ${clock}`}</span>
       </text>
-      {build !== undefined && <Sections build={build} progress={progress} width={width} />}
+      {which !== "" && <text fg={tones.dim}>{`    ${which}`}</text>}
+    </box>
+  )
+}
+
+// What's open, how the build stands and which it is, then the sections.
+function Overview({
+  summary,
+  name,
+  width,
+  ...state
+}: Omit<StateProps, "progress"> & {
+  summary: ChangeSummary | undefined
+  name: string
+  width: number
+}) {
+  const progress = buildProgress(state.build?.log ?? [])
+
+  return (
+    <>
+      {summary !== undefined && <ChangeLine summary={summary} width={width} />}
+      {summary === undefined && <text attributes={TextAttributes.BOLD}>{name}</text>}
+      <StateLine {...state} progress={progress} />
+      {state.build !== undefined && state.build.count > 0 && (
+        <Sections build={state.build} progress={progress} width={width} />
+      )}
     </>
   )
 }
@@ -231,16 +269,21 @@ function Overview({
 export function BuildScreen(props: Props) {
   const tones = useTones()
   const { width } = useTerminalDimensions()
-  const { build, now } = useBuild(props.read)
+  const [back, setBack] = useState(0)
+  const { read } = props
+  const { build, now } = useBuild(useCallback(() => read(back), [read, back]))
   const [onLog, setOnLog] = useState(false)
 
-  const actions = actionsOf(build, props)
+  const builds = build?.count ?? 0
+  const actions = actionsOf(build, back, props)
   const log = build?.log ?? []
   const keys = new Map<string, () => void>([
     ["escape", props.onBack],
     ["tab", () => setOnLog(!onLog)],
     ["x", () => actions.stop?.()],
     ["b", () => actions.again?.()],
+    ["left", () => setBack((at) => Math.min(at + 1, Math.max(0, builds - 1)))],
+    ["right", () => setBack((at) => Math.max(0, at - 1))],
   ])
   useKeyboard((key) => keys.get(key.name)?.())
 
@@ -263,15 +306,17 @@ export function BuildScreen(props: Props) {
           <scrollbox focused style={{ flexGrow: 1 }}>
             <Overview
               build={build}
+              back={back}
               now={now}
               summary={props.summary}
+              name={props.name}
               findsWaysIn={props.findsWaysIn}
               width={width - 2 * PADDING}
             />
           </scrollbox>
         )}
       </box>
-      <Footer keys={keysFor(onLog, actions)} shown="" />
+      <Footer keys={keysFor(onLog, builds, actions)} shown="" />
     </box>
   )
 }

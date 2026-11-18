@@ -61,9 +61,8 @@ export type Props = {
   onBuild?: (() => void) | undefined
   // starts building the trek of a trigger found in the code; absent when no agent is set
   onBuildTrigger?: ((trigger: string) => void) | undefined
-  // shows the full log of the build with this name
-  // the build of the trek by this name, as it stands: its log, state, and clock
-  onReadBuild?: ((name: string) => Promise<BuildRead>) | undefined
+  // a build of the trek by this name, `back` before its latest, as it stands
+  onReadBuild?: ((name: string, back: number) => Promise<BuildRead>) | undefined
   // stops the build of the trek by this name
   onStopBuild?: ((name: string) => void) | undefined
   // repos the agent proposed adding to the repos list, each added or dismissed by the user;

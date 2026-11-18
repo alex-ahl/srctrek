@@ -30,6 +30,7 @@ const building: BuildRead = {
     "trek: s3: cites web src/db.ts:88, which is blank",
   ],
   steps: [],
+  count: 1,
   state: "building",
   started,
   ended: undefined,
@@ -39,6 +40,7 @@ function screen(read: BuildRead, onStop = () => undefined) {
   return (
     <BuildScreen
       summary={summary}
+      name="feature-refunds"
       findsWaysIn={false}
       read={() => Promise.resolve(read)}
       onStop={onStop}
@@ -103,6 +105,39 @@ test("lists each step's repo and summary once trek mcp keeps the draft, a hop an
 
   expect(frame).toMatch(/s1 +web +The refund button posts/)
   expect(frame).toMatch(/s2 +api +↯ POST \/refunds is handled +⚠ likely wrong/)
+})
+
+test("← steps to an older build, saying which, with nothing to stop or build there", async () => {
+  const asked: number[] = []
+  const older: BuildRead = { ...building, state: "failed", ended: started, count: 2 }
+  const read = (back: number) => {
+    asked.push(back)
+    return Promise.resolve(back === 0 ? { ...building, count: 2 } : older)
+  }
+  const frame = await frameAfter(
+    <BuildScreen
+      summary={summary}
+      name="feature-refunds"
+      findsWaysIn={false}
+      read={read}
+      onStop={() => undefined}
+      onBuildAgain={() => undefined}
+      onBack={() => undefined}
+    />,
+    async (input) => {
+      await settle()
+      input.pressArrow("left")
+      await settle()
+    },
+    100,
+    30,
+  )
+
+  expect(asked).toContain(1)
+  expect(frame).toMatch(/build 1 of 2 · started/)
+  expect(frame).toContain("←/→ older, newer")
+  expect(frame).not.toContain("x stop")
+  expect(frame).not.toContain("b build again")
 })
 
 test("tab shows the log itself, following its end", async () => {

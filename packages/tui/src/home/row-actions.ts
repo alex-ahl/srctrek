@@ -50,8 +50,13 @@ export function pickAction(row: Row, props: Props, askLocation: (name: string) =
   return canStartBuild(trek) && onBuildTrigger ? () => onBuildTrigger(trigger.name) : undefined
 }
 
-// Whose build log l shows: the selected trigger's, when it has one, else the change's.
+// Whose builds l shows: the selected trek's or trigger's, else the change's while one runs or
+// after it failed.
 export function logName(row: Row | undefined, status: TrekStatus | undefined): string | undefined {
+  if (row?.kind === "trek") {
+    return row.entry.name
+  }
+
   if (row?.kind === "trigger" && hasLog(row.found.trek)) {
     return row.found.trek.name
   }

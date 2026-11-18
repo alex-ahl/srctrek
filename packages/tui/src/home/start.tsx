@@ -1,4 +1,5 @@
 import {
+  type BuildRecord,
   type ChangeChoice,
   type ChangeSummary,
   type ProposedRepo,
@@ -6,10 +7,8 @@ import {
   type TrekEntry,
   type TrekStatus,
   acceptProposal,
-  buildDraftSteps,
-  buildLogTail,
-  buildState,
-  buildTimes,
+  buildHistory,
+  readBuild as readBuildAt,
   dismissProposal,
   loadProposals,
   loadTrekEntries,
@@ -59,6 +58,15 @@ type HomeProps = {
   onQuit: () => void
 }
 
+// A trek with no build kept, opened from its row: nothing to show yet.
+const NO_BUILD: BuildRecord = {
+  log: [],
+  steps: [],
+  state: undefined,
+  started: undefined,
+  ended: undefined,
+}
+
 function Home(props: HomeProps) {
   const { root, onOpen, onQuit } = props
   const [change, setChange] = useState(props.firstChange)
@@ -97,14 +105,12 @@ function Home(props: HomeProps) {
     onFailed: (picked, why) => setOpening({ kind: "failed", choice: picked, why }),
   })
 
-  const readBuild = async (name: string): Promise<BuildRead> => {
-    const [log, steps, state, times] = await Promise.all([
-      buildLogTail(root, name, Number.POSITIVE_INFINITY),
-      buildDraftSteps(root, name),
-      buildState(root, name),
-      buildTimes(root, name),
-    ])
-    return { log, steps, state, ...times }
+  // The build `back` before the latest of trek `name`, as it stands, and how many it has.
+  const readBuild = async (name: string, back: number): Promise<BuildRead> => {
+    const builds = await buildHistory(root, name)
+    const build = builds[back]
+    const read = build === undefined ? NO_BUILD : await readBuildAt(root, name, build)
+    return { ...read, count: builds.length }
   }
 
   // Adding or dismissing a proposed repo settles it, so it leaves the list.

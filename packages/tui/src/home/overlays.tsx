@@ -111,18 +111,21 @@ export function overlayFor(over: Over | undefined, props: Props, close: () => vo
   return <Picker choosing={props.choosing} tint={props.tint} close={close} />
 }
 
-// A build as it happens, over the list: the change's own, which b builds again, or a way in's.
+// A trek's builds, over the list: the change's own, which b builds again, a way in's, or any
+// saved trek's.
 function Build({ name, props, close }: { name: string; props: Props; close: () => void }) {
-  const { onReadBuild, onStopBuild, onBuild, status, summary } = props
+  const { onReadBuild, onStopBuild, onBuild, status, summary, entries } = props
   const read = useCallback(
-    () => onReadBuild?.(name) ?? Promise.reject(new Error("unread")),
+    (back: number) => onReadBuild?.(name, back) ?? Promise.reject(new Error("unread")),
     [onReadBuild, name],
   )
   const isChange = status?.name === name
+  const entry = entries.find((each) => each.name === name)
 
   return (
     <BuildScreen
-      summary={summary}
+      summary={isChange ? summary : undefined}
+      name={entry?.valid === true ? entry.title : name}
       findsWaysIn={isChange && summary?.code === true && summary.trigger === undefined}
       read={read}
       onStop={onStopBuild === undefined ? undefined : () => onStopBuild(name)}

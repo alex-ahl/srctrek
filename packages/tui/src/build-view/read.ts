@@ -1,17 +1,8 @@
-import type { BuildProgress, BuildState, DraftStep } from "@srctrek/core"
+import type { BuildProgress, BuildRecord, BuildState } from "@srctrek/core"
 import { STATE_LABELS, type StateLabel } from "../ui/state-labels"
 
-/**
- * A build as the view reads it each time it looks: its log, its draft's steps so far, where it
- * stands, and its clock.
- */
-export type BuildRead = Readonly<{
-  log: readonly string[]
-  steps: readonly DraftStep[]
-  state: BuildState | undefined
-  started: Date | undefined
-  ended: Date | undefined
-}>
+/** A build as the view reads it each time it looks, and how many builds the trek has kept. */
+export type BuildRead = BuildRecord & Readonly<{ count: number }>
 
 /** "45s", "3m 40s", "1h 02m". */
 export function durationText(ms: number): string {
@@ -36,6 +27,7 @@ export function clockText(read: BuildRead, now: Date): string {
 }
 
 const FINDING: StateLabel = { ...STATE_LABELS.building, state: "finding its ways in" }
+const NOTHING_KEPT: StateLabel = { symbol: "○", state: "no build kept", tone: "dim" }
 const SAVED: StateLabel = { symbol: "●", state: "saved", tone: "good" }
 
 /**
@@ -47,6 +39,10 @@ export function buildLabel(
   progress: BuildProgress,
   findsWaysIn: boolean,
 ): StateLabel {
+  if (state === undefined) {
+    return NOTHING_KEPT
+  }
+
   if (state === "done") {
     return SAVED
   }

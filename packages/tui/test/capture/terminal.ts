@@ -11,6 +11,8 @@ const KEYS: Readonly<Record<string, string>> = {
   esc: "\x1b",
   up: "\x1b[A",
   down: "\x1b[B",
+  right: "\x1b[C",
+  left: "\x1b[D",
   space: " ",
   tab: "\t",
 }
