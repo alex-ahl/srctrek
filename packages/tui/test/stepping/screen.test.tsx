@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { repoWithTrek } from "@srctrek/testing"
+import { repoWithTrek, repoWithTwoCalls } from "@srctrek/testing"
 import { SteppingScreen } from "../../src/stepping/screen"
 import { frameAfter } from "../support/keys"
 
@@ -63,4 +63,25 @@ test("into, then out, follow the call and come back", async () => {
   expect(frame).toContain("2 / 3")
   expect(frame).toMatch(/export function pay\(\)/)
   expect(frame).toMatch(/returns ≈/)
+})
+
+test("the cursor marks its line, and i steps into the call made on it", async () => {
+  const root = await repoWithTwoCalls()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressArrow("down")
+      await settle()
+      input.pressKey("i")
+      await settle()
+    },
+    120,
+    30,
+  )
+
+  expect(frame).toContain("send.ts:1")
+  expect(frame).toMatch(/›\s+1 ▶ +export function send\(total\)/)
 })

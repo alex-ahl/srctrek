@@ -65,13 +65,57 @@ export function codeLines(view: StepView, text: string, first: number, last: num
 }
 
 /**
- * The lines shown in `height` rows: the step near the top, a few lines above it, `band` rows of
- * narration over it, without running past the file's end.
+ * How a file is laid out to step through: its length, the lines that fit, the first line shown
+ * at the stop, the last first line there can be, and the stop's first line.
  */
-export function windowOf(view: StepView, lineCount: number, height: number, band: number) {
+export type Layout = Readonly<{
+  lines: number
+  room: number
+  atStop: number
+  latest: number
+  stop: number
+}>
+
+/** Where the cursor is, and the first line in view. */
+export type Place = Readonly<{ cursor: number; top: number }>
+
+// Lines kept between the cursor and the view's edge as it moves, where the file allows.
+const MARGIN = 3
+
+/**
+ * The lines shown in `height` rows: from `top`, or at the stop, the step near the top with a few
+ * lines above it and `band` rows of narration over it, never past the file's end; and the file's
+ * layout, for moving the cursor.
+ */
+export function windowOf(
+  view: Pick<StepView, "start_line">,
+  lineCount: number,
+  height: number,
+  band: number,
+  top?: number,
+) {
   const room = Math.max(1, height - band)
   const latest = Math.max(1, lineCount - room + 1)
-  const first = Math.min(Math.max(1, view.start_line - 3), latest)
+  const atStop = Math.min(Math.max(1, view.start_line - 3), latest)
+  const first = Math.min(Math.max(1, top ?? atStop), latest)
+  const layout: Layout = { lines: lineCount, room, atStop, latest, stop: view.start_line }
 
-  return { first, last: Math.min(lineCount, first + room - 1) }
+  return { first, last: Math.min(lineCount, first + room - 1), layout }
+}
+
+/** The cursor at the stop, the view as it opens there. */
+export const atStop = (layout: Layout): Place => ({ cursor: layout.stop, top: layout.atStop })
+
+/**
+ * The place after moving the cursor `by` lines, kept within the file; the view follows only as
+ * the cursor comes within a few lines of its edge, as an editor's does.
+ */
+export function movedPlace(place: Place, by: number, layout: Layout): Place {
+  const cursor = Math.min(Math.max(1, place.cursor + by), layout.lines)
+  const margin = Math.min(MARGIN, Math.floor((layout.room - 1) / 2))
+  const lowest = cursor - layout.room + 1 + margin
+  const highest = cursor - margin
+  const top = Math.min(Math.max(place.top, lowest), highest)
+
+  return { cursor, top: Math.min(Math.max(1, top), layout.latest) }
 }
