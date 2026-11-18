@@ -8,6 +8,7 @@ import { fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { TitleBar } from "../ui/title-bar"
 import { type CodeLine, codeLines, windowOf } from "./lines"
+import { type Span, fittedSpans, useHighlighted } from "./highlight"
 import { type Move, useStepping } from "./use-stepping"
 
 type Props = {
@@ -84,12 +85,53 @@ function Band({ view, width }: { view: StepView; width: number }) {
   )
 }
 
-function Line({ line, width, tint }: { line: CodeLine; width: number; tint: RGBA | undefined }) {
+// A line's code, in its language's colours once worked out, else plain, cut to `room`.
+function CodeText({
+  line,
+  spans,
+  room,
+}: {
+  line: CodeLine
+  spans: readonly Span[] | undefined
+  room: number
+}) {
+  const tones = useTones()
+  const runs = fittedSpans(spans ?? [{ text: line.text, tone: undefined, italic: false }], room)
+  const used = runs.reduce((total, run) => total + run.text.length, 0)
+
+  return (
+    <>
+      {runs.map((run, i) =>
+        run.italic ? (
+          <span key={i} fg={tones.dim} attributes={TextAttributes.ITALIC}>
+            {run.text}
+          </span>
+        ) : (
+          <span key={i} fg={run.tone === undefined ? COLOUR.text : tones[run.tone]}>
+            {run.text}
+          </span>
+        ),
+      )}
+      {" ".repeat(Math.max(0, room - used))}
+    </>
+  )
+}
+
+function Line({
+  line,
+  spans,
+  width,
+  tint,
+}: {
+  line: CodeLine
+  spans: readonly Span[] | undefined
+  width: number
+  tint: RGBA | undefined
+}) {
   const tones = useTones()
   const values = line.values === "" ? "" : `   ${line.values}`
   const arrows = line.arrows === "" ? "" : `   ${line.arrows}`
-  const end = values.length + arrows.length
-  const code = fit(line.text.replaceAll("\t", "  "), Math.max(1, width - GUTTER - end))
+  const room = Math.max(1, width - GUTTER - values.length - arrows.length)
   const signTone = line.sign === "+" ? tones.good : tones.warn
 
   return (
@@ -102,7 +144,7 @@ function Line({ line, width, tint }: { line: CodeLine; width: number; tint: RGBA
       <text fg={COLOUR.text}>
         <span fg={tones.dim}>{String(line.number).padStart(4)}</span>
         <span fg={line.sign === "" ? tones.dim : signTone}>{` ${line.sign.padEnd(2)}`}</span>
-        {code.padEnd(width - GUTTER - end)}
+        <CodeText line={line} spans={spans} room={room} />
         <span fg={tones.dim}>{values}</span>
         <span fg={line.leadsNext ? tones.accent : tones.dim}>{arrows}</span>
       </text>
@@ -123,6 +165,7 @@ function Code({
   tint: RGBA | undefined
 }) {
   const text = useFileText(view.path)
+  const highlighted = useHighlighted(text, view.path)
   const band = bandLines(view, width - GUTTER).length
   const lineCount = text.split("\n").length
   const { first, last } = windowOf(view, lineCount, height, band)
@@ -133,7 +176,7 @@ function Code({
       {lines.map((line) => (
         <box key={line.number} flexDirection="column" style={{ flexShrink: 0 }}>
           {line.number === view.start_line && <Band view={view} width={width} />}
-          <Line line={line} width={width} tint={tint} />
+          <Line line={line} spans={highlighted?.[line.number - 1]} width={width} tint={tint} />
         </box>
       ))}
     </box>
