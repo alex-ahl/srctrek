@@ -11,6 +11,7 @@ function stepping(root: string) {
       root={root}
       name="pay"
       title="Paying"
+      editor={undefined}
       onBack={() => undefined}
       tint={undefined}
     />
@@ -121,6 +122,9 @@ test("enter in details goes to the step chosen, closing them", async () => {
       input.pressKey("i")
       await settle()
       input.pressKey("d")
+      await settle()
+      // past where it came from and the line its evidence cites, to its context
+      input.pressArrow("down")
       await settle()
       input.pressArrow("down")
       await settle()

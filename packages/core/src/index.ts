@@ -77,6 +77,7 @@ export {
 export { baseName, detectBase } from "./git/base"
 export { parseRange, resolveRange, type RangeSpec, type ResolvedRange } from "./git/range"
 export { GitError, runGit } from "./git/run"
+export { rangeCommits } from "./schema/recorded-range"
 export {
   changedFiles,
   changedLines,

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { fit } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { type DetailLine, detailLines } from "./details"
+import type { Look } from "./peek"
 
 // The cited files' lines, read once each as the panel opens, by path.
 function useCitedFiles(view: StepView): ReadonlyMap<string, readonly string[]> {
@@ -43,6 +44,8 @@ type Props = {
   height: number
   // goes to a step, by id, moving the trek there
   onGo: (id: string) => void
+  // opens a cited line beside the trek
+  onOpen: (look: Look) => void
   onClose: () => void
   tint: RGBA | undefined
 }
@@ -51,7 +54,7 @@ type Props = {
  * A step's details over its code: ↑/↓ choose among the lines that lead somewhere, and read on
  * past the last; enter goes to the step chosen, d or esc closes.
  */
-export function DetailsPanel({ view, width, height, onGo, onClose, tint }: Props) {
+export function DetailsPanel({ view, width, height, onGo, onOpen, onClose, tint }: Props) {
   const tones = useTones()
   const files = useCitedFiles(view)
   const lines = detailLines(
@@ -59,7 +62,9 @@ export function DetailsPanel({ view, width, height, onGo, onClose, tint }: Props
     width - 2,
     (path, line) => files.get(path)?.[line - 1]?.trim() ?? "",
   )
-  const leads = lines.flatMap((line, at) => (line.goes === undefined ? [] : [at]))
+  const leads = lines.flatMap((line, at) =>
+    line.goes === undefined && line.opens === undefined ? [] : [at],
+  )
   const [chosen, setChosen] = useState(0)
   const [beyond, setBeyond] = useState(0)
   const at = leads[chosen]
@@ -72,6 +77,15 @@ export function DetailsPanel({ view, width, height, onGo, onClose, tint }: Props
       : setBeyond((was) => (first < latest ? was + 1 : was))
   const up = () => (beyond > 0 ? setBeyond(beyond - 1) : setChosen(Math.max(0, chosen - 1)))
 
+  // enter goes to a step, or opens a cited line beside the trek
+  const enter = (line: DetailLine | undefined) => {
+    if (line?.goes !== undefined) {
+      onGo(line.goes)
+    } else if (line?.opens !== undefined) {
+      onOpen(line.opens)
+    }
+  }
+
   useKeyboard((key) => {
     const keys = new Map<string, () => void>([
       ["escape", onClose],
@@ -80,7 +94,7 @@ export function DetailsPanel({ view, width, height, onGo, onClose, tint }: Props
       ["j", down],
       ["up", up],
       ["k", up],
-      ["return", () => at !== undefined && onGo(lines[at]?.goes ?? "")],
+      ["return", () => enter(lines[at ?? -1])],
     ])
     keys.get(key.name)?.()
   })

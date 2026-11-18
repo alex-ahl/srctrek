@@ -44,7 +44,12 @@ export function availableEditors(
  * Hands the terminal to the user's $EDITOR at a file's line, as "+line file", which terminal
  * editors take, and takes it back when the editor exits.
  */
-async function openAtLine(renderer: CliRenderer, command: string, path: string, line: number) {
+export async function openAtLine(
+  renderer: CliRenderer,
+  command: string,
+  path: string,
+  line: number,
+) {
   await renderer.suspend()
 
   const editor = Bun.spawn(["sh", "-c", `${command} "$@"`, "editor", `+${line}`, path], {

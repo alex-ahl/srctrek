@@ -1,6 +1,7 @@
 import type { StepView } from "@srctrek/core"
 import { wrap } from "../ui/text"
 import type { Tone } from "../ui/theme"
+import type { Look } from "./peek"
 
 /**
  * A line of a step's details: its text and look, and, for a line that leads somewhere, the step
@@ -11,6 +12,8 @@ export type DetailLine = Readonly<{
   tone?: Tone
   bold?: boolean
   goes?: string
+  // a cited line, which enter opens beside the trek
+  opens?: Look
 }>
 
 /** A cited line's code, as the file has it now; empty where it can't be read. */
@@ -49,7 +52,15 @@ function cameFromLines(view: StepView, codeAt: CodeAt): DetailLine[] {
   const name = link.name === null ? "" : ` · ${link.name}`
   const guessed = link.guessed ? "   guessed: matched by name" : ""
   const cites = link.cites.flatMap((cite): DetailLine[] => [
-    { text: `    ${cite.repo}: ${cite.file}:${String(cite.line)}`, tone: "dim" },
+    {
+      text: `    ${cite.repo}: ${cite.file}:${String(cite.line)}`,
+      tone: "dim",
+      opens: {
+        path: cite.path,
+        line: cite.line,
+        label: `evidence · ${cite.file}:${String(cite.line)}`,
+      },
+    },
     { text: `      ${codeAt(cite.path, cite.line)}` },
   ])
 

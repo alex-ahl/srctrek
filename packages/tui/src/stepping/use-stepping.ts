@@ -1,5 +1,6 @@
 import {
   type SessionView,
+  type StepView,
   type SteppingSession,
   type ViewContext,
   loadTrek,
@@ -15,6 +16,8 @@ import {
   viewContext,
 } from "@srctrek/core"
 import { useEffect, useState } from "react"
+import { type DiffLine, changeOf } from "./change"
+import { type RouteStop, routeOf } from "./route"
 
 /** A move through the trek, as the keys name them. */
 export type Move = "next" | "previous" | "into" | "out" | "over"
@@ -40,6 +43,11 @@ export type Stepping =
       move: (to: Move, target?: string) => void
       // straight to a step, by id, as details and the route map go
       go: (id: string) => void
+      route: readonly RouteStop[]
+      // where a repo of the trek is checked out
+      dirOf: (repo: string) => string | undefined
+      // the change to the stop's file, over the trek's range
+      changeAt: (view: StepView) => Promise<DiffLine[]>
     }>
   | Readonly<{ kind: "failed"; why: string }>
 
@@ -79,5 +87,14 @@ export function useStepping(root: string, name: string): Stepping {
     )
   const go = (id: string) =>
     setOpen((was) => (was === undefined ? was : { ...was, session: stepTo(was.session, id) }))
-  return { kind: "open", view: sessionView(open.session, open.context), move, go }
+  const dirOf = (repo: string) => open.context.roots.get(repo)
+  return {
+    kind: "open",
+    view: sessionView(open.session, open.context),
+    move,
+    go,
+    route: routeOf(open.session),
+    dirOf,
+    changeAt: (view) => changeOf(open.session, dirOf(view.repo) ?? root, view.repo, view.file),
+  }
 }

@@ -126,6 +126,7 @@ function Step({ name, props, close }: { name: string; props: Props; close: () =>
   return (
     <SteppingScreen
       root={props.root ?? "."}
+      editor={props.editor?.command ?? process.env["EDITOR"]}
       name={name}
       title={entry?.valid === true ? entry.title : name}
       onBack={close}
