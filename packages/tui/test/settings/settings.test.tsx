@@ -25,16 +25,16 @@ function app(settings: Settings, onChangeSetting: SettingChange = noop) {
 }
 
 test("S opens settings: each setting with its value and where it comes from", async () => {
-  const frame = await frameAfter(app({ editor: "nvim", colours: "terminal" }), (input) =>
+  const frame = await frameAfter(app({ step_in: "nvim", colours: "terminal" }), (input) =>
     input.pressKey("S", { shift: true }),
   )
 
   expect(frame).toContain("  srctrek › settings")
-  expect(frame).toContain("▶ Editor                  Neovim")
+  expect(frame).toContain("▶ Step in                 Neovim")
   expect(frame).toMatch(/Build automatically +○ off/)
   expect(frame).toMatch(/Colours +the terminal's/)
   expect(frame).not.toContain("settings file")
-  expect(frame).toContain("Where enter opens a trek.")
+  expect(frame).toContain("Where enter steps a trek: here, or in an editor found on this machine.")
 })
 
 const LONG_AGENT = 'AGENT_HOME=~/.agent-one agent --allowed-tools "mcp__srctrek__*" -p'
@@ -62,7 +62,7 @@ test("says beside the agent when SRCTREK_AGENT sets it", async () => {
 })
 
 test("keys pressed faster than the screen redraws each move the selection", async () => {
-  const frame = await frameAfter(app({ editor: "nvim" }), async (input) => {
+  const frame = await frameAfter(app({ step_in: "nvim" }), async (input) => {
     input.pressKey("S", { shift: true })
     await Bun.sleep(20)
     input.pressKey("j")

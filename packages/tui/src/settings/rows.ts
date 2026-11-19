@@ -1,6 +1,6 @@
 import type { KeyHint } from "../ui/footer"
 import { type Settings, agentSetting } from "@srctrek/core"
-import type { Editor } from "../editors/editors"
+import { type Editor, TERMINAL } from "../editors/editors"
 import type { Tone } from "../ui/theme"
 
 /** Sets one of the user's settings, for every repo. */
@@ -76,10 +76,9 @@ export function settingRows(actions: RowActions): SettingRow[] {
   return [
     {
       group: "OPENING",
-      name: "Editor",
-      value: editor?.label ?? "not chosen",
-      ...(editor === undefined && { tone: "dim" as const }),
-      help: "Where enter opens a trek. Only editors found on this machine are offered.",
+      name: "Step in",
+      value: (editor ?? TERMINAL).label,
+      help: "Where enter steps a trek: here, or in an editor found on this machine.",
       change: actions.pickEditor,
       enter: "pick",
     },

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { Footer, type KeyHint } from "../ui/footer"
 import { moveKeys, stepped } from "../ui/move"
 import { EditorPicker } from "../editors/editor-picker"
-import type { Editor } from "../editors/editors"
+import type { Editor, StepPlace } from "../editors/editors"
 import { PADDING } from "../ui/layout"
 import { SettingsList } from "./list"
 import { type Notice, NoticeLine } from "./notice"
@@ -52,9 +52,9 @@ function Bottom({
   onAgent: (command: string) => void
 }) {
   if (prompt === "editor") {
-    const pick = (picked: Editor) => {
+    const pick = (picked: StepPlace) => {
       close()
-      props.onChange("editor", picked.id)
+      props.onChange("step_in", picked.id)
     }
     return (
       <EditorPicker

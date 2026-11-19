@@ -19,6 +19,14 @@ const WITH_PLUGIN: readonly Editor[] = [
   { id: "nvim", label: "Neovim", command: "nvim", steps: true },
 ]
 
+/** Stepping in trek itself, which the Step in setting offers before the editors. */
+export const TERMINAL = { id: "terminal", label: "Terminal" } as const
+
+/** Where enter steps a trek: trek itself, or an editor. */
+export type StepPlace = typeof TERMINAL | Editor
+
+export const isTerminal = (place: StepPlace): place is typeof TERMINAL => place.id === TERMINAL.id
+
 type Env = Readonly<Record<string, string | undefined>>
 
 // The user's $EDITOR, named by its program: "$EDITOR (vim)".

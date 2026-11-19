@@ -1,7 +1,7 @@
 import { expect, mock, test } from "bun:test"
 import { App } from "../../src/home/screen"
 import type { TrekEntry } from "@srctrek/core"
-import type { Editor } from "../../src/editors/editors"
+import type { Editor, StepPlace } from "../../src/editors/editors"
 import { frameAfter, pressEnterOn, pressOn } from "../support/keys"
 
 const noop = () => undefined
@@ -76,37 +76,47 @@ test("enter on the change's trek doesn't open it when a repo it names isn't here
   expect(open).not.toHaveBeenCalled()
 })
 
-test("enter on a trek before an editor is chosen asks for one, then opens the trek in it", async () => {
+test("enter on a trek with no editor chosen steps it here", async () => {
   const open = mock((_entry: TrekEntry) => undefined)
-  const choose = mock((_editor: Editor) => undefined)
+  const frame = await frameAfter(
+    <App entries={[withTrek]} onOpen={open} onQuit={noop} editors={[neovim, vim]} />,
+    (input) => input.pressEnter(),
+  )
+
+  expect(frame).toContain("srctrek › A reply times out")
+  expect(frame).toContain("n/p next/prev")
+  expect(open).not.toHaveBeenCalled()
+})
+
+test("E offers the terminal first, then the editors found, and picks one", async () => {
+  const choose = mock((_place: StepPlace) => undefined)
   const app = (
     <App
       entries={[withTrek]}
-      onOpen={open}
+      onOpen={noop}
       onQuit={noop}
       editors={[neovim, vim]}
       onChooseEditor={choose}
     />
   )
 
-  const asked = await frameAfter(app, (input) => input.pressEnter())
-  expect(asked).toContain("Open treks in:")
-  expect(asked).toContain("▶ Neovim          nvim")
+  const asked = await frameAfter(app, (input) => input.pressKey("E", { shift: true }))
+  expect(asked).toContain("Step treks in:")
+  expect(asked).toContain("▶ Terminal        here, in trek")
+  expect(asked).toContain("  Neovim          nvim")
   expect(asked).toContain("  $EDITOR (vim)   at the first stop, without stepping")
-  expect(open).not.toHaveBeenCalled()
 
   await pressOn(app, async (input) => {
-    input.pressEnter()
+    input.pressKey("E", { shift: true })
     await new Promise((resolve) => setTimeout(resolve, 0))
     input.pressKey("j")
     await new Promise((resolve) => setTimeout(resolve, 0))
     input.pressEnter()
   })
-  expect(choose).toHaveBeenCalledWith(vim)
-  expect(open).toHaveBeenCalledWith(withTrek)
+  expect(choose).toHaveBeenCalledWith(neovim)
 })
 
-test("E opens the editor picker on the chosen editor, and esc closes it", async () => {
+test("E opens the picker on the chosen editor, and esc closes it", async () => {
   const app = (
     <App entries={[withTrek]} onOpen={noop} onQuit={noop} editors={[neovim, vim]} editor={vim} />
   )
@@ -121,15 +131,6 @@ test("E opens the editor picker on the chosen editor, and esc closes it", async 
     // a lone escape is told from the start of a key sequence only after a short wait
     await Bun.sleep(50)
   })
-  expect(closed).not.toContain("Open treks in:")
+  expect(closed).not.toContain("Step treks in:")
   expect(closed).toContain("enter open in $EDITOR (vim)")
-})
-
-test("says when there's no editor to open treks in", async () => {
-  const frame = await frameAfter(
-    <App entries={[withTrek]} onOpen={noop} onQuit={noop} editors={[]} />,
-    (input) => input.pressEnter(),
-  )
-
-  expect(frame).toContain("No editor to open treks in: install Neovim, or set $EDITOR.")
 })

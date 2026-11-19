@@ -14,7 +14,7 @@ export function buildVerb(status: TrekStatus | undefined): string {
   return status?.kind === "older-guide" || status?.kind === "unreadable" ? "rebuild" : "build"
 }
 
-/** What enter says it does for the selected row; opening names the editor, once one is chosen. */
+/** What enter says it does for the selected row; opening names the editor, when one is chosen. */
 export function enterLabel(row: Row | undefined, editor: Editor | undefined): string {
   if (row?.kind === "proposal") {
     return "add to the repos list"
@@ -26,7 +26,7 @@ export function enterLabel(row: Row | undefined, editor: Editor | undefined): st
     return "build its trek"
   }
 
-  return editor === undefined ? "open, choosing an editor" : `open in ${editor.label}`
+  return editor === undefined ? "step" : `open in ${editor.label}`
 }
 
 type Offered = {

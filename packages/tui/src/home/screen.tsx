@@ -17,7 +17,7 @@ import { useState } from "react"
 import { ChangeStatus } from "./change-status"
 import { type Opening, OpeningLine } from "./opening-line"
 import type { SettingChange } from "../settings/rows"
-import type { Editor } from "../editors/editors"
+import type { Editor, StepPlace } from "../editors/editors"
 import { Footer } from "../ui/footer"
 import { moveKeys, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
@@ -85,10 +85,11 @@ export type Props = {
   now?: Date | undefined
   // the selected row's background, from the terminal's colours; absent, a marker shows it
   tint?: RGBA | undefined
-  // the editors treks can open in here, the one chosen, and what to do when one is picked
+  // the editors treks can be stepped in here, the one chosen (none for the terminal), and what to
+  // do when a place is picked
   editors?: readonly Editor[] | undefined
   editor?: Editor | undefined
-  onChooseEditor?: ((editor: Editor) => void) | undefined
+  onChooseEditor?: ((place: StepPlace) => void) | undefined
   // the user's settings, shown and changed on the settings screen
   settings?: UserSettings | undefined
   onChangeSetting?: SettingChange | undefined
@@ -153,15 +154,14 @@ export function App(props: Props) {
   const item = items[selected]
   const row = item?.kind === "row" ? item.row : undefined
 
-  // Opening a trek before an editor is chosen asks for one first.
-  const { editor } = props
-  const onOpen = (entry: TrekEntry) =>
-    editor === undefined ? setPrompt({ kind: "editor", then: entry }) : props.onOpen(entry)
   const askLocation = (name: string) => setPrompt({ kind: "location", name })
   const opens = {
     build: (name: string) => setOver({ kind: "build", name }),
     step: (name: string) => setOver({ kind: "step", name }),
   }
+  // With no editor chosen, treks are stepped here.
+  const onOpen = (entry: TrekEntry) =>
+    props.editor === undefined ? opens.step(entry.name) : props.onOpen(entry)
   const rowActions = actionsFor(row, { ...props, onOpen }, askLocation, opens)
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
   const { build, showLog, stop, step, dismiss } = rowActions

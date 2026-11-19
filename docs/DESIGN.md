@@ -22,7 +22,7 @@ terminal. Status: Milestone 5, in progress.
    overview, then steps as they arrive.
 3. A repo the agent proposes appears as a row: add it to the repos list, or dismiss it. The trek
    goes on into it either way.
-4. Once saved, the trek is picked out; enter opens it in the editor.
+4. Once saved, the trek is picked out; enter steps it, in the terminal or the chosen editor.
 5. In the editor: the overview, then next, over, into, and out through the steps, high flags
    inline and predicted values at the ends of their lines; at the end, the outcome.
 
@@ -68,10 +68,10 @@ at its line.
 
 ### Where a session starts
 
-- **From the terminal:** enter on the home screen opens the trek in the editor the user picked.
-  The first time, a picker lists the editors found on the machine that can open a trek (Neovim,
-  and `$EDITOR` at the first stop without stepping); the choice is kept per user, in
-  `$XDG_CONFIG_HOME/srctrek/settings.json` (else `~/.config`), and `E` picks again.
+- **From the terminal:** enter on the home screen steps the trek where the user's Step in setting
+  says: the terminal, the default, or an editor found on the machine that can open a trek
+  (Neovim, and `$EDITOR` at the first stop without stepping). The choice is kept per user, in
+  `$XDG_CONFIG_HOME/srctrek/settings.json` (else `~/.config`); `E` and settings change it.
 - **From the editor:** the plugin or extension lists the saved treks with their status (ready,
   stale, building, failed), opens one, and starts a build. The protocol gains the requests for
   this in Milestone 6.

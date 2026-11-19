@@ -53,18 +53,18 @@ that aren't valid treks. Each trek shows its state against its branch now. With 
 change, `b` has your agent build one in the background; while it builds, the end of its log
 shows what the agent has done so far.
 
-| Key       | Action                                              |
-| --------- | --------------------------------------------------- |
-| `↑` / `↓` | Choose a row (also `k`/`j`)                         |
-| `enter`   | Open the trek in your editor, or open a folded list |
-| `b`       | Build, update, or rebuild the change's trek         |
-| `l`       | The build's whole log                               |
-| `d`       | Dismiss a proposed repo                             |
-| `E`       | Pick the editor treks open in                       |
-| `S`       | Settings                                            |
-| `q`       | Quit                                                |
+| Key       | Action                                      |
+| --------- | ------------------------------------------- |
+| `↑` / `↓` | Choose a row (also `k`/`j`)                 |
+| `enter`   | Step the trek, or open a folded list        |
+| `b`       | Build, update, or rebuild the change's trek |
+| `l`       | The build's whole log                       |
+| `d`       | Dismiss a proposed repo                     |
+| `E`       | Pick where treks are stepped                |
+| `S`       | Settings                                    |
+| `q`       | Quit                                        |
 
-The first time you open a trek, `trek` asks which editor to open it in, from those it finds.
+Treks are stepped in the terminal until you pick an editor `trek` finds, with `E` or in settings.
 
 To see a trek before building one of your own, `bun scripts/showcase-repo.ts` makes a small repo
 with a saved trek, "pay", that uses everything an editor shows, and prints its path to open.

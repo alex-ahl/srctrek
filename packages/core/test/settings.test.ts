@@ -15,27 +15,27 @@ describe("settings", () => {
     const path = join(await tempDir("settings-"), "srctrek", "settings.json")
     expect(await loadSettings(path)).toEqual({})
 
-    await saveSetting("editor", "nvim", path)
-    expect(await loadSettings(path)).toEqual({ editor: "nvim" })
-    expect(await readFile(path, "utf8")).toBe('{\n  "editor": "nvim"\n}\n')
+    await saveSetting("step_in", "nvim", path)
+    expect(await loadSettings(path)).toEqual({ step_in: "nvim" })
+    expect(await readFile(path, "utf8")).toBe('{\n  "step_in": "nvim"\n}\n')
   })
 
   test("keep keys they don't know, in their order", async () => {
     const path = join(await tempDir("settings-"), "settings.json")
-    await writeFile(path, '{ "theme": "mine", "editor": "nvim", "later": 1 }\n')
+    await writeFile(path, '{ "theme": "mine", "step_in": "nvim", "later": 1 }\n')
 
-    await saveSetting("editor", "$EDITOR", path)
+    await saveSetting("step_in", "$EDITOR", path)
     expect(await readFile(path, "utf8")).toBe(
-      '{\n  "theme": "mine",\n  "editor": "$EDITOR",\n  "later": 1\n}\n',
+      '{\n  "theme": "mine",\n  "step_in": "$EDITOR",\n  "later": 1\n}\n',
     )
   })
 
   test("aren't written again when nothing changes", async () => {
     const path = join(await tempDir("settings-"), "settings.json")
-    await writeFile(path, '{"editor":"nvim"}')
+    await writeFile(path, '{"step_in":"nvim"}')
 
-    await saveSetting("editor", "nvim", path)
-    expect(await readFile(path, "utf8")).toBe('{"editor":"nvim"}')
+    await saveSetting("step_in", "nvim", path)
+    expect(await readFile(path, "utf8")).toBe('{"step_in":"nvim"}')
   })
 
   test("are written through a link, which stays a link", async () => {
@@ -45,21 +45,21 @@ describe("settings", () => {
     await writeFile(target, "{}")
     await symlink(target, link)
 
-    await saveSetting("editor", "nvim", link)
+    await saveSetting("step_in", "nvim", link)
     expect((await lstat(link)).isSymbolicLink()).toBe(true)
-    expect(JSON.parse(await readFile(target, "utf8"))).toEqual({ editor: "nvim" })
+    expect(JSON.parse(await readFile(target, "utf8"))).toEqual({ step_in: "nvim" })
     expect((await stat(link)).isFile()).toBe(true)
   })
 
   test("say which file is wrong when it isn't valid JSON, and leave it alone", async () => {
     const path = join(await tempDir("settings-"), "settings.json")
-    await writeFile(path, "{ editor: nvim")
+    await writeFile(path, "{ step_in: nvim")
 
     expect(await rejection(loadSettings(path))).toMatchObject({
       message: `${path} isn't valid JSON`,
     })
-    expect(await rejection(saveSetting("editor", "nvim", path))).toBeInstanceOf(Error)
-    expect(await readFile(path, "utf8")).toBe("{ editor: nvim")
+    expect(await rejection(saveSetting("step_in", "nvim", path))).toBeInstanceOf(Error)
+    expect(await readFile(path, "utf8")).toBe("{ step_in: nvim")
   })
 })
 

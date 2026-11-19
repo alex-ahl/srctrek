@@ -4,8 +4,8 @@ import { dirname, join } from "node:path"
 import { z } from "zod"
 
 const SettingsSchema = z.object({
-  // the editor treks open in, by its id
-  editor: z.string().min(1).optional(),
+  // where enter steps a trek: "terminal", or an editor by its id
+  step_in: z.string().min(1).optional(),
   // the command that runs the user's agent headless
   agent: z.string().min(1).optional(),
   // whether trek starts building a change's trek as it opens, when there's none

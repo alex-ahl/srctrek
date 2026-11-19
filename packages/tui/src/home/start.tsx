@@ -51,7 +51,7 @@ type HomeProps = {
   firstEntries: TrekEntry[]
   firstStatus: TrekStatus | undefined
   firstProposals: ProposedRepo[]
-  // the editors treks can open in here, and the user's settings as trek started
+  // the editors treks can be stepped in here, and the user's settings as trek started
   editors: readonly Editor[]
   firstSettings: Settings
   onOpen: (entry: TrekEntry, editor: Editor) => void
@@ -78,7 +78,7 @@ function Home(props: HomeProps) {
   const { settings, changeSetting } = useSettings(props.firstSettings)
   const { tint, tones } = useTerminalTones(settings.colours)
   const states = useTrekStates(root, entries)
-  const editor = props.editors.find((each) => each.id === settings.editor)
+  const editor = props.editors.find((each) => each.id === settings.step_in)
 
   const reloadLists = async () => {
     setEntries(await loadTrekEntries(root))
@@ -135,7 +135,7 @@ function Home(props: HomeProps) {
         onOpen={(entry) => editor !== undefined && onOpen(entry, editor)}
         editors={props.editors}
         editor={editor}
-        onChooseEditor={(picked) => changeSetting("editor", picked.id)}
+        onChooseEditor={(picked) => changeSetting("step_in", picked.id)}
         settings={settings}
         onChangeSetting={changeSetting}
         onQuit={onQuit}
@@ -160,7 +160,7 @@ function Home(props: HomeProps) {
 }
 
 /**
- * The home screen: the treks saved under `root`, each opened in the chosen editor on enter, and
+ * The home screen: the treks saved under `root`, each stepped where the settings say on enter, and
  * where the change's trek stands, kept up with the worktree through `follow`.
  */
 export async function startHome(

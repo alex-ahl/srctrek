@@ -1,4 +1,4 @@
-import type { ChangeChoice, TrekEntry } from "@srctrek/core"
+import type { ChangeChoice } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { type ReactNode, useCallback } from "react"
 import { ChangePicker } from "../change-picker/screen"
@@ -6,14 +6,13 @@ import { EditorPicker } from "../editors/editor-picker"
 import { SettingsScreen } from "../settings/screen"
 import { BuildScreen } from "../build-view/screen"
 import { SteppingScreen } from "../stepping/screen"
-import type { Editor } from "../editors/editors"
+import type { StepPlace } from "../editors/editors"
 import { TextPrompt } from "../ui/text-prompt"
 import type { Choosing, Props } from "./screen"
 
-// What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or which
-// editor treks open in, with the trek to open once it's picked.
-export type Prompt =
-  { kind: "location"; name: string } | { kind: "editor"; then?: TrekEntry | undefined }
+// What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or where
+// treks are stepped.
+export type Prompt = { kind: "location"; name: string } | { kind: "editor" }
 
 // The bottom of the screen: the prompt that's open, else the footer.
 export function Bottom({
@@ -41,13 +40,9 @@ export function Bottom({
     return <TextPrompt question={question} onSubmit={add} onCancel={close} />
   }
 
-  const { then } = prompt
-  const pick = (editor: Editor) => {
+  const pick = (place: StepPlace) => {
     close()
-    props.onChooseEditor?.(editor)
-    if (then !== undefined) {
-      props.onOpen(then)
-    }
+    props.onChooseEditor?.(place)
   }
 
   return (
