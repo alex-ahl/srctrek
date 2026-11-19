@@ -40,22 +40,14 @@ test("enter on a trigger with no trek yet builds its trek", async () => {
   expect(build).toHaveBeenCalledWith("a reply times out")
 })
 
-test("enter on a trigger with a trek opens it", async () => {
-  const open = mock((_entry: TrekEntry) => undefined)
+test("enter on a trigger with a trek opens the trek's page", async () => {
   const status = statusWith({ kind: "ready", name: "a-reply-times-out" })
-
-  await pressEnterOn(
-    <App
-      entries={[withTrek]}
-      onOpen={open}
-      onQuit={noop}
-      status={status}
-      onBuildTrigger={noop}
-      editor={neovim}
-    />,
+  const frame = await frameAfter(
+    <App entries={[withTrek]} onOpen={noop} onQuit={noop} status={status} onBuildTrigger={noop} />,
+    (input) => input.pressEnter(),
   )
 
-  expect(open).toHaveBeenCalledWith(withTrek)
+  expect(frame).toContain("srctrek › A reply times out")
 })
 
 test("enter on the change's trek doesn't open it when a repo it names isn't here", async () => {
@@ -76,15 +68,14 @@ test("enter on the change's trek doesn't open it when a repo it names isn't here
   expect(open).not.toHaveBeenCalled()
 })
 
-test("enter on a trek with no editor chosen steps it here", async () => {
+test("enter on a trek opens its page, not the editor", async () => {
   const open = mock((_entry: TrekEntry) => undefined)
   const frame = await frameAfter(
-    <App entries={[withTrek]} onOpen={open} onQuit={noop} editors={[neovim, vim]} />,
+    <App entries={[withTrek]} onOpen={open} onQuit={noop} editors={[neovim, vim]} editor={vim} />,
     (input) => input.pressEnter(),
   )
 
   expect(frame).toContain("srctrek › A reply times out")
-  expect(frame).toContain("n/p next/prev")
   expect(open).not.toHaveBeenCalled()
 })
 
@@ -132,5 +123,5 @@ test("E opens the picker on the chosen editor, and esc closes it", async () => {
     await Bun.sleep(50)
   })
   expect(closed).not.toContain("Step treks in:")
-  expect(closed).toContain("enter open in $EDITOR (vim)")
+  expect(closed).toContain("enter open · E editor")
 })

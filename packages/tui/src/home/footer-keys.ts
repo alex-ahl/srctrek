@@ -1,5 +1,4 @@
 import type { TrekStatus } from "@srctrek/core"
-import type { Editor } from "../editors/editors"
 import type { KeyHint } from "../ui/footer"
 import type { Row } from "./list/rows"
 import { hasTrek } from "./states"
@@ -14,8 +13,8 @@ export function buildVerb(status: TrekStatus | undefined): string {
   return status?.kind === "older-guide" || status?.kind === "unreadable" ? "rebuild" : "build"
 }
 
-/** What enter says it does for the selected row; opening names the editor, when one is chosen. */
-export function enterLabel(row: Row | undefined, editor: Editor | undefined): string {
+/** What enter says it does for the selected row. */
+export function enterLabel(row: Row | undefined): string {
   if (row?.kind === "proposal") {
     return "add to the repos list"
   }
@@ -26,14 +25,13 @@ export function enterLabel(row: Row | undefined, editor: Editor | undefined): st
     return "build its trek"
   }
 
-  return editor === undefined ? "step" : `open in ${editor.label}`
+  return "open"
 }
 
 type Offered = {
   build: string | undefined
   log: boolean
   stop: boolean
-  step: boolean
   dismiss: boolean
   change: boolean
 }
@@ -44,7 +42,6 @@ export function footerKeys(enter: string | undefined, offered: Offered): KeyHint
   return [
     { key: "↑/↓", does: "choose" },
     ...(enter === undefined ? [] : [{ key: "enter", does: enter }]),
-    ...(offered.step ? [{ key: "s", does: "step" }] : []),
     ...(offered.dismiss ? [{ key: "d", does: "dismiss" }] : []),
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
     ...(offered.stop ? [{ key: "x", does: "stop" }] : []),

@@ -132,7 +132,7 @@ function Home(props: HomeProps) {
       <App
         root={root}
         entries={entries}
-        onOpen={(entry) => editor !== undefined && onOpen(entry, editor)}
+        onOpen={onOpen}
         editors={props.editors}
         editor={editor}
         onChooseEditor={(picked) => changeSetting("step_in", picked.id)}

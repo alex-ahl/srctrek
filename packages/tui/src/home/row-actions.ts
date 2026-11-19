@@ -31,8 +31,13 @@ export function opens(entry: TrekEntry, status: TrekStatus | undefined): boolean
 
 // What enter does on a row: add a proposed repo; open a trek; on a trigger, open its trek or
 // build it.
-export function pickAction(row: Row, props: Props, askLocation: (name: string) => void): Action {
-  const { entries, onOpen, onBuildTrigger } = props
+export function pickAction(
+  row: Row,
+  props: Props,
+  askLocation: (name: string) => void,
+  onOpen: (entry: TrekEntry) => void,
+): Action {
+  const { entries, onBuildTrigger } = props
   if (row.kind === "proposal") {
     return addAction(row.proposal, props, askLocation)
   }
@@ -82,12 +87,11 @@ export type RowActions = {
   build: Action
   showLog: Action
   stop: Action
-  step: Action
   dismiss: Action
 }
 
-/** The screens a row's keys open over the list: a trek's builds, and stepping a trek. */
-export type Opens = Readonly<{ build: (name: string) => void; step: (name: string) => void }>
+/** The screens a row's keys open over the list: a trek's builds, and a trek's page. */
+export type Opens = Readonly<{ build: (name: string) => void; trek: (name: string) => void }>
 
 export function dismissAction(row: Row | undefined, onDismissRepo: Props["onDismissRepo"]): Action {
   if (row?.kind !== "proposal" || onDismissRepo === undefined) {
@@ -109,11 +113,13 @@ export function actionsFor(
   const building = buildingName(row, status)
 
   return {
-    pick: row === undefined ? undefined : pickAction(row, props, askLocation),
+    pick:
+      row === undefined
+        ? undefined
+        : pickAction(row, props, askLocation, (entry) => screens.trek(entry.name)),
     build: canStartBuild(status) ? onBuild : undefined,
     showLog: log !== undefined && onReadBuild ? () => screens.build(log) : undefined,
     stop: building !== undefined && onStopBuild ? () => onStopBuild(building) : undefined,
-    step: row?.kind === "trek" && row.entry.valid ? () => screens.step(row.entry.name) : undefined,
     dismiss: dismissAction(row, props.onDismissRepo),
   }
 }
@@ -137,15 +143,13 @@ export function keyHints(
   props: Props,
   blockKeys?: string,
 ) {
-  const { editor } = props
   const row = item?.kind === "row" ? item.row : undefined
-  const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row, editor)
+  const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row)
 
   return footerKeys(actions.pick === undefined ? undefined : enter, {
     build: offers(actions.build, blockKeys, "b") ? buildVerb(status) : undefined,
     log: offers(actions.showLog, blockKeys, "l"),
     stop: offers(actions.stop, blockKeys, "x"),
-    step: actions.step !== undefined,
     dismiss: actions.dismiss !== undefined,
     change: props.choosing !== undefined,
   })

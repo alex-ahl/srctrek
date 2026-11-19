@@ -56,7 +56,8 @@ export type Props = {
   // the folder trek runs in, where treks are saved and stepped
   root?: string | undefined
   entries: TrekEntry[]
-  onOpen: (entry: TrekEntry) => void
+  // opens a trek in an editor, from its page
+  onOpen: (entry: TrekEntry, editor: Editor) => void
   onQuit: () => void
   // where the change trek was started for stands; absent when there's none to show
   status?: TrekStatus | undefined
@@ -157,14 +158,11 @@ export function App(props: Props) {
   const askLocation = (name: string) => setPrompt({ kind: "location", name })
   const opens = {
     build: (name: string) => setOver({ kind: "build", name }),
-    step: (name: string) => setOver({ kind: "step", name }),
+    trek: (name: string) => setOver({ kind: "trek", name }),
   }
-  // With no editor chosen, treks are stepped here.
-  const onOpen = (entry: TrekEntry) =>
-    props.editor === undefined ? opens.step(entry.name) : props.onOpen(entry)
-  const rowActions = actionsFor(row, { ...props, onOpen }, askLocation, opens)
+  const rowActions = actionsFor(row, props, askLocation, opens)
   const pick = pickFor(item, rowActions.pick, (id) => setOpen(toggled(open, id)))
-  const { build, showLog, stop, step, dismiss } = rowActions
+  const { build, showLog, stop, dismiss } = rowActions
 
   // from the selection as it is, so keys pressed faster than the screen redraws each count
   const move = (by: number) =>
@@ -176,7 +174,6 @@ export function App(props: Props) {
     ["q", onQuit],
     ["b", () => build?.()],
     ["l", () => showLog?.()],
-    ["s", () => step?.()],
     ["x", () => stop?.()],
     ["d", () => dismiss?.()],
     ...moveKeys(move),
@@ -188,7 +185,7 @@ export function App(props: Props) {
     ["c", () => setOver("picker")],
   ])
   // While a prompt, settings, or the picker is open, keys go there, not to the list.
-  const overlay = overlayFor(over, props, () => setOver(undefined))
+  const overlay = overlayFor(over, props, setOver)
   const onList = prompt === undefined && overlay === undefined
   useKeyboard((key) => onList && listKey(key, actions, shifted))
 

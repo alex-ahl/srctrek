@@ -15,6 +15,7 @@ import { type Layer, LayerView, layerKeys, layerWhere, useLayer } from "./layers
 import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf } from "./peek"
 import { openAtLine } from "../editors/editors"
+import { type PageActions, pageHints, pageKeys } from "./page"
 import { type ReactNode, useRef, useState } from "react"
 
 type Props = {
@@ -24,6 +25,8 @@ type Props = {
   // the trek's saved name, and its title for the title bar
   name: string
   title: string
+  // the overview is the trek's page: what it offers besides stepping here
+  page: PageActions
   onBack: () => void
   // the step's lines' background, when the terminal's colours are known
   tint: RGBA | undefined
@@ -338,6 +341,15 @@ function useActions(
   }
 }
 
+// What the footer offers: what's open's keys, the page's on the overview, else a stop's.
+function footerKeys(layer: Layer | undefined, onPage: boolean, page: PageActions) {
+  if (layer !== undefined) {
+    return layerKeys(layer)
+  }
+
+  return onPage ? pageHints(page) : STEP_KEYS
+}
+
 // The trek's title and the stop's number; on the right, where the cursor is, or what's open.
 function StepTitle({
   title,
@@ -396,7 +408,7 @@ function Main({ stepping, children }: { stepping: Stepping; children: ReactNode 
  * values, and arrows, and the call stack beside it; before the first, the overview; after the
  * last, the outcome and the flags.
  */
-export function SteppingScreen({ root, name, title, editor, onBack, tint }: Props) {
+export function SteppingScreen({ root, name, title, editor, page, onBack, tint }: Props) {
   const { width, height } = useTerminalDimensions()
   const stepping = useStepping(root, name)
   const { place, cursorKeys, onLayout, toStop } = useCursor(height)
@@ -404,7 +416,9 @@ export function SteppingScreen({ root, name, title, editor, onBack, tint }: Prop
   const { view, move, back, edit, cursor } = useActions(stepping, place, toStop, close, editor)
 
   const [note, setNote] = useState("")
-  const keys = stepKeys({ stepping, view, cursor, open, onBack, move, edit, say: setNote })
+  const stopKeys = stepKeys({ stepping, view, cursor, open, onBack, move, edit, say: setNote })
+  const onPage = view?.kind === "overview"
+  const keys = onPage ? new Map([...stopKeys, ...pageKeys(page, () => move("next"))]) : stopKeys
   useKeyboard((key) => {
     setNote("")
     const aside = asideKeys(layer, back, edit)
@@ -450,7 +464,7 @@ export function SteppingScreen({ root, name, title, editor, onBack, tint }: Prop
           />
         )}
       </Main>
-      <Footer keys={layer === undefined ? STEP_KEYS : layerKeys(layer)} shown="" />
+      <Footer keys={footerKeys(layer, onPage, page)} shown="" />
     </box>
   )
 }

@@ -37,7 +37,7 @@ export function Overview({ view, width }: { view: OverviewView; width: number })
       <Labelled label="Outcome" text={view.outcome} width={width} />
       <Labelled label="Repos" text={view.repos.join(", ")} width={width} />
       <text> </text>
-      <text fg={tones.dim}>{`${String(view.count)} stops · n to start`}</text>
+      <text fg={tones.dim}>{`${String(view.count)} stops`}</text>
     </box>
   )
 }

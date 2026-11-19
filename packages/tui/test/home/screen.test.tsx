@@ -375,7 +375,7 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   expect(frame).toContain("   built before the guide last changed")
   expect(frame).toContain("   b rebuild with the current guide · enter open it")
   expect(frame).toContain("▶ ↻ older guide   Refund orders   12 steps   built today 09:12")
-  expect(frame).toContain("enter open in Neovim · s step · E editor")
+  expect(frame).toContain("enter open · E editor")
   expect(frame).not.toContain("· b rebuild ·")
 })
 

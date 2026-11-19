@@ -60,8 +60,7 @@ shows what the agent has done so far, and `l` opens the build view.
 | Key       | Action                                      |
 | --------- | ------------------------------------------- |
 | `↑` / `↓` | Choose a row (also `k`/`j`)                 |
-| `enter`   | Step the trek, or open a folded list        |
-| `s`       | Step the trek in the terminal               |
+| `enter`   | Open the trek's page, or a folded list      |
 | `b`       | Build, update, or rebuild the change's trek |
 | `x`       | Stop a build                                |
 | `l`       | The trek's builds, and each one's log       |
@@ -71,7 +70,9 @@ shows what the agent has done so far, and `l` opens the build view.
 | `S`       | Settings                                    |
 | `q`       | Quit                                        |
 
-Treks are stepped in the terminal until you pick an editor `trek` finds, with `E` or in settings.
+A trek's page shows its overview. There, `enter` steps it in the terminal, or in the editor you
+picked with `E` or in settings; the other place is one key away (`e` for the editor, `n` for the
+terminal), with `b` to build, `x` to stop a build, and `l` for its builds.
 
 To see a trek before building one of your own, `bun scripts/showcase-repo.ts` makes a small repo
 with a saved trek, "pay", that uses everything an editor shows, and prints its path to open.
@@ -108,9 +109,9 @@ building. Agents that show MCP prompts as commands also offer `build_trek`.
 
 ## Step through a trek
 
-- **Terminal:** `enter` on the home screen, unless you picked an editor.
-- **Neovim:** pick it with `E`, then `enter` on the home screen opens the trek; or `:Trek <name>`
-  from your own Neovim. See [editors/nvim](editors/nvim/README.md).
+- **Terminal:** `enter` on a trek's page, or `n` once you picked an editor.
+- **Neovim:** `enter` on a trek's page once you picked Neovim, else `e`; or `:Trek <name>` from
+  your own Neovim. See [editors/nvim](editors/nvim/README.md).
 - **VS Code and its forks:** install the extension, then open a trek from the srctrek sidebar.
   See [editors/vscode](editors/vscode/README.md).
 
