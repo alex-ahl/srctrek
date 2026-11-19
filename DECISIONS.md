@@ -2,6 +2,17 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-18 — Releases are cut by pushing a tag
+
+Pushing a `v<version>` tag runs `.github/workflows/release.yml`: each binary is built on a runner
+of its own platform, and one job publishes them with SHA256SUMS as the tag's GitHub release, not
+marked pre-release. The version trek reports (`SRCTREK_VERSION`) isn't stamped from the tag yet
+and stays `0.0.0`; versioning comes with release-please, on the roadmap.
+
+The terminal's renderer is a native library per platform, so a binary can't be cross-compiled.
+The install script follows `releases/latest`, which skips pre-releases. Stamping the version
+waits until releases are regular enough to need it.
+
 ## 2026-11-18 — Stepping in the terminal is as good as in the editor
 
 A trek can be stepped in the terminal or in an editor, and which is the user's choice. Stepping in

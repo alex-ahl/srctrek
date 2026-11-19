@@ -65,13 +65,13 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 
 ## Shipping
 
-- Release workflow: per-platform binaries built on native runners, with checksums.
-- Install script; Homebrew tap; an npm package with per-platform binaries.
+- Homebrew tap; an npm package with per-platform binaries.
 - macOS notarization; Windows builds.
 - The Neovim plugin moves to its own repo once the editor protocol is versioned and stable
   and the plugin has its own tests in CI; until then, mirrored on release into its own repo
   for plugin managers.
 - The VS Code extension published to both the VS Code Marketplace and Open VSX, so forks can
   install it.
-- Versioning: release-please from Conventional Commits; semver covers the CLI, key
-  bindings, the trek format, and `.srctrek/repos`; 0.x until those settle.
+- Versioning: release-please from Conventional Commits, stamping the version trek reports;
+  semver covers the CLI, key bindings, the trek format, and `.srctrek/repos`; 0.x until those
+  settle.
