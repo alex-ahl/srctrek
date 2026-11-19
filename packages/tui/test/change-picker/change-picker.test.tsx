@@ -169,7 +169,7 @@ test("esc keeps the current change and goes back to the list", async () => {
 
   expect(onPick).not.toHaveBeenCalled()
   expect(frame).not.toContain("srctrek › change")
-  expect(frame).toContain("C change")
+  expect(frame).toContain("? keys")
 })
 
 test("says on each row whether a trek of it exists, as each is worked out", async () => {
@@ -366,7 +366,7 @@ test("→ on a repo opens its branches under it, with when, who, and what", asyn
   expect(frame).toContain("▸ 1 more branches")
   expect(frame).toMatch(/│ main +its default branch · passes it through/)
   expect(frame).toContain("└ ↻ look for new branches on the remote")
-  expect(frame).toContain("type to narrow · ↑/↓ choose · enter take · ←/esc close")
+  expect(frame).toContain("type to narrow · enter take · ←/esc close")
 })
 
 test("enter takes a branch, ticking the repo on it", async () => {

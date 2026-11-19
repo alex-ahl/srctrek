@@ -40,13 +40,13 @@ test("lists a proposed repo first, with where it lives and why, and how to settl
 
   expect(frame).toContain(" PROPOSED BY THE AGENT")
   expect(frame).toContain(
-    "▶ + proposed   payments   git@example.test:shop/payments.git   the client posts refunds to …   enter add · d dismiss",
+    "▶ + proposed   payments   git@example.test:shop/payments.git   the client posts refunds to …   enter add · x dismiss",
   )
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
-  expect(frame).toContain("enter add to the repos list · d dismiss")
+  expect(frame).toContain("enter add to the repos list · x dismiss · ? keys")
 })
 
-test("enter on a proposed repo adds it; d dismisses it", async () => {
+test("enter on a proposed repo adds it; x dismisses it", async () => {
   const add = mock((_name: string) => undefined)
   const dismiss = mock((_name: string) => undefined)
   const app = (
@@ -61,18 +61,18 @@ test("enter on a proposed repo adds it; d dismisses it", async () => {
   )
 
   await pressEnterOn(app)
-  await pressKeyOn(app, "d")
+  await pressKeyOn(app, "x")
 
   expect(add).toHaveBeenCalledWith("payments")
   expect(dismiss).toHaveBeenCalledWith("payments")
 })
 
-test("d on a trek does nothing", async () => {
+test("x on a trek with no build does nothing", async () => {
   const dismiss = mock((_name: string) => undefined)
 
   await pressKeyOn(
     <App entries={[refund]} onOpen={noop} onQuit={noop} onDismissRepo={dismiss} />,
-    "d",
+    "x",
   )
 
   expect(dismiss).not.toHaveBeenCalled()

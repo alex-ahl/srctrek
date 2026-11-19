@@ -18,25 +18,19 @@ export type Layer =
 
 const LAYER_KEYS: Readonly<Record<Layer["kind"], readonly KeyHint[]>> = {
   details: [
-    { key: "↑/↓", does: "choose" },
     { key: "enter", does: "go there" },
     { key: "d", does: "close" },
   ],
   route: [
-    { key: "↑/↓", does: "choose" },
     { key: "enter", does: "go there" },
     { key: "tab", does: "calls, repos" },
     { key: "r", does: "close" },
   ],
   look: [
-    { key: "↑/↓", does: "read" },
     { key: "e", does: "editor" },
     { key: ".", does: "back to the stop" },
   ],
-  change: [
-    { key: "↑/↓", does: "read" },
-    { key: "c", does: "the code as it is" },
-  ],
+  change: [{ key: "D", does: "the code as it is" }],
 }
 
 /** The keys a layer offers, for the footer. */
@@ -48,7 +42,7 @@ export function layerWhere(layer: Layer): string | undefined {
     return `${layer.look.label} · . back to the stop`
   }
 
-  return layer.kind === "change" ? "the change · c back" : undefined
+  return layer.kind === "change" ? "the change · D back" : undefined
 }
 
 /** The layer open over the code, if any; opening one closes another. */

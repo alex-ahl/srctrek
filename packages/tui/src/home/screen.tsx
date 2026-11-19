@@ -19,6 +19,8 @@ import { type Opening, OpeningLine } from "./opening-line"
 import type { SettingChange } from "../settings/rows"
 import type { Editor, StepPlace } from "../editors/editors"
 import { Footer } from "../ui/footer"
+import { OrKeysHelp, useKeysHelp } from "../ui/keys-help"
+import { HOME_GROUPS } from "./footer-keys"
 import { moveKeys, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
 import { PADDING, listHeight } from "../ui/layout"
@@ -143,6 +145,7 @@ export function App(props: Props) {
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
   const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
   const [over, setOver] = useState<Over | undefined>(undefined)
+  const help = useKeysHelp()
   // what "built today" is measured from, kept current while the screen is open
   const now = useNow(props.now)
 
@@ -174,8 +177,8 @@ export function App(props: Props) {
     ["q", onQuit],
     ["b", () => build?.()],
     ["l", () => showLog?.()],
-    ["x", () => stop?.()],
-    ["d", () => dismiss?.()],
+    ["x", () => (dismiss ?? stop)?.()],
+    ["?", help.show],
     ...moveKeys(move),
     ["return", () => pick?.()],
   ])
@@ -187,7 +190,7 @@ export function App(props: Props) {
   // While a prompt, settings, or the picker is open, keys go there, not to the list.
   const overlay = overlayFor(over, props, setOver)
   const onList = prompt === undefined && overlay === undefined
-  useKeyboard((key) => onList && listKey(key, actions, shifted))
+  useKeyboard(help.guard((key) => onList && listKey(key, actions, shifted)))
 
   const { width, height } = useTerminalDimensions()
   const changeEntry = entries.find((entry) => entry.name === status?.name)
@@ -223,22 +226,24 @@ export function App(props: Props) {
         }}
       >
         <Heading summary={props.summary} opening={props.opening} block={block} width={width} />
-        {rows.length === 0 ? (
-          <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>
-        ) : (
-          lines
-            .slice(start, end)
-            .map((line, i) => (
-              <ListLineView key={start + i} line={line} selected={selected} context={context} />
-            ))
-        )}
+        <OrKeysHelp open={help.open} groups={HOME_GROUPS}>
+          {rows.length === 0 ? (
+            <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>
+          ) : (
+            lines
+              .slice(start, end)
+              .map((line, i) => (
+                <ListLineView key={start + i} line={line} selected={selected} context={context} />
+              ))
+          )}
+        </OrKeysHelp>
       </box>
       <Bottom
         prompt={prompt}
         props={props}
         footer={
           <Footer
-            keys={keyHints(item, status, { ...rowActions, pick }, props, block?.keys)}
+            keys={help.footer(keyHints(item, status, { ...rowActions, pick }, block?.keys))}
             shown={shown}
           />
         }

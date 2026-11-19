@@ -1,4 +1,5 @@
 import type { KeyHint } from "../ui/footer"
+import { HELP_HINT, type KeyGroup } from "../ui/keys-help"
 
 /**
  * What a trek's page offers besides stepping it here: an editor to step it in, its builds, and,
@@ -30,14 +31,25 @@ function placeHints({ editor, editorFirst }: PageActions): KeyHint[] {
       ]
 }
 
-/** The page's footer: where enter steps the trek and the other place, then what acts on it. */
-export function pageHints(page: PageActions): KeyHint[] {
+// What acts on the trek besides stepping it.
+function trekHints(page: PageActions): KeyHint[] {
   return [
-    ...placeHints(page),
     ...(page.build === undefined ? [] : [{ key: "b", does: page.build.verb }]),
     ...(page.stop === undefined ? [] : [{ key: "x", does: "stop" }]),
     ...(page.builds === undefined ? [] : [{ key: "l", does: "builds" }]),
-    { key: "q", does: "home" },
+  ]
+}
+
+/** The page's footer: where enter steps the trek and the other place, then what acts on it. */
+export function pageHints(page: PageActions): KeyHint[] {
+  return [...placeHints(page), ...trekHints(page), HELP_HINT]
+}
+
+/** Every key on the page, for the panel ? opens. */
+export function pageGroups(page: PageActions): KeyGroup[] {
+  return [
+    { title: "this trek", keys: [...placeHints(page), ...trekHints(page)] },
+    { title: "leave", keys: [{ key: "q", does: "home" }] },
   ]
 }
 

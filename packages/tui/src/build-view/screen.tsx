@@ -184,7 +184,6 @@ function actionsOf(build: BuildRead | undefined, back: number, props: Props) {
 
 function keysFor(onLog: boolean, builds: number, actions: ReturnType<typeof actionsOf>): KeyHint[] {
   return [
-    { key: "↑/↓", does: "scroll" },
     ...(builds > 1 ? [{ key: "←/→", does: "older, newer" }] : []),
     ...(actions.stop === undefined ? [] : [{ key: "x", does: "stop" }]),
     ...(actions.again === undefined ? [] : [{ key: "b", does: "build again" }]),

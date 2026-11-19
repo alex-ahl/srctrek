@@ -123,5 +123,5 @@ test("E opens the picker on the chosen editor, and esc closes it", async () => {
     await Bun.sleep(50)
   })
   expect(closed).not.toContain("Step treks in:")
-  expect(closed).toContain("enter open · E editor")
+  expect(closed).toContain("enter open · ? keys")
 })

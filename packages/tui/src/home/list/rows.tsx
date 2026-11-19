@@ -86,7 +86,7 @@ function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRep
   const tones = useTones()
   const { name, source, reason } = proposal
   const { columns } = context
-  const keys = "enter add · d dismiss"
+  const keys = "enter add · x dismiss"
   const room = columns.title + rest(context) - keys.length - GAP - name.length - GAP
   const where = fit(`${source ?? "location unknown"}   ${reason}`, room).padEnd(room + GAP)
 

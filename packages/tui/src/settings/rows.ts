@@ -16,7 +16,7 @@ export type SettingGroup = "OPENING" | "BUILDING" | "LOOK"
  * A setting as the screen lists it, under its group: its value (in a tone where the tone says
  * what it means, else bold), a mark after it, a note when the environment sets it, a sample of
  * the states' colours for the colours, what it's for, what enter does to it and says it does, and,
- * for the agent, what c does.
+ * for the agent, what y does.
  */
 export type SettingRow = Readonly<{
   group: SettingGroup
@@ -104,12 +104,11 @@ export function settingRows(actions: RowActions): SettingRow[] {
   ]
 }
 
-/** The footer for a row: what enter does to it, and c on the agent. */
+/** The footer for a row: what enter does to it, and y on the agent. */
 export function rowKeys(row: SettingRow | undefined): KeyHint[] {
   return [
-    { key: "↑/↓", does: "choose" },
     ...(row === undefined ? [] : [{ key: "enter", does: row.enter }]),
-    ...(row?.copy === undefined ? [] : [{ key: "c", does: "copy for your agent" }]),
+    ...(row?.copy === undefined ? [] : [{ key: "y", does: "copy for your agent" }]),
     { key: "esc", does: "back" },
   ]
 }

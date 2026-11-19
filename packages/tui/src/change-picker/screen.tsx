@@ -105,7 +105,6 @@ function useCheckouts(nearby: () => Promise<NearbyCheckout[]>): readonly NearbyC
 
 const DROP_KEYS = [
   { key: "type", does: "to narrow" },
-  { key: "↑/↓", does: "choose" },
   { key: "enter", does: "take" },
   { key: "←/esc", does: "close" },
 ]
@@ -175,12 +174,7 @@ function keysFor(item: PickerItem | undefined) {
         ]
       : []
 
-  return [
-    { key: "↑/↓", does: "choose" },
-    { key: "enter", does: enter },
-    ...space,
-    { key: "esc", does: "keep current" },
-  ]
+  return [{ key: "enter", does: enter }, ...space, { key: "esc", does: "keep current" }]
 }
 
 /**

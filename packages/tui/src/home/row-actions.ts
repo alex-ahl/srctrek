@@ -133,14 +133,13 @@ const offers = (action: Action, blockKeys: string | undefined, key: string) =>
   action !== undefined && !names(blockKeys, key)
 
 /**
- * What enter, b, x, l, d, and C do here, for the footer; only keys that do something are listed,
+ * What enter, b, x, and l do here, for the footer; only keys that do something are listed,
  * and b, x, and l only when the block above doesn't already say what they do.
  */
 export function keyHints(
   item: Item | undefined,
   status: TrekStatus | undefined,
   actions: RowActions,
-  props: Props,
   blockKeys?: string,
 ) {
   const row = item?.kind === "row" ? item.row : undefined
@@ -151,6 +150,5 @@ export function keyHints(
     log: offers(actions.showLog, blockKeys, "l"),
     stop: offers(actions.stop, blockKeys, "x"),
     dismiss: actions.dismiss !== undefined,
-    change: props.choosing !== undefined,
   })
 }

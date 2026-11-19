@@ -62,13 +62,15 @@ shows what the agent has done so far, and `l` opens the build view.
 | `↑` / `↓` | Choose a row (also `k`/`j`)                 |
 | `enter`   | Open the trek's page, or a folded list      |
 | `b`       | Build, update, or rebuild the change's trek |
-| `x`       | Stop a build                                |
+| `x`       | Stop a build, or dismiss a proposed repo    |
 | `l`       | The trek's builds, and each one's log       |
-| `d`       | Dismiss a proposed repo                     |
 | `C`       | Pick another change                         |
 | `E`       | Pick where treks are stepped                |
 | `S`       | Settings                                    |
+| `?`       | Every key                                   |
 | `q`       | Quit                                        |
+
+Each footer shows the keys for what's selected; `?` lists them all.
 
 A trek's page shows its overview. There, `enter` steps it in the terminal, or in the editor you
 picked with `E` or in settings; the other place is one key away (`e` for the editor, `n` for the
@@ -96,7 +98,7 @@ agent reads the change at its exact revisions, builds the trek, and saves it to 
 .srctrek/treks folder, where the home screen lists it.
 
 To have `trek` build treks itself, it needs the command that runs your agent without a chat.
-Open settings (`S` on the home screen), choose Agent, and press `c`: it copies a request to paste
+Open settings (`S` on the home screen), choose Agent, and press `y`: it copies a request to paste
 into your agent's chat, and your agent saves its own command. Or type the command there with
 `enter`, including whatever it needs to use srctrek's tools without asking; settings checks that
 it starts and answers and keeps it in `~/.config/srctrek/settings.json`. `SRCTREK_AGENT`, when
@@ -127,10 +129,11 @@ terminal:
 | `↑` / `↓` | Move the cursor through the stop's file                           |
 | `enter`   | On a call: the step it leads to, or where its function is defined |
 | `d`       | The stop's details: evidence, values, flags                       |
-| `c`       | The change to the stop's file                                     |
+| `D`       | The change to the stop's file                                     |
 | `r`       | The route map; `tab` groups it by repo                            |
 | `e`       | The cursor's line in your editor                                  |
 | `.`       | Back to the stop                                                  |
+| `?`       | Every key                                                         |
 | `q`       | Back to the home screen                                           |
 
 ## Where it's going

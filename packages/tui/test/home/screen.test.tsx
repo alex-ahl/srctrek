@@ -375,7 +375,7 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   expect(frame).toContain("   built before the guide last changed")
   expect(frame).toContain("   b rebuild with the current guide · enter open it")
   expect(frame).toContain("▶ ↻ older guide   Refund orders   12 steps   built today 09:12")
-  expect(frame).toContain("enter open · E editor")
+  expect(frame).toContain("enter open · ? keys")
   expect(frame).not.toContain("· b rebuild ·")
 })
 
@@ -446,4 +446,23 @@ test("draws in the terminal's own ANSI colours until it says what it looks like"
   expect(TERMINAL_TONES.good.intent).toBe("indexed")
   expect(TERMINAL_TONES.dim.intent).toBe("indexed")
   expect(tonesFor(dark).good.intent).toBe("rgb")
+})
+
+test("? lists every key, grouped, in place of the list; any key closes it", async () => {
+  const app = <App entries={[refund]} onOpen={noop} onQuit={noop} now={NOW} />
+  const open = await frameAfter(app, (input) => input.pressKey("?"))
+
+  expect(open).toContain("THE SELECTED ROW")
+  expect(open).toMatch(/C +pick another change/)
+  expect(open).toMatch(/q +quit/)
+  expect(open).not.toContain("Refund orders")
+  expect(open).toContain("any key close")
+
+  const closed = await frameAfter(app, async (input) => {
+    input.pressKey("?")
+    await Bun.sleep(20)
+    input.pressKey("j")
+    await Bun.sleep(20)
+  })
+  expect(closed).toContain("Refund orders")
 })

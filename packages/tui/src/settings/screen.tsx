@@ -125,9 +125,9 @@ function shownPath(width: number): string {
   return path.length <= room ? path : `…${path.slice(path.length - room + 1)}`
 }
 
-const REQUEST_LEAD = "Press c to copy this, then paste it into your agent's chat:"
+const REQUEST_LEAD = "Press y to copy this, then paste it into your agent's chat:"
 
-// The request c copies, quoted under the agent's help: a bar in the accent beside text in the
+// The request y copies, quoted under the agent's help: a bar in the accent beside text in the
 // text colour, so what to paste stands apart from the grey help around it.
 function SetupRequest({ width }: { width: number }) {
   const tones = useTones()
@@ -219,7 +219,7 @@ export function SettingsScreen(props: Props) {
   const keyActions = new Map([
     ["escape", props.onBack],
     ["return", () => row?.change()],
-    ["c", () => row?.copy?.()],
+    ["y", () => row?.copy?.()],
     ...moveKeys(move),
   ])
   // While a prompt is open, keys go to it.

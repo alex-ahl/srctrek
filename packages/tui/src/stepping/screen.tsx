@@ -2,6 +2,7 @@ import type { RGBA } from "@opentui/core"
 import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import type { SessionView, StepView } from "@srctrek/core"
 import { Footer, type KeyHint } from "../ui/footer"
+import { HELP_HINT, type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-help"
 import { PADDING } from "../ui/layout"
 import { fit } from "../ui/text"
 import { useTones } from "../ui/theme"
@@ -15,7 +16,7 @@ import { type Layer, LayerView, layerKeys, layerWhere, useLayer } from "./layers
 import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf } from "./peek"
 import { openAtLine } from "../editors/editors"
-import { type PageActions, pageHints, pageKeys } from "./page"
+import { type PageActions, pageGroups, pageHints, pageKeys } from "./page"
 import { type ReactNode, useRef, useState } from "react"
 
 type Props = {
@@ -172,15 +173,37 @@ function useCursor(height: number) {
   }
 }
 
+// The footer at a stop: moving the trek, and its details; ? lists the rest.
 const STEP_KEYS: readonly KeyHint[] = [
   { key: "n/p", does: "next/prev" },
   { key: "i/o/O", does: "in/out/over" },
   { key: "d", does: "details" },
-  { key: "c", does: "change" },
-  { key: "r", does: "route" },
-  { key: "enter", does: "look" },
-  { key: "e", does: "edit" },
-  { key: "q", does: "home" },
+  HELP_HINT,
+]
+
+// Every key at a stop, for the panel ? opens.
+const STEP_GROUPS: readonly KeyGroup[] = [
+  {
+    title: "move",
+    keys: [
+      { key: "n/p", does: "next and previous stop" },
+      { key: "i", does: "into the call on the cursor's line" },
+      { key: "o/O", does: "out, over" },
+      { key: "↑/↓", does: "the cursor through the stop's file" },
+      { key: ".", does: "back to the stop" },
+    ],
+  },
+  {
+    title: "look",
+    keys: [
+      { key: "enter", does: "the step a call leads to, or where it's defined" },
+      { key: "d", does: "the stop's details" },
+      { key: "D", does: "the change to the stop's file" },
+      { key: "r", does: "the route map" },
+      { key: "e", does: "the cursor's line in your editor" },
+    ],
+  },
+  { title: "leave", keys: [{ key: "q", does: "home" }] },
 ]
 
 type KeyMap = ReadonlyMap<string, () => void>
@@ -196,13 +219,17 @@ function asideKeys(
     [".", back],
     ["period", back],
     ["escape", back],
-    ["c", back],
+    ["D", back],
     ["e", () => look !== undefined && edit(look.path, look.line)],
   ])
 }
 
+// A letter typed with shift as its capital, "O" for over, so maps name capitals as they're shown.
+const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
+  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
+
 // What a key does with `layer` open: details and the route map take their own keys, a look or
-// the change its keys; at a stop, a move, a layer, or the cursor; O, over, is o with shift.
+// the change its keys; at a stop, a move, a layer, or the cursor.
 function keyFor(
   key: Readonly<{ name: string; shift: boolean }>,
   layer: Layer | undefined,
@@ -213,14 +240,11 @@ function keyFor(
   }
 
   if (layer !== undefined) {
-    return maps.asideKeys.get(key.name)
+    return maps.asideKeys.get(shifted(key))
   }
 
-  if (key.name === "o" && key.shift) {
-    return () => maps.move("over")
-  }
-
-  return maps.keys.get(key.name) ?? maps.cursorKeys.get(key.name)
+  const name = shifted(key)
+  return maps.keys.get(name) ?? maps.cursorKeys.get(name)
 }
 
 type KeyContext = Readonly<{
@@ -245,7 +269,7 @@ function stepKeys({ stepping, view, cursor, open, onBack, move, edit, say }: Key
     ["d", () => atStep !== undefined && open({ kind: "details" })],
     ["r", () => stepping.kind === "open" && open({ kind: "route" })],
     [
-      "c",
+      "D",
       () =>
         void atStep?.stepping.changeAt(atStep.view).then((diff) => open({ kind: "change", diff })),
     ],
@@ -301,6 +325,7 @@ const KEYS: readonly [string, Move][] = [
   ["p", "previous"],
   ["i", "into"],
   ["o", "out"],
+  ["O", "over"],
 ]
 
 /**
@@ -416,14 +441,20 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
   const { view, move, back, edit, cursor } = useActions(stepping, place, toStop, close, editor)
 
   const [note, setNote] = useState("")
-  const stopKeys = stepKeys({ stepping, view, cursor, open, onBack, move, edit, say: setNote })
+  const help = useKeysHelp()
+  const stopKeys = new Map([
+    ...stepKeys({ stepping, view, cursor, open, onBack, move, edit, say: setNote }),
+    ["?", help.show],
+  ])
   const onPage = view?.kind === "overview"
   const keys = onPage ? new Map([...stopKeys, ...pageKeys(page, () => move("next"))]) : stopKeys
-  useKeyboard((key) => {
-    setNote("")
-    const aside = asideKeys(layer, back, edit)
-    keyFor(key, layer, { keys, cursorKeys, asideKeys: aside, move })?.()
-  })
+  useKeyboard(
+    help.guard((key) => {
+      setNote("")
+      const aside = asideKeys(layer, back, edit)
+      keyFor(key, layer, { keys, cursorKeys, asideKeys: aside, move })?.()
+    }),
+  )
 
   const opened = stepping.kind === "open" ? stepping : undefined
   const over = (code: number, room: number): ReactNode =>
@@ -452,19 +483,21 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
         note={note}
       />
       <Main stepping={stepping}>
-        {view !== undefined && (
-          <Body
-            view={view}
-            width={width - 2 * PADDING}
-            height={height - CHROME_LINES - 1}
-            place={place}
-            onLayout={onLayout}
-            over={over}
-            tint={tint}
-          />
-        )}
+        <OrKeysHelp open={help.open} groups={onPage ? pageGroups(page) : STEP_GROUPS}>
+          {view !== undefined && (
+            <Body
+              view={view}
+              width={width - 2 * PADDING}
+              height={height - CHROME_LINES - 1}
+              place={place}
+              onLayout={onLayout}
+              over={over}
+              tint={tint}
+            />
+          )}
+        </OrKeysHelp>
       </Main>
-      <Footer keys={footerKeys(layer, onPage, page)} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, onPage, page))} shown="" />
     </box>
   )
 }

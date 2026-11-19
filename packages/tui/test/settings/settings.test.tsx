@@ -144,7 +144,7 @@ test("the agent's prompt says what to type", async () => {
   expect(frame).toContain("the command that runs your agent without a chat")
 })
 
-test("c on the agent copies what to paste into the agent's chat, or shows it when it can't", async () => {
+test("y on the agent copies what to paste into the agent's chat, or shows it when it can't", async () => {
   const frame = await frameAfter(
     app({}),
     async (input) => {
@@ -152,15 +152,15 @@ test("c on the agent copies what to paste into the agent's chat, or shows it whe
       await Bun.sleep(20)
       input.pressKey("j")
       await Bun.sleep(20)
-      input.pressKey("c")
+      input.pressKey("y")
       await Bun.sleep(20)
     },
     110,
     32,
   )
 
-  expect(frame).toContain("c copy for your agent")
-  expect(frame).toContain("Press c to copy this, then paste it into your agent's chat:")
+  expect(frame).toContain("y copy for your agent")
+  expect(frame).toContain("Press y to copy this, then paste it into your agent's chat:")
   expect(frame).toContain("▌ Set up srctrek so it can start you to build treks on your own.")
   const copied = frame.includes("✓ Copied. Send it in your agent's chat")
   const toSelect = frame.includes("select the text above to copy it")

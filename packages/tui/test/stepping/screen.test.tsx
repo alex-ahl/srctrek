@@ -34,7 +34,7 @@ test("opens a trek at its page: the overview, and enter to step it here", async 
 
   expect(frame).toContain("srctrek › Paying")
   expect(frame).toContain("3 stops")
-  expect(frame).toContain("enter step here · q home")
+  expect(frame).toContain("enter step here · ? keys")
 })
 
 test("enter on the page steps to the first stop", async () => {
@@ -72,7 +72,7 @@ test("the page offers the editor, a build, and the builds; e opens the editor", 
     30,
   )
 
-  expect(frame).toContain("enter step here · e step in Neovim · b update · l builds · q home")
+  expect(frame).toContain("enter step here · e step in Neovim · b update · l builds · ? keys")
   expect(open).toHaveBeenCalled()
 })
 
@@ -209,4 +209,24 @@ test("enter in details goes to the step chosen, closing them", async () => {
 
   expect(frame).toMatch(/▌ +returns a fixed amount/)
   expect(frame).not.toContain("REACHED FROM")
+})
+
+test("? at a stop lists every key, D among them for the change", async () => {
+  const root = await repoWithTrek()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("?")
+      await settle()
+    },
+    120,
+    30,
+  )
+
+  expect(frame).toContain("MOVE")
+  expect(frame).toMatch(/D +the change to the stop's file/)
+  expect(frame).toMatch(/q +home/)
 })

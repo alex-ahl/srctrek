@@ -19,7 +19,6 @@ type Props = {
 }
 
 const KEYS = [
-  { key: "↑/↓", does: "choose" },
   { key: "enter", does: "pick" },
   { key: "esc", does: "cancel" },
 ]
