@@ -17,19 +17,20 @@
 
 A debugger session for code you haven't run. `trek` takes a change — a git range or pull
 requests, across one or more repos — and follows one example scenario from its trigger to
-its outcome in execution order, moving your editor to each step: step over, step into,
-step out, with a call stack.
+its outcome in execution order, in the terminal or your editor: step over, step into, step
+out, with a call stack.
 
 Reads code from git, local or remote, and runs nothing. Works with any agent; steps through
-treks in Neovim, and in VS Code and its forks.
+treks in the terminal, in Neovim, and in VS Code and its forks.
 
 > **Status:** pre-release, running from a checkout. Your agent builds treks of a change or of
-> code as it is through `trek mcp`; `trek` lists them, builds the missing one, and opens a
-> trek in Neovim; the VS Code extension lists and steps them too. See `docs/HANDOFF.md`.
+> code as it is through `trek mcp`; `trek` lists them, builds the missing one, and steps a trek
+> in the terminal or Neovim; the VS Code extension lists and steps them too. See
+> `docs/HANDOFF.md`.
 
 ## Try it today
 
-Requires Bun, and Neovim or VS Code.
+Requires Bun. Neovim or VS Code, to step in an editor.
 
 ```sh
 bun install                     # in this checkout
@@ -45,21 +46,27 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
 - `--code` walks code as it is, to learn how it works: `trek --code="a refund request"` follows
   that trigger, and plain `trek --code` has your agent find the code's triggers (routes,
   commands, handlers, jobs) and list them on the home screen, to build one with `enter`.
+- `C` on the home screen picks another change instead: a branch, a pull request, or code as it
+  is, with repos beside this one ticked to go along. While `trek` is open, it follows new
+  commits and branch switches.
 
 The home screen names the change at the top and says where its trek stands. Below, it lists
 repos your agent proposed, then the treks in the .srctrek/treks folder in sections: this change,
 other branches and pull requests, code as it is, and, folded, treks whose work is done and files
 that aren't valid treks. Each trek shows its state against its branch now. With no trek of the
 change, `b` has your agent build one in the background; while it builds, the end of its log
-shows what the agent has done so far.
+shows what the agent has done so far, and `l` opens the build view.
 
 | Key       | Action                                      |
 | --------- | ------------------------------------------- |
 | `↑` / `↓` | Choose a row (also `k`/`j`)                 |
 | `enter`   | Step the trek, or open a folded list        |
+| `s`       | Step the trek in the terminal               |
 | `b`       | Build, update, or rebuild the change's trek |
-| `l`       | The build's whole log                       |
+| `x`       | Stop a build                                |
+| `l`       | The trek's builds, and each one's log       |
 | `d`       | Dismiss a proposed repo                     |
+| `C`       | Pick another change                         |
 | `E`       | Pick where treks are stepped                |
 | `S`       | Settings                                    |
 | `q`       | Quit                                        |
@@ -101,19 +108,35 @@ building. Agents that show MCP prompts as commands also offer `build_trek`.
 
 ## Step through a trek
 
-- **Neovim:** `enter` on the home screen opens the trek, or `:Trek <name>` from your own Neovim.
-  See [editors/nvim](editors/nvim/README.md).
+- **Terminal:** `enter` on the home screen, unless you picked an editor.
+- **Neovim:** pick it with `E`, then `enter` on the home screen opens the trek; or `:Trek <name>`
+  from your own Neovim. See [editors/nvim](editors/nvim/README.md).
 - **VS Code and its forks:** install the extension, then open a trek from the srctrek sidebar.
   See [editors/vscode](editors/vscode/README.md).
 
-Both step the same way: next and previous in execution order, step over, into, and out, with the
-narration and call stack for each stop and the trek's predicted values in the code.
+All three step the same way: next and previous in execution order, step over, into, and out, with
+the narration and call stack for each stop and the trek's predicted values in the code. In the
+terminal:
+
+| Key       | Action                                                            |
+| --------- | ----------------------------------------------------------------- |
+| `n` / `p` | Next and previous stop                                            |
+| `i` / `o` | Step into and out                                                 |
+| `O`       | Step over                                                         |
+| `↑` / `↓` | Move the cursor through the stop's file                           |
+| `enter`   | On a call: the step it leads to, or where its function is defined |
+| `d`       | The stop's details: evidence, values, flags                       |
+| `c`       | The change to the stop's file                                     |
+| `r`       | The route map; `tab` groups it by repo                            |
+| `e`       | The cursor's line in your editor                                  |
+| `.`       | Back to the stop                                                  |
+| `q`       | Back to the home screen                                           |
 
 ## Where it's going
 
 - Asking through `trek serve`, with answers saved on the step.
-- The terminal's own screens: a route map of the whole trek, a live build view, and stepping
-  without an editor.
+- `trek` without a checkout: `curl -fsSL https://srctrek.dev/install | sh`, once releases are
+  published.
 
 Plans after version 1 are in `docs/ROADMAP.md`.
 
