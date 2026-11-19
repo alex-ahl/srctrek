@@ -93,10 +93,7 @@ export function moveRows(view: StepView): MoveRow[] {
   return [nextRow(view), ...intoRow(view), ...leavingRows(view)]
 }
 
-/** The keys of the moves about `line`, "n O", for the end of that line in the code. */
-export function keysOn(rows: readonly MoveRow[], line: number): string {
-  return rows
-    .filter((row) => row.line === line)
-    .map((row) => row.key)
-    .join(" ")
+/** The keys of the moves about `line`, for the end of that line in the code. */
+export function keysOn(rows: readonly MoveRow[], line: number): string[] {
+  return rows.filter((row) => row.line === line).map((row) => row.key)
 }

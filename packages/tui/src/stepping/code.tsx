@@ -128,6 +128,39 @@ function Gutter({ line, here }: { line: CodeLine; here: boolean }) {
   )
 }
 
+// A move's key after the arrow, " n " on a chip of its own, so it can't read as code: the step's
+// tint moved toward blue, a hue the stepping screen uses nowhere else, so the chips don't blend
+// into the tint; n's further than the rest. The letter's in the text colour, reading on any
+// theme; "[n]" where the terminal's colours aren't known.
+const CHIP_WIDTH = 4
+const CHIP_TOWARD_BLUE = { next: 0.7, other: 0.4 }
+
+function KeyChips({ keys, tint }: { keys: readonly string[]; tint: RGBA | undefined }) {
+  const tones = useTones()
+  const toward = (key: string) => (key === "n" ? CHIP_TOWARD_BLUE.next : CHIP_TOWARD_BLUE.other)
+
+  return (
+    <>
+      {keys.map((key) =>
+        tint === undefined ? (
+          <span key={key} fg={tones.busy}>{` [${key}]`}</span>
+        ) : (
+          <span key={key}>
+            {" "}
+            <span
+              bg={mixed(tint, tones.busy, toward(key))}
+              fg={COLOUR.text}
+              attributes={TextAttributes.BOLD}
+            >
+              {` ${key} `}
+            </span>
+          </span>
+        ),
+      )}
+    </>
+  )
+}
+
 // A line of the file: the cursor's marked in the gutter, its number in the text colour.
 function Line({
   line,
@@ -144,10 +177,11 @@ function Line({
 }) {
   const tones = useTones()
   const arrows = line.arrows === "" ? "" : `${GAP}${line.arrows}`
+  const marks = arrows.length + line.keys.length * CHIP_WIDTH
   // values give way to the code, cut to what's left past its own room
-  const valueRoom = Math.min(MAX_VALUES, width - GUTTER - arrows.length - MIN_CODE - GAP.length)
+  const valueRoom = Math.min(MAX_VALUES, width - GUTTER - marks - MIN_CODE - GAP.length)
   const values = line.values === "" || valueRoom < 8 ? "" : `${GAP}${fit(line.values, valueRoom)}`
-  const ends = arrows.length + values.length
+  const ends = marks + values.length
   const runs = fittedSpans(
     spans ?? [{ text: line.text, tone: undefined, italic: false }],
     Math.max(1, width - GUTTER - ends),
@@ -171,6 +205,7 @@ function Line({
         ) : (
           <span fg={tones.dim}>{arrows}</span>
         )}
+        <KeyChips keys={line.keys} tint={tint} />
         <span fg={tones.dim} attributes={TextAttributes.ITALIC}>
           {values}
         </span>

@@ -1,5 +1,5 @@
 import type { StepView } from "@srctrek/core"
-import { type MoveRow, keysOn, moveRows } from "./move-rows"
+import { keysOn, moveRows } from "./move-rows"
 
 /** What a code line shows besides its text: its sign, whether it's in the step, what's at its end. */
 export type CodeLine = Readonly<{
@@ -7,10 +7,11 @@ export type CodeLine = Readonly<{
   text: string
   sign: string
   inStep: boolean
-  // the values the trek predicts on this line, and the arrows to the steps it leads to, each
-  // followed by the keys of the moves about it
+  // the values the trek predicts on this line, the arrows to the steps it leads to, and the keys
+  // of the moves about it
   values: string
   arrows: string
+  keys: readonly string[]
   // the line next goes into from
   leadsNext: boolean
 }>
@@ -30,14 +31,12 @@ function valuesOn(view: StepView, line: number): string {
     .join("  ")
 }
 
-// An arrow for each step the line leads to, a hop's repo named, a guessed link marked; then the
-// keys of the moves about the line: "→ n O".
-function arrowsOn(view: StepView, rows: readonly MoveRow[], line: number): string {
-  const arrows = view.calls
+// An arrow for each step the line leads to, a hop's repo named, a guessed link marked.
+function arrowsOn(view: StepView, line: number): string {
+  return view.calls
     .filter((call) => call.call_line === line)
     .map((call) => `${call.repo === view.repo ? "→" : `↯ ${call.repo}`}${call.guessed ? "?" : ""}`)
-
-  return [...arrows, keysOn(rows, line)].filter((part) => part !== "").join(" ")
+    .join(" ")
 }
 
 function signOf(view: StepView, line: number): string {
@@ -63,7 +62,8 @@ export function codeLines(view: StepView, text: string, first: number, last: num
       sign: signOf(view, number),
       inStep: number >= view.start_line && number <= view.end_line,
       values: valuesOn(view, number),
-      arrows: arrowsOn(view, rows, number),
+      arrows: arrowsOn(view, number),
+      keys: keysOn(rows, number),
       leadsNext: number === leads,
     }
   })
