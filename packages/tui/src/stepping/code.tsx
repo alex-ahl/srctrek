@@ -10,6 +10,10 @@ import { type Span, fittedSpans, useHighlighted } from "./highlight"
 export const GUTTER = 7
 // The code's own room on a line, before predicted values beside it get any.
 const MIN_CODE = 40
+// A predicted value is cut here, as an editor cuts an inlay hint; details show it whole.
+const MAX_VALUES = 40
+// Between the code and what follows it on the line.
+const GAP = "  "
 
 const FLAG_HINTS = { medium: "● risky", low: "● worth knowing" } as const
 
@@ -67,19 +71,9 @@ function Band({ view, width }: { view: StepView; width: number }) {
   )
 }
 
-// A line's code, in its language's colours once worked out, else plain, cut to `room`.
-function CodeText({
-  line,
-  spans,
-  room,
-}: {
-  line: CodeLine
-  spans: readonly Span[] | undefined
-  room: number
-}) {
+// A line's code, in its language's colours once worked out, else plain.
+function CodeText({ runs }: { runs: readonly Span[] }) {
   const tones = useTones()
-  const runs = fittedSpans(spans ?? [{ text: line.text, tone: undefined, italic: false }], room)
-  const used = runs.reduce((total, run) => total + run.text.length, 0)
 
   return (
     <>
@@ -94,7 +88,6 @@ function CodeText({
           </span>
         ),
       )}
-      {" ".repeat(Math.max(0, room - used))}
     </>
   )
 }
@@ -152,11 +145,16 @@ function Line({
   tint: RGBA | undefined
 }) {
   const tones = useTones()
-  const arrows = line.arrows === "" ? "" : `   ${line.arrows}`
-  // values give way to the code, cut to what's left past its own room; details show them whole
-  const valueRoom = width - GUTTER - arrows.length - MIN_CODE
-  const values = line.values === "" || valueRoom < 8 ? "" : fit(`   ${line.values}`, valueRoom)
-  const room = Math.max(1, width - GUTTER - values.length - arrows.length)
+  const arrows = line.arrows === "" ? "" : `${GAP}${line.arrows}`
+  // values give way to the code, cut to what's left past its own room
+  const valueRoom = Math.min(MAX_VALUES, width - GUTTER - arrows.length - MIN_CODE - GAP.length)
+  const values = line.values === "" || valueRoom < 8 ? "" : `${GAP}${fit(line.values, valueRoom)}`
+  const ends = arrows.length + values.length
+  const runs = fittedSpans(
+    spans ?? [{ text: line.text, tone: undefined, italic: false }],
+    Math.max(1, width - GUTTER - ends),
+  )
+  const used = runs.reduce((total, run) => total + run.text.length, 0)
 
   return (
     <box
@@ -167,9 +165,18 @@ function Line({
     >
       <text fg={COLOUR.text}>
         <Gutter line={line} here={here} />
-        <CodeText line={line} spans={spans} room={room} />
-        <span fg={tones.dim}>{values}</span>
-        <span fg={line.leadsNext ? tones.accent : tones.dim}>{arrows}</span>
+        <CodeText runs={runs} />
+        {line.leadsNext ? (
+          <span fg={tones.accent} attributes={TextAttributes.BOLD}>
+            {arrows}
+          </span>
+        ) : (
+          <span fg={tones.dim}>{arrows}</span>
+        )}
+        <span fg={tones.dim} attributes={TextAttributes.ITALIC}>
+          {values}
+        </span>
+        {" ".repeat(Math.max(0, width - GUTTER - used - ends))}
       </text>
     </box>
   )
