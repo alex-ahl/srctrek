@@ -4,15 +4,20 @@
 
 **Done**
 
-- `.github/workflows/release.yml`: pushing a `v<version>` tag builds `trek-darwin-arm64`,
-  `trek-linux-x64` and `trek-linux-arm64` on their own runners and publishes them with
-  SHA256SUMS as the tag's GitHub release. A macOS build of it installs through
-  `site/public/install`, and the installed `trek` runs.
+- `.github/workflows/release.yml`: pushing a `v<major>.<minor>.<patch>` tag runs the checks,
+  builds `trek-darwin-arm64`, `trek-linux-x64` and `trek-linux-arm64` on their own runners, and
+  publishes them with SHA256SUMS as the tag's GitHub release; a tag such as `v0.1.0-rc.1`
+  publishes as a pre-release. A test release installed through `site/public/install` on macOS,
+  and the installed `trek` runs.
+- CI runs on pushes to `development` and `master` and on pull requests; a newer push cancels the
+  run it replaces.
 
 **Next**
 
-- Cut the first release: `git tag v0.1.0 && git push origin v0.1.0`. Its run is the first proof
-  of the Linux builds. Then `RELEASED` in `site/src/launch.ts` turns true.
+- Try a release first as a pre-release: `git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1`,
+  then `SRCTREK_VERSION=0.1.0-rc.1` with the install script. Then cut `v0.1.0`, and
+  `RELEASED` in `site/src/launch.ts` turns true.
+- The Linux binaries are built but not yet run from a release.
 - `SRCTREK_VERSION` in `packages/core/src/protocol/messages.ts` stays `0.0.0` until versioning.
 
 ## 2026-11-17 — Milestone 7: the picker finished, the home screen, the build view
