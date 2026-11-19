@@ -36,8 +36,8 @@ function useFileText(path: string): string {
   return text
 }
 
-// The narration's lines over the step: its summary, then a risky flag's hint and where next goes,
-// then a likely-wrong flag's note in full.
+// The narration's lines over the step: its summary, then a risky flag's hint, then a likely-wrong
+// flag's note in full.
 function bandLines(
   view: StepView,
   width: number,
@@ -46,13 +46,11 @@ function bandLines(
   const flag = view.flag ?? undefined
   const hint =
     flag !== undefined && flag.severity !== "high" ? FLAG_HINTS[flag.severity] : undefined
-  const next = view.step_kind === "context" ? undefined : view.next.text
-  const hints = [hint, next].filter((each) => each !== undefined).join("  ·  ")
   const note = flag?.severity === "high" ? wrap(`⚠ ${flag.note}`, width) : []
 
   return [
     ...summary,
-    ...(hints === "" ? [] : [{ text: hints, tone: "dim" as const }]),
+    ...(hint === undefined ? [] : [{ text: hint, tone: "dim" as const }]),
     ...note.map((text) => ({ text, tone: "bad" as const })),
   ]
 }

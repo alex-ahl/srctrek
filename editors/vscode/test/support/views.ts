@@ -39,6 +39,7 @@ export function stepWith(calls: Call[], next: NextStop, fields: Partial<StepView
     notes: [],
     came_from: null,
     next,
+    moves: { next: null, into: null, over: null, out: null },
     ...fields,
   }
 }

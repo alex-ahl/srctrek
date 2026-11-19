@@ -32,6 +32,8 @@ export {
   type EndView,
   type FlaggedStep,
   type Frame,
+  type Moves,
+  type MoveTarget,
   type NextStop,
   type OverviewView,
   type OwnCheckout,

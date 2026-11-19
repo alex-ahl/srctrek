@@ -17,6 +17,7 @@ import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf } from "./peek"
 import { openAtLine } from "../editors/editors"
 import { type PageActions, pageGroups, pageHints, pageKeys } from "./page"
+import { MovesLine } from "./moves"
 import { type ReactNode, useRef, useState } from "react"
 
 type Props = {
@@ -69,11 +70,12 @@ function Body({ view, width, height, place, onLayout, over, tint }: BodyProps) {
 
   const side = width >= SIDE_FROM_WIDTH
   const code = side ? width - SIDE_WIDTH : width
-  // no room beside the code: the call stack on a line over it
-  const room = side ? height : height - 1
+  // no room beside the code: the moves and the call stack on lines over it
+  const room = side ? height : height - 2
   const drawn = over(code, room)
   return (
     <box flexDirection="column" style={{ flexGrow: 1 }}>
+      {!side && <MovesLine view={view} width={width} />}
       {!side && <StackLine view={view} width={width} />}
       <box flexDirection="row" style={{ flexGrow: 1 }}>
         {drawn ?? (

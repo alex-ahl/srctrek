@@ -261,9 +261,11 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   goes to the selected step; `c` and `f` show only changed or flagged steps.
 - **Stepping,** as good as in the editors: `enter` starts it from a trek's page. At a step, its file
   with the step's lines tinted, change signs in the gutter, predicted values and arrows at line
-  ends, and the narration on a band over the step saying where next goes; the call stack, context,
-  and flag beside it on a wide terminal. The overview comes before the first step, the flags after
-  the last. `e` opens the cursor's line in the user's editor.
+  ends, and the narration on a band over the step. Beside it on a wide terminal: what each move
+  does, in plain words with the line of the call it's about (`n` into it, `i` into the cursor's
+  call, `O` skip it, `o` finish this function) and where it lands, a move landing where `n` does
+  left out; then the call stack, context, and flag; a narrow terminal shows the moves and the stack on a
+  line each over the code. The overview comes before the first step, the flags after the last. `e` opens the cursor's line in the user's editor.
 
 ### Keys
 

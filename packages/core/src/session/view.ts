@@ -2,7 +2,7 @@ import { join } from "node:path"
 import type { LineChange } from "../git/diff"
 import { flagCounts } from "../schema/flags"
 import type { Severity, Trek, TrekStep } from "../schema/trek"
-import { enteredFrom, stepNext } from "./moves"
+import { enteredFrom, stepInto, stepNext, stepOut, stepOver } from "./moves"
 import { type SteppingSession, currentStep } from "./session"
 import { cameFromLabel, nextText } from "./wording"
 
@@ -67,6 +67,20 @@ export type NextStop = {
   text: string
 }
 
+/** A step a move lands on, with its stop number. */
+export type MoveTarget = StepRef & { number: number }
+
+/**
+ * Where each move lands from a step: `into` null when the step enters nothing; `next`, `over`, and
+ * `out` null at the end of the trek.
+ */
+export type Moves = {
+  next: MoveTarget | null
+  into: MoveTarget | null
+  over: MoveTarget | null
+  out: MoveTarget | null
+}
+
 /** One frame of the call stack; `hop` marks the bottom of a stack a hop started. */
 export type Frame = StepRef & { hop: boolean }
 
@@ -98,6 +112,7 @@ export type StepView = StepRef & {
   // null for the first step, which came from the trigger
   came_from: CameFrom | null
   next: NextStop
+  moves: Moves
 }
 
 export type OverviewView = Pick<Trek, "title" | "overview" | "trigger" | "outcome"> & {
@@ -260,6 +275,21 @@ function nextOf(session: SteppingSession, step: TrekStep, context: ViewContext):
   return { ...leads, text: nextText(leads, step.repo) }
 }
 
+function movesOf(session: SteppingSession, context: ViewContext): Moves {
+  const landsOn = (moved: SteppingSession): MoveTarget | null => {
+    const step = currentStep(moved)
+    return step === undefined ? null : { ...refOf(step, context), number: stopNumber(moved, step) }
+  }
+  const into = stepInto(session)
+
+  return {
+    next: landsOn(stepNext(session)),
+    into: into === session ? null : landsOn(into),
+    over: landsOn(stepOver(session)),
+    out: landsOn(stepOut(session)),
+  }
+}
+
 function stepView(session: SteppingSession, step: TrekStep, context: ViewContext): StepView {
   const { steps } = session.trek
   const ref = (s: TrekStep) => refOf(s, context)
@@ -286,6 +316,7 @@ function stepView(session: SteppingSession, step: TrekStep, context: ViewContext
     notes: step.notes ?? [],
     came_from: cameFrom(session, step, context),
     next: nextOf(session, step, context),
+    moves: movesOf(session, context),
   }
 }
 

@@ -98,7 +98,7 @@ test("with an editor chosen, enter on the page opens it and n steps here", async
   expect(open).toHaveBeenCalled()
 })
 
-test("n steps to the first step: its file, the narration over it, and where next goes", async () => {
+test("n steps to the first step: its file, the narration over it, and where each move lands", async () => {
   const root = await repoWithTrek()
   const frame = await frameAfter(
     stepping(root),
@@ -113,7 +113,11 @@ test("n steps to the first step: its file, the narration over it, and where next
 
   expect(frame).toContain("1 / 3")
   expect(frame).toMatch(/▌ +main calls pay/)
-  expect(frame).toMatch(/▌ +next: into pay, line 1/)
+  expect(frame).toMatch(/MOVES/)
+  expect(frame).toMatch(/n  into pay +line 1/)
+  expect(frame).toMatch(/O  skip pay +line 1/)
+  expect(frame).toMatch(/ +→ main\.ts:2/)
+  expect(frame).not.toContain("next: into pay")
   expect(frame).toMatch(/1 ▶ +const total = pay\(\)/)
   expect(frame).toContain("CALL STACK")
 })

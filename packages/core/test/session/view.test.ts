@@ -232,6 +232,14 @@ describe("sessionView", () => {
     })
   })
 
+  test("says where each move lands, with its stop number", () => {
+    expect(viewOf("s5").moves.over).toMatchObject({ id: "s14" })
+    expect(viewOf("s16").moves.out).toMatchObject({ id: "s17" })
+    expect(viewOf("s11").moves.next).toMatchObject({ id: "s13", number: viewOf("s13").number })
+    expect(viewOf("s9").moves.into).toBeNull()
+    expect(viewOf("s20").moves.next).toBeNull()
+  })
+
   test("gives a context step no stack and nothing to enter", () => {
     const view = viewOf("s9")
 
