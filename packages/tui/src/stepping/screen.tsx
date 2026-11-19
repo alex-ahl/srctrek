@@ -88,7 +88,7 @@ function Body({ view, width, height, place, onLayout, over, tint }: BodyProps) {
             tint={tint}
           />
         )}
-        {side && <Side view={view} />}
+        {side && <Side view={view} cursorAt={place} />}
       </box>
     </box>
   )

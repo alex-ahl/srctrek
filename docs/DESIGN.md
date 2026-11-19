@@ -264,7 +264,8 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   ends, and the narration on a band over the step. Beside it on a wide terminal: what each move
   does, in plain words with the line of the call it's about (`n` into it, `i` into the cursor's
   call, `O` skip it, `o` finish this function) and where it lands, a move landing where `n` does
-  left out; then the call stack, context, and flag; a narrow terminal shows the moves and the stack on a
+  left out, and its key after the arrow on that line (`→ n O`), lit while the cursor is there;
+  then the call stack, context, and flag; a narrow terminal shows the moves and the stack on a
   line each over the code. The overview comes before the first step, the flags after the last. `e` opens the cursor's line in the user's editor.
 
 ### Keys

@@ -1,6 +1,7 @@
 import type { StepView } from "@srctrek/core"
 import { fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
+import type { Place } from "./lines"
 import { MovesSection } from "./moves"
 
 // The column's width, beside the code on a terminal wide enough to spare it.
@@ -13,7 +14,7 @@ function Heading({ title }: { title: string }) {
 
 // Where each move lands, the call stack newest first, what started it, the step's context, and
 // its flag.
-export function Side({ view }: { view: StepView }) {
+export function Side({ view, cursorAt }: { view: StepView; cursorAt: Place | undefined }) {
   const tones = useTones()
   const flag = view.flag ?? undefined
   const frames = view.stack.toReversed()
@@ -23,7 +24,7 @@ export function Side({ view }: { view: StepView }) {
 
   return (
     <box flexDirection="column" style={{ width: SIDE_WIDTH, paddingLeft: 2, flexShrink: 0 }}>
-      <MovesSection view={view} room={room} />
+      <MovesSection view={view} room={room} cursor={cursorAt?.cursor ?? view.start_line} />
       <Heading title="CALL STACK" />
       {frames.map((frame, i) => (
         <text key={frame.id} fg={i === 0 ? COLOUR.text : tones.dim}>

@@ -116,9 +116,9 @@ test("n steps to the first step: its file, the narration over it, and where each
   expect(frame).toMatch(/MOVES/)
   expect(frame).toMatch(/n  into pay +line 1/)
   expect(frame).toMatch(/O  skip pay +line 1/)
-  expect(frame).toMatch(/ +→ main\.ts:2/)
+  expect(frame).toMatch(/ +lands on main\.ts:2 /)
   expect(frame).not.toContain("next: into pay")
-  expect(frame).toMatch(/1 ▶ +const total = pay\(\)/)
+  expect(frame).toMatch(/1 ▶ +const total = pay\(\) +→ n O/)
   expect(frame).toContain("CALL STACK")
 })
 
