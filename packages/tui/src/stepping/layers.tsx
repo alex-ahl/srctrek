@@ -24,7 +24,9 @@ const LAYER_KEYS: Readonly<Record<Layer["kind"], readonly KeyHint[]>> = {
   route: [
     { key: "enter", does: "go there" },
     { key: "←/→", does: "fold" },
-    { key: "tab", does: "calls, repos" },
+    { key: "c/f", does: "changed, flagged" },
+    { key: "/", does: "find" },
+    { key: "tab", does: "repos" },
     { key: "r", does: "close" },
   ],
   look: [

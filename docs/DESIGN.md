@@ -262,8 +262,9 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   and their guides down to it are lit. Beside the tree, the chosen stop in full: its place, what it
   says, its predicted values, its flag, what's running there, and how many stops are under it.
   `←` folds the chosen call's stops into its row and `→` unfolds it; `n` and `p` step past what's
-  folded, and the side says how many stops they pass. `tab` lays the stops out by repo; enter goes
-  to the chosen stop.
+  folded, and the side says how many stops they pass. `c` and `f` show only changed or flagged
+  stops, `/` finds stops by name, and esc shows them all again. `tab` lays the stops out by repo;
+  enter goes to the chosen stop.
 - **Stepping,** as good as in the editors: `enter` starts it from a trek's page. At a step, its file
   with the step's lines tinted, change signs in the gutter, predicted values and arrows at line
   ends, and the narration on a band over the step. The line `n` goes in from has `n` after its

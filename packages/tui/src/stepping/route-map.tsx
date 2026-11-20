@@ -1,9 +1,9 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
-import { useKeyboard } from "@opentui/react"
-import { useState } from "react"
 import { fit } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
-import { type RouteStop, hiddenBy, insideOf, runningAt } from "./route"
+import { type RouteStop, insideOf, runningAt } from "./route"
+import { useMapKeys } from "./route-keys"
+import { type Narrow, narrowText } from "./route-narrow"
 import { Preview } from "./route-preview"
 import { ByRepo } from "./route-repos"
 import { TreeRow, type Where } from "./route-tree"
@@ -51,53 +51,16 @@ function windowOf(count: number, chosen: number, height: number) {
   return { first, last: first + height }
 }
 
-// Whether the call at `chosen` can fold: it leads somewhere, and the trek isn't inside it.
-function foldable(route: readonly RouteStop[], chosen: number, at: number): boolean {
-  const under = insideOf(route, chosen)
-  return under > 0 && !(at > chosen && at <= chosen + under)
-}
-
-type MapState = Readonly<{
-  route: readonly RouteStop[]
-  shown: readonly number[]
-  at: number
-  folded: ReadonlySet<string>
-  onFold: (id: string, folded: boolean) => void
-  onGo: (id: string) => void
-  onClose: () => void
-}>
-
-// The map's keys: ↑/↓ through the stops shown, ←/→ fold and unfold the chosen call, tab by repo.
-function useMapKeys({ route, shown, at, onFold, onGo, onClose }: MapState) {
-  const [chosen, setChosen] = useState(at)
-  const [byRepo, setByRepo] = useState(false)
-  const step = (by: 1 | -1) => setChosen((was) => shown[shown.indexOf(was) + by] ?? was)
-  const fold = (on: boolean) => {
-    const stop = route[chosen]
-    if (stop !== undefined && (!on || foldable(route, chosen, at))) {
-      onFold(stop.id, on)
-    }
-  }
-
-  useKeyboard((key) => {
-    const keys = new Map<string, () => void>([
-      ["escape", onClose],
-      ["r", onClose],
-      ["tab", () => setByRepo(!byRepo)],
-      ["down", () => step(1)],
-      ["j", () => step(1)],
-      ["up", () => step(-1)],
-      ["k", () => step(-1)],
-      ["left", () => fold(true)],
-      ["h", () => fold(true)],
-      ["right", () => fold(false)],
-      ["l", () => fold(false)],
-      ["return", () => onGo(route[chosen]?.id ?? "")],
-    ])
-    keys.get(key.name)?.()
-  })
-
-  return { chosen, byRepo }
+// What the map's narrowed to, under the running line; a blank line when it isn't.
+function NarrowLine({ narrow, count }: { narrow: Narrow; count: number }) {
+  const tones = useTones()
+  const text = narrowText(narrow, count)
+  return (
+    <text>
+      <span fg={tones.accent}>{text}</span>
+      <span fg={tones.dim}>{text === "" ? "" : "   esc shows all"}</span>
+    </text>
+  )
 }
 
 type Props = {
@@ -117,8 +80,8 @@ type Props = {
 
 /**
  * Every stop at once, as a call tree: what's running at ▶ lit down to it, folded calls on a row
- * each, the chosen stop in full beside it; or, with tab, by repo. ↑/↓ choose, ←/→ fold, enter moves
- * the trek there, r or esc closes.
+ * each, the chosen stop in full beside it; narrowed to changed or flagged stops, or by name; or,
+ * with tab, by repo. Enter moves the trek to the chosen stop.
  */
 export function RouteMap(props: Props) {
   const { route, here, next, folded, width, height, tint } = props
@@ -127,9 +90,7 @@ export function RouteMap(props: Props) {
     0,
     route.findIndex((stop) => stop.id === here),
   )
-  const hidden = hiddenBy(route, folded)
-  const shown = route.flatMap((stop, index) => (hidden.has(stop.id) ? [] : [index]))
-  const { chosen, byRepo } = useMapKeys({ ...props, shown, at })
+  const { chosen, byRepo, narrow, shown } = useMapKeys({ ...props, at })
 
   if (byRepo) {
     return <ByRepo route={route} here={here} width={width} />
@@ -144,7 +105,7 @@ export function RouteMap(props: Props) {
   return (
     <box flexDirection="column" style={{ flexGrow: 1 }}>
       <RunningLine route={route} where={where} width={width} />
-      <text> </text>
+      <NarrowLine narrow={narrow} count={shown.length} />
       <box flexDirection="row" style={{ flexGrow: 1 }}>
         <box flexDirection="column" style={{ width: treeWidth, flexShrink: 0 }}>
           {shown.slice(first, last).map((index) => (
@@ -160,7 +121,7 @@ export function RouteMap(props: Props) {
             />
           ))}
         </box>
-        {preview && (
+        {preview && shown.length > 0 && (
           <box
             border={["left"]}
             borderColor={tones.dim}
