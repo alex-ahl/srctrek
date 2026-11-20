@@ -6,6 +6,7 @@ import {
   type ProposedRepo,
   type Settings,
   type TrekEntry,
+  type TrekState,
   type TrekStatus,
   acceptProposal,
   buildHistory,
@@ -14,6 +15,7 @@ import {
   loadProposals,
   loadTrekEntries,
   stopBuild,
+  trekStates,
 } from "@srctrek/core"
 import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
@@ -63,6 +65,7 @@ type HomeProps = {
   firstChoice: ChangeChoice
   follow: FollowChange | undefined
   firstEntries: TrekEntry[]
+  firstStates: ReadonlyMap<string, TrekState>
   firstStatus: TrekStatus | undefined
   firstCodeStatus: TrekStatus | undefined
   firstAsked: TrekStatus | undefined
@@ -107,7 +110,7 @@ function Home(props: HomeProps) {
   const [opening, setOpening] = useState<Opening | undefined>(undefined)
   const { settings, changeSetting } = useSettings(props.firstSettings)
   const { tint, tones } = useTerminalTones(settings.colours)
-  const states = useTrekStates(root, entries)
+  const states = useTrekStates(root, entries, props.firstStates)
   const editor = props.editors.find((each) => each.id === settings.step_in)
 
   const reloadLists = async () => {
@@ -201,6 +204,8 @@ export async function startHome(
   follow?: FollowChange,
 ): Promise<void> {
   const firstEntries = await loadTrekEntries(root)
+  // before the first draw, so treks already done start in their folded section
+  const firstStates = await trekStates(root, firstEntries)
   const firstStatus = await change?.status()
   const firstCodeStatus = await change?.code.status()
   const firstAsked = await change?.code.asked?.status()
@@ -215,6 +220,7 @@ export async function startHome(
       firstChoice={follow?.choice ?? OWN_BRANCH}
       follow={follow}
       firstEntries={firstEntries}
+      firstStates={firstStates}
       firstStatus={firstStatus}
       firstCodeStatus={firstCodeStatus}
       firstAsked={firstAsked}
