@@ -26,7 +26,7 @@ const LAYER_KEYS: Readonly<Record<Layer["kind"], readonly KeyHint[]>> = {
     { key: "←/→", does: "fold" },
     { key: "c/f", does: "changed, flagged" },
     { key: "/", does: "find" },
-    { key: "tab", does: "repos" },
+    { key: "tab", does: "calls, repos, files" },
     { key: "r", does: "close" },
   ],
   look: [

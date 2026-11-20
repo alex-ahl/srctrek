@@ -2,7 +2,7 @@ import { type RGBA, TextAttributes } from "@opentui/core"
 import { fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 import { FLAGS } from "./flags"
-import type { RouteStop } from "./route"
+import { type RouteStop, insideOf } from "./route"
 
 // The mark and number before a stop's tree, and its place, change and flag after it.
 const LEAD = 6
@@ -43,8 +43,8 @@ function nameTone(stop: RouteStop, at: number, where: Where): Tone | undefined {
   return stop.visited ? "dim" : undefined
 }
 
-// ▶ on the stop the trek's on, n on the one it goes to next.
-function markOf(stop: RouteStop, at: number, where: Where): string {
+/** ▶ on the stop the trek's on, n on the one it goes to next. */
+export function markOf(stop: RouteStop, at: number, where: Where): string {
   if (at === where.here) {
     return "▶ "
   }
@@ -131,6 +131,54 @@ export function TreeRow({
         <span fg={tones.dim}>{fit(placeOf(stop), PLACE).padStart(PLACE)}</span>
         <Marks stop={stop} />
       </text>
+    </box>
+  )
+}
+
+/** The rows in view: the chosen one kept a few from the bottom. */
+export function windowOf(count: number, chosen: number, height: number) {
+  const first = Math.max(0, Math.min(chosen - height + 3, count - height))
+  return { first, last: first + height }
+}
+
+/** The stops shown as a call tree, the chosen one kept in view, folded calls on a row each. */
+export function CallTree({
+  route,
+  shown,
+  chosen,
+  where,
+  folded,
+  width,
+  height,
+  tint,
+}: {
+  route: readonly RouteStop[]
+  shown: readonly number[]
+  chosen: number
+  where: Where
+  folded: ReadonlySet<string>
+  width: number
+  height: number
+  tint: RGBA | undefined
+}) {
+  const { first, last } = windowOf(shown.length, Math.max(0, shown.indexOf(chosen)), height)
+  const under = (index: number) =>
+    folded.has(route[index]?.id ?? "") ? insideOf(route, index) : undefined
+
+  return (
+    <box flexDirection="column" style={{ width, flexShrink: 0 }}>
+      {shown.slice(first, last).map((index) => (
+        <TreeRow
+          key={route[index]?.id ?? index}
+          route={route}
+          at={index}
+          where={where}
+          chosen={index === chosen}
+          folded={under(index)}
+          width={width}
+          tint={tint}
+        />
+      ))}
     </box>
   )
 }

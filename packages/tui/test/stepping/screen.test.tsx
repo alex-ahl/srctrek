@@ -311,3 +311,27 @@ test("← in the route folds a call's stops into its row, and n then steps past 
   expect(after).toContain("the end of the trek")
   expect(after).toContain("n the end · p back")
 })
+
+test("tab in the route lays the stops out by repo, then as a tree of their files", async () => {
+  const root = await repoWithTwoCalls()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("r")
+      await settle()
+      input.pressTab()
+      await settle()
+      input.pressTab()
+      await settle()
+    },
+    120,
+    24,
+  )
+
+  expect(frame).toMatch(/▶ +main\.ts +1 \+/)
+  expect(frame).toMatch(/n +pay\.ts +2 \+/)
+  expect(frame).toContain("tab calls, repos, files")
+})
