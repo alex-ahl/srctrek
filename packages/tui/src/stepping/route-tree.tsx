@@ -76,6 +76,7 @@ export function TreeRow({
   at,
   where,
   chosen,
+  folded,
   width,
   tint,
 }: {
@@ -83,6 +84,8 @@ export function TreeRow({
   at: number
   where: Where
   chosen: boolean
+  // the stops under it folded away, how many
+  folded: number | undefined
   width: number
   tint: RGBA | undefined
 }) {
@@ -95,7 +98,10 @@ export function TreeRow({
   const here = at === where.here
   const guides = guidesOf(route, at, where)
   const hop = hopMark(stop, at)
-  const room = width - LEAD - PLACE - MARKS - guides.length * 2 - hop.length
+  const fold = folded === undefined ? "" : "▸ "
+  const hidden = folded === undefined ? "" : `  ${String(folded)} stop${folded === 1 ? "" : "s"}`
+  const room =
+    width - LEAD - PLACE - MARKS - guides.length * 2 - hop.length - fold.length - hidden.length
   const tone = nameTone(stop, at, where)
 
   return (
@@ -113,12 +119,15 @@ export function TreeRow({
           </span>
         ))}
         <span fg={tones.busy}>{hop}</span>
+        <span fg={tones.accent}>{fold}</span>
         <span
           fg={tone === undefined ? COLOUR.text : tones[tone]}
           {...(here ? { attributes: TextAttributes.BOLD } : {})}
         >
-          {fit(stop.name, Math.max(1, room)).padEnd(Math.max(1, room))}
+          {fit(stop.name, Math.max(1, room))}
         </span>
+        <span fg={tones.dim}>{hidden}</span>
+        {" ".repeat(Math.max(0, room - Math.min(stop.name.length, Math.max(1, room))))}
         <span fg={tones.dim}>{fit(placeOf(stop), PLACE).padStart(PLACE)}</span>
         <Marks stop={stop} />
       </text>

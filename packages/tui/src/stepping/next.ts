@@ -1,26 +1,28 @@
-import type { MoveTarget, StepView } from "@srctrek/core"
+import type { RouteStop } from "./route"
 
-// A stop by its name, else its file and line; with its repo when that isn't the step's.
-function placeOf(target: MoveTarget, repo: string): string {
-  const name =
-    target.name ?? `${target.file.split("/").at(-1) ?? target.file}:${String(target.start_line)}`
-  return target.repo === repo ? name : `${target.repo}: ${name}`
-}
-
-const HOW = { into: "into", hop: "↯ hop to", back: "back to", on: "on to" } as const
-
-/** Where n goes, as how it leaves the stop and the place: "into" "pay", "↯ hop to" "web: Build". */
-export function nextParts(view: StepView): Readonly<{ how: string; place: string }> | undefined {
-  const { next, moves } = view
-  if (moves.next === null || next.how === "end") {
-    return undefined
+/**
+ * How the trek moves on to `to` from `from`, in words before its name: back to a caller, on to a
+ * stop something else led to, across a hop, or into a call.
+ */
+export function howNext(from: RouteStop, to: RouteStop): string {
+  if (to.kind === "return") {
+    return "back to"
   }
 
-  return { how: HOW[next.how], place: placeOf(moves.next, view.repo) }
+  if (to.from !== from.id) {
+    return "on to"
+  }
+
+  return to.kind === "hop" ? "↯ hop to" : "into"
 }
 
+/** A stop's name, with its repo when that isn't `from`'s: "billing: charge". */
+export const nameFrom = (from: RouteStop, to: RouteStop) =>
+  to.repo === from.repo ? to.name : `${to.repo}: ${to.name}`
+
 /** Where n goes, in words: "into pay", "↯ hop to web: Build", "back to checkout", "the end". */
-export function nextText(view: StepView): string {
-  const parts = nextParts(view)
-  return parts === undefined ? "the end" : `${parts.how} ${parts.place}`
+export function nextText(from: RouteStop | undefined, to: RouteStop | undefined): string {
+  return from === undefined || to === undefined
+    ? "the end"
+    : `${howNext(from, to)} ${nameFrom(from, to)}`
 }

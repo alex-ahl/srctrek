@@ -11,7 +11,7 @@ import { Code } from "./code"
 import { type Layout, type Place, atStop, movedPlace } from "./lines"
 import { End, Overview } from "./ends"
 import { SIDE_WIDTH, Side } from "./side"
-import { type Move, type Stepping, useStepping } from "./use-stepping"
+import { type Move, type Near, type Stepping, useStepping } from "./use-stepping"
 import { type Layer, LayerView, layerKeys, layerWhere, useLayer } from "./layers"
 import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf } from "./peek"
@@ -51,6 +51,7 @@ function StackLine({ view, width }: { view: StepView; width: number }) {
 type BodyProps = {
   view: SessionView
   route: readonly RouteStop[]
+  near: Near
   width: number
   height: number
   place: Place | undefined
@@ -61,7 +62,8 @@ type BodyProps = {
   tint: RGBA | undefined
 }
 
-function Body({ view, route, width, height, place, onLayout, over, overWhole, tint }: BodyProps) {
+function Body(props: BodyProps) {
+  const { view, width, height, over, overWhole } = props
   if (view.kind === "overview") {
     return <Overview view={view} width={width} />
   }
@@ -70,10 +72,16 @@ function Body({ view, route, width, height, place, onLayout, over, overWhole, ti
     return <End view={view} width={width} />
   }
 
-  if (overWhole) {
-    return over(width, height)
-  }
+  return overWhole ? over(width, height) : <StepBody {...props} view={view} />
+}
 
+// Whether n steps past the call it would go into, folded in the route map.
+const nextFolded = (view: StepView, route: readonly RouteStop[], near: Near) =>
+  route[near.next ?? -1]?.id !== (view.moves.next?.id ?? undefined)
+
+// A stop: its code, with where n and p go beside it, or the call stack over it when narrow.
+function StepBody(props: BodyProps & { view: StepView }) {
+  const { view, route, near, width, height, place, onLayout, over, tint } = props
   const side = width >= SIDE_FROM_WIDTH
   const code = side ? width - SIDE_WIDTH : width
   // no room beside the code: the call stack on a line over it
@@ -90,10 +98,11 @@ function Body({ view, route, width, height, place, onLayout, over, overWhole, ti
             height={room}
             place={place}
             onLayout={onLayout}
+            nextFolded={nextFolded(view, route, near)}
             tint={tint}
           />
         )}
-        {side && <Side view={view} route={route} />}
+        {side && <Side route={route} near={near} />}
       </box>
     </box>
   )
@@ -181,9 +190,9 @@ function useCursor(height: number) {
 }
 
 // The footer at a stop: where n goes, back, the route, and details; ? lists the rest.
-function stepHints(view: SessionView | undefined): readonly KeyHint[] {
+function stepHints(next: string): readonly KeyHint[] {
   return [
-    { key: "n", does: view?.kind === "step" ? nextText(view) : "next" },
+    { key: "n", does: next },
     { key: "p", does: "back" },
     { key: "r", does: "route" },
     { key: "d", does: "details" },
@@ -382,12 +391,25 @@ function footerKeys(
   layer: Layer | undefined,
   view: SessionView | undefined,
   page: PageActions,
+  next: string,
 ): readonly KeyHint[] {
   if (layer !== undefined) {
     return layerKeys(layer)
   }
 
-  return view?.kind === "overview" ? pageHints(page) : stepHints(view)
+  return view?.kind === "overview" ? pageHints(page) : stepHints(next)
+}
+
+// Where the trek is in its route; nowhere until it's open.
+const nearOf = (opened: Extract<Stepping, { kind: "open" }> | undefined): Near =>
+  opened?.near ?? { at: -1, next: undefined, previous: undefined }
+
+// Where n goes from a stop, in words, past folded calls.
+function nextWords(opened: Extract<Stepping, { kind: "open" }> | undefined): string {
+  const near = opened?.near
+  return near === undefined
+    ? "next"
+    : nextText(opened?.route[near.at], opened?.route[near.next ?? -1])
 }
 
 // The trek's title and the stop's number; on the right, where the cursor is, or what's open.
@@ -504,6 +526,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
             <Body
               view={view}
               route={route}
+              near={nearOf(opened)}
               width={width - 2 * PADDING}
               height={height - CHROME_LINES - 1}
               place={place}
@@ -515,7 +538,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
           )}
         </OrKeysHelp>
       </Main>
-      <Footer keys={help.footer(footerKeys(layer, view, page))} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, view, page, nextWords(opened)))} shown="" />
     </box>
   )
 }

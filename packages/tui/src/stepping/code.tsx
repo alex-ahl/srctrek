@@ -223,6 +223,7 @@ export function Code({
   height,
   place,
   onLayout,
+  nextFolded,
   tint,
 }: {
   view: StepView
@@ -232,6 +233,8 @@ export function Code({
   place: Place | undefined
   // told how the file lays out, to move the cursor within it
   onLayout: (layout: Layout) => void
+  // n steps past the call it would go into, folded in the route map
+  nextFolded: boolean
   tint: RGBA | undefined
 }) {
   const text = useFileText(view.path)
@@ -239,7 +242,9 @@ export function Code({
   const band = bandLines(view, width - GUTTER).length
   const lineCount = text.split("\n").length
   const { first, last, layout } = windowOf(view, lineCount, height - 1, band, place?.top)
-  const lines = codeLines(view, text, first, last)
+  const lines = codeLines(view, text, first, last).map((line) =>
+    nextFolded ? { ...line, leadsNext: false } : line,
+  )
   const cursor = place?.cursor ?? view.start_line
 
   const { lines: count, room, atStop, latest, stop } = layout

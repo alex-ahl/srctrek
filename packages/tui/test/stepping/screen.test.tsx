@@ -282,3 +282,32 @@ test("enter in the route goes to the stop chosen", async () => {
   expect(frame).toContain("3 / 3")
   expect(frame).not.toContain("RUNNING")
 })
+
+test("← in the route folds a call's stops into its row, and n then steps past them", async () => {
+  const root = await repoWithTwoCalls()
+  const steps = async (input: Parameters<Parameters<typeof frameAfter>[1]>[0]) => {
+    await settle()
+    input.pressKey("n")
+    await settle()
+    input.pressKey("r")
+    await settle()
+    input.pressArrow("left")
+    await settle()
+  }
+  const map = await frameAfter(stepping(root), steps, 120, 24)
+  const after = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await steps(input)
+      input.pressKey("r")
+      await settle()
+    },
+    120,
+    24,
+  )
+
+  expect(map).toMatch(/▶  1  ▸ main\.ts:1  2 stops/)
+  expect(map).not.toMatch(/│ pay\.ts:1/)
+  expect(after).toContain("the end of the trek")
+  expect(after).toContain("n the end · p back")
+})

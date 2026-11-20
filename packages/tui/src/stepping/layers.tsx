@@ -23,6 +23,7 @@ const LAYER_KEYS: Readonly<Record<Layer["kind"], readonly KeyHint[]>> = {
   ],
   route: [
     { key: "enter", does: "go there" },
+    { key: "←/→", does: "fold" },
     { key: "tab", does: "calls, repos" },
     { key: "r", does: "close" },
   ],
@@ -104,7 +105,9 @@ export function LayerView({
       <RouteMap
         route={stepping.route}
         here={view.id}
-        next={view.moves.next?.id}
+        next={stepping.route[stepping.near.next ?? -1]?.id}
+        folded={stepping.folded}
+        onFold={stepping.fold}
         width={width}
         height={height}
         onGo={go}

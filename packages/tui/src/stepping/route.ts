@@ -10,6 +10,9 @@ export type RouteStop = Readonly<{
   id: string
   number: number
   depth: number
+  // the step kind, and the stop execution came from
+  kind: TrekStep["kind"]
+  from: string | undefined
   hop: boolean
   repo: string
   // the repo, on the first stop in it after another repo's
@@ -38,6 +41,8 @@ export function routeOf(session: SteppingSession): RouteStop[] {
       id: step.id,
       number: i + 1,
       depth: Math.max(0, session.functions.runningAt(step.id).length - 1),
+      kind: step.kind,
+      from: step.from,
       hop: i > 0 && step.kind === "hop",
       repo: step.repo,
       repoChange: before?.repo === step.repo ? undefined : step.repo,
@@ -74,4 +79,25 @@ export function insideOf(route: readonly RouteStop[], at: number): number {
   const depth = route[at]?.depth ?? 0
   const out = route.slice(at + 1).findIndex((each) => each.depth <= depth)
   return out === -1 ? route.length - at - 1 : out
+}
+
+/** The stops folded calls hide: those under each folded stop. */
+export function hiddenBy(route: readonly RouteStop[], folded: ReadonlySet<string>): Set<string> {
+  const under = (at: number) => route.slice(at + 1, at + 1 + insideOf(route, at))
+  return new Set(
+    route.flatMap((stop, at) => (folded.has(stop.id) ? under(at).map((each) => each.id) : [])),
+  )
+}
+
+/** The stop a step `by` from `at` lands on, past those `hidden`; none past either end. */
+export function stepPast(
+  route: readonly RouteStop[],
+  at: number,
+  hidden: ReadonlySet<string>,
+  by: 1 | -1,
+): number | undefined {
+  const shown = (index: number) => !hidden.has(route[index]?.id ?? "")
+  const indexes = Array.from({ length: route.length }, (_, index) => index)
+  const ahead = by === 1 ? indexes.slice(at + 1) : indexes.slice(0, at).toReversed()
+  return ahead.find(shown)
 }

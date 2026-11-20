@@ -1,10 +1,10 @@
 import { TextAttributes } from "@opentui/core"
-import type { StepView } from "@srctrek/core"
 import { fit, fitPath, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { FLAGS, flagWords } from "./flags"
-import { nextParts } from "./next"
+import { howNext } from "./next"
 import type { RouteStop } from "./route"
+import type { Near } from "./use-stepping"
 
 // The column's width, beside the code on a terminal wide enough to spare it.
 export const SIDE_WIDTH = 40
@@ -123,22 +123,34 @@ function Neighbour({
   )
 }
 
-/** Beside the code: where n goes and where p goes back to, the next one in full. */
-export function Side({ view, route }: { view: StepView; route: readonly RouteStop[] }) {
+// "past 3 folded stops", where n steps past a folded call.
+function PastLine({ near }: { near: Near }) {
   const tones = useTones()
-  const at = route.findIndex((stop) => stop.id === view.id)
-  const here = route[at]
-  const before = route[at - 1]
-  const after = route.find((stop) => stop.id === view.moves.next?.id)
-  const next = nextParts(view)
+  const past = near.next === undefined ? 0 : near.next - near.at - 1
+  if (past <= 0) {
+    return null
+  }
+
+  return <text fg={tones.dim}>{`past ${String(past)} folded stop${past === 1 ? "" : "s"}`}</text>
+}
+
+/** Beside the code: where n goes and where p goes back to, the next one in full. */
+export function Side({ route, near }: { route: readonly RouteStop[]; near: Near }) {
+  const tones = useTones()
+  const here = route[near.at]
+  const after = route[near.next ?? -1]
+  const before = route[near.previous ?? -1]
 
   return (
     <box flexDirection="column" style={{ width: SIDE_WIDTH, paddingLeft: 2, flexShrink: 0 }}>
       <Heading title="NEXT" letter="n" />
-      {next === undefined || after === undefined || here === undefined ? (
+      {after === undefined || here === undefined ? (
         <text fg={tones.dim}>the end of the trek</text>
       ) : (
-        <Neighbour how={next.how} stop={after} from={here} full />
+        <>
+          <Neighbour how={howNext(here, after)} stop={after} from={here} full />
+          <PastLine near={near} />
+        </>
       )}
       <box style={{ marginTop: 1 }}>
         <Heading title="PREVIOUS" letter="p" />
