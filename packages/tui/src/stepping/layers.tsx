@@ -42,6 +42,10 @@ export function layerWhere(layer: Layer): string | undefined {
     return `${layer.look.label} · . back to the stop`
   }
 
+  if (layer.kind === "route") {
+    return "the route · r back"
+  }
+
   return layer.kind === "change" ? "the change · D back" : undefined
 }
 
@@ -100,6 +104,7 @@ export function LayerView({
       <RouteMap
         route={stepping.route}
         here={view.id}
+        next={view.moves.next?.id}
         width={width}
         height={height}
         onGo={go}

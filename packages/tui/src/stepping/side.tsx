@@ -1,7 +1,8 @@
 import { TextAttributes } from "@opentui/core"
 import type { StepView } from "@srctrek/core"
 import { fit, fitPath, wrap } from "../ui/text"
-import { COLOUR, type Tone, useTones } from "../ui/theme"
+import { COLOUR, useTones } from "../ui/theme"
+import { FLAGS, flagWords } from "./flags"
 import { nextParts } from "./next"
 import type { RouteStop } from "./route"
 
@@ -10,12 +11,6 @@ export const SIDE_WIDTH = 40
 const ROOM = SIDE_WIDTH - 2
 // What a stop says, beside the code, before it's cut.
 const SUMMARY_LINES = 3
-
-const FLAG_WORDS: Readonly<Record<NonNullable<RouteStop["flag"]>, [string, Tone]>> = {
-  high: ["⚠ likely wrong", "bad"],
-  medium: ["● risky", "warn"],
-  low: ["● worth knowing", "dim"],
-}
 
 // How the trek came to `here` from the stop before it: "back from", "called by", "↯ from web:".
 function howBack(here: RouteStop, before: RouteStop): string {
@@ -76,7 +71,7 @@ function PlaceLine({ stop, from }: { stop: RouteStop; from: RouteStop }) {
 // "+ changed  ⚠ likely wrong", whichever of them the stop has.
 function MarksLine({ stop }: { stop: RouteStop }) {
   const tones = useTones()
-  const flag = stop.flag === undefined ? undefined : FLAG_WORDS[stop.flag]
+  const flag = stop.flag
   if (!stop.changed && flag === undefined) {
     return null
   }
@@ -85,7 +80,9 @@ function MarksLine({ stop }: { stop: RouteStop }) {
     <text>
       <span fg={tones.good}>{stop.changed ? "+ changed" : ""}</span>
       {flag !== undefined && (
-        <span fg={tones[flag[1]]}>{`${stop.changed ? "  " : ""}${flag[0]}`}</span>
+        <span fg={tones[FLAGS[flag.severity].tone]}>
+          {`${stop.changed ? "  " : ""}${flagWords(flag.severity)}`}
+        </span>
       )}
     </text>
   )

@@ -232,3 +232,53 @@ test("? at a stop lists every key, D among them for the change", async () => {
   expect(frame).toMatch(/D +the change to the stop's file/)
   expect(frame).toMatch(/q +home/)
 })
+
+test("r opens the route: the call tree, what runs at ▶, and the chosen stop beside it", async () => {
+  const root = await repoWithTwoCalls()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("r")
+      await settle()
+    },
+    120,
+    24,
+  )
+
+  expect(frame).toContain("the route · r back")
+  expect(frame).toMatch(/running at ▶  main\.ts:1 › pay\.ts:1/)
+  expect(frame).toMatch(/▶  2  │ pay\.ts:1/)
+  expect(frame).toMatch(/n  3  │ send\.ts:1/)
+  expect(frame).toMatch(/STOP 2  you're here/)
+  expect(frame).toContain("RUNNING")
+})
+
+test("enter in the route goes to the stop chosen", async () => {
+  const root = await repoWithTwoCalls()
+  const frame = await frameAfter(
+    stepping(root),
+    async (input) => {
+      await settle()
+      input.pressKey("n")
+      await settle()
+      input.pressKey("r")
+      await settle()
+      input.pressArrow("down")
+      await settle()
+      input.pressArrow("down")
+      await settle()
+      input.pressEnter()
+      await settle()
+    },
+    120,
+    24,
+  )
+
+  expect(frame).toContain("3 / 3")
+  expect(frame).not.toContain("RUNNING")
+})

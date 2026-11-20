@@ -55,18 +55,23 @@ type BodyProps = {
   height: number
   place: Place | undefined
   onLayout: (layout: Layout) => void
-  // what's open over the code, drawn in its place
+  // what's open over the code, drawn in its place, or over the whole width, side and all
   over: (width: number, height: number) => ReactNode
+  overWhole: boolean
   tint: RGBA | undefined
 }
 
-function Body({ view, route, width, height, place, onLayout, over, tint }: BodyProps) {
+function Body({ view, route, width, height, place, onLayout, over, overWhole, tint }: BodyProps) {
   if (view.kind === "overview") {
     return <Overview view={view} width={width} />
   }
 
   if (view.kind === "end") {
     return <End view={view} width={width} />
+  }
+
+  if (overWhole) {
+    return over(width, height)
   }
 
   const side = width >= SIDE_FROM_WIDTH
@@ -137,7 +142,7 @@ function inRepo(route: readonly RouteStop[], here: string): string {
 
 function flagsAhead(route: readonly RouteStop[], here: string): string {
   const at = route.findIndex((stop) => stop.id === here)
-  const ahead = route.slice(at + 1).filter((stop) => stop.flag === "high").length
+  const ahead = route.slice(at + 1).filter((stop) => stop.flag?.severity === "high").length
   return ahead === 0 ? "" : ` · ⚠ ${String(ahead)} ahead`
 }
 
@@ -504,6 +509,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
               place={place}
               onLayout={onLayout}
               over={over}
+              overWhole={layer?.kind === "route"}
               tint={tint}
             />
           )}

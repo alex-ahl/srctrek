@@ -5,6 +5,7 @@ import { fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { type CodeLine, type Layout, type Place, codeLines, windowOf } from "./lines"
 import { type Span, fittedSpans, useHighlighted } from "./highlight"
+import { FLAGS } from "./flags"
 
 // The line number and sign before each line's code.
 export const GUTTER = 7
@@ -14,12 +15,6 @@ const MIN_CODE = 40
 const MAX_VALUES = 40
 // Between the code and what follows it on the line.
 const GAP = "  "
-
-const FLAG_MARKS = {
-  high: { mark: "⚠", tone: "bad" },
-  medium: { mark: "●", tone: "warn" },
-  low: { mark: "●", tone: "dim" },
-} as const
 
 /** A file's text, read again whenever the path changes; empty until read, or when it can't be. */
 function useFileText(path: string): string {
@@ -51,7 +46,7 @@ function bandLines(
     return summary
   }
 
-  const { mark, tone } = FLAG_MARKS[flag.severity]
+  const { mark, tone } = FLAGS[flag.severity]
   return [...summary, ...wrap(`${mark} ${flag.note}`, width).map((text) => ({ text, tone }))]
 }
 

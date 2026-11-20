@@ -1,109 +1,64 @@
-import type { RGBA } from "@opentui/core"
+import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useState } from "react"
 import { fit } from "../ui/text"
-import { COLOUR, type Tone, useTones } from "../ui/theme"
-import type { RouteStop } from "./route"
+import { COLOUR, useTones } from "../ui/theme"
+import { type RouteStop, runningAt } from "./route"
+import { Preview } from "./route-preview"
+import { ByRepo } from "./route-repos"
+import { TreeRow, type Where } from "./route-tree"
 
-const FLAGS: Readonly<Record<NonNullable<RouteStop["flag"]>, [string, Tone]>> = {
-  high: ["⚠ likely wrong", "bad"],
-  medium: ["● risky", "warn"],
-  low: ["● worth knowing", "dim"],
-}
+// The preview beside the tree from this width, and its share of it.
+const PREVIEW_FROM = 90
+const PREVIEW_WIDTH = 46
+// The line naming what's running at ▶, and the gap under it.
+const HEAD_LINES = 2
 
-// Columns: the repo where it changes, the marker and number, the tree, then sign and flag.
-const REPO_WIDTH = 12
-const TREE_WIDTH = 44
-
-// A stop as the call tree shows it: indented by depth, a branch line before it.
-function treeText(stop: RouteStop): string {
-  const indent = "   ".repeat(Math.max(0, stop.depth - 1))
-  return `${indent}${stop.depth > 0 ? "└ " : ""}${stop.name}`
-}
-
-// The repo column: the repo on the first stop in it, ↯ when a hop crossed into it.
-function repoText(stop: RouteStop): string {
-  if (stop.repoChange === undefined) {
-    return ""
-  }
-
-  return stop.number > 1 ? `${stop.repoChange} ↯` : stop.repoChange
-}
-
-function StopRow({
-  stop,
-  here,
-  chosen,
-  width,
-  tint,
-}: {
-  stop: RouteStop
-  here: boolean
-  chosen: boolean
-  width: number
-  tint: RGBA | undefined
-}) {
-  const tones = useTones()
-  const flag = stop.flag === undefined ? undefined : FLAGS[stop.flag]
-  const repo = repoText(stop)
-  return (
-    <box
-      style={{ flexShrink: 0, ...(chosen && tint !== undefined ? { backgroundColor: tint } : {}) }}
-    >
-      <text fg={COLOUR.text}>
-        <span fg={repo.endsWith("↯") ? tones.busy : tones.dim}>
-          {`  ${repo}`.padEnd(REPO_WIDTH)}
-        </span>
-        <span fg={tones.accent}>{here ? "▶ " : "  "}</span>
-        <span fg={tones.dim}>{String(stop.number).padStart(2)}</span>
-        {`  ${fit(treeText(stop), TREE_WIDTH - 2).padEnd(TREE_WIDTH - 2)}`}
-        <span fg={tones.good}>{stop.changed ? "+ " : "  "}</span>
-        {flag !== undefined && (
-          <span fg={tones[flag[1]]}>
-            {fit(flag[0], Math.max(0, width - REPO_WIDTH - TREE_WIDTH - 8))}
-          </span>
-        )}
-      </text>
-    </box>
-  )
-}
-
-// The same stops, one column per repo, each under its repo's heading, a stop's row at its turn.
-function ByRepo({
+// "running at ▶  checkout › pay › charge": the call stack, outermost first.
+function RunningLine({
   route,
-  here,
+  where,
   width,
 }: {
   route: readonly RouteStop[]
-  here: string | undefined
+  where: Where
   width: number
 }) {
   const tones = useTones()
-  const repos = [...new Set(route.map((stop) => stop.repo))]
-  const column = Math.max(16, Math.floor(width / Math.max(1, repos.length)))
+  const names = where.running.map((index) => route[index]?.name ?? "")
+  const last = names.length - 1
   return (
-    <box flexDirection="column" style={{ flexGrow: 1 }}>
-      <text attributes={1}>{repos.map((repo) => `  ${repo}`.padEnd(column)).join("")}</text>
-      {route.map((stop) => (
-        <text key={stop.id} fg={stop.id === here ? COLOUR.text : tones.dim}>
-          {" ".repeat(column * repos.indexOf(stop.repo))}
-          {fit(
-            `${stop.id === here ? "▶" : " "} ${String(stop.number).padStart(2)} ${stop.name}`,
-            column,
-          )}
-        </text>
+    <text>
+      <span fg={tones.dim}>{"running at ▶  "}</span>
+      {names.map((name, i) => (
+        <span key={i}>
+          {i > 0 && <span fg={tones.dim}>{" › "}</span>}
+          <span
+            fg={i === last ? COLOUR.text : tones.accent}
+            {...(i === last ? { attributes: TextAttributes.BOLD } : {})}
+          >
+            {fit(name, Math.max(4, Math.floor((width - 14) / Math.max(1, names.length)) - 3))}
+          </span>
+        </span>
       ))}
-    </box>
+    </text>
   )
 }
 
+// The rows in view: the chosen one kept a few from the bottom.
+function windowOf(count: number, chosen: number, height: number) {
+  const first = Math.max(0, Math.min(chosen - height + 3, count - height))
+  return { first, last: first + height }
+}
+
 /**
- * Every stop at once: by how calls nest, or, with tab, by repo. ↑/↓ choose, enter moves the trek
- * there, r or esc closes.
+ * Every stop at once, as a call tree: what's running at ▶ lit down to it, the chosen stop in full
+ * beside it; or, with tab, by repo. ↑/↓ choose, enter moves the trek there, r or esc closes.
  */
 export function RouteMap({
   route,
   here,
+  next,
   width,
   height,
   onGo,
@@ -112,28 +67,32 @@ export function RouteMap({
 }: {
   route: readonly RouteStop[]
   here: string | undefined
+  // the stop n goes to
+  next: string | undefined
   width: number
   height: number
   onGo: (id: string) => void
   onClose: () => void
   tint: RGBA | undefined
 }) {
-  const [chosen, setChosen] = useState(
-    Math.max(
-      0,
-      route.findIndex((stop) => stop.id === here),
-    ),
+  const tones = useTones()
+  const at = Math.max(
+    0,
+    route.findIndex((stop) => stop.id === here),
   )
+  const [chosen, setChosen] = useState(at)
   const [byRepo, setByRepo] = useState(false)
+  const down = () => setChosen((was) => Math.min(was + 1, route.length - 1))
+  const up = () => setChosen((was) => Math.max(0, was - 1))
   useKeyboard((key) => {
     const keys = new Map<string, () => void>([
       ["escape", onClose],
       ["r", onClose],
       ["tab", () => setByRepo(!byRepo)],
-      ["down", () => setChosen((at) => Math.min(at + 1, route.length - 1))],
-      ["j", () => setChosen((at) => Math.min(at + 1, route.length - 1))],
-      ["up", () => setChosen((at) => Math.max(0, at - 1))],
-      ["k", () => setChosen((at) => Math.max(0, at - 1))],
+      ["down", down],
+      ["j", down],
+      ["up", up],
+      ["k", up],
       ["return", () => onGo(route[chosen]?.id ?? "")],
     ])
     keys.get(key.name)?.()
@@ -143,19 +102,40 @@ export function RouteMap({
     return <ByRepo route={route} here={here} width={width} />
   }
 
-  const first = Math.max(0, Math.min(chosen - height + 3, route.length - height))
+  const where: Where = { here: at, next, running: runningAt(route, at) }
+  const preview = width >= PREVIEW_FROM
+  const treeWidth = preview ? width - PREVIEW_WIDTH - 2 : width
+  const rows = height - HEAD_LINES
+  const { first, last } = windowOf(route.length, chosen, rows)
+
   return (
     <box flexDirection="column" style={{ flexGrow: 1 }}>
-      {route.slice(first, first + height).map((stop, i) => (
-        <StopRow
-          key={stop.id}
-          stop={stop}
-          here={stop.id === here}
-          chosen={first + i === chosen}
-          width={width}
-          tint={tint}
-        />
-      ))}
+      <RunningLine route={route} where={where} width={width} />
+      <text> </text>
+      <box flexDirection="row" style={{ flexGrow: 1 }}>
+        <box flexDirection="column" style={{ width: treeWidth, flexShrink: 0 }}>
+          {route.slice(first, last).map((stop, i) => (
+            <TreeRow
+              key={stop.id}
+              route={route}
+              at={first + i}
+              where={where}
+              chosen={first + i === chosen}
+              width={treeWidth}
+              tint={tint}
+            />
+          ))}
+        </box>
+        {preview && (
+          <box
+            border={["left"]}
+            borderColor={tones.dim}
+            style={{ paddingLeft: 1, marginLeft: 1, flexShrink: 0 }}
+          >
+            <Preview route={route} at={chosen} here={at} width={PREVIEW_WIDTH} height={rows} />
+          </box>
+        )}
+      </box>
     </box>
   )
 }

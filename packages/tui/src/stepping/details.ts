@@ -1,6 +1,7 @@
 import type { StepView } from "@srctrek/core"
 import { wrap } from "../ui/text"
 import type { Tone } from "../ui/theme"
+import { flagWords } from "./flags"
 import type { Look } from "./peek"
 
 /**
@@ -18,8 +19,6 @@ export type DetailLine = Readonly<{
 
 /** A cited line's code, as the file has it now; empty where it can't be read. */
 export type CodeAt = (path: string, line: number) => string
-
-const FLAG_WORDS = { high: "⚠ likely wrong", medium: "● risky", low: "● worth knowing" } as const
 
 const blank: DetailLine = { text: "" }
 const heading = (text: string): DetailLine => ({ text, tone: "dim" })
@@ -83,7 +82,7 @@ function flagLines(view: StepView, width: number): DetailLine[] {
   }
 
   const tone: Tone = flag.severity === "high" ? "bad" : "warn"
-  const note = wrap(`${FLAG_WORDS[flag.severity]} · ${flag.note}`, width - 2)
+  const note = wrap(`${flagWords(flag.severity)} · ${flag.note}`, width - 2)
   return [blank, heading("FLAG"), ...note.map((text) => ({ text: `  ${text}`, tone }))]
 }
 

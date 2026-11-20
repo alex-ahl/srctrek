@@ -256,9 +256,12 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   clock, the steps added with their repo and summary, what the agent read, a rejected round's
   problems, and why a build failed; `tab` shows the log itself. The last ten builds of each trek
   are kept, and `←`/`→` step between them.
-- **Route map:** one lane per repo, steps in the order they run, hops crossing between lanes,
-  change signs and flags in place; a narrow terminal shows it as a list grouped by repo. Enter
-  goes to the selected step; `c` and `f` show only changed or flagged steps.
+- **Route map,** `r` at a stop, over the whole screen: the stops as a call tree, a guide for each
+  call a stop sits in, `↯` where a hop reached it, its place, change and flag; `▶` where the trek
+  is and `n` where it goes next. The functions running at `▶` are named on a line over the tree,
+  and their guides down to it are lit. Beside the tree, the chosen stop in full: its place, what it
+  says, its predicted values, its flag, what's running there, and how many stops are under it.
+  `tab` lays the stops out by repo; enter goes to the chosen stop.
 - **Stepping,** as good as in the editors: `enter` starts it from a trek's page. At a step, its file
   with the step's lines tinted, change signs in the gutter, predicted values and arrows at line
   ends, and the narration on a band over the step. The line `n` goes in from has `n` after its
