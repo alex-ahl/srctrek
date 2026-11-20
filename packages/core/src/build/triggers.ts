@@ -31,7 +31,8 @@ const FoundTriggersSchema = z.object({
 
 const TRIGGERS_DIR = join(".srctrek", "triggers")
 
-function triggersPath(root: string, name: string): string {
+/** Where the triggers found under `name` are saved. */
+export function triggersPath(root: string, name: string): string {
   return join(root, TRIGGERS_DIR, `${name}.json`)
 }
 

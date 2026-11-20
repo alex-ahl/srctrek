@@ -72,6 +72,14 @@ describe("background builds", () => {
     expect(await stateWhenEnded(root, "refunds")).toBe("done")
   })
 
+  test("are done when the agent exits cleanly having saved the code's triggers", async () => {
+    const root = await makeRepo()
+    const agent = "mkdir -p .srctrek/triggers && echo '{}' > .srctrek/triggers/shop-code.json"
+    await startBuild(root, [], "shop-code", agent)
+
+    expect(await stateWhenEnded(root, "shop-code")).toBe("done")
+  })
+
   test("are building while the agent runs, and failed when it exits with an error", async () => {
     const root = await makeRepo()
     await startBuild(root, [], "refunds", "sleep 0.3 && false")

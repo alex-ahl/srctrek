@@ -4,6 +4,7 @@ import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises"
 import { pathExists } from "../../files"
 import { type BuildMode, headlessBuildPrompt } from "../../prompts/texts"
 import { trekPath } from "../../treks/store"
+import { triggersPath } from "../triggers"
 import { type BuildFiles, buildFiles } from "./files"
 import { keepBuild } from "./history"
 
@@ -84,7 +85,11 @@ export async function stopBuild(root: string, name: string): Promise<void> {
   await writeFile(files.exit, "stopped\n")
 }
 
-/** How the build of `name` stands; undefined when it was never started here. */
+/**
+ * How the build of `name` stands: done when its agent ended well having saved what it was
+ * started for, a trek or, for plain --code, the code's triggers; undefined when it was never
+ * started here.
+ */
 export async function buildState(root: string, name: string): Promise<BuildState | undefined> {
   const files = await buildFiles(root, name)
   if (!(await pathExists(files.log))) {
@@ -96,7 +101,8 @@ export async function buildState(root: string, name: string): Promise<BuildState
   }
 
   const exitCode = (await readFile(files.exit, "utf8")).trim()
-  const saved = await pathExists(trekPath(root, name))
+  const saved =
+    (await pathExists(trekPath(root, name))) || (await pathExists(triggersPath(root, name)))
 
   return exitCode === "0" && saved ? "done" : "failed"
 }
