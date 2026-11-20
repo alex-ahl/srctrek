@@ -98,7 +98,7 @@ test("with an editor chosen, enter on the page opens it and n steps here", async
   expect(open).toHaveBeenCalled()
 })
 
-test("n steps to the first step: its file, the narration over it, and where each move lands", async () => {
+test("n steps to the first step: its file, the narration over it, and where n and p go", async () => {
   const root = await repoWithTrek()
   const frame = await frameAfter(
     stepping(root),
@@ -113,13 +113,11 @@ test("n steps to the first step: its file, the narration over it, and where each
 
   expect(frame).toContain("1 / 3")
   expect(frame).toMatch(/▌ +main calls pay/)
-  expect(frame).toMatch(/MOVES/)
-  expect(frame).toMatch(/n  into pay +line 1/)
-  expect(frame).toMatch(/O  skip pay +line 1/)
-  expect(frame).toMatch(/ +lands on main\.ts:2 /)
-  expect(frame).not.toContain("next: into pay")
-  expect(frame).toMatch(/1 ▶ +const total = pay\(\) +→ \[n\] \[O\]/)
-  expect(frame).toContain("CALL STACK")
+  expect(frame).toContain("NEXT  n")
+  expect(frame).toMatch(/into pay /)
+  expect(frame).toMatch(/PREVIOUS  p\s+.*\n.*the overview/)
+  expect(frame).toMatch(/1 ▶ +const total = pay\(\) +→ \[n\] /)
+  expect(frame).toContain("n into pay · p back · r route")
 })
 
 test("into, then out, follow the call and come back", async () => {
@@ -182,7 +180,7 @@ test("d opens a step's details: how it was reached, with the cited line's code, 
 
   expect(frame).toContain("REACHED FROM")
   expect(frame).toMatch(/› +stop 1/)
-  expect(frame).toMatch(/main\.ts:1\s+const total = pay\(\)/)
+  expect(frame).toMatch(/main\.ts:1 [^\n]*\n +const total = pay\(\)/)
   expect(frame).toContain("CONTEXT")
   expect(frame).toContain("enter go there")
 })

@@ -1,5 +1,4 @@
 import type { StepView } from "@srctrek/core"
-import { keysOn, moveRows } from "./move-rows"
 
 /** What a code line shows besides its text: its sign, whether it's in the step, what's at its end. */
 export type CodeLine = Readonly<{
@@ -7,11 +6,9 @@ export type CodeLine = Readonly<{
   text: string
   sign: string
   inStep: boolean
-  // the values the trek predicts on this line, the arrows to the steps it leads to, and the keys
-  // of the moves about it
+  // the values the trek predicts on this line, and the arrows to the steps it leads to
   values: string
   arrows: string
-  keys: readonly string[]
   // the line next goes into from
   leadsNext: boolean
 }>
@@ -52,7 +49,6 @@ function signOf(view: StepView, line: number): string {
 export function codeLines(view: StepView, text: string, first: number, last: number): CodeLine[] {
   const all = text.split("\n")
   const leads = view.next.how === "into" || view.next.how === "hop" ? view.next.line : null
-  const rows = moveRows(view)
 
   return all.slice(first - 1, last).map((line, i) => {
     const number = first + i
@@ -63,7 +59,6 @@ export function codeLines(view: StepView, text: string, first: number, last: num
       inStep: number >= view.start_line && number <= view.end_line,
       values: valuesOn(view, number),
       arrows: arrowsOn(view, number),
-      keys: keysOn(rows, number),
       leadsNext: number === leads,
     }
   })

@@ -15,7 +15,11 @@ const MAX_VALUES = 40
 // Between the code and what follows it on the line.
 const GAP = "  "
 
-const FLAG_HINTS = { medium: "● risky", low: "● worth knowing" } as const
+const FLAG_MARKS = {
+  high: { mark: "⚠", tone: "bad" },
+  medium: { mark: "●", tone: "warn" },
+  low: { mark: "●", tone: "dim" },
+} as const
 
 /** A file's text, read again whenever the path changes; empty until read, or when it can't be. */
 function useFileText(path: string): string {
@@ -36,23 +40,19 @@ function useFileText(path: string): string {
   return text
 }
 
-// The narration's lines over the step: its summary, then a risky flag's hint, then a likely-wrong
-// flag's note in full.
+// The narration's lines over the step: its summary, then its flag's note in full.
 function bandLines(
   view: StepView,
   width: number,
 ): { text: string; tone?: "warn" | "bad" | "dim" }[] {
   const summary = wrap(view.summary, width).map((text) => ({ text }))
   const flag = view.flag ?? undefined
-  const hint =
-    flag !== undefined && flag.severity !== "high" ? FLAG_HINTS[flag.severity] : undefined
-  const note = flag?.severity === "high" ? wrap(`⚠ ${flag.note}`, width) : []
+  if (flag === undefined) {
+    return summary
+  }
 
-  return [
-    ...summary,
-    ...(hint === undefined ? [] : [{ text: hint, tone: "dim" as const }]),
-    ...note.map((text) => ({ text, tone: "bad" as const })),
-  ]
+  const { mark, tone } = FLAG_MARKS[flag.severity]
+  return [...summary, ...wrap(`${mark} ${flag.note}`, width).map((text) => ({ text, tone }))]
 }
 
 function Band({ view, width }: { view: StepView; width: number }) {
@@ -128,36 +128,30 @@ function Gutter({ line, here }: { line: CodeLine; here: boolean }) {
   )
 }
 
-// A move's key after the arrow, " n " on a chip of its own, so it can't read as code: the step's
-// tint moved toward blue, a hue the stepping screen uses nowhere else, so the chips don't blend
-// into the tint; n's further than the rest. The letter's in the text colour, reading on any
-// theme; "[n]" where the terminal's colours aren't known.
+// n after the arrow on the line next goes in from, on a chip of its own so it can't read as
+// code: the step's tint moved toward blue, a hue the stepping screen uses nowhere else, so it
+// doesn't blend into the tint. The letter's in the text colour, reading on any theme; "[n]" where
+// the terminal's colours aren't known.
 const CHIP_WIDTH = 4
-const CHIP_TOWARD_BLUE = { next: 0.7, other: 0.4 }
+const CHIP_TOWARD_BLUE = 0.7
 
-function KeyChips({ keys, tint }: { keys: readonly string[]; tint: RGBA | undefined }) {
+function NextChip({ tint }: { tint: RGBA | undefined }) {
   const tones = useTones()
-  const toward = (key: string) => (key === "n" ? CHIP_TOWARD_BLUE.next : CHIP_TOWARD_BLUE.other)
+  if (tint === undefined) {
+    return <span fg={tones.busy}>{" [n]"}</span>
+  }
 
   return (
-    <>
-      {keys.map((key) =>
-        tint === undefined ? (
-          <span key={key} fg={tones.busy}>{` [${key}]`}</span>
-        ) : (
-          <span key={key}>
-            {" "}
-            <span
-              bg={mixed(tint, tones.busy, toward(key))}
-              fg={COLOUR.text}
-              attributes={TextAttributes.BOLD}
-            >
-              {` ${key} `}
-            </span>
-          </span>
-        ),
-      )}
-    </>
+    <span>
+      {" "}
+      <span
+        bg={mixed(tint, tones.busy, CHIP_TOWARD_BLUE)}
+        fg={COLOUR.text}
+        attributes={TextAttributes.BOLD}
+      >
+        {" n "}
+      </span>
+    </span>
   )
 }
 
@@ -177,7 +171,7 @@ function Line({
 }) {
   const tones = useTones()
   const arrows = line.arrows === "" ? "" : `${GAP}${line.arrows}`
-  const marks = arrows.length + line.keys.length * CHIP_WIDTH
+  const marks = arrows.length + (line.leadsNext ? CHIP_WIDTH : 0)
   // values give way to the code, cut to what's left past its own room
   const valueRoom = Math.min(MAX_VALUES, width - GUTTER - marks - MIN_CODE - GAP.length)
   const values = line.values === "" || valueRoom < 8 ? "" : `${GAP}${fit(line.values, valueRoom)}`
@@ -205,7 +199,7 @@ function Line({
         ) : (
           <span fg={tones.dim}>{arrows}</span>
         )}
-        <KeyChips keys={line.keys} tint={tint} />
+        {line.leadsNext && <NextChip tint={tint} />}
         <span fg={tones.dim} attributes={TextAttributes.ITALIC}>
           {values}
         </span>

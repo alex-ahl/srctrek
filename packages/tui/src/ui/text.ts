@@ -8,6 +8,22 @@ export function fit(text: string, width: number): string {
   return text.length <= width ? text : `${text.slice(0, Math.max(0, width - 1))}…`
 }
 
+/**
+ * A path cut to `width` characters by dropping folders from its start, "…/home/screen.tsx"; cut
+ * from the left within the last part when even that doesn't fit.
+ */
+export function fitPath(path: string, width: number): string {
+  if (path.length <= width) {
+    return path
+  }
+
+  const parts = path.split("/")
+  const fits = (from: number) => `…/${parts.slice(from).join("/")}`.length <= width
+  const from = parts.findIndex((_, i) => i > 0 && fits(i))
+  const shown = `…/${parts.slice(from === -1 ? -1 : from).join("/")}`
+  return shown.length <= width ? shown : `…${shown.slice(shown.length - Math.max(0, width - 1))}`
+}
+
 /** `text` broken into lines of at most `width` characters, at spaces. */
 export function wrap(text: string, width: number): string[] {
   return text.split(" ").reduce<string[]>((lines, word) => {

@@ -17,7 +17,7 @@ import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf } from "./peek"
 import { openAtLine } from "../editors/editors"
 import { type PageActions, pageGroups, pageHints, pageKeys } from "./page"
-import { MovesLine } from "./moves"
+import { nextText } from "./next"
 import { type ReactNode, useRef, useState } from "react"
 
 type Props = {
@@ -50,6 +50,7 @@ function StackLine({ view, width }: { view: StepView; width: number }) {
 
 type BodyProps = {
   view: SessionView
+  route: readonly RouteStop[]
   width: number
   height: number
   place: Place | undefined
@@ -59,7 +60,7 @@ type BodyProps = {
   tint: RGBA | undefined
 }
 
-function Body({ view, width, height, place, onLayout, over, tint }: BodyProps) {
+function Body({ view, route, width, height, place, onLayout, over, tint }: BodyProps) {
   if (view.kind === "overview") {
     return <Overview view={view} width={width} />
   }
@@ -70,12 +71,11 @@ function Body({ view, width, height, place, onLayout, over, tint }: BodyProps) {
 
   const side = width >= SIDE_FROM_WIDTH
   const code = side ? width - SIDE_WIDTH : width
-  // no room beside the code: the moves and the call stack on lines over it
-  const room = side ? height : height - 2
+  // no room beside the code: the call stack on a line over it
+  const room = side ? height : height - 1
   const drawn = over(code, room)
   return (
     <box flexDirection="column" style={{ flexGrow: 1 }}>
-      {!side && <MovesLine view={view} width={width} />}
       {!side && <StackLine view={view} width={width} />}
       <box flexDirection="row" style={{ flexGrow: 1 }}>
         {drawn ?? (
@@ -88,7 +88,7 @@ function Body({ view, width, height, place, onLayout, over, tint }: BodyProps) {
             tint={tint}
           />
         )}
-        {side && <Side view={view} cursorAt={place} />}
+        {side && <Side view={view} route={route} />}
       </box>
     </box>
   )
@@ -175,13 +175,16 @@ function useCursor(height: number) {
   }
 }
 
-// The footer at a stop: moving the trek, and its details; ? lists the rest.
-const STEP_KEYS: readonly KeyHint[] = [
-  { key: "n/p", does: "next/prev" },
-  { key: "i/o/O", does: "in/out/over" },
-  { key: "d", does: "details" },
-  HELP_HINT,
-]
+// The footer at a stop: where n goes, back, the route, and details; ? lists the rest.
+function stepHints(view: SessionView | undefined): readonly KeyHint[] {
+  return [
+    { key: "n", does: view?.kind === "step" ? nextText(view) : "next" },
+    { key: "p", does: "back" },
+    { key: "r", does: "route" },
+    { key: "d", does: "details" },
+    HELP_HINT,
+  ]
+}
 
 // Every key at a stop, for the panel ? opens.
 const STEP_GROUPS: readonly KeyGroup[] = [
@@ -190,7 +193,8 @@ const STEP_GROUPS: readonly KeyGroup[] = [
     keys: [
       { key: "n/p", does: "next and previous stop" },
       { key: "i", does: "into the call on the cursor's line" },
-      { key: "o/O", does: "out, over" },
+      { key: "O", does: "over the stop's calls" },
+      { key: "o", does: "out of the stop's function" },
       { key: "↑/↓", does: "the cursor through the stop's file" },
       { key: ".", does: "back to the stop" },
     ],
@@ -369,12 +373,16 @@ function useActions(
 }
 
 // What the footer offers: what's open's keys, the page's on the overview, else a stop's.
-function footerKeys(layer: Layer | undefined, onPage: boolean, page: PageActions) {
+function footerKeys(
+  layer: Layer | undefined,
+  view: SessionView | undefined,
+  page: PageActions,
+): readonly KeyHint[] {
   if (layer !== undefined) {
     return layerKeys(layer)
   }
 
-  return onPage ? pageHints(page) : STEP_KEYS
+  return view?.kind === "overview" ? pageHints(page) : stepHints(view)
 }
 
 // The trek's title and the stop's number; on the right, where the cursor is, or what's open.
@@ -459,6 +467,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
   )
 
   const opened = stepping.kind === "open" ? stepping : undefined
+  const route = opened?.route ?? []
   const over = (code: number, room: number): ReactNode =>
     layer === undefined || opened === undefined || view?.kind !== "step" ? undefined : (
       <LayerView
@@ -479,7 +488,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
       <StepTitle
         title={title}
         view={view}
-        route={opened?.route ?? []}
+        route={route}
         layer={layer}
         cursor={place?.cursor}
         note={note}
@@ -489,6 +498,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
           {view !== undefined && (
             <Body
               view={view}
+              route={route}
               width={width - 2 * PADDING}
               height={height - CHROME_LINES - 1}
               place={place}
@@ -499,7 +509,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
           )}
         </OrKeysHelp>
       </Main>
-      <Footer keys={help.footer(footerKeys(layer, onPage, page))} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, view, page))} shown="" />
     </box>
   )
 }
