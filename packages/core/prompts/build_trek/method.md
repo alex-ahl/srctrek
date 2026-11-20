@@ -31,7 +31,7 @@ Use `uncertain` on a step for a real risk the reader should check: likely wrong 
   - background code that explains it, named with the reason to look: "the order id and amount come from renderOrder, which drew the button";
   - on a step that crosses or implements a contract (a request, a message, a spec entry, a schema), the contract and the term in it that matters for the scenario: "the spec says amount is in minor units, and web sends 499".
 - `details`: what the reader can't see from the code and doesn't need to follow the story: other paths, edge cases, why the code is built this way, what a guessed link assumes.
-- `name`: for a step that receives a request, its route (`POST /refunds`), not the server's.
+- `name`: the reader follows the flow by these names, so each says what the code is. A function as the code names it; for a step that receives a request, its route (`POST /refunds`), not the server's; for code with no name of its own, what fires it and where it lives (`#save click handler`, `l key in App`). Never a bare file name, key, or event.
 - The trek's `overview` says what the change does (or, for code as it is, what the code is for) and what the trek follows. `title` names what the change does in a few words ("Refunding an order"); the route belongs in the overview.
 
 Call start_trek, then add_steps (in batches, in order), then finish_trek with a short name after the branch or feature (lowercase letters, digits, and dashes). When a call reports problems, fix those steps and send them again under the same ids; nothing is kept from a rejected batch.
