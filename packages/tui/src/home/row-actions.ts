@@ -55,6 +55,21 @@ export function pickAction(
   return canStartBuild(trek) && onBuildTrigger ? () => onBuildTrigger(trigger.name) : undefined
 }
 
+// A way in's row whose trek is built: b builds it again, from the start, with the guide as it is.
+const rebuildsTrigger = (row: Row | undefined): row is Extract<Row, { kind: "trigger" }> =>
+  row?.kind === "trigger" && hasTrek(row.found.trek)
+
+// What b does here: rebuild the selected way in's trek, else build the change's when it can.
+function buildAction(row: Row | undefined, props: Props): Action {
+  const { status, onBuild, onBuildTrigger } = props
+  if (rebuildsTrigger(row) && onBuildTrigger) {
+    const { trigger } = row.found
+    return () => onBuildTrigger(trigger.name)
+  }
+
+  return canStartBuild(status) ? onBuild : undefined
+}
+
 // Whose builds l shows: the selected trek's or trigger's, else the change's while one runs or
 // after it failed.
 export function logName(row: Row | undefined, status: TrekStatus | undefined): string | undefined {
@@ -108,7 +123,7 @@ export function actionsFor(
   askLocation: (name: string) => void,
   screens: Opens,
 ): RowActions {
-  const { status, onBuild, onReadBuild, onStopBuild } = props
+  const { status, onReadBuild, onStopBuild } = props
   const log = logName(row, status)
   const building = buildingName(row, status)
 
@@ -117,7 +132,7 @@ export function actionsFor(
       row === undefined
         ? undefined
         : pickAction(row, props, askLocation, (entry) => screens.trek(entry.name)),
-    build: canStartBuild(status) ? onBuild : undefined,
+    build: buildAction(row, props),
     showLog: log !== undefined && onReadBuild ? () => screens.build(log) : undefined,
     stop: building !== undefined && onStopBuild ? () => onStopBuild(building) : undefined,
     dismiss: dismissAction(row, props.onDismissRepo),
@@ -131,6 +146,10 @@ const names = (blockKeys: string | undefined, key: string) =>
 // A key the footer lists: one that acts here, and that the block doesn't already name.
 const offers = (action: Action, blockKeys: string | undefined, key: string) =>
   action !== undefined && !names(blockKeys, key)
+
+// What b says it does: rebuild a way in's trek, else what it does to the change's.
+const bVerb = (row: Row | undefined, status: TrekStatus | undefined) =>
+  rebuildsTrigger(row) ? "rebuild" : buildVerb(status)
 
 /**
  * What enter, b, x, and l do here, for the footer; only keys that do something are listed,
@@ -146,7 +165,7 @@ export function keyHints(
   const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row)
 
   return footerKeys(actions.pick === undefined ? undefined : enter, {
-    build: offers(actions.build, blockKeys, "b") ? buildVerb(status) : undefined,
+    build: offers(actions.build, blockKeys, "b") ? bVerb(row, status) : undefined,
     log: offers(actions.showLog, blockKeys, "l"),
     stop: offers(actions.stop, blockKeys, "x"),
     dismiss: actions.dismiss !== undefined,

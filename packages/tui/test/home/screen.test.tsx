@@ -356,6 +356,38 @@ test("lists the triggers found as rows to pick, each saying where its trek stand
   expect(frame).toContain("enter build its trek")
 })
 
+test("b on a way in whose trek is built rebuilds that trek", async () => {
+  const status: TrekStatus = {
+    kind: "triggers",
+    name: "bot-code",
+    triggers: [
+      {
+        trigger: {
+          kind: "event",
+          name: "a reply times out",
+          evidence: { repo: "bot", file: "bot.py", line: 91 },
+        },
+        trek: { kind: "ready", name: "a-reply-times-out" },
+      },
+    ],
+  }
+  const built: string[] = []
+  const app = (
+    <App
+      entries={[]}
+      onOpen={noop}
+      onQuit={noop}
+      now={NOW}
+      status={status}
+      onBuildTrigger={(name) => built.push(name)}
+    />
+  )
+  const frame = await frameAfter(app, (input) => input.pressKey("b"))
+
+  expect(frame).toContain("b rebuild")
+  expect(built).toEqual(["a reply times out"])
+})
+
 test("says a stale trek is out of date, how much changed, and offers to update it", async () => {
   const status: TrekStatus = { kind: "stale", name: "feature-refunds", staleStops: 3, stops: 12 }
   const frame = await frameOf({ status, onBuild: noop })

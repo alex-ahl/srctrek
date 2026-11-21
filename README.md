@@ -57,18 +57,18 @@ that aren't valid treks. Each trek shows its state against its branch now. With 
 change, `b` has your agent build one in the background; while it builds, the end of its log
 shows what the agent has done so far, and `l` opens the build view.
 
-| Key       | Action                                      |
-| --------- | ------------------------------------------- |
-| `↑` / `↓` | Choose a row (also `k`/`j`)                 |
-| `enter`   | Open the trek's page, or a folded list      |
-| `b`       | Build, update, or rebuild the change's trek |
-| `x`       | Stop a build, or dismiss a proposed repo    |
-| `l`       | The trek's builds, and each one's log       |
-| `C`       | Pick another change                         |
-| `E`       | Pick where treks are stepped                |
-| `S`       | Settings                                    |
-| `?`       | Every key                                   |
-| `q`       | Quit                                        |
+| Key       | Action                                                                     |
+| --------- | -------------------------------------------------------------------------- |
+| `↑` / `↓` | Choose a row (also `k`/`j`)                                                |
+| `enter`   | Open the trek's page, or a folded list                                     |
+| `b`       | Build, update, or rebuild the change's trek; on a way in, rebuild its trek |
+| `x`       | Stop a build, or dismiss a proposed repo                                   |
+| `l`       | The trek's builds, and each one's log                                      |
+| `C`       | Pick another change                                                        |
+| `E`       | Pick where treks are stepped                                               |
+| `S`       | Settings                                                                   |
+| `?`       | Every key                                                                  |
+| `q`       | Quit                                                                       |
 
 Each footer shows the keys for what's selected; `?` lists them all.
 

@@ -63,7 +63,7 @@ export const HOME_GROUPS: readonly KeyGroup[] = [
     title: "the selected row",
     keys: [
       { key: "enter", does: "a trek's page; add a proposed repo; build a way in's trek" },
-      { key: "b", does: "build, update, or rebuild the change's trek" },
+      { key: "b", does: "build, update, or rebuild the change's trek; rebuild a way in's" },
       { key: "x", does: "stop a build; dismiss a proposed repo" },
       { key: "l", does: "a trek's builds" },
       { key: "↑/↓", does: "choose a row (also j/k)" },
