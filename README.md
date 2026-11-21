@@ -51,7 +51,8 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
   is, with repos beside this one ticked to go along. While `trek` is open, it follows new
   commits and branch switches.
 
-The home screen names the change at the top and says where its trek stands. Below, it lists
+The top of the home screen follows the selected row: the change and where its trek stands, the
+code as it is and a way in's trek, or another saved trek, with the keys that act on it. Below, it lists
 repos your agent proposed, then in sections: this change, the code as it is (its ways in, each
 with its trek, and other treks of the code), other branches and pull requests, and, folded, treks
 whose work is done and files that aren't valid treks. Each trek shows its state against its branch now. With no trek of the

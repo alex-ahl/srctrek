@@ -29,7 +29,8 @@ import { ListLineView } from "./list/view"
 import { columnsOf } from "./list/columns"
 import { rowsOf } from "./list/rows"
 import { type SectionId, sectionsOf } from "./list/sections"
-import { type StatusBlock, statusBlock } from "./status-block"
+import type { StatusBlock } from "./status-block"
+import { headingFor } from "./heading"
 import { useTones } from "../ui/theme"
 import { ChangeTitleBar } from "./change-title"
 import { ChangeLine } from "./change-line"
@@ -197,15 +198,19 @@ export function App(props: Props) {
   useKeyboard(help.guard((key) => onList && listKey(key, actions, shifted)))
 
   const { width, height } = useTerminalDimensions()
-  const changeEntry = entries.find((entry) => entry.name === status?.name)
-  const block =
-    status === undefined
-      ? undefined
-      : statusBlock(status, changeEntry, onBuild !== undefined, props.summary)
+  const { summary, block } = headingFor(row, sections, {
+    status,
+    summary: props.summary,
+    entries,
+    states,
+    canBuild: onBuild !== undefined,
+    canFind: props.onFindWaysIn !== undefined,
+    canBuildTrigger: props.onBuildTrigger !== undefined,
+  })
   const { start, end } = visibleWindow(
     lines.length,
     lineOfItem(lines, selected),
-    listHeight(height, block, headingLines(props.summary, block)),
+    listHeight(height, block, headingLines(summary, block)),
   )
   const shown = shownItems(lines.slice(start, end), items.length)
   const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
@@ -229,7 +234,7 @@ export function App(props: Props) {
           overflow: "hidden",
         }}
       >
-        <Heading summary={props.summary} opening={props.opening} block={block} width={width} />
+        <Heading summary={summary} opening={props.opening} block={block} width={width} />
         <OrKeysHelp open={help.open} groups={HOME_GROUPS}>
           {rows.length === 0 ? (
             <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>

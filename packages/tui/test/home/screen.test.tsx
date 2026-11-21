@@ -323,8 +323,9 @@ test("shows as many treks as fit, and says which", async () => {
   const many = Array.from({ length: 24 }, (_, i) => ({ ...refund, name: `t${i}` }))
   const frame = await frameOf({ entries: many }, 110, 12)
 
-  expect(frame.match(/Refund orders/g)?.length).toBe(6)
-  expect(frame).toContain("1–6 of 24")
+  // the selected trek's heading, and a line under it, come over the list
+  expect(frame.match(/Refund orders +12 steps +built/g)?.length).toBe(3)
+  expect(frame).toContain("1–3 of 24")
 })
 
 test("lists the triggers found as rows to pick, each saying where its trek stands", async () => {
@@ -371,8 +372,45 @@ test("shows the code as it is beside the change, its ways in found with b before
 
   expect(frame).toContain(" CODE AS IT IS")
   expect(frame).toMatch(/◇ not found yet +ways into this code +b finds them/)
-  expect(frame).toContain("enter find ways in · b find ways in")
+  expect(frame).toContain("b find them · then enter on one treks it")
+  expect(frame).toContain("enter find ways in · ? keys")
   expect(found).toEqual(["found"])
+})
+
+test("heads the list with the selected row: a way in with no trek says b builds it, and builds it", async () => {
+  const status: TrekStatus = {
+    kind: "triggers",
+    name: "bot-code",
+    triggers: [
+      {
+        trigger: {
+          kind: "event",
+          name: "a reply times out",
+          evidence: { repo: "bot", file: "bot.py", line: 91 },
+        },
+        trek: { kind: "missing", name: "a-reply-times-out" },
+      },
+    ],
+  }
+  const summary: ChangeSummary = { changed: [], unchanged: ["bot"], code: false }
+  const built: string[] = []
+  const app = (
+    <App
+      entries={[]}
+      onOpen={noop}
+      onQuit={noop}
+      now={NOW}
+      summary={summary}
+      codeStatus={status}
+      onBuildTrigger={(name) => built.push(name)}
+    />
+  )
+  const frame = await frameAfter(app, (input) => input.pressKey("b"))
+
+  expect(frame).toContain("Code as it is in bot")
+  expect(frame).toMatch(/○ no trek yet +a reply times out/)
+  expect(frame).toContain("your agent follows it through the code, as it runs")
+  expect(built).toEqual(["a reply times out"])
 })
 
 test("lists a way in's trek once, on its way in's row", async () => {
@@ -400,7 +438,8 @@ test("lists a way in's trek once, on its way in's row", async () => {
   const frame = await frameOf({ entries: [wayIn], codeStatus: status, onBuildTrigger: noop })
 
   expect(frame).toContain("a reply times out")
-  expect(frame).not.toContain("A reply times out")
+  // its title is in the heading over the list, not on a row of its own
+  expect(frame).not.toMatch(/A reply times out +12 steps +built/)
 })
 
 test("b on a way in whose trek is built rebuilds that trek", async () => {
@@ -534,7 +573,7 @@ test("? lists every key, grouped, in place of the list; any key closes it", asyn
   expect(open).toContain("THE SELECTED ROW")
   expect(open).toMatch(/C +pick another change/)
   expect(open).toMatch(/q +quit/)
-  expect(open).not.toContain("Refund orders")
+  expect(open).not.toMatch(/Refund orders +12 steps +built/)
   expect(open).toContain("any key close")
 
   const closed = await frameAfter(app, async (input) => {

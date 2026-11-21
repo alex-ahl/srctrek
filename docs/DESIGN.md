@@ -236,8 +236,11 @@ terminal's background to its text; until then, or if it never reports them, the 
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 
-- **Home:** the change at the top (its branch or pull request, with how many commits since its
-  base on the right, after its repos where there are several), then the change's trek with where it stands, then the list in
+- **Home:** at the top, the selected row's heading: for the change's rows, the change (its branch
+  or pull request, with how many commits since its base on the right, after its repos where there
+  are several) and where its trek stands; for the code as it is, "Code as it is in …" and finding
+  its ways in or a way in's trek; for another saved trek, where it stands and what it holds. Then
+  the list in
   sections: repos the agent proposed (they wait on the user), treks of this change, the code as it
   is over the same repos (its ways in, `◇ not found yet` until `b` finds them, each way in with its
   trek's state, its trek listed only there), treks of other branches and pull requests, then done treks

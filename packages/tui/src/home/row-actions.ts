@@ -63,6 +63,10 @@ export function pickAction(
 const rebuildsTrigger = (row: Row | undefined): row is Extract<Row, { kind: "trigger" }> =>
   row?.kind === "trigger" && hasTrek(row.found.trek)
 
+// A way in's row with no trek, or whose build failed: b builds its trek.
+const buildsTrigger = (row: Row | undefined): row is Extract<Row, { kind: "trigger" }> =>
+  row?.kind === "trigger" && canStartBuild(row.found.trek)
+
 // Finding the code's ways in, when they can be: not yet found, or the last search failed.
 const findAction = (row: Extract<Row, { kind: "ways-in" }>, props: Props): Action =>
   canStartBuild(row.status) ? props.onFindWaysIn : undefined
@@ -75,12 +79,12 @@ function buildAction(row: Row | undefined, props: Props): Action {
     return findAction(row, props)
   }
 
-  if (rebuildsTrigger(row) && onBuildTrigger) {
+  if ((rebuildsTrigger(row) || buildsTrigger(row)) && onBuildTrigger) {
     const { trigger } = row.found
     return () => onBuildTrigger(trigger.name)
   }
 
-  return canStartBuild(status) ? onBuild : undefined
+  return row?.kind === "trigger" || !canStartBuild(status) ? undefined : onBuild
 }
 
 // Whose builds l shows: the selected trek's or trigger's, else the change's while one runs or
@@ -175,7 +179,11 @@ function bVerb(row: Row | undefined, status: TrekStatus | undefined): string {
     return row.status.kind === "failed" ? "find ways in again" : "find ways in"
   }
 
-  return rebuildsTrigger(row) ? "rebuild" : buildVerb(status)
+  if (rebuildsTrigger(row)) {
+    return "rebuild"
+  }
+
+  return buildsTrigger(row) ? "build" : buildVerb(status)
 }
 
 /**
