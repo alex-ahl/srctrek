@@ -10,8 +10,17 @@ import {
   startBuild,
   trekPath,
 } from "@srctrek/core"
+import {
+  BASELINE_PATH,
+  type RunRecord,
+  compareLine,
+  readBaseline,
+  recordOf,
+  withRuns,
+  writeBaseline,
+} from "./baseline"
 import { type Expected, readExpected } from "./expected"
-import { type Fixture, applyFollowups, buildFixture } from "./fixture"
+import { type Fixture, applyFollowups, buildFixture, fixtureNames } from "./fixture"
 import { type RunFacts, type UpdateFacts, formatReport } from "./report"
 import { scoreTrek } from "./score"
 
@@ -100,12 +109,20 @@ async function updateTrek(
   }
 }
 
+/** An eval's report, and the run as the baseline keeps it. */
+export type EvalResult = Readonly<{ report: string; record: RunRecord }>
+
 /** Builds fixture `name`'s repos, has the agent trek them, and reports the trek's score. */
-export async function runEval(
+export async function runEval(name: string, agent: string, options: EvalOptions = {}) {
+  return (await evalRun(name, agent, options)).report
+}
+
+/** As runEval, with the run as the baseline keeps it too. */
+export async function evalRun(
   name: string,
   agent: string,
   { run, asReviewer = false, update = false }: EvalOptions = {},
-): Promise<string> {
+): Promise<EvalResult> {
   const fixture = await buildFixture(name, { asReviewer })
   const expected = await readExpected(fixture.dir)
   const runs = run ?? expected.run
@@ -121,19 +138,67 @@ export async function runEval(
     log,
     trek,
   }
+  const score = scoreTrek(built, expected, runs.in)
+  const record = recordOf(score, seconds, facts.agentSummary)
   if (!update) {
-    return formatReport(name, scoreTrek(built, expected, runs.in), facts)
+    return { report: formatReport(name, score, facts), record }
   }
 
   const updated = await updateTrek(fixture, root, runs.args, agent, built)
   const rebuilt = await loadTrek(trek)
+  const report = formatReport(name, scoreTrek(rebuilt, expected, runs.in), {
+    ...facts,
+    update: updated,
+  })
+  return { report, record }
+}
 
-  return formatReport(name, scoreTrek(rebuilt, expected, runs.in), { ...facts, update: updated })
+// The commit the evals run at, "+changes" when the work tree differs from it.
+function headCommit(): string {
+  const git = (...args: string[]) =>
+    Bun.spawnSync(["git", ...args], { cwd: import.meta.dir })
+      .stdout.toString()
+      .trim()
+  return `${git("rev-parse", "--short", "HEAD")}${git("status", "--porcelain") === "" ? "" : "+changes"}`
+}
+
+// Runs each fixture named, or every fixture, BASELINE_RUNS times, and writes their runs as
+// the baseline, keeping the other fixtures' runs as they were. Before each run it says which,
+// on stderr, as a run takes minutes and prints nothing until it ends.
+const BASELINE_RUNS = 2
+
+async function takeBaseline(names: string[], agent: string): Promise<void> {
+  let baseline = await readBaseline(BASELINE_PATH)
+  for (const name of names.length > 0 ? names : await fixtureNames()) {
+    const results = []
+    for (let run = 0; run < BASELINE_RUNS; run++) {
+      console.error(`baseline: ${name}, run ${String(run + 1)} of ${String(BASELINE_RUNS)}…`)
+      const result = await evalRun(name, agent)
+      console.log(`${result.report}\n`)
+      results.push(result.record)
+    }
+
+    baseline = withRuns(baseline, name, headCommit(), results)
+    await writeBaseline(BASELINE_PATH, baseline)
+  }
+
+  console.log(`baseline written to ${BASELINE_PATH}`)
+}
+
+// The report, then how the run compares with its fixture's baseline, when there is one.
+async function reportWithBaseline(name: string, result: EvalResult): Promise<string> {
+  const baseline = await readBaseline(BASELINE_PATH)
+  const entry = baseline?.fixtures[name]
+  const against =
+    baseline === undefined || entry === undefined
+      ? "none for this fixture yet"
+      : compareLine(result.record, entry, baseline.watch)
+  return `${result.report}\nBaseline ${against}`
 }
 
 // "<fixture>" runs as expected.json says; "<fixture> <repo> <args…>" runs trek in that repo;
 // --reviewer, anywhere, builds the repos as a reviewer has them; --update updates the trek
-// after the fixture's follow-up commits.
+// after the fixture's follow-up commits. "--baseline [<fixture>…]" takes the baseline.
 const REVIEWER = "--reviewer"
 const UPDATE = "--update"
 
@@ -144,14 +209,22 @@ function optionsFromArgs(words: string[]): EvalOptions {
   return { run, asReviewer: words.includes(REVIEWER), update: words.includes(UPDATE) }
 }
 
+const BASELINE = "--baseline"
+
 if (import.meta.main) {
   const [name, ...rest] = process.argv.slice(2)
   if (name === undefined) {
     console.error(
-      "usage: bun packages/evals/src/main.ts <fixture> [--reviewer] [--update] [<repo> <trek args>…]",
+      "usage: bun packages/evals/src/main.ts <fixture> [--reviewer] [--update] [<repo> <trek args>…]\n" +
+        "       bun packages/evals/src/main.ts --baseline [<fixture>…]",
     )
     process.exit(2)
   }
 
-  console.log(await runEval(name, agentCommand(), optionsFromArgs(rest)))
+  if (name === BASELINE) {
+    await takeBaseline(rest, agentCommand())
+  } else {
+    const result = await evalRun(name, agentCommand(), optionsFromArgs(rest))
+    console.log(await reportWithBaseline(name, result))
+  }
 }

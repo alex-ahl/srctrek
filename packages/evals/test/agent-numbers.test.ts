@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { agentNumbers } from "../src/agent-numbers"
+import { agentFields, agentNumbers } from "../src/agent-numbers"
 
 describe("agentNumbers", () => {
   test("shows a JSON line's numbers other than zero, top level, then one level down", () => {
@@ -23,4 +23,11 @@ describe("agentNumbers", () => {
     expect(agentNumbers("used 1234 tokens")).toEqual(["used 1234 tokens"])
     expect(agentNumbers("[1, 2]")).toEqual(["[1, 2]"])
   })
+})
+
+test("reads every number in the agent's JSON by name, one level down after its object", () => {
+  const line = JSON.stringify({ num_turns: 23, is_error: false, usage: { output_tokens: 8310 } })
+
+  expect(agentFields(line)).toEqual({ num_turns: 23, "usage.output_tokens": 8310 })
+  expect(agentFields("used 1234 tokens")).toEqual({})
 })

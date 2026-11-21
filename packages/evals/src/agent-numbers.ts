@@ -46,3 +46,20 @@ export function agentNumbers(line: string): string[] {
 
   return [...numbersIn(fields), ...nestedNumbers(fields)]
 }
+
+/**
+ * Every number in the agent's last line when it is JSON, by name, one level down named after
+ * its object: "num_turns", "usage.output_tokens". None for any other line; no names assumed.
+ */
+export function agentFields(line: string): Record<string, number> {
+  const fields = parseFields(line) ?? {}
+  const numbers = (entries: [string, unknown][], prefix: string) =>
+    entries.flatMap(([name, value]): [string, number][] =>
+      typeof value === "number" ? [[`${prefix}${name}`, value]] : [],
+    )
+  const nested = Object.entries(fields).flatMap(([name, value]) =>
+    isFields(value) ? numbers(Object.entries(value), `${name}.`) : [],
+  )
+
+  return Object.fromEntries([...numbers(Object.entries(fields), ""), ...nested])
+}

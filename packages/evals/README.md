@@ -15,6 +15,12 @@ taken, and the agent's last line of output: its numbers, when it is JSON.
 Run it with `bun packages/evals/src/main.ts <fixture>`, or `… <fixture> <repo> <trek args>` to start in one repo, such as `refund web main...feature`, leaving the others for the agent to find. `--reviewer` builds the repos as clones of stand-in hosts, the work only on `origin/feature`, as a reviewer has it: `refund --reviewer web origin/main...origin/feature`. `--update` then commits the fixture's follow-ups (`<repo>/followup.patch`) and has the agent update the trek, reporting both runs: `refund --update`. Each run spends the agent's tokens; it
 is not part of `bun run check`.
 
+Each run ends with how it compares with `evals/baseline.json`: ✓ when it scores as well as the best baseline run
+and its time and each number named in `watch` fall within 15% of the baseline's range;
+otherwise what changed. `--baseline [<fixture>…]` runs each fixture named, or every fixture,
+twice at the current commit and writes their runs there, keeping the other fixtures'. `watch`
+names the agent's numbers to compare, as its last JSON line names them.
+
 Does not: judge narration, or count tokens itself.
 
 ## Where it fits

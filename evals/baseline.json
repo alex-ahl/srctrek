@@ -1,0 +1,4 @@
+{
+  "watch": ["num_turns", "usage.output_tokens"],
+  "fixtures": {}
+}

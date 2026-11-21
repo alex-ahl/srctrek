@@ -92,7 +92,7 @@ export async function applyFollowups(fixture: Fixture): Promise<string[]> {
   return touched.flat()
 }
 
-/** The fixtures under evals/fixtures, by name. */
-export function fixtureNames(): Promise<string[]> {
-  return subfolders(FIXTURES)
+/** The fixtures under evals/fixtures, by name, in order. */
+export async function fixtureNames(): Promise<string[]> {
+  return (await subfolders(FIXTURES)).toSorted()
 }
