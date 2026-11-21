@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test"
-import { repoWithShowcase, repoWithTrek, repoWithTwoCalls } from "@srctrek/testing"
+import { repoWithShowcase, repoWithSteps, repoWithTrek, repoWithTwoCalls } from "@srctrek/testing"
 import type { PageActions } from "../../src/stepping/page"
 import { SteppingScreen } from "../../src/stepping/screen"
 import { frameAfter } from "../support/keys"
@@ -363,4 +363,32 @@ test("a hop says what carries it, beside the code and in the route", async () =>
 
   expect(stop).toContain("↯ on a queued event to onRefunded")
   expect(map).toMatch(/↯ onRefunded  on a queued event/)
+})
+
+test("enter on a call found by name in several places opens the nearest, and ←/→ the others", async () => {
+  const root = await repoWithSteps(
+    [
+      ["vendor/format.ts", "export function format(n: number) {\n  return `${n}`\n}\n"],
+      ["format.ts", "export function format(n: number) {\n  return n.toFixed(2)\n}\n"],
+      ["main.ts", "const shown = format(250)\n"],
+    ],
+    ({ step }) => [step({ summary: "main formats the total" })],
+  )
+  const presses = async (input: Parameters<Parameters<typeof frameAfter>[1]>[0], more: boolean) => {
+    await settle()
+    input.pressKey("n")
+    await settle()
+    input.pressEnter()
+    await settle()
+    if (more) {
+      input.pressArrow("right")
+      await settle()
+    }
+  }
+  const first = await frameAfter(stepping(root), (input) => presses(input, false), 120, 24)
+  const second = await frameAfter(stepping(root), (input) => presses(input, true), 120, 24)
+
+  expect(first).toContain("format · format.ts:1 · found by name · 1 of 2")
+  expect(first).toContain("←/→ other places")
+  expect(second).toContain("format · vendor/format.ts:1 · found by name · 2 of 2")
 })

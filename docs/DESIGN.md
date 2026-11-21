@@ -287,16 +287,16 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   screen and back elsewhere, `?` every key; `b` build, `x` stop or dismiss, `l` builds, `e` your
   editor, `S` settings.
 
-| Screen      | Keys                                                                                   |
-| ----------- | -------------------------------------------------------------------------------------- |
-| Home        | `enter` the trek's page · `b` build, update, or rebuild · `x` stop, or dismiss a       |
-|             | proposal · `l` builds · `C` pick another change · `E` pick where treks are stepped ·   |
-|             | `S` settings · `?` keys · `q` quit                                                     |
-| Trek's page | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build · `x`    |
-|             | stop · `l` builds · `?` keys · `q` home                                                |
-| Settings    | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back              |
-| Build view  | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back   |
-| Route map   | `j`/`k` move · `enter` go to the step · `tab` by calls or repos · `r` close            |
-| Stepping    | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over · |
-|             | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call · `d`    |
-|             | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` home       |
+| Screen      | Keys                                                                                                                               |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Home        | `enter` the trek's page · `b` build, update, or rebuild · `x` stop, or dismiss a                                                   |
+|             | proposal · `l` builds · `C` pick another change · `E` pick where treks are stepped ·                                               |
+|             | `S` settings · `?` keys · `q` quit                                                                                                 |
+| Trek's page | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build · `x`                                                |
+|             | stop · `l` builds · `?` keys · `q` home                                                                                            |
+| Settings    | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                          |
+| Build view  | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                               |
+| Route map   | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close |
+| Stepping    | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                             |
+|             | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                      |
+|             | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` home                                                   |

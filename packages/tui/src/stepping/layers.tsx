@@ -9,12 +9,28 @@ import type { Look } from "./peek"
 import { RouteMap } from "./route-map"
 import type { Stepping } from "./use-stepping"
 
-/** What's open over the code: details, the route map, a look beside the trek, or the change. */
+/**
+ * What's open over the code: details, the route map, a look beside the trek, one of `looks` when
+ * a name is found in several places, or the change.
+ */
 export type Layer =
   | Readonly<{ kind: "details" }>
   | Readonly<{ kind: "route" }>
-  | Readonly<{ kind: "look"; look: Look }>
+  | Readonly<{ kind: "look"; looks: readonly Look[]; at: number }>
   | Readonly<{ kind: "change"; diff: readonly DiffLine[] }>
+
+/** A look at one place. */
+export const lookAt = (look: Look): Layer => ({ kind: "look", looks: [look], at: 0 })
+
+/** The look `by` places on from the one shown, round the ends; the layer as it was otherwise. */
+export function lookedOn(layer: Layer, by: 1 | -1): Layer {
+  if (layer.kind !== "look") {
+    return layer
+  }
+
+  const count = layer.looks.length
+  return { ...layer, at: (layer.at + by + count) % count }
+}
 
 const LAYER_KEYS: Readonly<Record<Layer["kind"], readonly KeyHint[]>> = {
   details: [
@@ -36,13 +52,21 @@ const LAYER_KEYS: Readonly<Record<Layer["kind"], readonly KeyHint[]>> = {
   change: [{ key: "D", does: "the code as it is" }],
 }
 
-/** The keys a layer offers, for the footer. */
-export const layerKeys = (layer: Layer) => LAYER_KEYS[layer.kind]
+const OTHER_LOOKS: KeyHint = { key: "←/→", does: "other places" }
+
+/** The keys a layer offers, for the footer: ←/→ too on a look found in several places. */
+export function layerKeys(layer: Layer): readonly KeyHint[] {
+  return layer.kind === "look" && layer.looks.length > 1
+    ? [OTHER_LOOKS, ...LAYER_KEYS.look]
+    : LAYER_KEYS[layer.kind]
+}
 
 /** What the title bar says over a look or the change, in place of the stop's place. */
 export function layerWhere(layer: Layer): string | undefined {
   if (layer.kind === "look") {
-    return `${layer.look.label} · . back to the stop`
+    const count = layer.looks.length
+    const which = count > 1 ? ` · ${String(layer.at + 1)} of ${String(count)}` : ""
+    return `${layer.looks[layer.at]?.label ?? ""}${which} · . back to the stop`
   }
 
   if (layer.kind === "route") {
@@ -95,7 +119,7 @@ export function LayerView({
         width={width}
         height={height}
         onGo={go}
-        onOpen={(look) => open({ kind: "look", look })}
+        onOpen={(look) => open(lookAt(look))}
         onClose={close}
         tint={tint}
       />
@@ -119,9 +143,21 @@ export function LayerView({
     )
   }
 
-  if (layer.kind === "look") {
-    return <FileAside look={layer.look} width={width} height={height} tint={tint} />
+  const look = layer.kind === "look" ? layer.looks[layer.at] : undefined
+  if (look !== undefined) {
+    // keyed by place, so each place opens at its own line
+    return (
+      <FileAside
+        key={`${look.path}:${String(look.line)}`}
+        look={look}
+        width={width}
+        height={height}
+        tint={tint}
+      />
+    )
   }
 
-  return <ChangeAside diff={layer.diff} width={width} height={height} />
+  return layer.kind === "change" ? (
+    <ChangeAside diff={layer.diff} width={width} height={height} />
+  ) : null
 }

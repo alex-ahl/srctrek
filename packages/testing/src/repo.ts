@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises"
-import { basename, join } from "node:path"
+import { basename, dirname, join } from "node:path"
 import { runGit } from "@srctrek/core"
 import { tempDir } from "./temp"
 
@@ -29,8 +29,9 @@ export async function commitStaged(dir: string, message: string): Promise<string
   return runGit(dir, ["rev-parse", "HEAD"])
 }
 
-/** Writes `file` and commits it; returns the new commit. */
+/** Writes `file`, in its folder made if need be, and commits it; returns the new commit. */
 export async function commit(dir: string, file: string, content: string): Promise<string> {
+  await mkdir(dirname(join(dir, file)), { recursive: true })
   await writeFile(join(dir, file), content)
   await runGit(dir, ["add", file])
   return commitStaged(dir, `change ${file}`)

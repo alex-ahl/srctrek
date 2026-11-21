@@ -12,9 +12,9 @@ import { type Layout, type Place, atStop, movedPlace } from "./lines"
 import { End, Overview } from "./ends"
 import { SIDE_WIDTH, Side } from "./side"
 import { type Move, type Near, type Stepping, useStepping } from "./use-stepping"
-import { type Layer, LayerView, layerKeys, layerWhere, useLayer } from "./layers"
+import { type Layer, LayerView, layerKeys, layerWhere, lookedOn, useLayer } from "./layers"
 import type { RouteStop } from "./route"
-import { type Look, calledOn, definitionsOf } from "./peek"
+import { type Look, calledOn, definitionsOf, nearestFirst } from "./peek"
 import { openAtLine } from "../editors/editors"
 import { type PageActions, pageGroups, pageHints, pageKeys } from "./page"
 import { nextText } from "./next"
@@ -234,14 +234,18 @@ function asideKeys(
   layer: Layer | undefined,
   back: () => void,
   edit: (path: string, line: number) => void,
+  open: (layer: Layer) => void,
 ): KeyMap {
-  const look = layer?.kind === "look" ? layer.look : undefined
+  const look = layer?.kind === "look" ? layer.looks[layer.at] : undefined
+  const on = (by: 1 | -1) => () => layer !== undefined && open(lookedOn(layer, by))
   return new Map([
     [".", back],
     ["period", back],
     ["escape", back],
     ["D", back],
     ["e", () => look !== undefined && edit(look.path, look.line)],
+    ["right", on(1)],
+    ["left", on(-1)],
   ])
 }
 
@@ -298,10 +302,10 @@ function stepKeys({ stepping, view, cursor, open, onBack, move, edit, say }: Key
       "return",
       () =>
         atStep !== undefined &&
-        void lookAt(atStep, cursor).then((look) =>
-          look === undefined
+        void placesFor(atStep, cursor).then((looks) =>
+          looks.length === 0
             ? say("no definition found for a call on this line")
-            : open({ kind: "look", look }),
+            : open({ kind: "look", looks, at: 0 }),
         ),
     ],
     ["e", () => atStep !== undefined && edit(atStep.view.path, cursor)],
@@ -312,16 +316,14 @@ type AtStep = Readonly<{ stepping: Extract<Stepping, { kind: "open" }>; view: St
 
 /**
  * What enter shows from the cursor's line: the step a call there leads to, without stepping in;
- * else where the function it calls is defined, found by name.
+ * else where the function it calls is defined, found by name, nearest the stop's file first.
  */
-async function lookAt({ stepping, view }: AtStep, cursor: number): Promise<Look | undefined> {
+async function placesFor({ stepping, view }: AtStep, cursor: number): Promise<Look[]> {
   const call = view.calls.find((each) => each.call_line === cursor)
   if (call !== undefined) {
-    return {
-      path: call.path,
-      line: call.start_line,
-      label: `${call.name ?? call.file} · i steps in`,
-    }
+    return [
+      { path: call.path, line: call.start_line, label: `${call.name ?? call.file} · i steps in` },
+    ]
   }
 
   const text = await Bun.file(view.path)
@@ -330,15 +332,11 @@ async function lookAt({ stepping, view }: AtStep, cursor: number): Promise<Look 
   const name = calledOn(text.split("\n")[cursor - 1] ?? "")
   const dir = stepping.dirOf(view.repo)
   if (name === undefined || dir === undefined) {
-    return undefined
+    return []
   }
 
-  const found = await definitionsOf(dir, name)
-  const first = found[0]
-  const more = found.length > 1 ? `, 1 of ${String(found.length)}` : ""
-  return first === undefined
-    ? undefined
-    : { ...first, label: `${first.label} · found by name${more}` }
+  const found = nearestFirst(await definitionsOf(dir, name), view.path)
+  return found.map((look) => ({ ...look, label: `${look.label} · found by name` }))
 }
 
 const KEYS: readonly [string, Move][] = [
@@ -489,7 +487,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
   useKeyboard(
     help.guard((key) => {
       setNote("")
-      const aside = asideKeys(layer, back, edit)
+      const aside = asideKeys(layer, back, edit, open)
       keyFor(key, layer, { keys, cursorKeys, asideKeys: aside, move })?.()
     }),
   )

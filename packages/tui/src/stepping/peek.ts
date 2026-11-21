@@ -35,6 +35,18 @@ const definitionPattern = (name: string) => {
   ].join("|")
 }
 
+// How much of their path two files share, folder by folder.
+function sharedFolders(a: string, b: string): number {
+  const [left, right] = [a.split("/"), b.split("/")]
+  const differs = left.findIndex((part, i) => part !== right[i])
+  return differs === -1 ? left.length : differs
+}
+
+/** `looks` nearest `from` first: in its file, then its folder, then sharing most of its path. */
+export function nearestFirst(looks: readonly Look[], from: string): Look[] {
+  return looks.toSorted((a, b) => sharedFolders(b.path, from) - sharedFolders(a.path, from))
+}
+
 /**
  * Where `name` is defined in the repo at `dir`, found by name, as git grep finds it at the
  * checked-out revision; several when the name is defined more than once.
