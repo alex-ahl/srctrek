@@ -1,5 +1,16 @@
 # Handoff
 
+## 2026-11-21 — Evals: a tracked baseline
+
+**Done**
+
+- `evals/baseline.json` holds two runs of each fixture, taken at one commit: the score, the time,
+  and every number the agent reports. Each eval ends with how it compares: ✓ when it scores as
+  well as the best baseline run and its time and the numbers named in `watch` fall within 15% of
+  the baseline's range. `--baseline [<fixture>…]` takes it again. It replaces the hand-copied
+  tables in the milestone entries below.
+- The route's order counts a context step where the step it explains is.
+
 ## 2026-11-17 — Milestone 7: the picker finished, the home screen, the build view
 
 **Done**
