@@ -1,6 +1,5 @@
 import type { TrekStatus } from "@srctrek/core"
 import { useEffect } from "react"
-import type { HomeChange } from "../start"
 
 // A build takes minutes, so checking every couple of seconds is plenty.
 const POLL_MS = 2000
@@ -15,23 +14,23 @@ function isBuilding(status: TrekStatus | undefined): boolean {
 }
 
 /**
- * While the agent builds, checks on it every couple of seconds and hands on where it stands; when
- * it ends, `onEnded` is told first, as the treks it saved have changed the list too.
+ * While the agent builds, checks on it every couple of seconds through `read` and hands on where
+ * it stands; when it ends, `onEnded` is told first, as the treks it saved have changed the list too.
  */
 export function useBuildWatch(
   status: TrekStatus | undefined,
-  change: HomeChange | undefined,
+  read: (() => Promise<TrekStatus>) | undefined,
   on: Readonly<{ status: (next: TrekStatus) => void; ended: () => Promise<void> }>,
 ): void {
   const building = isBuilding(status)
 
   useEffect(() => {
-    if (!building || change === undefined) {
+    if (!building || read === undefined) {
       return undefined
     }
 
     const refresh = async () => {
-      const next = await change.status()
+      const next = await read()
       if (next.kind !== "building") {
         await on.ended()
       }
@@ -43,5 +42,5 @@ export function useBuildWatch(
     return () => clearInterval(timer)
     // on's functions only set state; the check needs the ones it started with
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [building, change])
+  }, [building, read])
 }

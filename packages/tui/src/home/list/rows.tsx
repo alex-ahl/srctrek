@@ -1,6 +1,6 @@
 import { type RGBA, TextAttributes } from "@opentui/core"
 import type { ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
-import { type Columns, EDGES, GAP, builtText, flagsText } from "./columns"
+import { type Columns, EDGES, GAP, WAYS_IN_TITLE, builtText, flagsText } from "./columns"
 import { type States, detailOf, stateOf } from "./row-state"
 import { statusBlock } from "../status-block"
 import { selectionMarker } from "../../ui/selectable"
@@ -10,11 +10,12 @@ import { useStateText } from "../../ui/turning"
 import { fit } from "../../ui/text"
 
 /**
- * A line in the home screen's list: a repo the agent proposes adding, a trigger found in the
- * code, or a saved trek.
+ * A line in the home screen's list: a repo the agent proposes adding, the code's ways in while
+ * they're not found yet (being found, or failed), a way in found in the code, or a saved trek.
  */
 export type Row =
   | { kind: "proposal"; proposal: ProposedRepo }
+  | { kind: "ways-in"; status: TrekStatus }
   | { kind: "trigger"; found: TriggerTrek }
   | { kind: "trek"; entry: TrekEntry }
 
@@ -25,21 +26,38 @@ function byNewest(a: TrekEntry, b: TrekEntry): number {
   return built(b).localeCompare(built(a))
 }
 
+// The code's ways in as rows: each way in once found, else one row for finding them.
+function waysInRows(code: TrekStatus | undefined): Row[] {
+  if (code === undefined) {
+    return []
+  }
+
+  return code.kind === "triggers"
+    ? code.triggers.map((found): Row => ({ kind: "trigger", found }))
+    : [{ kind: "ways-in", status: code }]
+}
+
 /**
- * Proposed repos first, waiting on the user; then the triggers found for the change, when
- * there are any; then the saved treks, newest first.
+ * Proposed repos first, waiting on the user; then the code's ways in; then the saved treks, newest
+ * first, leaving out a way in's trek, which its way in's row stands for.
  */
 export function rowsOf(
   entries: TrekEntry[],
-  status: TrekStatus | undefined,
+  code: TrekStatus | undefined,
   proposals: ProposedRepo[],
 ): Row[] {
-  const triggers = status?.kind === "triggers" ? status.triggers : []
+  const waysIn = waysInRows(code)
+  const wayInTreks = new Set(
+    waysIn.flatMap((row) => (row.kind === "trigger" ? [row.found.trek.name] : [])),
+  )
 
   return [
     ...proposals.map((proposal): Row => ({ kind: "proposal", proposal })),
-    ...triggers.map((found): Row => ({ kind: "trigger", found })),
-    ...entries.toSorted(byNewest).map((entry): Row => ({ kind: "trek", entry })),
+    ...waysIn,
+    ...entries
+      .filter((entry) => !wayInTreks.has(entry.name))
+      .toSorted(byNewest)
+      .map((entry): Row => ({ kind: "trek", entry })),
   ]
 }
 
@@ -99,6 +117,28 @@ function ProposalRow({ item: proposal, selected, context }: RowProps<ProposedRep
       >{`${name}${" ".repeat(GAP)}`}</span>
       <span fg={tones.dim}>{where}</span>
       <span fg={tones.dim}>{keys}</span>
+    </text>
+  )
+}
+
+// The code's ways in while they're not found: not yet, being found, or failed, and the key to act.
+const WAYS_IN_HINTS: Readonly<Partial<Record<TrekStatus["kind"], string>>> = {
+  missing: "b finds them",
+  building: "the agent is finding them · l its log",
+  failed: "b tries again · l its log",
+}
+
+function WaysInRow({ item: status, selected, context }: RowProps<TrekStatus>) {
+  const tones = useTones()
+  const { columns } = context
+  const label = stateOf({ kind: "ways-in", status }, context.status, context.states)
+
+  return (
+    <text fg={COLOUR.text}>
+      <Marker selected={selected} context={context} />
+      <State label={label} width={columns.state} />
+      <Title text={WAYS_IN_TITLE} width={columns.title} selected={selected} />
+      <span fg={tones.dim}>{fit(WAYS_IN_HINTS[status.kind] ?? "", rest(context))}</span>
     </text>
   )
 }
@@ -166,6 +206,10 @@ export function RowView({
 
   if (row.kind === "trigger") {
     return <TriggerRow item={row.found} selected={selected} context={context} />
+  }
+
+  if (row.kind === "ways-in") {
+    return <WaysInRow item={row.status} selected={selected} context={context} />
   }
 
   return <TrekRow item={row.entry} selected={selected} context={context} />

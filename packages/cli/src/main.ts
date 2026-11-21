@@ -6,6 +6,7 @@ import {
   type ChangeChoice,
   choiceOfArguments,
   errorText,
+  homeSides,
   loadSettings,
   startBuild,
   summarizeChange,
@@ -33,27 +34,41 @@ async function buildTriggerTrek(
   await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
 }
 
-// The change trek's args name, as it stands now, with the agent as the settings name it now. A
-// change with no trek gets one started right away, when the user asked for that and there's an
-// agent to build it.
+// What trek's args open, as it stands now, with the agent as the settings name it now: the change
+// and the code as it is over the same repos, and which the args asked for. A change with no trek
+// gets one started right away, when the user asked for that and there's an agent to build it.
 async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
-  const change = await changeFromArguments(cwd, args)
+  const sides = homeSides(args)
+  const [change, code] = await Promise.all([
+    changeFromArguments(cwd, sides.change),
+    changeFromArguments(cwd, sides.code),
+  ])
   const settings = await loadSettings()
   const agent = agentSetting(settings).command
 
   const status = () => trekStatus(cwd, change)
-  const build = agent === undefined ? undefined : () => buildChangeTrek(cwd, args, change, agent)
-  const buildTrigger =
-    agent === undefined
-      ? undefined
-      : (trigger: string) => buildTriggerTrek(cwd, args, agent, change, trigger)
-
+  const build =
+    agent === undefined ? undefined : () => buildChangeTrek(cwd, sides.change, change, agent)
   const startsBuild = settings.build_automatically === true && build !== undefined
   if (startsBuild && (await status()).kind === "missing") {
     await build()
   }
 
-  return { summary: await summarizeChange(change), status, build, buildTrigger }
+  const codeSide = {
+    status: () => trekStatus(cwd, code),
+    find: agent === undefined ? undefined : () => buildChangeTrek(cwd, sides.code, code, agent),
+    buildTrigger:
+      agent === undefined
+        ? undefined
+        : (trigger: string) => buildTriggerTrek(cwd, sides.code, agent, code, trigger),
+  }
+  return {
+    summary: await summarizeChange(change),
+    status,
+    build,
+    code: codeSide,
+    focus: sides.focus,
+  }
 }
 
 // What moves the change on while trek is open: the worktree, the repos ticked to go along, and

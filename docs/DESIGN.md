@@ -34,10 +34,10 @@ agent's.
 
 ### 3. Learn unfamiliar code
 
-1. `trek --code` lists the code's triggers (routes, commands, jobs, handlers), each with the line
-   that proves it.
-2. Picking one builds its trek, which opens as in flow 1. `trek --code="<trigger>"` skips the
-   list.
+1. The home screen's code as it is section finds the code's triggers (routes, commands, jobs,
+   handlers) with `b`, each listed with the line that proves it.
+2. Picking one builds its trek, which opens as in flow 1. `trek --code="<trigger>"` follows a
+   trigger without the list.
 
 ### 4. Come back after the change moved on
 
@@ -238,16 +238,16 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 
 - **Home:** the change at the top (its branch or pull request, with how many commits since its
   base on the right, after its repos where there are several), then the change's trek with where it stands, then the list in
-  sections: repos the agent proposed and ways into the code (they wait on the user), treks of this
-  change, treks of other branches and pull requests, treks of code as it is, then done treks
+  sections: repos the agent proposed (they wait on the user), treks of this change, the code as it
+  is over the same repos (its ways in, `◇ not found yet` until `b` finds them, each way in with its
+  trek's state, its trek listed only there), treks of other branches and pull requests, then done treks
   (merged, branch gone, or their uncommitted work committed since) and files that can't be read,
   folded under a heading with a count that enter opens. Every trek shows its state against its
   branch now, newest first in its section. Enter opens the selected trek's page.
 - **The change's trek, by state:** building (enter watches it), ready, stale (with how many steps
   changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
   repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
-  (how to set `SRCTREK_AGENT`), nothing to trek. With `--code`, the code's triggers, each with
-  its trek's state.
+  (how to set `SRCTREK_AGENT`), nothing to trek.
 - **Settings,** opened with `S`: where treks are stepped, the agent's command, building
   automatically (off by default), and colours (srctrek's or the terminal's), each with its value; an
   environment variable overrides the settings file, and settings says so beside the value. The agent

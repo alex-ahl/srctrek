@@ -29,8 +29,8 @@ export function opens(entry: TrekEntry, status: TrekStatus | undefined): boolean
   return entry.valid && !unreachable
 }
 
-// What enter does on a row: add a proposed repo; open a trek; on a trigger, open its trek or
-// build it.
+// What enter does on a row: add a proposed repo; open a trek; on the ways in not found, find them;
+// on a trigger, open its trek or build it.
 export function pickAction(
   row: Row,
   props: Props,
@@ -46,6 +46,10 @@ export function pickAction(
     return opens(row.entry, props.status) ? () => onOpen(row.entry) : undefined
   }
 
+  if (row.kind === "ways-in") {
+    return findAction(row, props)
+  }
+
   const { trigger, trek } = row.found
   if (hasTrek(trek)) {
     const entry = entries.find((e) => e.name === trek.name)
@@ -59,9 +63,18 @@ export function pickAction(
 const rebuildsTrigger = (row: Row | undefined): row is Extract<Row, { kind: "trigger" }> =>
   row?.kind === "trigger" && hasTrek(row.found.trek)
 
-// What b does here: rebuild the selected way in's trek, else build the change's when it can.
+// Finding the code's ways in, when they can be: not yet found, or the last search failed.
+const findAction = (row: Extract<Row, { kind: "ways-in" }>, props: Props): Action =>
+  canStartBuild(row.status) ? props.onFindWaysIn : undefined
+
+// What b does here: find the code's ways in, rebuild the selected way in's trek, else build the
+// change's when it can.
 function buildAction(row: Row | undefined, props: Props): Action {
   const { status, onBuild, onBuildTrigger } = props
+  if (row?.kind === "ways-in") {
+    return findAction(row, props)
+  }
+
   if (rebuildsTrigger(row) && onBuildTrigger) {
     const { trigger } = row.found
     return () => onBuildTrigger(trigger.name)
@@ -81,6 +94,10 @@ export function logName(row: Row | undefined, status: TrekStatus | undefined): s
     return row.found.trek.name
   }
 
+  if (row?.kind === "ways-in" && hasLog(row.status)) {
+    return row.status.name
+  }
+
   return hasLog(status) ? status.name : undefined
 }
 
@@ -91,6 +108,10 @@ export function buildingName(
 ): string | undefined {
   if (row?.kind === "trigger" && row.found.trek.kind === "building") {
     return row.found.trek.name
+  }
+
+  if (row?.kind === "ways-in" && row.status.kind === "building") {
+    return row.status.name
   }
 
   return status?.kind === "building" ? status.name : undefined
@@ -147,9 +168,15 @@ const names = (blockKeys: string | undefined, key: string) =>
 const offers = (action: Action, blockKeys: string | undefined, key: string) =>
   action !== undefined && !names(blockKeys, key)
 
-// What b says it does: rebuild a way in's trek, else what it does to the change's.
-const bVerb = (row: Row | undefined, status: TrekStatus | undefined) =>
-  rebuildsTrigger(row) ? "rebuild" : buildVerb(status)
+// What b says it does: find the code's ways in, rebuild a way in's trek, else what it does to the
+// change's.
+function bVerb(row: Row | undefined, status: TrekStatus | undefined): string {
+  if (row?.kind === "ways-in") {
+    return row.status.kind === "failed" ? "find ways in again" : "find ways in"
+  }
+
+  return rebuildsTrigger(row) ? "rebuild" : buildVerb(status)
+}
 
 /**
  * What enter, b, x, and l do here, for the footer; only keys that do something are listed,

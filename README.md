@@ -44,16 +44,17 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
   repos. A problem with the arguments stops `trek` with a message.
 - `--uncommitted` includes work not yet committed.
 - `--code` walks code as it is, to learn how it works: `trek --code="a refund request"` follows
-  that trigger, and plain `trek --code` has your agent find the code's triggers (routes,
-  commands, handlers, jobs) and list them on the home screen, to build one with `enter`.
+  that trigger. The home screen always shows the code as it is beside the change: `b` on its
+  ways-in row has your agent find the code's triggers (routes, commands, handlers, jobs), each
+  listed there to build with `enter`.
 - `C` on the home screen picks another change instead: a branch, a pull request, or code as it
   is, with repos beside this one ticked to go along. While `trek` is open, it follows new
   commits and branch switches.
 
 The home screen names the change at the top and says where its trek stands. Below, it lists
-repos your agent proposed, then the treks in the .srctrek/treks folder in sections: this change,
-other branches and pull requests, code as it is, and, folded, treks whose work is done and files
-that aren't valid treks. Each trek shows its state against its branch now. With no trek of the
+repos your agent proposed, then in sections: this change, the code as it is (its ways in, each
+with its trek, and other treks of the code), other branches and pull requests, and, folded, treks
+whose work is done and files that aren't valid treks. Each trek shows its state against its branch now. With no trek of the
 change, `b` has your agent build one in the background; while it builds, the end of its log
 shows what the agent has done so far, and `l` opens the build view.
 

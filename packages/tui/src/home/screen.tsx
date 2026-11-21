@@ -63,6 +63,10 @@ export type Props = {
   onQuit: () => void
   // where the change trek was started for stands; absent when there's none to show
   status?: TrekStatus | undefined
+  // where the code as it is over the same repos stands: its ways in once found
+  codeStatus?: TrekStatus | undefined
+  // has the agent find the code's ways in; absent when no agent is set
+  onFindWaysIn?: (() => void) | undefined
   // starts building the change's trek; absent when no agent is set
   onBuild?: (() => void) | undefined
   // starts building the trek of a trigger found in the code; absent when no agent is set
@@ -139,7 +143,7 @@ function Heading({
 export function App(props: Props) {
   const tones = useTones()
   const { entries, onQuit, status, onBuild } = props
-  const rows = rowsOf(entries, status, props.proposals ?? [])
+  const rows = rowsOf(entries, props.codeStatus, props.proposals ?? [])
   // the selected item by its key, so it stays put as rows move between sections
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())

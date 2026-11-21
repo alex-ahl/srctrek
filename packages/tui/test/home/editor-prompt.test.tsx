@@ -25,25 +25,31 @@ const withTrek: TrekEntry = {
   heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
 }
 
-function statusWith(trek: { kind: "missing" | "ready"; name: string }) {
+function codeWith(trek: { kind: "missing" | "ready"; name: string }) {
   return { kind: "triggers" as const, name: "bot-code", triggers: [{ trigger, trek }] }
 }
 
 test("enter on a trigger with no trek yet builds its trek", async () => {
   const build = mock((_trigger: string) => undefined)
-  const status = statusWith({ kind: "missing", name: "a-reply-times-out" })
+  const status = codeWith({ kind: "missing", name: "a-reply-times-out" })
 
   await pressEnterOn(
-    <App entries={[]} onOpen={noop} onQuit={noop} status={status} onBuildTrigger={build} />,
+    <App entries={[]} onOpen={noop} onQuit={noop} codeStatus={status} onBuildTrigger={build} />,
   )
 
   expect(build).toHaveBeenCalledWith("a reply times out")
 })
 
 test("enter on a trigger with a trek opens the trek's page", async () => {
-  const status = statusWith({ kind: "ready", name: "a-reply-times-out" })
+  const status = codeWith({ kind: "ready", name: "a-reply-times-out" })
   const frame = await frameAfter(
-    <App entries={[withTrek]} onOpen={noop} onQuit={noop} status={status} onBuildTrigger={noop} />,
+    <App
+      entries={[withTrek]}
+      onOpen={noop}
+      onQuit={noop}
+      codeStatus={status}
+      onBuildTrigger={noop}
+    />,
     (input) => input.pressEnter(),
   )
 

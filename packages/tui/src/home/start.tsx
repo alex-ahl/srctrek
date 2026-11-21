@@ -2,6 +2,7 @@ import {
   type BuildRecord,
   type ChangeChoice,
   type ChangeSummary,
+  type HomeFocus,
   type ProposedRepo,
   type Settings,
   type TrekEntry,
@@ -29,15 +30,25 @@ import { useSettings } from "./watch/use-settings"
 import { useTerminalTones } from "./watch/use-terminal-tones"
 import { useTrekStates } from "./watch/use-trek-states"
 
-/** What the home screen needs for the change trek was started for. */
+/**
+ * The code as it is over the change's repos: where finding its ways in stands, and, with an agent
+ * set, finding them and building the trek of one.
+ */
+export type HomeCode = {
+  status: () => Promise<TrekStatus>
+  find?: (() => Promise<void>) | undefined
+  buildTrigger?: ((trigger: string) => Promise<void>) | undefined
+}
+
+/** What the home screen needs: the change, the code as it is beside it, and which was asked for. */
 export type HomeChange = {
   // what the change is, for the title bar
   summary: ChangeSummary
   status: () => Promise<TrekStatus>
   // starts building the change's trek; absent when no agent is set
   build?: (() => Promise<void>) | undefined
-  // starts building the trek of a trigger found in the code; absent when no agent is set
-  buildTrigger?: ((trigger: string) => Promise<void>) | undefined
+  code: HomeCode
+  focus: HomeFocus
 }
 
 // What trek is about when nothing else was chosen.
@@ -50,6 +61,7 @@ type HomeProps = {
   follow: FollowChange | undefined
   firstEntries: TrekEntry[]
   firstStatus: TrekStatus | undefined
+  firstCodeStatus: TrekStatus | undefined
   firstProposals: ProposedRepo[]
   // the editors treks can be stepped in here, and the user's settings as trek started
   editors: readonly Editor[]
@@ -73,6 +85,7 @@ function Home(props: HomeProps) {
   const [choice, setChoice] = useState(props.firstChoice)
   const [entries, setEntries] = useState(props.firstEntries)
   const [status, setStatus] = useState(props.firstStatus)
+  const [codeStatus, setCodeStatus] = useState(props.firstCodeStatus)
   const [proposals, setProposals] = useState(props.firstProposals)
   const [opening, setOpening] = useState<Opening | undefined>(undefined)
   const { settings, changeSetting } = useSettings(props.firstSettings)
@@ -90,11 +103,13 @@ function Home(props: HomeProps) {
     setChange(next)
     await reloadLists()
     setStatus(await next.status())
+    setCodeStatus(await next.code.status())
   }
 
   // The worktree moves on while trek is open: a commit, a branch switched, a trek saved elsewhere.
   useFollow(props.follow, choice, show)
-  useBuildWatch(status, change, { status: setStatus, ended: reloadLists })
+  useBuildWatch(status, change?.status, { status: setStatus, ended: reloadLists })
+  useBuildWatch(codeStatus, change?.code.status, { status: setCodeStatus, ended: reloadLists })
   const choosing = useChoosing(root, props.follow, choice, {
     onOpening: (picked) => setOpening({ kind: "opening", choice: picked }),
     onPicked: (picked, next) => {
@@ -123,9 +138,11 @@ function Home(props: HomeProps) {
   const started = async (start: Promise<void>) => {
     await start
     setStatus(await change?.status())
+    setCodeStatus(await change?.code.status())
   }
   const build = change?.build
-  const buildTrigger = change?.buildTrigger
+  const find = change?.code.find
+  const buildTrigger = change?.code.buildTrigger
 
   return (
     <TonesContext.Provider value={tones}>
@@ -140,7 +157,9 @@ function Home(props: HomeProps) {
         onChangeSetting={changeSetting}
         onQuit={onQuit}
         status={status}
+        codeStatus={codeStatus}
         onBuild={build === undefined ? undefined : () => void started(build())}
+        onFindWaysIn={find === undefined ? undefined : () => void started(find())}
         onBuildTrigger={
           buildTrigger === undefined ? undefined : (trigger) => void started(buildTrigger(trigger))
         }
@@ -171,6 +190,7 @@ export async function startHome(
 ): Promise<void> {
   const firstEntries = await loadTrekEntries(root)
   const firstStatus = await change?.status()
+  const firstCodeStatus = await change?.code.status()
   const firstProposals = await loadProposals(root)
   const editors = availableEditors()
   const renderer = await createCliRenderer({ exitOnCtrlC: true })
@@ -183,6 +203,7 @@ export async function startHome(
       follow={follow}
       firstEntries={firstEntries}
       firstStatus={firstStatus}
+      firstCodeStatus={firstCodeStatus}
       firstProposals={firstProposals}
       editors={editors}
       firstSettings={settings}

@@ -3,28 +3,19 @@ import type { Row } from "./rows"
 import { isChangeTrek } from "./change-trek"
 
 /**
- * The home screen's sections, in order: repos the agent proposed and ways into the code, which
- * wait on the user; treks of this change (its own and others of its branches); treks of other
- * branches and pull requests; treks of code as it is; then treks whose work is done, and files
- * that aren't valid treks, which start folded.
+ * The home screen's sections, in order: repos the agent proposed, which wait on the user; treks of
+ * this change (its own and others of its branches); the code as it is, its ways in and their treks;
+ * treks of other branches and pull requests; then treks whose work is done, and files that aren't
+ * valid treks, which start folded.
  */
-export type SectionId = "proposal" | "trigger" | "change" | "other" | "code" | "done" | "invalid"
+export type SectionId = "proposal" | "change" | "code" | "other" | "done" | "invalid"
 
 export type Section = Readonly<{ id: SectionId; title: string; rows: readonly Row[] }>
 
-const ORDER: readonly SectionId[] = [
-  "proposal",
-  "trigger",
-  "change",
-  "other",
-  "code",
-  "done",
-  "invalid",
-]
+const ORDER: readonly SectionId[] = ["proposal", "change", "code", "other", "done", "invalid"]
 
 const TITLES: Readonly<Record<SectionId, string>> = {
   proposal: "PROPOSED BY THE AGENT",
-  trigger: "WAYS INTO THIS CODE",
   change: "THIS CHANGE",
   other: "OTHER BRANCHES AND PULL REQUESTS",
   code: "CODE AS IT IS",
@@ -81,7 +72,11 @@ function trekSection(entry: TrekEntry, placing: Placing): SectionId {
 }
 
 function sectionOf(row: Row, placing: Placing): SectionId {
-  return row.kind === "trek" ? trekSection(row.entry, placing) : row.kind
+  if (row.kind === "trek") {
+    return trekSection(row.entry, placing)
+  }
+
+  return row.kind === "proposal" ? "proposal" : "code"
 }
 
 /** The rows in their sections, in order, leaving out sections with none. */

@@ -7,7 +7,12 @@ import { pressOn } from "../../support/keys"
 
 const summary = { changed: [], unchanged: [], code: false }
 const empty: TrekStatus = { kind: "empty", name: "feature-refunds" }
-const reopened: HomeChange = { summary, status: () => Promise.resolve(empty) }
+const reopened: HomeChange = {
+  summary,
+  status: () => Promise.resolve(empty),
+  code: { status: () => Promise.resolve(empty) },
+  focus: { kind: "change" },
+}
 
 const picked: ChangeChoice = { kind: "branch", name: "fix/rounding" }
 

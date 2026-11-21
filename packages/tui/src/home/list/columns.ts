@@ -4,6 +4,9 @@ import type { Row } from "./rows"
 import { PADDING } from "../../ui/layout"
 import { builtWhen } from "../../ui/text"
 
+/** The title of the row that stands for the code's ways in until they're found. */
+export const WAYS_IN_TITLE = "ways into this code"
+
 /**
  * How wide each column is, from what the rows hold, 0 for a column no row fills; the title is as
  * wide as the longest, within what the others leave.
@@ -38,6 +41,10 @@ function titleOf(row: Row): string {
 
   if (row.kind === "trigger") {
     return row.found.trigger.name
+  }
+
+  if (row.kind === "ways-in") {
+    return WAYS_IN_TITLE
   }
 
   return row.entry.valid ? row.entry.title : row.entry.name

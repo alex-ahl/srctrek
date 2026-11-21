@@ -146,10 +146,10 @@ test("lists the treks in sections by what they're of, newest first, folding what
   ]
   const frame = await frameOf({ entries })
 
-  expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
-  expect(frame).toContain("▶ Refund orders   12 steps   ⚠ 4   built today 09:12")
   expect(frame).toContain(" CODE AS IT IS")
-  expect(frame).toContain("   An older trek   12 steps         built Oct 21")
+  expect(frame).toContain("▶ An older trek   12 steps         built Oct 21")
+  expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
+  expect(frame).toContain("   Refund orders   12 steps   ⚠ 4   built today 09:12")
   expect(frame).toContain(" ▸ CAN'T READ  1 trek")
   expect(frame).not.toContain("broken")
 })
@@ -347,13 +347,60 @@ test("lists the triggers found as rows to pick, each saying where its trek stand
       },
     ],
   }
-  const frame = await frameOf({ status, onBuildTrigger: noop })
+  const frame = await frameOf({ codeStatus: status, onBuildTrigger: noop })
 
-  expect(frame).toContain(" ◇ found 2 ways in")
-  expect(frame).toContain(" WAYS INTO THIS CODE")
+  expect(frame).toContain(" CODE AS IT IS")
   expect(frame).toContain("▶ ○ no trek yet   a persona answers an @-mention   event · bot.py:311")
   expect(frame).toContain("  ● ready         a reply times out                event · bot.py:91")
   expect(frame).toContain("enter build its trek")
+})
+
+test("shows the code as it is beside the change, its ways in found with b before they are", async () => {
+  const found: string[] = []
+  const app = (
+    <App
+      entries={[]}
+      onOpen={noop}
+      onQuit={noop}
+      now={NOW}
+      codeStatus={{ kind: "missing", name: "bot-code" }}
+      onFindWaysIn={() => found.push("found")}
+    />
+  )
+  const frame = await frameAfter(app, (input) => input.pressKey("b"))
+
+  expect(frame).toContain(" CODE AS IT IS")
+  expect(frame).toMatch(/◇ not found yet +ways into this code +b finds them/)
+  expect(frame).toContain("enter find ways in · b find ways in")
+  expect(found).toEqual(["found"])
+})
+
+test("lists a way in's trek once, on its way in's row", async () => {
+  const wayIn: TrekEntry = {
+    ...refund,
+    name: "a-reply-times-out",
+    title: "A reply times out",
+    code: true,
+    heads: [],
+  }
+  const status: TrekStatus = {
+    kind: "triggers",
+    name: "bot-code",
+    triggers: [
+      {
+        trigger: {
+          kind: "event",
+          name: "a reply times out",
+          evidence: { repo: "bot", file: "bot.py", line: 91 },
+        },
+        trek: { kind: "ready", name: "a-reply-times-out" },
+      },
+    ],
+  }
+  const frame = await frameOf({ entries: [wayIn], codeStatus: status, onBuildTrigger: noop })
+
+  expect(frame).toContain("a reply times out")
+  expect(frame).not.toContain("A reply times out")
 })
 
 test("b on a way in whose trek is built rebuilds that trek", async () => {
@@ -378,7 +425,7 @@ test("b on a way in whose trek is built rebuilds that trek", async () => {
       onOpen={noop}
       onQuit={noop}
       now={NOW}
-      status={status}
+      codeStatus={status}
       onBuildTrigger={(name) => built.push(name)}
     />
   )

@@ -41,6 +41,12 @@ export function stateOf(
     return statusBlock(row.found.trek, undefined, false)
   }
 
+  if (row.kind === "ways-in") {
+    return row.status.kind === "missing"
+      ? STATE_LABELS.notFound
+      : statusBlock(row.status, undefined, false)
+  }
+
   if (row.kind === "proposal") {
     return undefined
   }

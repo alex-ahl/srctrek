@@ -60,5 +60,9 @@ export function itemKey(item: Item): string {
     return `proposal:${row.proposal.name}`
   }
 
+  if (row.kind === "ways-in") {
+    return "ways-in"
+  }
+
   return row.kind === "trigger" ? `trigger:${row.found.trigger.name}` : `trek:${row.entry.name}`
 }

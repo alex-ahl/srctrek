@@ -20,6 +20,10 @@ export function enterLabel(row: Row | undefined): string {
     return "add to the repos list"
   }
 
+  if (row?.kind === "ways-in") {
+    return "find ways in"
+  }
+
   const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.found.trek)
 
   if (buildsTrigger) {
