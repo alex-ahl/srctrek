@@ -1,15 +1,50 @@
 # Handoff
 
-## 2026-11-21 — Evals: a tracked baseline
+## 2026-11-21 — Milestone 7: stepping in the terminal, the route map, the eval baseline
 
 **Done**
 
+- Builds: the build view lists the steps added with their repo and summary, and scrolls. Every
+  build of a trek is kept, the last ten under `.git/srctrek/builds/history/<trek>/`, and `←`/`→`
+  step between them. A build that found the code's triggers reads as done.
+- Stepping in the terminal: enter on a trek opens its page, which steps it here, or in the editor
+  chosen in Settings (`n` then steps here). At a stop: its file coloured by language (TypeScript,
+  JavaScript, TSX, Markdown, Zig), the step's lines tinted, change signs, predicted values and
+  arrows at line ends, and the narration on a band with the stop's flag in full. The title bar
+  says where the stop is (`6 / 15 · api 2 of 5 · ⚠ 1 ahead`). Beside the code: the stop `n` goes
+  to, how it's reached, its path or `this file`, what it says, its change and flag, and the stop
+  `p` goes back to; the footer says where `n` goes, and `n` sits on a chip on the line it goes in
+  from. `↑`/`↓` move a cursor, `.` goes back to the stop; `i`, `O` and `o` step into, over and
+  out; `d` opens details, `D` the change to the file, enter a look at what a call leads to, `e`
+  the line in the editor, and `?` every key.
+- The route map, `r`: the stops as a call tree over the whole screen, `▶` and `n`, `↯` where a hop
+  reached a stop and what carried it, and the functions running at `▶` named on a line over the
+  tree and lit down to it. The chosen stop shows in full beside it. `←`/`→` fold a call and `n`
+  and `p` step past it; `c`, `f`, and `/` narrow it to changed, flagged, or found stops; `tab`
+  lays it out by repo or as a tree of the trek's files.
+- Building: a stop is named as the code names it, a route for a request, and code with no name of
+  its own by what fires it and where it lives (`l key in App`). A hop says what carries it
+  (`via.through`: "via the agent", "on a timer"), required on every hop after the first step; saved
+  treks with hops built before then load once rebuilt.
 - `evals/baseline.json` holds two runs of each fixture, taken at one commit: the score, the time,
   and every number the agent reports. Each eval ends with how it compares: ✓ when it scores as
   well as the best baseline run and its time and the numbers named in `watch` fall within 15% of
   the baseline's range. `--baseline [<fixture>…]` takes it again. It replaces the hand-copied
   tables in the milestone entries below.
 - The route's order counts a context step where the step it explains is.
+
+**Next**
+
+- Check the stepping screen and the route map in a real terminal: the lit guides, the accents on
+  running stops, the chosen row's tint.
+- Language support on demand: offer a missing grammar before downloading it (y, a, n, never),
+  with a "Language support" setting (ask, always, never).
+- The prototype's rough edges: the change view diffs the whole file; a look at a definition takes
+  the first match; looks read the checked-out file, not the trek's revision.
+- The build view with the draft, VS Code in the editor picker, and versions.
+- Parked, as before: the change as a selectable first row with a details panel
+  (`~/handoffs/home-select.html`), and adding a repo by path or URL in the picker
+  (`~/handoffs/picker-add-repo.patch`).
 
 ## 2026-11-17 — Milestone 7: the picker finished, the home screen, the build view
 
