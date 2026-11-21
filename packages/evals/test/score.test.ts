@@ -142,6 +142,20 @@ describe("scoreTrek", () => {
     expect(route.skipped.map(({ file }) => file)).toEqual(["openapi.json"])
   })
 
+  test("takes a context step as met where the step it explains is, wherever it's listed", () => {
+    // the spec entry, there for the server's routing, explaining the handler instead, after it
+    const spec = refundTrek.steps.find((step) => step.id === "s9")
+    if (spec === undefined) {
+      throw new Error("the refund trek has no s9")
+    }
+
+    const rest = refundTrek.steps.filter((step) => step !== spec)
+    const handler = rest.findIndex((step) => step.id === "s11")
+    const steps = rest.toSpliced(handler + 1, 0, { ...spec, for: "s11" })
+
+    expect(scoreTrek({ ...refundTrek, steps }, expected).route.inOrder).toBe(true)
+  })
+
   test("sees a route walked out of order", () => {
     const steps = refundTrek.steps.toReversed()
 

@@ -42,17 +42,31 @@ function overlaps(step: TrekStep, entry: RouteEntry): boolean {
   return inFile(step, entry) && step.start_line <= end && step.end_line >= start
 }
 
-// Each entry is met at or after the step that met the one before: one step may cover two
-// entries, and a file the route visits twice is found again further on.
+// Where the reader meets each step, by position: a context step where the step it explains
+// is, as it's offered from there rather than stepped to, so which step it explains is the
+// builder's call.
+function placesOf(steps: TrekStep[]): number[] {
+  const position = new Map(steps.map((step, i) => [step.id, i]))
+  return steps.map((step, i) =>
+    step.kind === "context" && step.for !== undefined ? (position.get(step.for) ?? i) : i,
+  )
+}
+
+// Each entry is met at or after where the one before was met: one step may cover two entries,
+// and a file the route visits twice is found again further on.
 function isWalkedInOrder(steps: TrekStep[], entries: RouteEntry[]): boolean {
+  const places = placesOf(steps)
   let from = 0
   for (const entry of entries) {
-    const index = steps.findIndex((step, i) => i >= from && overlaps(step, entry))
-    if (index === -1) {
+    const met = steps.flatMap((step, i) => {
+      const place = places[i] ?? i
+      return overlaps(step, entry) && place >= from ? [place] : []
+    })
+    if (met.length === 0) {
       return false
     }
 
-    from = index
+    from = Math.min(...met)
   }
 
   return true
