@@ -65,11 +65,28 @@ describe("parseTrek", () => {
     expect(issuesOf(refundTrek())).toEqual([])
   })
 
+  test("rejects a hop that doesn't say what carries it, and a call that does", () => {
+    const trek = refundTrek()
+    const hop = step(trek, "s15").via
+    const call = step(trek, "s3").via
+    if (hop === null || call === null) {
+      throw new Error("no link")
+    }
+
+    delete hop.through
+    call.through = "on a timer"
+    expect(issuesOf(trek)).toEqual([
+      "steps.2 (s3).via.through: only a hop says what carries it",
+      'steps.13 (s15).via.through: missing: say what carries the hop, in a few words: "via the agent", "on a timer"',
+    ])
+  })
+
   test("rejects a cross-repo link that cites only the sending side", () => {
     const trek = refundTrek()
     step(trek, "s15").via = {
       cites: [{ repo: "api", file: "src/bus.ts", line: 10 }],
       guessed: false,
+      through: "on a queued message",
     }
     expect(issuesOf(trek)).toEqual([
       `steps.13 (s15).via: crosses from api to worker without citing worker: ${BOTH_SIDES}`,
@@ -81,6 +98,7 @@ describe("parseTrek", () => {
     step(trek, "s15").via = {
       cites: [{ repo: "worker", file: "worker/handlers/__init__.py", line: 8 }],
       guessed: false,
+      through: "on a queued message",
     }
     expect(issuesOf(trek)).toEqual([
       `steps.13 (s15).via: crosses from api to worker without citing api: ${BOTH_SIDES}`,
@@ -96,6 +114,7 @@ describe("parseTrek", () => {
         { repo: "worker", file: "worker/handlers/__init__.py", line: 8 },
       ],
       guessed: false,
+      through: "on a queued message",
     }
     expect(issuesOf(trek)).toEqual([
       `steps.13 (s15).via: crosses from api to worker without citing api: ${BOTH_SIDES}`,
@@ -126,6 +145,7 @@ describe("parseTrek", () => {
     step(trek, "s15").via = {
       cites: [{ repo: "worker", file: "worker/handlers/__init__.py", line: 8 }],
       guessed: true,
+      through: "on a queued message",
     }
     expect(issuesOf(trek)).toEqual([])
   })

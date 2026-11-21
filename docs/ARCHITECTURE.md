@@ -150,7 +150,9 @@ can check; never a bare "line 5".
     call site, route, config line, message name, or spec entry — plus `guessed: true` when
     the link is a name match; on a context step, the line of the step it explains that uses
     it. When `from` or `for` is in another repo, the evidence cites both repos
-    or the link is guessed; validation rejects anything else.
+    or the link is guessed; validation rejects anything else. On a hop, `through` says what
+    carries it in a few words ("via the agent", "on a timer"); every hop after the first step
+    has one, and no other step does.
   - optional: `predicted_values`: `{ name, value, line, role, uncertain? }[]`, role
     `argument`, `assignment`, or `return`, each on a line inside the step: values from the
     example scenario under the same names across steps, where they tell the reader something

@@ -91,7 +91,8 @@
             "line": 5
           }
         ],
-        "guessed": false
+        "guessed": false,
+        "through": "GET from web"
       },
       "predicted_values": [
         {
@@ -170,7 +171,8 @@
             "line": 24
           }
         ],
-        "guessed": false
+        "guessed": false,
+        "through": "on a click"
       },
       "predicted_values": [
         {
@@ -321,7 +323,8 @@
             "line": 31
           }
         ],
-        "guessed": false
+        "guessed": false,
+        "through": "POST from web"
       },
       "predicted_values": [
         {
@@ -555,7 +558,8 @@
             "line": 8
           }
         ],
-        "guessed": false
+        "guessed": false,
+        "through": "on a queued message"
       },
       "uncertain": {
         "severity": "medium",

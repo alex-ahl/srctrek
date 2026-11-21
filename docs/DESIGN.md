@@ -257,7 +257,7 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   problems, and why a build failed; `tab` shows the log itself. The last ten builds of each trek
   are kept, and `←`/`→` step between them.
 - **Route map,** `r` at a stop, over the whole screen: the stops as a call tree, a guide for each
-  call a stop sits in, `↯` where a hop reached it, its place, change and flag; `▶` where the trek
+  call a stop sits in, `↯` where a hop reached it and what carried it, its place, change and flag; `▶` where the trek
   is and `n` where it goes next. The functions running at `▶` are named on a line over the tree,
   and their guides down to it are lit. Beside the tree, the chosen stop in full: its place, what it
   says, its predicted values, its flag, what's running there, and how many stops are under it.
@@ -272,7 +272,7 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   ends, and the narration on a band over the step. The line `n` goes in from has `n` after its
   arrow on a chip of its own (`[n]` where the terminal's colours aren't known), and the footer
   says where `n` goes. Beside it on a wide terminal: the stop `n` goes to, how it's reached (`into`,
-  `back to`, `on to`, `↯ hop to`), its repo and path cut from the left, or `this file` when it's
+  `back to`, `on to`, or `↯` and what carries the hop, `↯ on a timer to`), its repo and path cut from the left, or `this file` when it's
   in the stop's own file, what it says, its change and flag; under it, the stop `p` goes back to,
   how the trek came from it, and where it is. The band carries the stop's flag in full. A narrow terminal shows the
   call stack on a line over the code. `i`, `O` and `o` step into, over and out, listed under `?`. The overview comes before the first step, the flags after the last. `e` opens the cursor's line in the user's editor.

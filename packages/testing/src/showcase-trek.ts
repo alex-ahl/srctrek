@@ -179,7 +179,7 @@ export function repoWithShowcase(): Promise<string> {
           "Later, the mailer takes the event off the queue and mails the customer. Nobody waits for it.",
         details: "Whatever the mail does, refund has already returned.",
         from: "s4",
-        via: cites("events.ts", 3),
+        via: { ...cites("events.ts", 3), through: "on a queued event" },
       }),
     ],
     BEFORE,

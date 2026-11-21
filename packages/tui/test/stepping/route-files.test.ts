@@ -9,6 +9,7 @@ const stop = (n: number, repo: string, file: string, visited = false): RouteStop
   kind: "call",
   from: undefined,
   hop: false,
+  through: undefined,
   repo,
   repoChange: undefined,
   name: `s${String(n)}`,

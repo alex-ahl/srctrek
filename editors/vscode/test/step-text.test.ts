@@ -8,6 +8,7 @@ const toRefund: NextStop = {
   how: "into",
   to: { ...ref, name: "refund" },
   line: 11,
+  through: null,
   text: "next: into refund, line 11",
 }
 

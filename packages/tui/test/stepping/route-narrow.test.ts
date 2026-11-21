@@ -9,6 +9,7 @@ const stop = (id: string, depth: number, more: Partial<RouteStop> = {}): RouteSt
   kind: "call",
   from: undefined,
   hop: false,
+  through: undefined,
   repo: "api",
   repoChange: undefined,
   name: id,

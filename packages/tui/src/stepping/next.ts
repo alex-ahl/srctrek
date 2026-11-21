@@ -2,7 +2,7 @@ import type { RouteStop } from "./route"
 
 /**
  * How the trek moves on to `to` from `from`, in words before its name: back to a caller, on to a
- * stop something else led to, across a hop, or into a call.
+ * stop something else led to, across a hop and what carries it, or into a call.
  */
 export function howNext(from: RouteStop, to: RouteStop): string {
   if (to.kind === "return") {
@@ -13,14 +13,18 @@ export function howNext(from: RouteStop, to: RouteStop): string {
     return "on to"
   }
 
-  return to.kind === "hop" ? "↯ hop to" : "into"
+  if (to.kind === "hop") {
+    return `↯ ${to.through ?? "hop"} to`
+  }
+
+  return "into"
 }
 
 /** A stop's name, with its repo when that isn't `from`'s: "billing: charge". */
 export const nameFrom = (from: RouteStop, to: RouteStop) =>
   to.repo === from.repo ? to.name : `${to.repo}: ${to.name}`
 
-/** Where n goes, in words: "into pay", "↯ hop to web: Build", "back to checkout", "the end". */
+/** Where n goes, in words: "into pay", "↯ on a click to web: Build", "back to checkout", "the end". */
 export function nextText(from: RouteStop | undefined, to: RouteStop | undefined): string {
   return from === undefined || to === undefined
     ? "the end"

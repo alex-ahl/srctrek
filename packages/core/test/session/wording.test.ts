@@ -5,7 +5,7 @@ const refund = { repo: "web", file: "src/handlers/refunds.ts", start_line: 8, na
 
 describe("nextText", () => {
   test("names the step it goes into, and the line making the call", () => {
-    expect(nextText({ how: "into", to: refund, line: 11 }, "web")).toBe(
+    expect(nextText({ how: "into", to: refund, line: 11, through: null }, "web")).toBe(
       "next: into refund, line 11",
     )
   })
@@ -13,7 +13,7 @@ describe("nextText", () => {
   test("names a step without a name by its short place", () => {
     const unnamed = { ...refund, name: null }
 
-    expect(nextText({ how: "on", to: unnamed, line: null }, "web")).toBe(
+    expect(nextText({ how: "on", to: unnamed, line: null, through: null }, "web")).toBe(
       "next: handlers/refunds.ts:8",
     )
   })
@@ -21,13 +21,24 @@ describe("nextText", () => {
   test("a hop names its repo only when it leaves this one", () => {
     const api = { ...refund, repo: "api", name: "POST /refunds" }
 
-    expect(nextText({ how: "hop", to: api, line: 3 }, "web")).toBe("next: ↯ api: POST /refunds")
-    expect(nextText({ how: "hop", to: api, line: 3 }, "api")).toBe("next: ↯ POST /refunds")
+    expect(nextText({ how: "hop", to: api, line: 3, through: null }, "web")).toBe(
+      "next: ↯ api: POST /refunds",
+    )
+    expect(nextText({ how: "hop", to: api, line: 3, through: null }, "api")).toBe(
+      "next: ↯ POST /refunds",
+    )
+    expect(nextText({ how: "hop", to: api, line: 3, through: "POST from web" }, "web")).toBe(
+      "next: ↯ POST from web to api: POST /refunds",
+    )
   })
 
   test("says when next goes back to a caller, or ends the trek", () => {
-    expect(nextText({ how: "back", to: refund, line: null }, "web")).toBe("next: back to refund")
-    expect(nextText({ how: "end", to: null, line: null }, "web")).toBe("next: the end of the trek")
+    expect(nextText({ how: "back", to: refund, line: null, through: null }, "web")).toBe(
+      "next: back to refund",
+    )
+    expect(nextText({ how: "end", to: null, line: null, through: null }, "web")).toBe(
+      "next: the end of the trek",
+    )
   })
 })
 

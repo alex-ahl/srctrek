@@ -237,7 +237,11 @@ describe("building a trek over trek mcp", () => {
       file: "charge.ts",
       kind: "hop",
       from: "s1",
-      via: { cites: [{ repo: "web", file: "src/app.ts", line: 1 }], guessed: true },
+      via: {
+        cites: [{ repo: "web", file: "src/app.ts", line: 1 }],
+        guessed: true,
+        through: "POST to payments",
+      },
       predicted_values: [{ name: "charged", value: "250", line: 1, role: "assignment" }],
     }
     const added = await client.call("add_steps", { steps: [s1, charge] })

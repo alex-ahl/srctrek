@@ -14,6 +14,8 @@ const Citation = z.object({
 const Via = z.object({
   cites: z.array(Citation).min(1),
   guessed: z.boolean(),
+  // on a hop, what carries it, in a few words that read after ↯: "via the agent", "on a timer"
+  through: z.string().min(1).max(40).optional(),
 })
 
 /** What a step is: a call, a return to the caller, a hop to another repo, or context code. */

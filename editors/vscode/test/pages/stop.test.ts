@@ -3,7 +3,13 @@ import type { NextStop } from "@srctrek/core"
 import { stopPageHtml } from "../../src/pages/stop"
 import { ref, stepWith } from "../support/views"
 
-const end: NextStop = { how: "end", to: null, line: null, text: "next: the end of the trek" }
+const end: NextStop = {
+  how: "end",
+  to: null,
+  line: null,
+  through: null,
+  text: "next: the end of the trek",
+}
 const noCode = () => []
 
 test("the page opens with the narration, its details, then the flag and where next goes", () => {

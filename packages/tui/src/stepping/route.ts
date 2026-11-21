@@ -14,6 +14,8 @@ export type RouteStop = Readonly<{
   kind: TrekStep["kind"]
   from: string | undefined
   hop: boolean
+  // what carries the hop that reached it: "via the agent", "on a timer"
+  through: string | undefined
   repo: string
   // the repo, on the first stop in it after another repo's
   repoChange: string | undefined
@@ -44,6 +46,7 @@ export function routeOf(session: SteppingSession): RouteStop[] {
       kind: step.kind,
       from: step.from,
       hop: i > 0 && step.kind === "hop",
+      through: step.via?.through,
       repo: step.repo,
       repoChange: before?.repo === step.repo ? undefined : step.repo,
       name: step.name ?? placeOf(step),

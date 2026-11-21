@@ -1,5 +1,5 @@
 import { expect, mock, test } from "bun:test"
-import { repoWithTrek, repoWithTwoCalls } from "@srctrek/testing"
+import { repoWithShowcase, repoWithTrek, repoWithTwoCalls } from "@srctrek/testing"
 import type { PageActions } from "../../src/stepping/page"
 import { SteppingScreen } from "../../src/stepping/screen"
 import { frameAfter } from "../support/keys"
@@ -334,4 +334,33 @@ test("tab in the route lays the stops out by repo, then as a tree of their files
   expect(frame).toMatch(/▶ +main\.ts +1 \+/)
   expect(frame).toMatch(/n +pay\.ts +2 \+/)
   expect(frame).toContain("tab calls, repos, files")
+})
+
+test("a hop says what carries it, beside the code and in the route", async () => {
+  const root = await repoWithShowcase()
+  const presses = async (
+    input: Parameters<Parameters<typeof frameAfter>[1]>[0],
+    keys: string[],
+  ) => {
+    await settle()
+    for (const key of keys) {
+      input.pressKey(key)
+      await settle()
+    }
+  }
+  const stop = await frameAfter(
+    stepping(root),
+    (input) => presses(input, ["n", "n", "n", "n"]),
+    120,
+    24,
+  )
+  const map = await frameAfter(
+    stepping(root),
+    (input) => presses(input, ["n", "n", "n", "n", "r"]),
+    120,
+    24,
+  )
+
+  expect(stop).toContain("↯ on a queued event to onRefunded")
+  expect(map).toMatch(/↯ onRefunded  on a queued event/)
 })

@@ -113,6 +113,24 @@ function executionLinks(step: TrekStep, i: number): Issue[] {
   ]
 }
 
+// A hop says what carries it, as the reader can't see it in the code: a request, a timer, an
+// agent. Only a hop does; the first step, reached from the trigger, has no link to carry.
+function hopCarriers(trek: Trek): Issue[] {
+  return trek.steps.flatMap((step, i) => {
+    const through = step.via?.through
+    const path = ["steps", i, "via", "through"]
+    if (step.kind !== "hop") {
+      return issueIf(through !== undefined, path, "only a hop says what carries it")
+    }
+
+    return issueIf(
+      step.via !== null && through === undefined,
+      path,
+      'missing: say what carries the hop, in a few words: "via the agent", "on a timer"',
+    )
+  })
+}
+
 function linksByKind(trek: Trek): Issue[] {
   return trek.steps.flatMap((step, i) =>
     step.kind === "context" ? contextLinks(step, i) : executionLinks(step, i),
@@ -192,6 +210,7 @@ export const trekRules = [
   unknownRepos,
   danglingStepIds,
   linksByKind,
+  hopCarriers,
   executionFromContext,
   fromLaterSteps,
   misplacedReturns,

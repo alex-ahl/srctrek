@@ -220,6 +220,7 @@ const STEP_GROUPS: readonly KeyGroup[] = [
       { key: "d", does: "the stop's details" },
       { key: "D", does: "the change to the stop's file" },
       { key: "r", does: "the route map" },
+      { key: "↯", does: "a hop: the next stop runs elsewhere or later, and what carries it" },
       { key: "e", does: "the cursor's line in your editor" },
     ],
   },

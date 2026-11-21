@@ -65,8 +65,8 @@ One of:
   from (`came_from`: the earlier step, or the step a context step explains, with its stop
   number, the relation in words (`label`), whether the link is guessed, and the lines its
   evidence cites with paths to open), and where next leads (`next`: into one of its calls and
-  from which line, across a hop, back to a caller, on to another step, or to the end, with
-  `text` saying it in words), and where each move lands (`moves`: `next`, `into`, `over`, and
+  from which line, across a hop and what carries it (`through`), back to a caller, on to
+  another step, or to the end, with `text` saying it in words), and where each move lands (`moves`: `next`, `into`, `over`, and
   `out`, each a step with its stop number; `into` null when the step enters nothing, the others
   null at the end of the trek).
 - `end`: title, outcome, step count, and every flag in the trek, most severe first, each with its

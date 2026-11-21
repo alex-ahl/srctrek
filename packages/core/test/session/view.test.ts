@@ -221,13 +221,20 @@ describe("sessionView", () => {
   test("says where next leads: into a call, across a hop, back, on, or to the end", () => {
     expect(viewOf("s11").next).toMatchObject({ how: "into", to: { id: "s13" }, line: 18 })
     expect(viewOf("s11").next.text).toMatch(/^next: into .+, line 18$/)
-    expect(viewOf("s7").next).toMatchObject({ how: "hop", to: { id: "s8" }, line: 10 })
+    expect(viewOf("s7").next).toMatchObject({
+      how: "hop",
+      to: { id: "s8" },
+      line: 10,
+      through: "POST from web",
+    })
+    expect(viewOf("s7").next.text).toBe("next: ↯ POST from web to api: POST /refunds")
     expect(viewOf("s13").next).toMatchObject({ how: "back", to: { id: "s14" }, line: null })
     expect(viewOf("s14").next).toMatchObject({ how: "on", to: { id: "s15" } })
     expect(viewOf("s20").next).toEqual({
       how: "end",
       to: null,
       line: null,
+      through: null,
       text: "next: the end of the trek",
     })
   })

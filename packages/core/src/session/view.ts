@@ -63,6 +63,8 @@ export type NextStop = {
   how: "into" | "hop" | "back" | "on" | "end"
   to: StepRef | null
   line: number | null
+  // what carries a hop: "via the agent", "on a timer"; null for any other move
+  through: string | null
   // where it goes, in words: "next: into refund, line 12"
   text: string
 }
@@ -264,13 +266,14 @@ function howNextLeaves(step: TrekStep, next: TrekStep): NextStop["how"] {
 function nextOf(session: SteppingSession, step: TrekStep, context: ViewContext): NextStop {
   const next = currentStep(stepNext(session))
   if (next === undefined) {
-    const end = { how: "end" as const, to: null, line: null }
+    const end = { how: "end" as const, to: null, line: null, through: null }
     return { ...end, text: nextText(end, step.repo) }
   }
 
   const how = howNextLeaves(step, next)
   const line = how === "into" || how === "hop" ? callLine(step, next) : null
-  const leads = { how, to: refOf(next, context), line }
+  const through = how === "hop" ? (next.via?.through ?? null) : null
+  const leads = { how, to: refOf(next, context), line, through }
 
   return { ...leads, text: nextText(leads, step.repo) }
 }

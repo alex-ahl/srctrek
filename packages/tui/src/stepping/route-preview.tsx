@@ -17,6 +17,9 @@ function headLines(stop: RouteStop, here: boolean, width: number): PreviewLine[]
   return [
     { text: `STOP ${String(stop.number)}${state}`, tone: "dim" },
     { text: fit(stop.name, width), bold: true },
+    ...(stop.hop && stop.through !== undefined
+      ? [{ text: fit(`↯ ${stop.through}`, width), tone: "busy" as const }]
+      : []),
     {
       text: `${stop.repo} · ${fitPath(`${stop.file}:${String(stop.line)}`, room)}${changed}`,
       tone: "dim",

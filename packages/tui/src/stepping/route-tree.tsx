@@ -56,6 +56,10 @@ export function markOf(stop: RouteStop, at: number, where: Where): string {
 const hopMark = (stop: RouteStop, at: number) =>
   stop.hop || (stop.repoChange !== undefined && at > 0) ? "↯ " : ""
 
+// After a hop's name, what carried it: "  on a timer".
+const carrierOf = (stop: RouteStop) =>
+  stop.hop && stop.through !== undefined ? `  ${stop.through}` : ""
+
 function Marks({ stop }: { stop: RouteStop }) {
   const tones = useTones()
   const flag = stop.flag === undefined ? undefined : FLAGS[stop.flag.severity]
@@ -69,7 +73,7 @@ function Marks({ stop }: { stop: RouteStop }) {
 
 /**
  * A stop's row in the call tree: ▶ or n, its number, a guide for each call it's in, ↯ where a hop
- * reached it, its name; then its place, change and flag.
+ * reached it, its name and what carried the hop; then its place, change and flag.
  */
 export function TreeRow({
   route,
@@ -103,6 +107,8 @@ export function TreeRow({
   const room =
     width - LEAD - PLACE - MARKS - guides.length * 2 - hop.length - fold.length - hidden.length
   const tone = nameTone(stop, at, where)
+  const carrier = carrierOf(stop)
+  const name = fit(stop.name, Math.max(1, room - carrier.length))
 
   return (
     <box
@@ -124,10 +130,11 @@ export function TreeRow({
           fg={tone === undefined ? COLOUR.text : tones[tone]}
           {...(here ? { attributes: TextAttributes.BOLD } : {})}
         >
-          {fit(stop.name, Math.max(1, room))}
+          {name}
         </span>
+        <span fg={tones.busy}>{fit(carrier, Math.max(0, room - name.length))}</span>
         <span fg={tones.dim}>{hidden}</span>
-        {" ".repeat(Math.max(0, room - Math.min(stop.name.length, Math.max(1, room))))}
+        {" ".repeat(Math.max(0, room - name.length - carrier.length))}
         <span fg={tones.dim}>{fit(placeOf(stop), PLACE).padStart(PLACE)}</span>
         <Marks stop={stop} />
       </text>

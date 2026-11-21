@@ -18,6 +18,8 @@ type Next = Readonly<{
   how: "into" | "hop" | "back" | "on" | "end"
   to: (Place & Readonly<{ repo: string }>) | null
   line: number | null
+  // what carries a hop: "via the agent", "on a timer"
+  through: string | null
 }>
 
 /** Where next goes from a step in `repo`, so the reader knows before pressing it. */
@@ -34,7 +36,8 @@ export function nextText(next: Next, repo: string): string {
   if (how === "hop") {
     // a hop names its repo only when it leaves this one
     const leaves = to.repo === repo ? "" : `${to.repo}: `
-    return `next: ↯ ${leaves}${label}`
+    const through = next.through === null ? "" : `${next.through} to `
+    return `next: ↯ ${through}${leaves}${label}`
   }
   if (how === "back") {
     return `next: back to ${label}`
