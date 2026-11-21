@@ -54,8 +54,27 @@ describe("viewContext", () => {
     const context = await viewContext(dir, trek, { cacheDir })
 
     expect(context.own.get(name)).toEqual({ root: await realpath(dir), files: new Set(["app.ts"]) })
-    // every file the trek visits is the user's own, so no copy of the trek's is checked out
-    expect(context.roots.get(name)).toBe(await realpath(dir))
+    // the repo itself is read at the trek's revision, for the files the trek doesn't visit
+    expect(context.roots.get(name)?.startsWith(cacheDir)).toBe(true)
+  })
+
+  test("reads a file the trek cites but doesn't visit as the trek has it, edited or moved on", async () => {
+    const dir = await makeBranchRepo()
+    await commit(dir, "routes.ts", "export const routes = { pay: 'pay' }\n")
+    await saveTrekOf(dir, await changeOf(dir), "refunds")
+    const trek = await loadTrek(trekPath(dir, "refunds"))
+    const cacheDir = await makeCacheDir()
+    const name = trek.repos[0]?.name ?? ""
+    const routesAt = async () => {
+      const context = await viewContext(dir, trek, { cacheDir })
+      return readFile(join(context.roots.get(name) ?? "", "routes.ts"), "utf8")
+    }
+
+    await writeFile(join(dir, "routes.ts"), "export const routes = { pay: 'charge' }\n")
+    expect(await routesAt()).toBe("export const routes = { pay: 'pay' }\n")
+
+    await commit(dir, "routes.ts", "export const routes = { pay: 'refund' }\n")
+    expect(await routesAt()).toBe("export const routes = { pay: 'pay' }\n")
   })
 
   test("shows the trek's copy of a file the user has edited since", async () => {

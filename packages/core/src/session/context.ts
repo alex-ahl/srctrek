@@ -119,12 +119,9 @@ export async function viewContext(
     trek.repos.map(async (repo) => {
       const dir = await gitDirOf(root, repo, cacheDir)
       const own = await ownCheckout(dir, trek, repo)
-      // the trek's own copy is checked out only when some file the trek visits differs
-      const everyFileOwn = own?.files.size === filesVisited(trek, repo).length
-      const checkout =
-        own !== undefined && everyFileOwn
-          ? own.root
-          : await editorCheckout(dir, repo.revision, cacheDir)
+      // at the trek's revision in every file, not only those it visits: a cited line, a
+      // definition found by name, or the change can be in any of them
+      const checkout = await editorCheckout(dir, repo.revision, cacheDir)
       return { name: repo.name, checkout, own, lines: await linesOf(dir, trek, repo) }
     }),
   )
