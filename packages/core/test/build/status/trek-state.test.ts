@@ -77,7 +77,7 @@ describe("trekState", () => {
     expect(await stateOf(dir, "work")).toEqual({ kind: "done", why: "committed" })
   })
 
-  test("of code as it is is stale once the checkout moves on", async () => {
+  test("of code as it is is stale once the checkout moves on past a stop's file", async () => {
     const dir = await makeBranchRepo()
     const code = async () =>
       resolveChange(
@@ -91,6 +91,9 @@ describe("trekState", () => {
         await makeCacheDir(),
       )
     await saveTrekOf(dir, await code(), "a-refund")
+    expect(await stateOf(dir, "a-refund")).toEqual({ kind: "current" })
+
+    await commit(dir, "notes.md", "unrelated\n")
     expect(await stateOf(dir, "a-refund")).toEqual({ kind: "current" })
 
     await commit(dir, "app.ts", "const total = 300\n")

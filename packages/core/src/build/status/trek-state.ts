@@ -112,6 +112,8 @@ async function staleStops(trek: Trek, repos: readonly Now[]): Promise<number> {
 
 // Where the repos that can be checked put the trek: current until one moves; a snapshot whose
 // branch moved on is a moment that's passed, its work committed (and perhaps changed since).
+// Code as it is that moved on without touching a stop's file is still what the trek walks; a
+// change that moved on has work the trek doesn't, whichever files it touched.
 async function movedState(trek: Trek, now: readonly Now[]): Promise<TrekState> {
   const moved = now.filter(({ left, commit }) => left !== commit)
   if (moved.length === 0) {
@@ -122,7 +124,11 @@ async function movedState(trek: Trek, now: readonly Now[]): Promise<TrekState> {
     return { kind: "done", why: "committed" }
   }
 
-  return { kind: "stale", staleStops: await staleStops(trek, now), stops: stopIds(trek).size }
+  const stale = await staleStops(trek, now)
+  const codeAsItIs = moved.every(({ repo }) => repo.range === undefined)
+  return stale === 0 && codeAsItIs
+    ? { kind: "current" }
+    : { kind: "stale", staleStops: stale, stops: stopIds(trek).size }
 }
 
 /** Where `trek`, saved under `root`, stands against its branches and checkouts now. */

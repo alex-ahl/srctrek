@@ -42,7 +42,8 @@ agent's.
 ### 4. Come back after the change moved on
 
 The home screen marks the trek stale, with how many steps' files changed; `b` updates it. Until
-then the editor marks the stale steps.
+then the editor marks the stale steps. A trek of code as it is stays current while the code moves
+on without touching a step's file.
 
 ### 5. Build from the agent's chat
 
