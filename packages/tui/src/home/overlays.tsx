@@ -1,7 +1,7 @@
-import type { ChangeChoice } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { type ReactNode, useCallback } from "react"
-import { ChangePicker } from "../change-picker/screen"
+import { Landing } from "../landing/screen"
+import type { Pick } from "../landing/rows"
 import { EditorPicker } from "../editors/editor-picker"
 import { SettingsScreen } from "../settings/screen"
 import { BuildScreen } from "../build-view/screen"
@@ -66,22 +66,27 @@ export function Picker({
   tint: RGBA | undefined
   close: () => void
 }) {
-  const pick = (choice: ChangeChoice) => {
+  // a done trek has no change to reopen the home screen on
+  const pick = (picked: Pick) => {
     close()
-    choosing.onPick(choice)
+    if (picked.kind !== "trek") {
+      choosing.onPick(picked)
+    }
   }
 
   return (
-    <ChangePicker
-      choice={choosing.choice}
+    <Landing
       load={choosing.load}
       pullRequests={choosing.pullRequests}
       nearby={choosing.nearby}
       repoBranches={choosing.repoBranches}
       fetchRepo={choosing.fetchRepo}
       status={choosing.status}
+      done={() => Promise.resolve([])}
+      repos={choosing.choice.repos ?? []}
       onPick={pick}
-      onBack={close}
+      onSettings={close}
+      onQuit={close}
       tint={tint}
     />
   )
