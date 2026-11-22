@@ -194,6 +194,17 @@ describe("trekStatus", () => {
     })
   })
 
+  test("is building while a ready trek is built again, and ready still if that fails", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "my-refunds")
+
+    await startBuild(dir, [], "my-refunds", "sleep 0.3; false")
+    expect((await trekStatus(dir, change)).kind).toBe("building")
+    await untilEnded(dir, "my-refunds")
+    expect(await trekStatus(dir, change)).toEqual({ kind: "ready", name: "my-refunds" })
+  })
+
   test("is unreadable when the trek under the change's name isn't valid, not missing", async () => {
     const dir = await makeBranchRepo()
     const change = await changeOf(dir)

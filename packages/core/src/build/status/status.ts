@@ -107,9 +107,9 @@ async function savedStatus(
 }
 
 // A trek of the change: unreachable when it names a repo that can't be opened here, as nothing
-// else matters until it can; else ready unless the prompts that built it differ from today's
-// guide, and then its rebuild, while one runs or after it failed, says more than the trek it
-// replaces.
+// else matters until it can; else building while it's built again. A rebuild that failed says
+// more than a trek built with an older guide, which it was to replace; a trek of today's guide
+// stays ready, as it still is.
 async function readyStatus(root: string, name: string): Promise<TrekStatus> {
   const trek = await loadTrek(trekPath(root, name))
   const unreachable = await unreachableRepo(root, trek)
@@ -117,16 +117,16 @@ async function readyStatus(root: string, name: string): Promise<TrekStatus> {
     return { kind: "unreachable", name, unreachable }
   }
 
+  const state = await buildState(root, name)
+  if (state === "building") {
+    return buildStatus(root, name)
+  }
+
   if (trek.prompt_hash === PROMPT_HASH) {
     return { kind: "ready", name }
   }
 
-  const state = await buildState(root, name)
-  if (state === "building" || state === "failed") {
-    return buildStatus(root, name)
-  }
-
-  return { kind: "older-guide", name }
+  return state === "failed" ? buildStatus(root, name) : { kind: "older-guide", name }
 }
 
 // With no trek of the change as it is: a build under way or failed comes first, as it's what
