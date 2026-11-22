@@ -43,10 +43,10 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
 - `trek` treks the current branch's change; `trek main...HEAD ../gateway` names the ranges and
   repos. A problem with the arguments stops `trek` with a message.
 - `--uncommitted` includes work not yet committed.
-- `--code` walks code as it is, to learn how it works: `trek --code="a refund request"` follows
-  that trigger. The home screen always shows the code as it is beside the change: `b` on its
-  ways-in row has your agent find the code's triggers (routes, commands, handlers, jobs), each
-  listed there to build with `enter`.
+- The home screen always shows the code as it is beside the change, to learn how it works: `b`
+  on its ways-in row has your agent find the code's triggers (routes, commands, handlers, jobs),
+  each listed there to build with `enter`. `trek --code` opens with that section selected, and
+  `trek --code="a refund request"` with that trigger's row, built with `b`.
 - `C` on the home screen picks another change instead: a branch, a pull request, or code as it
   is, with repos beside this one ticked to go along. While `trek` is open, it follows new
   commits and branch switches.

@@ -24,7 +24,7 @@ export function enterLabel(row: Row | undefined): string {
     return "find ways in"
   }
 
-  const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.found.trek)
+  const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.trek)
 
   if (buildsTrigger) {
     return "build its trek"

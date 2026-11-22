@@ -16,7 +16,8 @@ import { fit } from "../../ui/text"
 export type Row =
   | { kind: "proposal"; proposal: ProposedRepo }
   | { kind: "ways-in"; status: TrekStatus }
-  | { kind: "trigger"; found: TriggerTrek }
+  // a way in, by name, with its trek, and where it was found (or that it was asked for)
+  | { kind: "trigger"; name: string; trek: TrekStatus; where: string }
   | { kind: "trek"; entry: TrekEntry }
 
 // Newest first, as the trek a person wants is usually the one just built; invalid ones last.
@@ -26,15 +27,27 @@ function byNewest(a: TrekEntry, b: TrekEntry): number {
   return built(b).localeCompare(built(a))
 }
 
-// The code's ways in as rows: each way in once found, else one row for finding them.
-function waysInRows(code: TrekStatus | undefined): Row[] {
-  if (code === undefined) {
-    return []
-  }
+/** A way in asked for by name with --code="…", and its trek. */
+export type AskedWayIn = Readonly<{ name: string; trek: TrekStatus }>
 
-  return code.kind === "triggers"
-    ? code.triggers.map((found): Row => ({ kind: "trigger", found }))
-    : [{ kind: "ways-in", status: code }]
+const foundRow = ({ trigger, trek }: TriggerTrek): Row => ({
+  kind: "trigger",
+  name: trigger.name,
+  trek,
+  where: `${trigger.kind} · ${trigger.evidence.file}:${String(trigger.evidence.line)}`,
+})
+
+// The code's ways in as rows: the one asked for first, unless it's among those found; then each
+// found, else one row for finding them.
+function waysInRows(code: TrekStatus | undefined, asked: AskedWayIn | undefined): Row[] {
+  const found = code?.kind === "triggers" ? code.triggers.map(foundRow) : []
+  const isFound = found.some((row) => row.kind === "trigger" && row.name === asked?.name)
+  const askedRows: Row[] =
+    asked === undefined || isFound ? [] : [{ kind: "trigger", ...asked, where: "asked for" }]
+  const finding: Row[] =
+    code === undefined || code.kind === "triggers" ? [] : [{ kind: "ways-in", status: code }]
+
+  return [...askedRows, ...found, ...finding]
 }
 
 /**
@@ -45,10 +58,11 @@ export function rowsOf(
   entries: TrekEntry[],
   code: TrekStatus | undefined,
   proposals: ProposedRepo[],
+  asked?: AskedWayIn,
 ): Row[] {
-  const waysIn = waysInRows(code)
+  const waysIn = waysInRows(code, asked)
   const wayInTreks = new Set(
-    waysIn.flatMap((row) => (row.kind === "trigger" ? [row.found.trek.name] : [])),
+    waysIn.flatMap((row) => (row.kind === "trigger" ? [row.trek.name] : [])),
   )
 
   return [
@@ -143,18 +157,16 @@ function WaysInRow({ item: status, selected, context }: RowProps<TrekStatus>) {
   )
 }
 
-function TriggerRow({ item: found, selected, context }: RowProps<TriggerTrek>) {
+function TriggerRow({ item: row, selected, context }: RowProps<Extract<Row, { kind: "trigger" }>>) {
   const tones = useTones()
-  const { trigger, trek } = found
   const { columns } = context
-  const where = `${trigger.kind} · ${trigger.evidence.file}:${trigger.evidence.line}`
 
   return (
     <text fg={COLOUR.text}>
       <Marker selected={selected} context={context} />
-      <State label={statusBlock(trek, undefined, false)} width={columns.state} />
-      <Title text={trigger.name} width={columns.title} selected={selected} />
-      <span fg={tones.dim}>{fit(where, rest(context))}</span>
+      <State label={statusBlock(row.trek, undefined, false)} width={columns.state} />
+      <Title text={row.name} width={columns.title} selected={selected} />
+      <span fg={tones.dim}>{fit(row.where, rest(context))}</span>
     </text>
   )
 }
@@ -205,7 +217,7 @@ export function RowView({
   }
 
   if (row.kind === "trigger") {
-    return <TriggerRow item={row.found} selected={selected} context={context} />
+    return <TriggerRow item={row} selected={selected} context={context} />
   }
 
   if (row.kind === "ways-in") {

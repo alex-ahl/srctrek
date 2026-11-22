@@ -413,6 +413,40 @@ test("heads the list with the selected row: a way in with no trek says b builds 
   expect(built).toEqual(["a reply times out"])
 })
 
+test("opens on the code as it is when trek's args asked for it", async () => {
+  const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
+  const frame = await frameOf({
+    entries: [refund],
+    status,
+    codeStatus: { kind: "missing", name: "web-code" },
+    onFindWaysIn: noop,
+    focus: { kind: "code" },
+  })
+
+  expect(frame).toMatch(/▶ ◇ not found yet +ways into this code/)
+})
+
+test("opens on the way in asked for by name, built with b when it has no trek", async () => {
+  const built: string[] = []
+  const app = (
+    <App
+      entries={[]}
+      onOpen={noop}
+      onQuit={noop}
+      now={NOW}
+      codeStatus={{ kind: "missing", name: "web-code" }}
+      asked={{ name: "a refund request", trek: { kind: "missing", name: "a-refund-request" } }}
+      focus={{ kind: "code", trigger: "a refund request" }}
+      onFindWaysIn={noop}
+      onBuildTrigger={(name) => built.push(name)}
+    />
+  )
+  const frame = await frameAfter(app, (input) => input.pressKey("b"))
+
+  expect(frame).toMatch(/▶ ○ no trek yet +a refund request +asked for/)
+  expect(built).toEqual(["a refund request"])
+})
+
 test("lists a way in's trek once, on its way in's row", async () => {
   const wayIn: TrekEntry = {
     ...refund,

@@ -36,8 +36,8 @@ agent's.
 
 1. The home screen's code as it is section finds the code's triggers (routes, commands, jobs,
    handlers) with `b`, each listed with the line that proves it.
-2. Picking one builds its trek, which opens as in flow 1. `trek --code="<trigger>"` follows a
-   trigger without the list.
+2. Picking one builds its trek, which opens as in flow 1. `trek --code` opens with this section
+   selected; `trek --code="<trigger>"` with that trigger's row, asked for by name.
 
 ### 4. Come back after the change moved on
 

@@ -54,8 +54,13 @@ async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
     await build()
   }
 
+  const asking = sides.focus.kind === "code" ? sides.focus.trigger : undefined
   const codeSide = {
     status: () => trekStatus(cwd, code),
+    asked:
+      asking === undefined
+        ? undefined
+        : { name: asking, status: () => trekStatus(cwd, { ...code, code: { trigger: asking } }) },
     find: agent === undefined ? undefined : () => buildChangeTrek(cwd, sides.code, code, agent),
     buildTrigger:
       agent === undefined

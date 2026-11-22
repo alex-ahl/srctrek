@@ -40,7 +40,7 @@ function titleOf(row: Row): string {
   }
 
   if (row.kind === "trigger") {
-    return row.found.trigger.name
+    return row.name
   }
 
   if (row.kind === "ways-in") {

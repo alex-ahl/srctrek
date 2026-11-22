@@ -64,5 +64,5 @@ export function itemKey(item: Item): string {
     return "ways-in"
   }
 
-  return row.kind === "trigger" ? `trigger:${row.found.trigger.name}` : `trek:${row.entry.name}`
+  return row.kind === "trigger" ? `trigger:${row.name}` : `trek:${row.entry.name}`
 }

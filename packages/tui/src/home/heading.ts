@@ -67,11 +67,10 @@ function codeHeading(row: Row, input: HeadingInput): Heading {
   }
 
   if (row.kind === "trigger") {
-    const { trigger, trek } = row.found
+    const { name, trek } = row
     const entry = input.entries.find((each) => each.name === trek.name)
-    const open = { code: true, trigger: trigger.name }
-    const block = statusBlock(trek, entry, input.canBuildTrigger, open)
-    return { summary, block: { ...block, name: block.name ?? trigger.name } }
+    const block = statusBlock(trek, entry, input.canBuildTrigger, { code: true, trigger: name })
+    return { summary, block: { ...block, name: block.name ?? name } }
   }
 
   return row.kind === "trek" ? savedHeading(row.entry, input, summary) : changeHeading(input)

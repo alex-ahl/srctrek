@@ -38,7 +38,7 @@ export function stateOf(
   states: States,
 ): StateLabel | undefined {
   if (row.kind === "trigger") {
-    return statusBlock(row.found.trek, undefined, false)
+    return statusBlock(row.trek, undefined, false)
   }
 
   if (row.kind === "ways-in") {

@@ -50,22 +50,22 @@ export function pickAction(
     return findAction(row, props)
   }
 
-  const { trigger, trek } = row.found
+  const { name, trek } = row
   if (hasTrek(trek)) {
     const entry = entries.find((e) => e.name === trek.name)
     return entry?.valid ? () => onOpen(entry) : undefined
   }
 
-  return canStartBuild(trek) && onBuildTrigger ? () => onBuildTrigger(trigger.name) : undefined
+  return canStartBuild(trek) && onBuildTrigger ? () => onBuildTrigger(name) : undefined
 }
 
 // A way in's row whose trek is built: b builds it again, from the start, with the guide as it is.
 const rebuildsTrigger = (row: Row | undefined): row is Extract<Row, { kind: "trigger" }> =>
-  row?.kind === "trigger" && hasTrek(row.found.trek)
+  row?.kind === "trigger" && hasTrek(row.trek)
 
 // A way in's row with no trek, or whose build failed: b builds its trek.
 const buildsTrigger = (row: Row | undefined): row is Extract<Row, { kind: "trigger" }> =>
-  row?.kind === "trigger" && canStartBuild(row.found.trek)
+  row?.kind === "trigger" && canStartBuild(row.trek)
 
 // Finding the code's ways in, when they can be: not yet found, or the last search failed.
 const findAction = (row: Extract<Row, { kind: "ways-in" }>, props: Props): Action =>
@@ -80,8 +80,8 @@ function buildAction(row: Row | undefined, props: Props): Action {
   }
 
   if ((rebuildsTrigger(row) || buildsTrigger(row)) && onBuildTrigger) {
-    const { trigger } = row.found
-    return () => onBuildTrigger(trigger.name)
+    const { name } = row
+    return () => onBuildTrigger(name)
   }
 
   return row?.kind === "trigger" || !canStartBuild(status) ? undefined : onBuild
@@ -94,8 +94,8 @@ export function logName(row: Row | undefined, status: TrekStatus | undefined): s
     return row.entry.name
   }
 
-  if (row?.kind === "trigger" && hasLog(row.found.trek)) {
-    return row.found.trek.name
+  if (row?.kind === "trigger" && hasLog(row.trek)) {
+    return row.trek.name
   }
 
   if (row?.kind === "ways-in" && hasLog(row.status)) {
@@ -110,8 +110,8 @@ export function buildingName(
   row: Row | undefined,
   status: TrekStatus | undefined,
 ): string | undefined {
-  if (row?.kind === "trigger" && row.found.trek.kind === "building") {
-    return row.found.trek.name
+  if (row?.kind === "trigger" && row.trek.kind === "building") {
+    return row.trek.name
   }
 
   if (row?.kind === "ways-in" && row.status.kind === "building") {

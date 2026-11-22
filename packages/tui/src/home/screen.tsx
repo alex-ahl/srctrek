@@ -2,6 +2,7 @@ import type {
   BranchChoices,
   ChangeChoice,
   ChangeSummary,
+  HomeFocus,
   NearbyCheckout,
   OpenPullRequest,
   ProposedRepo,
@@ -27,7 +28,7 @@ import { PADDING, listHeight } from "../ui/layout"
 import { itemKey, itemsOf, lineOfItem, listLines } from "./list/lines"
 import { ListLineView } from "./list/view"
 import { columnsOf } from "./list/columns"
-import { rowsOf } from "./list/rows"
+import { type AskedWayIn, type Row, rowsOf } from "./list/rows"
 import { type SectionId, sectionsOf } from "./list/sections"
 import type { StatusBlock } from "./status-block"
 import { headingFor } from "./heading"
@@ -68,6 +69,10 @@ export type Props = {
   codeStatus?: TrekStatus | undefined
   // has the agent find the code's ways in; absent when no agent is set
   onFindWaysIn?: (() => void) | undefined
+  // the way in trek's args asked for by name, and its trek
+  asked?: AskedWayIn | undefined
+  // which side trek's args asked for, selected as the screen opens
+  focus?: HomeFocus | undefined
   // starts building the change's trek; absent when no agent is set
   onBuild?: (() => void) | undefined
   // starts building the trek of a trigger found in the code; absent when no agent is set
@@ -141,12 +146,26 @@ function Heading({
   )
 }
 
+// The row trek's args asked for: the way in named, else the code's first row; none for the
+// change, whose trek is selected anyway.
+function focusKey(focus: HomeFocus | undefined, rows: readonly Row[]): string | undefined {
+  if (focus?.kind !== "code") {
+    return undefined
+  }
+
+  const named = focus.trigger === undefined ? undefined : `trigger:${focus.trigger}`
+  const first = rows.find((row) => row.kind === "trigger" || row.kind === "ways-in")
+  const firstKey = first === undefined ? undefined : itemKey({ kind: "row", row: first })
+  return named ?? firstKey
+}
+
 export function App(props: Props) {
   const tones = useTones()
   const { entries, onQuit, status, onBuild } = props
-  const rows = rowsOf(entries, props.codeStatus, props.proposals ?? [])
-  // the selected item by its key, so it stays put as rows move between sections
-  const [chosen, setChosen] = useState<string | undefined>(undefined)
+  const rows = rowsOf(entries, props.codeStatus, props.proposals ?? [], props.asked)
+  // the selected item by its key, so it stays put as rows move between sections; as it opens,
+  // the side trek's args asked for
+  const [chosen, setChosen] = useState<string | undefined>(() => focusKey(props.focus, rows))
   const [open, setOpen] = useState<ReadonlySet<SectionId>>(new Set())
   const [prompt, setPrompt] = useState<Prompt | undefined>(undefined)
   const [over, setOver] = useState<Over | undefined>(undefined)
