@@ -104,10 +104,11 @@ test("E offers the terminal first, then the editors found, and picks one", async
   expect(asked).toContain("  $EDITOR (vim)   at the first stop, without stepping")
 
   await pressOn(app, async (input) => {
+    // a pause between keys, so each lands once the screen has drawn what the last one opened
     input.pressKey("E", { shift: true })
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await Bun.sleep(20)
     input.pressKey("j")
-    await new Promise((resolve) => setTimeout(resolve, 0))
+    await Bun.sleep(20)
     input.pressEnter()
   })
   expect(choose).toHaveBeenCalledWith(neovim)

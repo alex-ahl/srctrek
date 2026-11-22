@@ -60,8 +60,8 @@ export function itemKey(item: Item): string {
     return `proposal:${row.proposal.name}`
   }
 
-  if (row.kind === "ways-in") {
-    return "ways-in"
+  if (row.kind === "ways-in" || row.kind === "change") {
+    return row.kind
   }
 
   return row.kind === "trigger" ? `trigger:${row.name}` : `trek:${row.entry.name}`

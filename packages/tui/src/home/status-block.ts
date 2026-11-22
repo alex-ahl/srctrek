@@ -4,8 +4,7 @@ import { count } from "../ui/text"
 
 /**
  * Where the change's trek stands, as the home screen shows it: a symbol and the state in the
- * state's tone, the trek's name and what it holds, then dim lines saying why and the keys that
- * act on it.
+ * state's tone, the trek's name and what it holds, then dim lines saying why.
  */
 export type StatusBlock = StateLabel &
   Readonly<{
@@ -14,7 +13,6 @@ export type StatusBlock = StateLabel &
     // a likely-wrong count, drawn in the bad colour
     flag?: string
     details: readonly string[]
-    keys?: string
   }>
 
 // Enough of a build's log to see what it's doing or why it ended; l shows the rest.
@@ -63,7 +61,6 @@ function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
 function staleBlock(
   { name, staleStops, stops }: Of<"stale">,
   entry: TrekEntry | undefined,
-  canBuild: boolean,
 ): StatusBlock {
   const changed =
     staleStops === 0
@@ -74,7 +71,6 @@ function staleBlock(
     ...STATE_LABELS.stale,
     name: titleOf(name, entry),
     details: [changed],
-    ...(canBuild ? { keys: "b update it" } : {}),
   }
 }
 
@@ -87,12 +83,10 @@ function missingBlock(canBuild: boolean, open: Opened): StatusBlock {
     return {
       ...label,
       details: ["set an agent in settings, or ask your agent for a trek in chat"],
-      keys: "S settings",
     }
   }
 
-  const keys = findsWaysIn(open) ? "b find them · then enter on one treks it" : "b build it"
-  return { ...label, details: [agentDoes(open)], keys }
+  return { ...label, details: [agentDoes(open)] }
 }
 
 const FINDING: StateLabel = { ...STATE_LABELS.building, state: "finding its ways in" }
@@ -109,7 +103,6 @@ function buildBlock(
     return {
       ...(findsWaysIn(open) ? FINDING : STATE_LABELS.building),
       details: [],
-      keys: "x stop · l watch it",
     }
   }
 
@@ -118,14 +111,12 @@ function buildBlock(
     return {
       ...STATE_LABELS.stopped,
       details: [],
-      keys: canBuild ? "b build again · l see where it got to" : "l see where it got to",
     }
   }
 
   return {
     ...STATE_LABELS.failed,
     details: details.length === 0 ? ["its log is empty"] : details,
-    keys: canBuild ? "b build again · l see why" : "l see why",
   }
 }
 
@@ -162,15 +153,13 @@ function nameOnlyBlock(
       ...STATE_LABELS["older-guide"],
       name: titleOf(name, entry),
       details: ["built before the guide last changed"],
-      keys: canBuild ? "b rebuild with the current guide · enter open it" : "enter open it",
     }
   }
 
   if (kind === "empty") {
     return {
       ...STATE_LABELS.empty,
-      details: [],
-      keys: "C choose another change, or code as it is",
+      details: ["no commits since its base: C picks another change"],
     }
   }
 
@@ -192,7 +181,7 @@ export function statusBlock(
   }
 
   if (status.kind === "stale") {
-    return staleBlock(status, entry, canBuild)
+    return staleBlock(status, entry)
   }
 
   if (status.kind === "unreadable") {
@@ -200,7 +189,6 @@ export function statusBlock(
       ...STATE_LABELS.unreadable,
       name: status.name,
       details: [status.problem],
-      ...(canBuild ? { keys: "b rebuild it" } : {}),
     }
   }
 
@@ -218,9 +206,4 @@ export function statusBlock(
   }
 
   return nameOnlyBlock(status.kind, status.name, entry, canBuild, open)
-}
-
-/** How many lines a block takes. */
-export function blockLines(block: StatusBlock): number {
-  return 1 + block.details.length + (block.keys === undefined ? 0 : 1)
 }

@@ -47,6 +47,10 @@ function titleOf(row: Row): string {
     return WAYS_IN_TITLE
   }
 
+  if (row.kind === "change") {
+    return row.title
+  }
+
   return row.entry.valid ? row.entry.title : row.entry.name
 }
 

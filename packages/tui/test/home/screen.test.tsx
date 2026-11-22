@@ -38,7 +38,7 @@ test("renders the empty state", async () => {
   expect(await frameOf({})).toContain("No treks in .srctrek/treks yet.")
 })
 
-test("says what's open above its trek: each repo's head where they differ", async () => {
+test("says what's open in the title bar: each repo's head where they differ", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
@@ -57,9 +57,9 @@ test("says what's open above its trek: each repo's head where they differ", asyn
     unchanged: ["worker"],
     code: false,
   }
-  const frame = await frameOf({ summary })
+  const frame = await frameOf({ summary }, 160)
 
-  expect(frame).toContain(" srctrek › web › a change ")
+  expect(frame).toContain(" srctrek › web ")
   expect(frame).toContain(
     "feature/refunds + uncommitted · 3 commits since main · with api on pr 12 · worker passed through",
   )
@@ -83,7 +83,7 @@ test("leads with the branch and its commits since the base, then the repos passe
   expect(frame).toContain("feature/refunds · 9 commits since main · api and worker passed through")
 })
 
-test("names the repo in the title bar, and only the change below for one repo", async () => {
+test("names the repo and the change in the title bar", async () => {
   const summary: ChangeSummary = {
     changed: [
       {
@@ -98,8 +98,7 @@ test("names the repo in the title bar, and only the change below for one repo", 
   }
   const frame = await frameOf({ summary })
 
-  expect(frame).toContain(" srctrek › web › a change ")
-  expect(frame).toMatch(/\n {2}feature\/refunds · 3 commits since main +\n/)
+  expect(frame).toMatch(/srctrek › web +feature\/refunds · 3 commits since main/)
 })
 
 test("cuts what's open to a narrow terminal, the branch first", async () => {
@@ -117,7 +116,7 @@ test("cuts what's open to a narrow terminal, the branch first", async () => {
   }
   const frame = await frameOf({ summary }, 60)
 
-  expect(frame).toContain("feature/a-long-branch-about-refunds + uncommitted · 9 c…")
+  expect(frame).toContain("srctrek › web  feature/a-long-branch-about-refunds + un…")
 })
 
 test("says code as it is, in which repos, and from the trigger named", async () => {
@@ -129,7 +128,7 @@ test("says code as it is, in which repos, and from the trigger named", async () 
   }
   const frame = await frameOf({ summary })
 
-  expect(frame).toContain(" srctrek › web › code as it is ")
+  expect(frame).toContain(" srctrek › web ")
   expect(frame).toContain('Code as it is in web · with api, from "a refund request"')
 })
 
@@ -147,9 +146,9 @@ test("lists the treks in sections by what they're of, newest first, folding what
   const frame = await frameOf({ entries })
 
   expect(frame).toContain(" CODE AS IT IS")
-  expect(frame).toContain("▶ An older trek   12 steps         built Oct 21")
+  expect(frame).toMatch(/▶ An older trek +12 steps/)
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
-  expect(frame).toContain("   Refund orders   12 steps   ⚠ 4   built today 09:12")
+  expect(frame).toMatch(/ {3}Refund orders +12 steps +⚠ 4/)
   expect(frame).toContain(" ▸ CAN'T READ  1 trek")
   expect(frame).not.toContain("broken")
 })
@@ -183,9 +182,9 @@ test("puts treks of the change's branch with the change, and done treks folded a
   const frame = await frameOf({ entries, status, summary, states })
 
   expect(frame).toMatch(
-    /THIS CHANGE *\n.*● ready   Refund orders .*\n.*≠ stale   An older trek   1 of 12 steps changed/,
+    /YOUR CHANGES[^\n]*\n[^\n]*● ready +Refund orders[^\n]*\n[^\n]*≠ stale +An older trek +1 of 12 steps changed/,
   )
-  expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS *\n *An older trek/)
+  expect(frame).toMatch(/OTHER BRANCHES AND PULL REQUESTS[^\n]*\n +An older trek/)
   expect(frame).toContain(" ▸ DONE  1 trek")
   expect(frame).not.toContain("merged")
 })
@@ -234,9 +233,9 @@ test("says a trek of the change is being built, leaving its detail to the build 
     onReadBuild: () => Promise.reject(new Error("unread")),
   })
 
-  expect(frame).toMatch(/ ◐ building +\n/)
+  expect(frame).toMatch(/│ ◐ building/)
   expect(frame).not.toContain("added s1, s2")
-  expect(frame).toContain("x stop · l watch it")
+  expect(frame).toContain("l builds")
   expect(frame).not.toContain("b build")
 })
 
@@ -244,52 +243,52 @@ test("shows why a build failed, and offers to build again", async () => {
   const status: TrekStatus = { kind: "failed", name: "feature-refunds", logTail: ["no MCP server"] }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toMatch(/ ✕ build failed +\n/)
-  expect(frame).toContain("   no MCP server")
-  expect(frame).toContain("   b build again · l see why")
-  expect(frame).toContain("b build")
+  expect(frame).toMatch(/│ ✕ build failed/)
+  expect(frame).toMatch(/│ no MCP server/)
+  expect(frame).toContain("b build · ? keys")
 })
 
 test("says what the agent does before a trek is built, and for code, that b finds its ways in", async () => {
-  const missing: TrekStatus = { kind: "missing", name: "web-code" }
-  const code: ChangeSummary = { changed: [], unchanged: ["web"], code: true }
-  const change = await frameOf({ status: missing, onBuild: noop })
-  const waysIn = await frameOf({ status: missing, onBuild: noop, summary: code })
-  const trigger = await frameOf({
-    status: missing,
+  const change = await frameOf({
+    status: { kind: "missing", name: "feature-refunds" },
     onBuild: noop,
-    summary: { ...code, trigger: "a refund request" },
+  })
+  const waysIn = await frameOf({
+    codeStatus: { kind: "missing", name: "web-code" },
+    onFindWaysIn: noop,
+  })
+  const trigger = await frameOf({
+    asked: { name: "a refund request", trek: { kind: "missing", name: "a-refund-request" } },
+    onBuildTrigger: noop,
   })
 
-  expect(change).toContain("   your agent walks the change from its trigger to its outcome")
-  expect(waysIn).toMatch(/ ○ ways in not found yet +\n/)
-  expect(waysIn).toContain("   b find them · then enter on one treks it")
-  expect(trigger).toContain("   your agent follows it through the code, as it runs")
-  expect(trigger).toContain("   b build it")
+  expect(change).toMatch(/│ your agent walks the change from/)
+  expect(waysIn).toMatch(/│ ○ ways in not found yet/)
+  expect(waysIn).toContain("b find ways in")
+  expect(trigger).toMatch(/│ your agent follows it through the/)
+  expect(trigger).toContain("b build")
 })
 
 test("says it's finding the code's ways in while the agent does", async () => {
-  const status: TrekStatus = { kind: "building", name: "web-code", logTail: [] }
-  const summary: ChangeSummary = { changed: [], unchanged: ["web"], code: true }
+  const codeStatus: TrekStatus = { kind: "building", name: "web-code", logTail: [] }
 
-  expect(await frameOf({ status, onBuild: noop, summary })).toMatch(/ ◐ finding its ways in +\n/)
+  expect(await frameOf({ codeStatus, onFindWaysIn: noop })).toMatch(/│ ◐ finding its ways in/)
 })
 
 test("says a build the user stopped is stopped, and offers to build again", async () => {
   const status: TrekStatus = { kind: "failed", name: "feature-refunds", logTail: ["trek: stopped"] }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toMatch(/ ■ stopped +\n/)
-  expect(frame).toContain("b build again · l see where it got to")
+  expect(frame).toMatch(/│ ■ stopped/)
+  expect(frame).toContain("b build · ? keys")
   expect(frame).not.toContain("build failed")
 })
 
 test("points to settings when no agent is set", async () => {
   const frame = await frameOf({ status: { kind: "missing", name: "feature-refunds" } })
 
-  expect(frame).toMatch(/ ○ no trek yet +\n/)
-  expect(frame).toContain("   set an agent in settings, or ask your agent for a trek in chat")
-  expect(frame).toContain("   S settings")
+  expect(frame).toMatch(/│ ○ no trek yet/)
+  expect(frame).toMatch(/│ set an agent in settings, or ask/)
   expect(frame).not.toContain("b build")
 })
 
@@ -297,16 +296,18 @@ test("picks out the change's trek once it's ready, with what it holds", async ()
   const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
   const frame = await frameOf({ entries: [other, { ...refund, highFlags: 1 }], status })
 
-  expect(frame).toContain(" ● ready  Refund orders  12 steps · 1 repo   ⚠ 1 likely wrong")
-  expect(frame).toContain("▶ ● ready   Refund orders   12 steps   ⚠ 1   built today 09:12")
+  expect(frame).toMatch(/│ ● ready/)
+  expect(frame).toMatch(/│ 12 steps · 1 repo/)
+  expect(frame).toMatch(/│ ⚠ 1 likely wrong/)
+  expect(frame).toMatch(/▶ ● ready   Refund orders   12 steps   ⚠ 1/)
   expect(frame).not.toContain("▶ An older trek")
 })
 
 test("says there's nothing to trek when the change has no commits, and offers no build", async () => {
   const frame = await frameOf({ status: { kind: "empty", name: "master" }, onBuild: noop })
 
-  expect(frame).toContain(" ○ nothing to trek")
-  expect(frame).toContain("   C choose another change, or code as it is")
+  expect(frame).toMatch(/│ ○ nothing to trek/)
+  expect(frame).toMatch(/│ no commits since its base: C picks/)
   expect(frame).not.toContain("b build")
 })
 
@@ -314,7 +315,7 @@ test("leaves a trek saved earlier under the change's name as its own, once the c
   const status: TrekStatus = { kind: "empty", name: "feature-refunds" }
   const frame = await frameOf({ status, entries: [refund] })
 
-  expect(frame).not.toContain("THIS CHANGE")
+  expect(frame).not.toContain("YOUR CHANGES")
   expect(frame).not.toMatch(/nothing to trek +Refund orders/)
   expect(frame).toContain("Refund orders")
 })
@@ -323,9 +324,8 @@ test("shows as many treks as fit, and says which", async () => {
   const many = Array.from({ length: 24 }, (_, i) => ({ ...refund, name: `t${i}` }))
   const frame = await frameOf({ entries: many }, 110, 12)
 
-  // the selected trek's heading, and a line under it, come over the list
-  expect(frame.match(/Refund orders +12 steps +built/g)?.length).toBe(3)
-  expect(frame).toContain("1–3 of 24")
+  expect(frame.match(/Refund orders +12 steps/g)?.length).toBe(6)
+  expect(frame).toContain("1–6 of 24")
 })
 
 test("lists the triggers found as rows to pick, each saying where its trek stands", async () => {
@@ -351,8 +351,8 @@ test("lists the triggers found as rows to pick, each saying where its trek stand
   const frame = await frameOf({ codeStatus: status, onBuildTrigger: noop })
 
   expect(frame).toContain(" CODE AS IT IS")
-  expect(frame).toContain("▶ ○ no trek yet   a persona answers an @-mention   event · bot.py:311")
-  expect(frame).toContain("  ● ready         a reply times out                event · bot.py:91")
+  expect(frame).toMatch(/▶ ○ no trek yet +a persona answers an @-mention +event · bot\.py:/)
+  expect(frame).toMatch(/ {2}● ready +a reply times out +event · bot\.py:/)
   expect(frame).toContain("enter build its trek")
 })
 
@@ -372,8 +372,8 @@ test("shows the code as it is beside the change, its ways in found with b before
 
   expect(frame).toContain(" CODE AS IT IS")
   expect(frame).toMatch(/◇ not found yet +ways into this code +b finds them/)
-  expect(frame).toContain("b find them · then enter on one treks it")
-  expect(frame).toContain("enter find ways in · ? keys")
+  expect(frame).toMatch(/│ your agent finds the routes,/)
+  expect(frame).toContain("enter find ways in · b find ways in · ? keys")
   expect(found).toEqual(["found"])
 })
 
@@ -407,9 +407,10 @@ test("heads the list with the selected row: a way in with no trek says b builds 
   )
   const frame = await frameAfter(app, (input) => input.pressKey("b"))
 
-  expect(frame).toContain("Code as it is in bot")
+  expect(frame).toMatch(/│ a way into the code as it is/)
+  expect(frame).toMatch(/│ in bot/)
   expect(frame).toMatch(/○ no trek yet +a reply times out/)
-  expect(frame).toContain("your agent follows it through the code, as it runs")
+  expect(frame).toMatch(/│ your agent follows it through the/)
   expect(built).toEqual(["a reply times out"])
 })
 
@@ -445,6 +446,79 @@ test("opens on the way in asked for by name, built with b when it has no trek", 
 
   expect(frame).toMatch(/▶ ○ no trek yet +a refund request +asked for/)
   expect(built).toEqual(["a refund request"])
+})
+
+test("lists your changes on a row of their own until their trek is saved, built with b, C picks others", async () => {
+  const summary: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+        commits: 3,
+      },
+    ],
+    unchanged: [],
+    code: false,
+  }
+  const never = () => new Promise<never>(() => undefined)
+  const choosing = {
+    choice: { kind: "own" as const, uncommitted: false },
+    load: never,
+    pullRequests: never,
+    nearby: never,
+    repoBranches: never,
+    fetchRepo: never,
+    status: never,
+    onPick: noop,
+  }
+  const built: string[] = []
+  const app = (
+    <App
+      entries={[]}
+      onOpen={noop}
+      onQuit={noop}
+      now={NOW}
+      summary={summary}
+      status={{ kind: "missing", name: "feature-refunds" }}
+      onBuild={() => built.push("built")}
+      choosing={choosing}
+    />
+  )
+  const frame = await frameAfter(app, (input) => input.pressKey("b"))
+
+  expect(frame).toMatch(
+    /YOUR CHANGES[^\n]*\n *▶ ○ no trek yet +feature\/refunds · 3 commits since main +b build/,
+  )
+  expect(frame).toContain("enter build its trek · b build · C another change · ? keys")
+  expect(built).toEqual(["built"])
+})
+
+test("describes the selected row in a pane beside the list, which stays where it is", async () => {
+  const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
+  const props = {
+    entries: [refund],
+    status,
+    codeStatus: { kind: "missing", name: "web-code" } as const,
+    onFindWaysIn: noop,
+  }
+  const app = <App onOpen={noop} onQuit={noop} now={NOW} {...props} />
+  const onChange = await frameAfter(app, () => undefined)
+  const onWaysIn = await frameAfter(app, (input) => input.pressArrow("down"))
+  const line = (frame: string, text: string) => frame.split("\n").findIndex((l) => l.includes(text))
+
+  expect(onChange).toMatch(/│ your changes/)
+  expect(onWaysIn).toMatch(/│ the code's ways in/)
+  expect(line(onWaysIn, "YOUR CHANGES")).toBe(line(onChange, "YOUR CHANGES"))
+  expect(line(onWaysIn, "ways into this code")).toBe(line(onChange, "ways into this code"))
+})
+
+test("describes the selected row on one line over the footer where there's no room for the pane", async () => {
+  const status: TrekStatus = { kind: "ready", name: "feature-refunds" }
+  const frame = await frameOf({ entries: [refund], status }, 80)
+
+  expect(frame).not.toContain("│")
+  expect(frame).toContain("your changes · ● ready · Refund orders")
 })
 
 test("lists a way in's trek once, on its way in's row", async () => {
@@ -512,9 +586,9 @@ test("says a stale trek is out of date, how much changed, and offers to update i
   const status: TrekStatus = { kind: "stale", name: "feature-refunds", staleStops: 3, stops: 12 }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toContain(" ≠ stale  feature-refunds")
-  expect(frame).toContain("   3 of 12 steps' files changed since it was built")
-  expect(frame).toContain("   b update it")
+  expect(frame).toMatch(/│ ≠ stale/)
+  expect(frame).toMatch(/│ feature-refunds/)
+  expect(frame).toMatch(/│ 3 of 12 steps' files changed since/)
   expect(frame).toContain("b update")
 })
 
@@ -523,12 +597,11 @@ test("says a trek built with an older guide still opens, and offers to rebuild i
   const editor = { id: "nvim", label: "Neovim", command: "nvim", steps: true }
   const frame = await frameOf({ entries: [refund], status, onBuild: noop, editor })
 
-  expect(frame).toContain(" ↻ older guide  Refund orders")
-  expect(frame).toContain("   built before the guide last changed")
-  expect(frame).toContain("   b rebuild with the current guide · enter open it")
-  expect(frame).toContain("▶ ↻ older guide   Refund orders   12 steps   built today 09:12")
-  expect(frame).toContain("enter open · ? keys")
-  expect(frame).not.toContain("· b rebuild ·")
+  expect(frame).toMatch(/│ ↻ older guide/)
+  expect(frame).toMatch(/│ Refund orders/)
+  expect(frame).toMatch(/│ built before the guide last changed/)
+  expect(frame).toMatch(/▶ ↻ older guide +Refund orders +12 steps/)
+  expect(frame).toContain("enter open · b rebuild · ? keys")
 })
 
 test("says a trek that can't be read, with its problem, and offers to rebuild it", async () => {
@@ -539,9 +612,8 @@ test("says a trek that can't be read, with its problem, and offers to rebuild it
   }
   const frame = await frameOf({ status, onBuild: noop })
 
-  expect(frame).toContain(" ✕ can't read  feature-refunds")
-  expect(frame).toContain("   format_version: Invalid input: expected 1")
-  expect(frame).toContain("   b rebuild it")
+  expect(frame).toMatch(/│ ✕ can't read/)
+  expect(frame).toMatch(/│ format_version: Invalid input:/)
   expect(frame).toContain("b rebuild")
 })
 
@@ -558,10 +630,10 @@ test("says a trek can't be opened, which repo, and how to fix it, with no key to
   }
   const frame = await frameOf({ entries: [refund], status, onBuild: noop })
 
-  expect(frame).toContain(" ✕ can't open  feature-refunds")
-  expect(frame).toContain("   repo worker isn't at ../worker")
-  expect(frame).toContain("   clone it there to open this trek")
-  expect(frame).toContain("▶ ✕ can't open   Refund orders   no worker at ../worker")
+  expect(frame).toMatch(/│ ✕ can't open/)
+  expect(frame).toMatch(/│ repo worker isn't at \.\.\/worker/)
+  expect(frame).toMatch(/│ clone it there to open this trek/)
+  expect(frame).toMatch(/▶ ✕ can't open +Refund orders +no worker at \.\.\/worker/)
   expect(frame).not.toContain("b build")
   expect(frame).not.toContain("enter open")
 })

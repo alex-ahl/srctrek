@@ -16,7 +16,7 @@ const ORDER: readonly SectionId[] = ["proposal", "change", "code", "other", "don
 
 const TITLES: Readonly<Record<SectionId, string>> = {
   proposal: "PROPOSED BY THE AGENT",
-  change: "THIS CHANGE",
+  change: "YOUR CHANGES",
   other: "OTHER BRANCHES AND PULL REQUESTS",
   code: "CODE AS IT IS",
   done: "DONE",
@@ -74,6 +74,10 @@ function trekSection(entry: TrekEntry, placing: Placing): SectionId {
 function sectionOf(row: Row, placing: Placing): SectionId {
   if (row.kind === "trek") {
     return trekSection(row.entry, placing)
+  }
+
+  if (row.kind === "change") {
+    return "change"
   }
 
   return row.kind === "proposal" ? "proposal" : "code"

@@ -47,6 +47,10 @@ export function stateOf(
       : statusBlock(row.status, undefined, false)
   }
 
+  if (row.kind === "change") {
+    return statusBlock(row.status, undefined, false)
+  }
+
   if (row.kind === "proposal") {
     return undefined
   }

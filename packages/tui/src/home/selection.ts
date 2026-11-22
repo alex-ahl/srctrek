@@ -20,7 +20,8 @@ export function toggled(open: ReadonlySet<SectionId>, id: SectionId): ReadonlySe
   return open.has(id) ? new Set([...open].filter((each) => each !== id)) : new Set([...open, id])
 }
 
-// Until the user moves, the change's trek is the one picked out, once it's listed; else the first.
+// Until the user moves, your changes are picked out: their trek once it's listed, else their own
+// row; else the first.
 export function defaultKey(
   items: readonly Item[],
   status: TrekStatus | undefined,
@@ -28,7 +29,7 @@ export function defaultKey(
   const change = hasTrek(status) ? `trek:${status?.name}` : undefined
   const keys = items.map(itemKey)
 
-  return keys.find((key) => key === change) ?? keys[0]
+  return keys.find((key) => key === change || key === "change") ?? keys[0]
 }
 
 // Which item is selected: the one the user chose while it's still listed, else the default.

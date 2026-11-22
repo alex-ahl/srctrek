@@ -37,7 +37,6 @@ export function pickAction(
   askLocation: (name: string) => void,
   onOpen: (entry: TrekEntry) => void,
 ): Action {
-  const { entries, onBuildTrigger } = props
   if (row.kind === "proposal") {
     return addAction(row.proposal, props, askLocation)
   }
@@ -50,6 +49,19 @@ export function pickAction(
     return findAction(row, props)
   }
 
+  if (row.kind === "change") {
+    return canStartBuild(row.status) ? props.onBuild : undefined
+  }
+
+  return triggerPick(row, props, onOpen)
+}
+
+// Enter on a way in: open its trek once it's built and valid, else build it.
+function triggerPick(
+  row: Extract<Row, { kind: "trigger" }>,
+  { entries, onBuildTrigger }: Props,
+  onOpen: (entry: TrekEntry) => void,
+): Action {
   const { name, trek } = row
   if (hasTrek(trek)) {
     const entry = entries.find((e) => e.name === trek.name)
@@ -164,16 +176,8 @@ export function actionsFor(
   }
 }
 
-// Whether the block's own keys line names `key`, "b" in "b build it", so the footer needn't.
-const names = (blockKeys: string | undefined, key: string) =>
-  blockKeys?.split(" · ").some((hint) => hint.startsWith(`${key} `)) === true
-
-// A key the footer lists: one that acts here, and that the block doesn't already name.
-const offers = (action: Action, blockKeys: string | undefined, key: string) =>
-  action !== undefined && !names(blockKeys, key)
-
-// What b says it does: find the code's ways in, rebuild a way in's trek, else what it does to the
-// change's.
+// What b says it does: find the code's ways in, build or rebuild a way in's trek, else what it does
+// to the change's.
 function bVerb(row: Row | undefined, status: TrekStatus | undefined): string {
   if (row?.kind === "ways-in") {
     return row.status.kind === "failed" ? "find ways in again" : "find ways in"
@@ -187,22 +191,23 @@ function bVerb(row: Row | undefined, status: TrekStatus | undefined): string {
 }
 
 /**
- * What enter, b, x, and l do here, for the footer; only keys that do something are listed,
- * and b, x, and l only when the block above doesn't already say what they do.
+ * What enter, b, x, and l do here, for the footer; only keys that do something are listed, and C
+ * on your changes' rows, when another change can be picked.
  */
 export function keyHints(
   item: Item | undefined,
   status: TrekStatus | undefined,
   actions: RowActions,
-  blockKeys?: string,
+  choosesChange = false,
 ) {
   const row = item?.kind === "row" ? item.row : undefined
   const enter = item?.kind === "fold" ? (item.open ? "hide" : "show") : enterLabel(row)
 
   return footerKeys(actions.pick === undefined ? undefined : enter, {
-    build: offers(actions.build, blockKeys, "b") ? bVerb(row, status) : undefined,
-    log: offers(actions.showLog, blockKeys, "l"),
-    stop: offers(actions.stop, blockKeys, "x"),
+    build: actions.build === undefined ? undefined : bVerb(row, status),
+    log: actions.showLog !== undefined,
+    stop: actions.stop !== undefined,
+    choose: choosesChange,
     dismiss: actions.dismiss !== undefined,
   })
 }

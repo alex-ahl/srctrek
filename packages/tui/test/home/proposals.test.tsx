@@ -39,9 +39,8 @@ test("lists a proposed repo first, with where it lives and why, and how to settl
   )
 
   expect(frame).toContain(" PROPOSED BY THE AGENT")
-  expect(frame).toContain(
-    "▶ + proposed   payments   git@example.test:shop/payments.git   the client posts refunds to …   enter add · x dismiss",
-  )
+  expect(frame).toMatch(/▶ \+ proposed +payments +git@example\.test:shop\/paym…/)
+  expect(frame).toMatch(/enter add · x dismiss +│/)
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
   expect(frame).toContain("enter add to the repos list · x dismiss · ? keys")
 })
@@ -94,9 +93,7 @@ test("says when the agent couldn't find where a proposed repo lives", async () =
     20,
   )
 
-  expect(frame).toContain(
-    "▶ + proposed   api   location unknown   the web posts refunds to /refunds on the API",
-  )
+  expect(frame).toMatch(/▶ \+ proposed +api +location unknown +the web post…/)
 })
 
 test("enter on a proposal without a location asks for one, and adds the repo there", async () => {

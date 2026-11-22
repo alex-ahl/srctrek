@@ -196,6 +196,17 @@
       .it {
         font-style: italic;
       }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 36ch;
+      }
+      .split > .side {
+        border-left: 1px solid var(--t-line);
+        padding: 10px 12px;
+        display: grid;
+        gap: 2px;
+        align-content: start;
+      }
       .help-panel {
         padding: 8px 12px;
         border-top: 1px solid var(--t-line);
@@ -332,32 +343,87 @@
 
   <section>
     <h2>1. The home screen</h2>
-    <p class="note">The change at the top, where its trek stands under it, then the list in sections: repos the agent proposed, treks of this change, treks of other branches and pull requests, code as it is, then done treks and files that can't be read, folded with a count. Every trek leads with its title and shows its state against its branch now; the selected row sits on a tint of the accent. Enter opens the selected trek in the editor the user picked.</p>
-    <figure><figcaption>Reviewing feature/refunds across three repos; the trek is ready</figcaption>
+    <p class="note">The list on the left, the selected row described in a pane on the right. The list starts at the same line whatever is selected, so moving through it never shifts it; only the pane's text changes. The pane is behind a divider and opens with a dim line saying what it describes, so it can't be taken for a row. Sections: repos the agent proposed, your changes (a row for them, with where their trek stands, until it's saved; <code>C</code> picks another change), the code as it is (its ways in, each with its trek; <code>◇ not found yet</code> until <code>b</code> finds them), other branches and pull requests, then done treks and files that can't be read, folded with a count. The change is named in the title bar. Every key acts on the selected row, and the footer names what it does there.</p>
+    <figure><figcaption>The change's trek selected</figcaption>
       <div class="term screen">
-        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web + api, worker · 9 commits since main</span></div>
-        <div class="pane">
-          <div class="ln"><span class="g">● ready</span>  <span class="bold">feature-refunds</span>  <span class="dim">19 steps · 3 repos</span>   <span class="r">⚠ 1 likely wrong</span></div>
-          <div class="ln dim">  Full refund of order o_1001: button click to the payment provider</div>
-          <div class="ln"> </div>
-          <div class="ln dim">PROPOSED BY THE AGENT</div>
-          <div class="ln">  <span class="y">+ proposed</span>   payments   <span class="dim">../payments-service   the worker calls it at /v2/refunds       enter add · d dismiss</span></div>
-          <div class="ln"> </div>
-          <div class="ln dim">THIS CHANGE</div>
-          <div class="ln sel">  <span class="g">● ready</span>        <span class="bold">Full refund of order o_1001</span>        <span class="dim">19 steps</span>                <span class="r">⚠ 1</span>   <span class="dim">built today 09:12</span></div>
-          <div class="ln"> </div>
-          <div class="ln dim">OTHER BRANCHES AND PULL REQUESTS</div>
-          <div class="ln">  <span class="y">≠ stale</span>        Partial refunds across payments    <span class="dim">3 of 14 steps changed</span>         <span class="dim">built yesterday</span></div>
-          <div class="ln">  <span class="r">✕ can't open</span>   Refund emails from the worker      <span class="dim">no billing at ../billing</span>      <span class="dim">built Mon</span></div>
-          <div class="ln"> </div>
-          <div class="ln dim">CODE AS IT IS</div>
-          <div class="ln">  <span class="g">● ready</span>        How a refund reaches the worker    <span class="dim">15 steps</span>                      <span class="dim">built Oct 21</span></div>
-          <div class="ln"> </div>
-          <div class="ln dim">▸ DONE  31 treks</div>
-          <div class="ln"> </div>
-          <div class="ln dim">▸ CAN'T READ  2 treks</div>
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">srctrek</span></span><span>development · 6 commits since origin/development</span></div>
+        <div class="split">
+          <div class="pane">
+            <div class="ln dim">YOUR CHANGES</div>
+            <div class="ln sel">  <span class="g">● ready</span>       <span class="bold">Stepping in the terminal</span>          <span class="dim">14 steps   built today 17:52</span></div>
+            <div class="ln"> </div>
+            <div class="ln dim">CODE AS IT IS</div>
+            <div class="ln">  <span class="g">● ready</span>       <span class="">show a trek's builds</span>              <span class="dim">event · screen.tsx:176</span></div>
+            <div class="ln">  <span class="dim">○ no trek</span>     <span class="">build a change's trek from the h…</span> <span class="dim">event · screen.tsx:177</span></div>
+            <div class="ln">  <span class="dim">○ no trek</span>     step to the next stop in the TUI  <span class="dim">event · screen.tsx:330</span></div>
+            <div class="ln dim">  ▸ 25 more ways in</div>
+            <div class="ln"> </div>
+            <div class="ln dim">OTHER BRANCHES AND PULL REQUESTS</div>
+            <div class="ln">  <span class="g">● ready</span>       Refunding an order                <span class="dim">12 steps   built today 17:52</span></div>
+            <div class="ln"> </div>
+            <div class="ln dim">▸ DONE  31 treks</div>
+          </div>
+          <div class="side">
+            <div class="ln dim">your changes</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="g">● ready</span></div>
+            <div class="ln bold">Stepping in the terminal</div>
+            <div class="ln dim">14 steps · 1 repo</div>
+            <div class="ln"> </div>
+            <div class="ln dim">development · 6 commits since</div>
+            <div class="ln dim">origin/development</div>
+          </div>
         </div>
-        <div class="foot">↑/↓ choose · enter open in Neovim · E editor · S settings · q quit</div>
+        <div class="foot">enter open · l builds · C another change · ? keys</div>
+      </div>
+    </figure>
+    <figure><figcaption>A way in with no trek selected: the same layout, only the pane's text changes</figcaption>
+      <div class="term screen">
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">srctrek</span></span><span>development · 6 commits since origin/development</span></div>
+        <div class="split">
+          <div class="pane">
+            <div class="ln dim">YOUR CHANGES</div>
+            <div class="ln">  <span class="g">● ready</span>       <span class="">Stepping in the terminal</span>          <span class="dim">14 steps   built today 17:52</span></div>
+            <div class="ln"> </div>
+            <div class="ln dim">CODE AS IT IS</div>
+            <div class="ln">  <span class="g">● ready</span>       <span class="">show a trek's builds</span>              <span class="dim">event · screen.tsx:176</span></div>
+            <div class="ln sel">  <span class="dim">○ no trek</span>     <span class="bold">build a change's trek from the h…</span> <span class="dim">event · screen.tsx:177</span></div>
+            <div class="ln">  <span class="dim">○ no trek</span>     step to the next stop in the TUI  <span class="dim">event · screen.tsx:330</span></div>
+            <div class="ln dim">  ▸ 25 more ways in</div>
+            <div class="ln"> </div>
+            <div class="ln dim">OTHER BRANCHES AND PULL REQUESTS</div>
+            <div class="ln">  <span class="g">● ready</span>       Refunding an order                <span class="dim">12 steps   built today 17:52</span></div>
+            <div class="ln"> </div>
+            <div class="ln dim">▸ DONE  31 treks</div>
+          </div>
+          <div class="side">
+            <div class="ln dim">a way into the code as it is</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="dim">○ no trek yet</span></div>
+            <div class="ln bold">build a change's trek from the</div>
+            <div class="ln bold">home screen</div>
+            <div class="ln dim">in srctrek</div>
+            <div class="ln"> </div>
+            <div class="ln it">your agent follows it through the</div>
+            <div class="ln it">code, as it runs</div>
+          </div>
+        </div>
+        <div class="foot">enter build its trek · b build · ? keys</div>
+      </div>
+    </figure>
+    <figure><figcaption>On a narrow terminal, no room for the pane: the selected row on one fixed, dim line over the footer</figcaption>
+      <div class="term screen" style="min-width: 0; max-width: 64ch">
+        <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">srctrek</span></span><span>6 commits</span></div>
+        <div class="pane">
+          <div class="ln dim">CODE AS IT IS</div>
+          <div class="ln">  <span class="g">● ready</span>    show a trek's builds</div>
+          <div class="ln sel">  <span class="dim">○ no trek</span>  <span class="bold">build a change's trek from the…</span></div>
+          <div class="ln">  <span class="dim">○ no trek</span>  step to the next stop in the TUI</div>
+        </div>
+        <div class="help-panel">
+          <div class="ln dim">a way into the code as it is · ○ no trek yet · build a cha…</div>
+        </div>
+        <div class="foot">enter build its trek · b build · ? keys</div>
       </div>
     </figure>
     <figure><figcaption>The title bar, case by case: the branch on the left, where and how much on the right</figcaption>
@@ -557,7 +623,7 @@
     <figure><figcaption>E, with nothing chosen yet</figcaption>
       <div class="term screen">
         <div class="pane">
-          <div class="ln dim">THIS CHANGE</div>
+          <div class="ln dim">YOUR CHANGES</div>
           <div class="ln sel">  <span class="g">● ready</span>        <span class="bold">Full refund of order o_1001</span>        <span class="dim">19 steps</span>   <span class="r">⚠ 1</span>   <span class="dim">built today 09:12</span></div>
         </div>
         <div class="foot">Step treks in:

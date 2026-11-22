@@ -236,12 +236,16 @@ terminal's background to its text; until then, or if it never reports them, the 
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 
-- **Home:** at the top, the selected row's heading: for the change's rows, the change (its branch
-  or pull request, with how many commits since its base on the right, after its repos where there
-  are several) and where its trek stands; for the code as it is, "Code as it is in …" and finding
-  its ways in or a way in's trek; for another saved trek, where it stands and what it holds. Then
-  the list in
-  sections: repos the agent proposed (they wait on the user), treks of this change, the code as it
+- **Home:** the change in the title bar (its branch or pull request, with how many commits since
+  its base, after its repos where there are several). The list, and beside it, behind a divider, a
+  pane describing the selected row under a dim line naming what it is: your changes and where
+  it stands; the code's ways in, or a way in and its trek; another saved trek, where it stands, what
+  it holds and what it's of. The list starts at the same line whatever is selected. On a terminal
+  narrower than 100 columns, the selected row is described on one dim line over the footer. The
+  list in
+  sections: repos the agent proposed (they wait on the user), your changes (titled YOUR CHANGES:
+  a row for them, with where their trek stands, until it's saved, then their trek's row, with
+  other treks of the same branch; `C another change` in the footer there), the code as it
   is over the same repos (its ways in, `◇ not found yet` until `b` finds them, each way in with its
   trek's state, its trek listed only there), treks of other branches and pull requests, then done treks
   (merged, branch gone, or their uncommitted work committed since) and files that can't be read,

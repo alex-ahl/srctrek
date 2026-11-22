@@ -24,6 +24,10 @@ export function enterLabel(row: Row | undefined): string {
     return "find ways in"
   }
 
+  if (row?.kind === "change") {
+    return "build its trek"
+  }
+
   const buildsTrigger = row?.kind === "trigger" && !hasTrek(row.trek)
 
   if (buildsTrigger) {
@@ -38,6 +42,8 @@ type Offered = {
   log: boolean
   stop: boolean
   dismiss: boolean
+  // C picks another change, offered on your changes' rows
+  choose: boolean
 }
 
 // What x does here: dismiss the selected proposal, else stop a build.
@@ -57,6 +63,7 @@ export function footerKeys(enter: string | undefined, offered: Offered): KeyHint
     ...(offered.build === undefined ? [] : [{ key: "b", does: offered.build }]),
     ...xHint(offered),
     ...(offered.log ? [{ key: "l", does: "builds" }] : []),
+    ...(offered.choose ? [{ key: "C", does: "another change" }] : []),
     HELP_HINT,
   ]
 }
