@@ -342,7 +342,222 @@
   </header>
 
   <section>
-    <p class="note">Nothing is being tried right now.</p>
+    <span class="eyebrow">Trying</span>
+    <h2>A landing page, and a screen per change</h2>
+    <p>The landing page and a change's screen take the place of the home screen, the change picker (<code>C</code>), and a trek's page. The landing page lists the changes; a change's screen is that change and its trek, built there and stepped from there. Stepping and the route map stay as they are.</p>
+    <div class="term">
+      <div class="pane">
+        <div class="ln">  <span class="bold">trek</span> ──▶ <span class="bold">landing page</span> ──enter──▶ <span class="bold">a change's screen</span> ──enter──▶ <span class="bold">stepping</span></div>
+        <div class="ln">                   ◀───esc────                  ◀────q─────</div>
+        <div class="ln"> </div>
+        <div class="ln dim">  trek &lt;pull request URL&gt;, trek --code, trek --code="&lt;trigger&gt;"   open that change's screen</div>
+        <div class="ln dim">  S                                                                settings, from either</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The landing page</h2>
+    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). A branch that's the head of an open pull request is that pull request: it's your work, left out of the pull requests below, and its trek is the pull request's. The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. More repos, ticked into the change, are listed under these as in the change picker. Enter opens the selected change's screen.</p>
+    <div class="grid2">
+      <figure><figcaption>Trying: on a branch an agent has worked on</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln">      with uncommitted work    <span class="dim">2 files</span>                 <span class="dim">○</span> no trek yet</div>
+            <div class="ln"> </div>
+            <div class="ln dim">WAITING ON YOUR REVIEW</div>
+            <div class="ln">    #12 Add partial refunds    <span class="dim">alice · 2h ago</span>          <span class="g">●</span> trek ready</div>
+            <div class="ln">    #15 Retry failed payouts   <span class="dim">bo · 1d ago</span>             <span class="dim">○</span> no trek yet</div>
+            <div class="ln"> </div>
+            <div class="ln dim">OTHER BRANCHES</div>
+            <div class="ln">    fix/rounding               <span class="dim">1 commit since main</span>     <span class="y">≠</span> trek stale</div>
+            <div class="ln dim">  ▸ 6 more</div>
+            <div class="ln"> </div>
+            <div class="ln dim">CODE AS IT IS</div>
+            <div class="ln">    web and api as they are    <span class="dim">7 ways in</span>               <span class="g">●</span> 2 treks</div>
+            <div class="ln"> </div>
+            <div class="ln dim">▸ DONE  12</div>
+          </div>
+          <div class="help-panel">
+            <div class="ln"><span class="dim">Opens:</span> feature/refunds in web, refunds-api in api <span class="dim">· 9 commits</span></div>
+          </div>
+          <div class="foot">enter open · space add repo · S settings · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: a branch just made, nothing on it yet</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    feature/payouts            <span class="dim">nothing since main yet</span></div>
+            <div class="ln"> </div>
+            <div class="ln dim">WAITING ON YOUR REVIEW</div>
+            <div class="ln">    #12 Add partial refunds    <span class="dim">alice · 2h ago</span>          <span class="g">●</span> trek ready</div>
+            <div class="ln"> </div>
+            <div class="ln dim">OTHER BRANCHES</div>
+            <div class="ln">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln">    fix/rounding               <span class="dim">1 commit since main</span>     <span class="y">≠</span> trek stale</div>
+            <div class="ln"> </div>
+            <div class="ln dim">CODE AS IT IS</div>
+            <div class="ln">    web as it is               <span class="dim">ways in not found yet</span></div>
+            <div class="ln"> </div>
+            <div class="ln dim">▸ DONE  12</div>
+          </div>
+          <div class="help-panel">
+            <div class="ln"><span class="dim">Opens:</span> feature/payouts in web <span class="dim">· nothing to trek until it has commits</span></div>
+          </div>
+          <div class="foot">enter open · space add repo · S settings · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: a pull request checked out — your work is that pull request, listed once, one trek either way</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    #12 Add partial refunds    <span class="dim">alice · checked out here</span> <span class="g">●</span> trek ready</div>
+            <div class="ln"> </div>
+            <div class="ln dim">WAITING ON YOUR REVIEW</div>
+            <div class="ln">    #15 Retry failed payouts   <span class="dim">bo · 1d ago</span>             <span class="dim">○</span> no trek yet</div>
+            <div class="ln"> </div>
+            <div class="ln dim">OTHER BRANCHES</div>
+            <div class="ln">    fix/rounding               <span class="dim">1 commit since main</span>     <span class="y">≠</span> trek stale</div>
+            <div class="ln"> </div>
+            <div class="ln dim">▸ DONE  12</div>
+          </div>
+          <div class="help-panel">
+            <div class="ln"><span class="dim">Opens:</span> pr 12 in web <span class="dim">· by alice · 4 commits</span></div>
+          </div>
+          <div class="foot">enter open · space add repo · S settings · ? keys</div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>A change's screen, by state</h2>
+    <p class="note">The change on top, the same in every state: what it is, and how big. Under it, its trek. Once there's a trek, its overview shows here and enter steps it, where the Step in setting says; the other place is one key away. A build started with <code>b</code> shows here, its steps as they arrive and a repo the agent proposes, to add with <code>a</code> or dismiss with <code>x</code>; <code>l</code> opens its log. A trek an agent saves from its own chat shows once it's saved. <code>b</code> always builds the trek: builds it, updates it, or builds it again.</p>
+    <div class="grid2">
+      <figure><figcaption>Trying: no trek yet</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 9 commits since main</span></div>
+          <div class="pane">
+            <div class="ln bold">feature/refunds</div>
+            <div class="ln dim">9 commits · 14 files · web 6, api 8</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="dim">○</span> no trek yet</div>
+            <div class="ln"> </div>
+            <div class="ln">  <span class="bold">b</span> builds one: the agent picks an example and follows it</div>
+            <div class="ln">    from its trigger to its outcome, across web and api.</div>
+            <div class="ln dim">  agent: claude -p … · set in S</div>
+          </div>
+          <div class="foot">b build · S settings · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: building, with a repo the agent proposes</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 9 commits since main</span></div>
+          <div class="pane">
+            <div class="ln bold">feature/refunds</div>
+            <div class="ln dim">9 commits · 14 files · web 6, api 8</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="y">◐</span> building  <span class="dim">0:42 · 3 steps so far</span></div>
+            <div class="ln">  <span class="dim">1</span>  web  POST /refunds                 <span class="dim">routes/refunds.ts:12</span></div>
+            <div class="ln">  <span class="dim">2</span>  web  createRefund                  <span class="dim">services/refund.ts:30</span></div>
+            <div class="ln">  <span class="dim">3</span>  api  ↯ POST /v1/refunds            <span class="dim">handlers/refunds.ts:8</span></div>
+            <div class="ln dim">     reading ledger/post.ts …</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="a">?</span> the agent went into <span class="bold">billing</span>   <span class="dim">a add it to the change · x dismiss</span></div>
+          </div>
+          <div class="foot">x stop · l the log · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: ready — the trek's overview, and enter steps it</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 9 commits since main</span></div>
+          <div class="pane">
+            <div class="ln bold">Partial refund of order o_1002</div>
+            <div class="ln dim">feature/refunds · 9 commits · built 2h ago</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="g">●</span> ready   <span class="dim">14 stops · web → api → worker</span></div>
+            <div class="ln"> </div>
+            <div class="ln">  <span class="dim">from</span>  POST /refunds with { order: o_1002, amount: 40 }</div>
+            <div class="ln">  <span class="dim">to</span>    a ledger row, and refund.created on the queue</div>
+            <div class="ln">  <span class="r">⚠</span> 1 likely wrong   <span class="dim">stop 9 · amount in cents, read as units</span></div>
+          </div>
+          <div class="foot">enter step here · e Neovim · b build again · l builds · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: stale</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 11 commits since main</span></div>
+          <div class="pane">
+            <div class="ln bold">Partial refund of order o_1002</div>
+            <div class="ln dim">feature/refunds · 11 commits · built yesterday</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="y">≠</span> stale   <span class="dim">4 of 14 stops' files changed since it was built</span></div>
+            <div class="ln"> </div>
+            <div class="ln">  <span class="dim">from</span>  POST /refunds with { order: o_1002, amount: 40 }</div>
+            <div class="ln">  <span class="dim">to</span>    a ledger row, and refund.created on the queue</div>
+          </div>
+          <div class="foot">b update · enter step it as it is · l builds · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: the build failed</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 9 commits since main</span></div>
+          <div class="pane">
+            <div class="ln bold">feature/refunds</div>
+            <div class="ln dim">9 commits · 14 files · web 6, api 8</div>
+            <div class="ln"> </div>
+            <div class="ln"><span class="r">✕</span> build failed <span class="dim">after 3:10</span></div>
+            <div class="ln dim">  │ trek: step 6 cites api/handlers/refunds.ts:88, past the file's end</div>
+            <div class="ln dim">  │ trek: round 3 rejected, giving up</div>
+          </div>
+          <div class="foot">b build again · l the whole log · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: several treks of one change — the chosen one's overview under them</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">feature/refunds</span></span><span>web, api · 9 commits since main</span></div>
+          <div class="pane">
+            <div class="ln bold">feature/refunds</div>
+            <div class="ln dim">9 commits · 14 files · web 6, api 8</div>
+            <div class="ln"> </div>
+            <div class="ln sel">  <span class="g">●</span> Partial refund of order o_1002     <span class="dim">14 stops · 2h ago</span></div>
+            <div class="ln">  <span class="g">●</span> A refund over the order's total   <span class="dim">9 stops · 1h ago</span></div>
+            <div class="ln"> </div>
+            <div class="ln">  <span class="dim">from</span>  POST /refunds with { order: o_1002, amount: 40 }</div>
+            <div class="ln">  <span class="dim">to</span>    a ledger row, and refund.created on the queue</div>
+            <div class="ln">  <span class="r">⚠</span> 1 likely wrong   <span class="dim">stop 9 · amount in cents, read as units</span></div>
+          </div>
+          <div class="foot">enter step here · e Neovim · b build again or a new trek · l builds · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>Trying: the code as it is — its ways in, each with its trek</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">code as it is</span></span><span>web, api</span></div>
+          <div class="pane">
+            <div class="ln bold">web and api as they are</div>
+            <div class="ln dim">7 ways in · found yesterday</div>
+            <div class="ln"> </div>
+            <div class="ln sel">  <span class="g">●</span> POST /refunds          <span class="dim">routes/refunds.ts:12</span></div>
+            <div class="ln">  <span class="g">●</span> POST /orders           <span class="dim">routes/orders.ts:9</span></div>
+            <div class="ln">  <span class="dim">○</span> nightly reconcile      <span class="dim">jobs/reconcile.ts:4</span></div>
+            <div class="ln">  <span class="dim">○</span> refund.created         <span class="dim">worker/consumers.ts:22</span></div>
+            <div class="ln dim">  ▸ 3 more</div>
+          </div>
+          <div class="foot">enter step its trek · b build it · B find ways in again · ? keys</div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Later</h2>
+    <p class="note">A trek an agent builds from its own chat, through <code>trek mcp</code>, showing on its change's screen as it's built, the same as one started with <code>b</code>: its steps as they arrive, a repo it proposes, and a build that stops partway.</p>
   </section>
 </main>
   </body>
