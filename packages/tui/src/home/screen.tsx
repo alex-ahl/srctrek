@@ -30,8 +30,6 @@ import { columnsOf } from "./list/columns"
 import { type AskedWayIn, type ChangeOpen, type Row, rowsOf } from "./list/rows"
 import { changeParts } from "./change-line"
 import { type Section, type SectionId, sectionsOf } from "./list/sections"
-import { headingFor } from "./heading"
-import { PANE_WIDTH, SideLine, SidePane } from "./side-pane"
 import { useTones } from "../ui/theme"
 import { ChangeTitleBar } from "./change-title"
 import { visibleWindow } from "./list/window"
@@ -120,23 +118,6 @@ function focusKey(focus: HomeFocus | undefined, rows: readonly Row[]): string | 
   return named ?? firstKey
 }
 
-// The pane beside the list from this terminal width.
-const PANE_FROM_WIDTH = 100
-
-/**
- * Where the list goes on a terminal this size: beside the pane where there's room, else with the
- * selected row on a line over the footer; how wide it is, and how many lines it gets.
- */
-function layoutOf(width: number, height: number, opening: boolean) {
-  const pane = width >= PANE_FROM_WIDTH
-  const above = (opening ? 1 : 0) + (pane ? 0 : 1)
-  return {
-    pane,
-    listWidth: pane ? width - PANE_WIDTH - 1 : width,
-    room: listHeight(height, above),
-  }
-}
-
 // The list's rows: proposed repos, your changes, the code's ways in, and the saved treks.
 const rowsFor = (props: Props) =>
   rowsOf(props.entries, props.codeStatus, props.proposals ?? [], props.asked, changeOpen(props))
@@ -161,18 +142,6 @@ function changeOpen(props: Props): ChangeOpen | undefined {
     canBuild: props.onBuild !== undefined,
   }
 }
-
-// What the pane needs to describe a row: both sides, the saved treks, and which keys can build.
-const headingInput = (props: Props, states: ReadonlyMap<string, TrekState>, now: Date) => ({
-  status: props.status,
-  summary: props.summary,
-  entries: props.entries,
-  states,
-  canBuild: props.onBuild !== undefined,
-  canFind: props.onFindWaysIn !== undefined,
-  canBuildTrigger: props.onBuildTrigger !== undefined,
-  now,
-})
 
 export function App(props: Props) {
   const tones = useTones()
@@ -232,14 +201,14 @@ export function App(props: Props) {
   useKeyboard(help.guard((key) => onList && listKey(key, actions, shifted)))
 
   const { width, height } = useTerminalDimensions()
-  const heading = headingFor(row, sections, headingInput(props, states, now))
   const choosesChange = props.choosing !== undefined && isOfChange(row, sections)
-  const { pane, listWidth, room } = layoutOf(width, height, props.opening !== undefined)
+  // the line a pick still opening takes, over the list
+  const room = listHeight(height, props.opening === undefined ? 0 : 1)
   const { start, end } = visibleWindow(lines.length, lineOfItem(lines, selected), room)
   const shown = shownItems(lines.slice(start, end), items.length)
   const visibleRows = items.flatMap((each) => (each.kind === "row" ? [each.row] : []))
-  const columns = columnsOf(visibleRows, listWidth, { status, states, now })
-  const context = { width: listWidth, now, columns, status, states, tint: props.tint }
+  const columns = columnsOf(visibleRows, width, { status, states, now })
+  const context = { width, now, columns, status, states, tint: props.tint }
 
   if (overlay !== undefined) {
     return overlay
@@ -260,27 +229,18 @@ export function App(props: Props) {
       >
         <OpeningLine opening={props.opening} />
         <OrKeysHelp open={help.open} groups={HOME_GROUPS}>
-          <box flexDirection="row" style={{ flexGrow: 1 }}>
-            <box flexDirection="column" style={{ flexGrow: 1 }}>
-              {rows.length === 0 ? (
-                <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>
-              ) : (
-                lines
-                  .slice(start, end)
-                  .map((line, i) => (
-                    <ListLineView
-                      key={start + i}
-                      line={line}
-                      selected={selected}
-                      context={context}
-                    />
-                  ))
-              )}
-            </box>
-            {pane && <SidePane heading={heading} />}
+          <box flexDirection="column" style={{ flexGrow: 1 }}>
+            {rows.length === 0 ? (
+              <text fg={tones.dim}>No treks in .srctrek/treks yet.</text>
+            ) : (
+              lines
+                .slice(start, end)
+                .map((line, i) => (
+                  <ListLineView key={start + i} line={line} selected={selected} context={context} />
+                ))
+            )}
           </box>
         </OrKeysHelp>
-        {!pane && <SideLine heading={heading} width={width - 2 * PADDING} />}
       </box>
       <Bottom
         prompt={prompt}

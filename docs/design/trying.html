@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>srctrek screens being tried</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #f5f7f6;
+        --panel: #ffffff;
+        --ink: #1d2421;
+        --muted: #5c6763;
+        --rule: #d8dedb;
+        --accent: #1f7a6b;
+        --accent-soft: #e2f1ed;
+        --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #121615;
+          --panel: #181d1b;
+          --ink: #e3e8e5;
+          --muted: #9aa5a0;
+          --rule: #2a312e;
+          --accent: #4fc1a8;
+          --accent-soft: #17302a;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #121615;
+        --panel: #181d1b;
+        --ink: #e3e8e5;
+        --muted: #9aa5a0;
+        --rule: #2a312e;
+        --accent: #4fc1a8;
+        --accent-soft: #17302a;
+        color-scheme: dark;
+      }
+      /* Terminal mocks keep a dark terminal theme, with ANSI-like roles. */
+      .term {
+        --t-bg: #16181b;
+        --t-fg: #d3d6da;
+        --t-dim: #7c838c;
+        --t-sel: #26403b;
+        --t-line: #2d3136;
+        --t-green: #8fcf7a;
+        --t-yellow: #e6c27a;
+        --t-red: #f2858a;
+        --t-blue: #8fb5ff;
+        --t-cyan: #7fd3d0;
+        --t-accent: #4fc1a8;
+        background: var(--t-bg);
+        color: var(--t-fg);
+        border-radius: 6px;
+        border: 1px solid var(--rule);
+        font: 12.5px/1.55 var(--mono);
+        overflow-x: auto;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.55 var(--sans);
+        padding-inline: 20px;
+        padding-block: 32px 64px;
+      }
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        gap: 52px;
+      }
+      h1,
+      h2 {
+        font-family: var(--cond);
+        font-weight: 600;
+        text-wrap: balance;
+        margin: 0;
+        line-height: 1.2;
+      }
+      h1 {
+        font-size: 34px;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 22px;
+      }
+      p {
+        margin: 0;
+        max-width: 70ch;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+      }
+      .lede {
+        color: var(--muted);
+        font-size: 17px;
+      }
+      header,
+      section {
+        display: grid;
+        gap: 14px;
+      }
+      .eyebrow {
+        font: 500 12px/1 var(--cond);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+      }
+      .note {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .grid2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+        gap: 20px;
+        align-items: start;
+      }
+      figure {
+        margin: 0;
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+      figcaption {
+        font: 500 13px var(--cond);
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+
+      .screen {
+        min-width: 560px;
+        padding: 0;
+      }
+      .tb {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 12px;
+        border-bottom: 1px solid var(--t-line);
+        color: var(--t-dim);
+      }
+      .tb b {
+        color: var(--t-fg);
+        font-weight: 600;
+      }
+      .pane {
+        padding: 10px 12px;
+        display: grid;
+        gap: 2px;
+      }
+      .ln {
+        white-space: pre;
+      }
+      .sel {
+        background: var(--t-sel);
+      }
+      .dim {
+        color: var(--t-dim);
+      }
+      .g {
+        color: var(--t-green);
+      }
+      .y {
+        color: var(--t-yellow);
+      }
+      .r {
+        color: var(--t-red);
+      }
+      .b {
+        color: var(--t-blue);
+      }
+      .c {
+        color: var(--t-cyan);
+      }
+      .a {
+        color: var(--t-accent);
+      }
+      .bold {
+        font-weight: 600;
+        color: var(--t-fg);
+      }
+      .it {
+        font-style: italic;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 36ch;
+      }
+      .split > .side {
+        border-left: 1px solid var(--t-line);
+        padding: 10px 12px;
+        display: grid;
+        gap: 2px;
+        align-content: start;
+      }
+      .help-panel {
+        padding: 8px 12px;
+        border-top: 1px solid var(--t-line);
+        display: grid;
+        gap: 2px;
+      }
+      .fg {
+        color: var(--t-fg);
+      }
+      .tb-case {
+        margin-bottom: 10px;
+      }
+      .foot {
+        padding: 6px 12px;
+        border-top: 1px solid var(--t-line);
+        color: var(--t-dim);
+        white-space: pre;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 230px;
+      }
+      .split > div + div {
+        border-left: 1px solid var(--t-line);
+      }
+      .step-hl {
+        background: rgba(79, 193, 168, 0.13);
+        box-shadow: inset 2px 0 0 var(--t-accent);
+      }
+
+      /* route map */
+      .lanes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(170px, 1fr));
+        gap: 0;
+        padding: 8px 12px 12px;
+        min-width: 600px;
+      }
+      .lane-h {
+        color: var(--t-dim);
+        border-bottom: 1px solid var(--t-line);
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .lane {
+        display: grid;
+        align-content: start;
+        gap: 0;
+        padding-right: 10px;
+      }
+      .node {
+        white-space: pre;
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      .node.cur {
+        background: var(--t-sel);
+      }
+      .gap {
+        height: 21px;
+      }
+      .hopline {
+        color: var(--t-dim);
+        white-space: pre;
+      }
+
+      .states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+        gap: 14px;
+      }
+      .state {
+        display: grid;
+        gap: 6px;
+      }
+      .state .term {
+        min-width: 0;
+      }
+      .state .pane {
+        padding: 8px 10px;
+      }
+      ol.q {
+        margin: 0;
+        padding-left: 22px;
+        display: grid;
+        gap: 12px;
+        max-width: 76ch;
+      }
+      ol.q li::marker {
+        font-family: var(--cond);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .tablewrap {
+        overflow-x: auto;
+        border: 1px solid var(--rule);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 600px;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: top;
+      }
+      th {
+        font: 500 12px var(--cond);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        background: var(--bg);
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- prettier-ignore -->
+    <main>
+  <header>
+    <span class="eyebrow">Being tried · not built</span>
+    <h1>srctrek screens being tried</h1>
+    <p class="lede">Designs under consideration. One that's chosen moves to <a href="terminal-screens.html">terminal-screens.html</a> as it's built; one that isn't is taken out.</p>
+  </header>
+
+  <section>
+    <p class="note">Nothing is being tried right now.</p>
+  </section>
+</main>
+  </body>
+</html>

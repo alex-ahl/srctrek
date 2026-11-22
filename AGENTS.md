@@ -22,7 +22,8 @@ migration layers. When something changes, change it everywhere at once.
 - **Typecheck, lint, tests, and the docs check pass on every commit** (`bun run check`).
 - **Stage only the files you changed;** never `git add -A`.
 - **Mocks live in `docs/design/terminal-screens.html`,** never published outside the repo. A change
-  to a screen's design updates its mock in the same change, so the mocks match the screens.
+  to a screen's design updates its mock in the same change, so the mocks match the screens. Designs
+  still being tried go in `docs/design/trying.html`, and move across once built.
 
 ## Commands
 

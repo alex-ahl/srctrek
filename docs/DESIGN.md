@@ -237,12 +237,7 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 
 - **Home:** the change in the title bar (its branch or pull request, with how many commits since
-  its base, after its repos where there are several). The list, and beside it, behind a divider, a
-  pane describing the selected row under a dim line naming what it is: your changes and where
-  it stands; the code's ways in, or a way in and its trek; another saved trek, where it stands, what
-  it holds and what it's of. The list starts at the same line whatever is selected. On a terminal
-  narrower than 100 columns, the selected row is described on one dim line over the footer. The
-  list in
+  its base, after its repos where there are several). The list across the whole width, in
   sections: repos the agent proposed (they wait on the user), your changes (titled YOUR CHANGES:
   a row for them, with where their trek stands, until it's saved, then their trek's row, with
   other treks of the same branch; `C another change` in the footer there), the code as it
