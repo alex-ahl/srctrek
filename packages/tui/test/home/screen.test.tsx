@@ -147,7 +147,7 @@ test("lists the treks in sections by what they're of, newest first, folding what
   ]
   const frame = await frameOf({ entries })
 
-  expect(frame).toContain(" CODE AS IT IS")
+  expect(frame).toContain(" TREKS OF THE CODE")
   expect(frame).toMatch(/▶ An older trek +12 steps/)
   expect(frame).toContain(" OTHER BRANCHES AND PULL REQUESTS")
   expect(frame).toMatch(/ {3}Refund orders +12 steps +⚠ 4/)
@@ -522,6 +522,15 @@ test("describes the selected row on one line over the footer where there's no ro
 
   expect(frame).not.toContain("│")
   expect(frame).toContain("the trek of your changes · A refund from the button to the payment")
+})
+
+test("keeps saved treks of the code apart from finding its ways in", async () => {
+  const codeTrek: TrekEntry = { ...other, code: true, heads: [] }
+  const codeStatus: TrekStatus = { kind: "failed", name: "web-code", logTail: ["trek: stopped"] }
+  const frame = await frameOf({ entries: [codeTrek], codeStatus, onFindWaysIn: noop })
+
+  expect(frame).toMatch(/CODE AS IT IS[^\n]*\n[^\n]*■ stopped +ways into this code/)
+  expect(frame).toMatch(/TREKS OF THE CODE[^\n]*\n[^\n]*An older trek/)
 })
 
 test("lists a way in's trek once, on its way in's row", async () => {

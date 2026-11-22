@@ -343,7 +343,7 @@
 
   <section>
     <h2>1. The home screen</h2>
-    <p class="note">The list on the left; on the right, a pane with what the selected row doesn't show: a trek's overview, trigger, flags and when it was built; a way in's whole place and what building it does; your changes across their repos and what building does. The state and name stay on the row. The list starts at the same line whatever is selected, so moving through it never shifts it; only the pane's text changes. The pane is behind a divider and opens with a dim line saying what it describes, so it can't be taken for a row. Sections: repos the agent proposed, your changes (a row for them, with where their trek stands, until it's saved; <code>C</code> picks another change), the code as it is (its ways in, each with its trek; <code>◇ not found yet</code> until <code>b</code> finds them), other branches and pull requests, then done treks and files that can't be read, folded with a count. The change is named in the title bar. Every key acts on the selected row, and the footer names what it does there.</p>
+    <p class="note">The list on the left; on the right, a pane with what the selected row doesn't show: a trek's overview, trigger, flags and when it was built; a way in's whole place and what building it does; your changes across their repos and what building does. The state and name stay on the row. The list starts at the same line whatever is selected, so moving through it never shifts it; only the pane's text changes. The pane is behind a divider and opens with a dim line saying what it describes, so it can't be taken for a row. Sections: repos the agent proposed, your changes (a row for them, with where their trek stands, until it's saved; <code>C</code> picks another change), the code as it is (finding its ways in, then each way in with its trek; <code>◇ not found yet</code> until <code>b</code> finds them), other saved treks of the code, other branches and pull requests, then done treks and files that can't be read, folded with a count. The change is named in the title bar. Every key acts on the selected row, and the footer names what it does there.</p>
     <figure><figcaption>The change's trek selected</figcaption>
       <div class="term screen">
         <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">srctrek</span></span><span>development · 6 commits since origin/development</span></div>
@@ -357,6 +357,9 @@
             <div class="ln">  <span class="dim">○ no trek</span>     <span class="">build a change's trek from the h…</span> <span class="dim">event · screen.tsx:177</span></div>
             <div class="ln">  <span class="dim">○ no trek</span>     step to the next stop in the TUI  <span class="dim">event · screen.tsx:330</span></div>
             <div class="ln dim">  ▸ 25 more ways in</div>
+            <div class="ln"> </div>
+            <div class="ln dim">TREKS OF THE CODE</div>
+            <div class="ln">  <span class="y">≠ stale</span>       How a refund reaches the worker   <span class="dim">2 of 15 steps changed</span></div>
             <div class="ln"> </div>
             <div class="ln dim">OTHER BRANCHES AND PULL REQUESTS</div>
             <div class="ln">  <span class="g">● ready</span>       Refunding an order                <span class="dim">12 steps   built today 17:52</span></div>
@@ -390,6 +393,9 @@
             <div class="ln sel">  <span class="dim">○ no trek</span>     <span class="bold">build a change's trek from the h…</span> <span class="dim">event · screen.tsx:177</span></div>
             <div class="ln">  <span class="dim">○ no trek</span>     step to the next stop in the TUI  <span class="dim">event · screen.tsx:330</span></div>
             <div class="ln dim">  ▸ 25 more ways in</div>
+            <div class="ln"> </div>
+            <div class="ln dim">TREKS OF THE CODE</div>
+            <div class="ln">  <span class="y">≠ stale</span>       How a refund reaches the worker   <span class="dim">2 of 15 steps changed</span></div>
             <div class="ln"> </div>
             <div class="ln dim">OTHER BRANCHES AND PULL REQUESTS</div>
             <div class="ln">  <span class="g">● ready</span>       Refunding an order                <span class="dim">12 steps   built today 17:52</span></div>

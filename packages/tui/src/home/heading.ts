@@ -143,6 +143,13 @@ function codeHeading(row: Row, input: HeadingInput): Heading {
     : changeHeading(input)
 }
 
+// What a saved trek is, by the section it's in.
+const LABELS: Readonly<Partial<Record<Section["id"], string>>> = {
+  change: "a trek of your changes",
+  "code-treks": "a trek of the code as it is",
+  done: "a trek whose work is done",
+}
+
 /**
  * The pane for the selected row: your changes, their trek, the code as it is, or another saved
  * trek; your changes when nothing is selected.
@@ -161,10 +168,16 @@ export function headingFor(
     return changeHeading(input)
   }
 
-  if (row.entry.name === input.status?.name) {
-    return yourTrekHeading(row.entry, input)
+  return trekHeading(row.entry, section, input)
+}
+
+// A saved trek's row: your changes' own, or another, said to be what its section is of.
+function trekHeading(entry: TrekEntry, section: Section | undefined, input: HeadingInput): Heading {
+  if (entry.name === input.status?.name) {
+    return yourTrekHeading(entry, input)
   }
 
-  const label = section?.id === "change" ? "a trek of your changes" : "a trek of another branch"
-  return savedHeading(row.entry, label, input.now)
+  const label =
+    (section === undefined ? undefined : LABELS[section.id]) ?? "a trek of another branch"
+  return savedHeading(entry, label, input.now)
 }

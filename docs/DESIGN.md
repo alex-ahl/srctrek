@@ -247,7 +247,8 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   a row for them, with where their trek stands, until it's saved, then their trek's row, with
   other treks of the same branch; `C another change` in the footer there), the code as it
   is over the same repos (its ways in, `◇ not found yet` until `b` finds them, each way in with its
-  trek's state, its trek listed only there), treks of other branches and pull requests, then done treks
+  trek's state, its trek listed only there), other saved treks of the code (TREKS OF THE CODE),
+  treks of other branches and pull requests, then done treks
   (merged, branch gone, or their uncommitted work committed since) and files that can't be read,
   folded under a heading with a count that enter opens. Every trek shows its state against its
   branch now, newest first in its section. Enter opens the selected trek's page.

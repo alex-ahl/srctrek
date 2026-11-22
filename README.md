@@ -55,8 +55,8 @@ The title bar names the change. A pane beside the list describes the selected ro
 trek and where it stands, the code's ways in or a way in's trek, or another saved trek; on a
 narrow terminal, a line over the footer does. Below, it lists
 repos your agent proposed, then in sections: your changes (their trek, or a row for them until
-it's built), the code as it is (its ways in, each
-with its trek, and other treks of the code), other branches and pull requests, and, folded, treks
+it's built), the code as it is (finding its ways in, then each way in with its trek), other treks
+of the code, other branches and pull requests, and, folded, treks
 whose work is done and files that aren't valid treks. Each trek shows its state against its branch now. With no trek of the
 change, `b` has your agent build one in the background; while it builds, the end of its log
 shows what the agent has done so far, and `l` opens the build view.
