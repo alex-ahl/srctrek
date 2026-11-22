@@ -69,7 +69,7 @@ export type Stepping =
     }>
   | Readonly<{ kind: "failed"; why: string }>
 
-/** The trek saved as `name` under `root`, opened at its overview and moved through by key. */
+/** The trek saved as `name` under `root`, opened at its first stop and moved through by key. */
 export function useStepping(root: string, name: string): Stepping {
   const [open, setOpen] = useState<Open | undefined>(undefined)
   const [why, setWhy] = useState<string | undefined>(undefined)
@@ -79,7 +79,7 @@ export function useStepping(root: string, name: string): Stepping {
     let current = true
     const opening = async () => {
       const trek = await loadTrek(trekPath(root, name))
-      return { session: openSession(trek), context: await viewContext(root, trek) }
+      return { session: stepNext(openSession(trek)), context: await viewContext(root, trek) }
     }
 
     opening().then(

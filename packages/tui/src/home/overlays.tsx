@@ -1,17 +1,14 @@
-import type { ChangeChoice, TrekEntry } from "@srctrek/core"
+import type { ChangeChoice } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
 import { type ReactNode, useCallback } from "react"
 import { ChangePicker } from "../change-picker/screen"
 import { EditorPicker } from "../editors/editor-picker"
 import { SettingsScreen } from "../settings/screen"
 import { BuildScreen } from "../build-view/screen"
-import type { PageActions } from "../stepping/page"
 import { SteppingScreen } from "../stepping/screen"
 import type { StepPlace } from "../editors/editors"
 import { TextPrompt } from "../ui/text-prompt"
-import { buildVerb } from "./footer-keys"
 import type { Choosing, Props } from "./screen"
-import { canStartBuild } from "./states"
 
 // What the bottom of the screen is asking, when it's asking: where a proposed repo lives, or where
 // treks are stepped.
@@ -90,12 +87,11 @@ export function Picker({
   )
 }
 
-// What can open over the list, which keeps its selection for when it closes; a trek's builds
-// opened from its page go back to it.
+// What can open over the list, which keeps its selection for when it closes.
 export type Over =
   | "settings"
   | "picker"
-  | Readonly<{ kind: "build"; name: string; back?: Over }>
+  | Readonly<{ kind: "build"; name: string }>
   | Readonly<{ kind: "trek"; name: string }>
 
 // The screen open over the list, if any: the picker only where there's a change to choose.
@@ -110,12 +106,11 @@ export function overlayFor(
   }
 
   if (typeof over === "object" && over.kind === "trek") {
-    const builds = () => go({ kind: "build", name: over.name, back: over })
-    return <Trek name={over.name} props={props} close={close} builds={builds} />
+    return <Trek name={over.name} props={props} close={close} />
   }
 
   if (typeof over === "object") {
-    return <Build name={over.name} props={props} close={() => go(over.back)} />
+    return <Build name={over.name} props={props} close={close} />
   }
 
   if (over !== "picker" || props.choosing === undefined) {
@@ -125,51 +120,8 @@ export function overlayFor(
   return <Picker choosing={props.choosing} tint={props.tint} close={close} />
 }
 
-// The editor a trek's page offers: the one chosen, else the first found here.
-function pageEditor(props: Props, entry: TrekEntry | undefined): PageActions["editor"] {
-  const editor = props.editor ?? props.editors?.[0]
-  if (editor === undefined || entry === undefined) {
-    return undefined
-  }
-
-  const verb = editor.steps ? "step" : "open"
-  return { label: `${verb} in ${editor.label}`, open: () => props.onOpen(entry, editor) }
-}
-
-// What a trek's page offers besides stepping it here; building and stopping only for the
-// change's trek, whose build trek runs.
-function pageActions(name: string, props: Props, builds: () => void): PageActions {
-  const { status, onBuild, onStopBuild, onReadBuild } = props
-  const isChange = status?.name === name
-  const entry = props.entries.find((each) => each.name === name)
-
-  return {
-    editor: pageEditor(props, entry),
-    editorFirst: props.editor !== undefined,
-    build:
-      isChange && canStartBuild(status) && onBuild !== undefined
-        ? { verb: buildVerb(status), run: onBuild }
-        : undefined,
-    stop:
-      isChange && status.kind === "building" && onStopBuild !== undefined
-        ? () => onStopBuild(name)
-        : undefined,
-    builds: onReadBuild === undefined ? undefined : builds,
-  }
-}
-
-// A trek's page, over the list: its overview, stepped from there in the terminal.
-function Trek({
-  name,
-  props,
-  close,
-  builds,
-}: {
-  name: string
-  props: Props
-  close: () => void
-  builds: () => void
-}) {
+// A trek, stepped over the list in the terminal.
+function Trek({ name, props, close }: { name: string; props: Props; close: () => void }) {
   const entry = props.entries.find((each) => each.name === name)
   return (
     <SteppingScreen
@@ -177,7 +129,6 @@ function Trek({
       editor={props.editor?.command ?? process.env["EDITOR"]}
       name={name}
       title={entry?.valid === true ? entry.title : name}
-      page={pageActions(name, props, builds)}
       onBack={close}
       tint={props.tint}
     />

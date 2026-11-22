@@ -16,7 +16,6 @@ import { type Layer, LayerView, layerKeys, layerWhere, lookedOn, useLayer } from
 import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf, nearestFirst } from "./peek"
 import { openAtLine } from "../editors/editors"
-import { type PageActions, pageGroups, pageHints, pageKeys } from "./page"
 import { nextText } from "./next"
 import { type ReactNode, useRef, useState } from "react"
 
@@ -27,8 +26,6 @@ type Props = {
   // the trek's saved name, and its title for the title bar
   name: string
   title: string
-  // the overview is the trek's page: what it offers besides stepping here
-  page: PageActions
   onBack: () => void
   // the step's lines' background, when the terminal's colours are known
   tint: RGBA | undefined
@@ -385,19 +382,9 @@ function useActions(
   }
 }
 
-// What the footer offers: what's open's keys, the page's on the overview, else a stop's.
-function footerKeys(
-  layer: Layer | undefined,
-  view: SessionView | undefined,
-  page: PageActions,
-  next: string,
-): readonly KeyHint[] {
-  if (layer !== undefined) {
-    return layerKeys(layer)
-  }
-
-  return view?.kind === "overview" ? pageHints(page) : stepHints(next)
-}
+// What the footer offers: what's open's keys, else a stop's.
+const footerKeys = (layer: Layer | undefined, next: string): readonly KeyHint[] =>
+  layer === undefined ? stepHints(next) : layerKeys(layer)
 
 // Where the trek is in its route; nowhere until it's open.
 const nearOf = (opened: Extract<Stepping, { kind: "open" }> | undefined): Near =>
@@ -469,7 +456,7 @@ function Main({ stepping, children }: { stepping: Stepping; children: ReactNode 
  * values, and arrows, and the call stack beside it; before the first, the overview; after the
  * last, the outcome and the flags.
  */
-export function SteppingScreen({ root, name, title, editor, page, onBack, tint }: Props) {
+export function SteppingScreen({ root, name, title, editor, onBack, tint }: Props) {
   const { width, height } = useTerminalDimensions()
   const stepping = useStepping(root, name)
   const { place, cursorKeys, onLayout, toStop } = useCursor(height)
@@ -478,12 +465,10 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
 
   const [note, setNote] = useState("")
   const help = useKeysHelp()
-  const stopKeys = new Map([
+  const keys = new Map([
     ...stepKeys({ stepping, view, cursor, open, onBack, move, edit, say: setNote }),
     ["?", help.show],
   ])
-  const onPage = view?.kind === "overview"
-  const keys = onPage ? new Map([...stopKeys, ...pageKeys(page, () => move("next"))]) : stopKeys
   useKeyboard(
     help.guard((key) => {
       setNote("")
@@ -520,7 +505,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
         note={note}
       />
       <Main stepping={stepping}>
-        <OrKeysHelp open={help.open} groups={onPage ? pageGroups(page) : STEP_GROUPS}>
+        <OrKeysHelp open={help.open} groups={STEP_GROUPS}>
           {view !== undefined && (
             <Body
               view={view}
@@ -537,7 +522,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
           )}
         </OrKeysHelp>
       </Main>
-      <Footer keys={help.footer(footerKeys(layer, view, page, nextWords(opened)))} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, nextWords(opened)))} shown="" />
     </box>
   )
 }
