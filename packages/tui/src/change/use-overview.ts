@@ -15,8 +15,16 @@ async function overviewOf(root: string, name: string): Promise<OverviewView | un
   return view.kind === "overview" ? view : undefined
 }
 
-/** The overview of the trek saved as `name`, once read; none while `shown` is false, or unread. */
-export function useOverview(root: string, name: string, shown: boolean): OverviewView | undefined {
+/**
+ * The overview of the trek saved as `name`, once read, and read again when `generation` moves on,
+ * as the trek may have been saved again; none while `shown` is false, or unread.
+ */
+export function useOverview(
+  root: string,
+  name: string,
+  shown: boolean,
+  generation: number,
+): OverviewView | undefined {
   // kept with the trek it's of, so another trek's never shows while this one's read
   const [read, setRead] = useState<{ name: string; view: OverviewView | undefined }>()
 
@@ -31,7 +39,9 @@ export function useOverview(root: string, name: string, shown: boolean): Overvie
     return () => {
       current = false
     }
-  }, [root, name, shown])
+    // a new generation reads the trek again, though nothing in the effect reads it
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
+  }, [root, name, shown, generation])
 
   return shown && read?.name === name ? read.view : undefined
 }

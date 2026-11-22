@@ -206,3 +206,31 @@ test("the worktree moving on reopens the change, and its trek shows as it now st
 
   expect(frame).toContain("● ready")
 })
+
+test("back on a change's screen, its trek shows as it last stood, not as it first opened", async () => {
+  const root = await repoWithTrek()
+  // read once, as the screen first opens; never again, so the screen can't catch up by reading
+  let reads = 0
+  const status = () =>
+    reads++ === 0 ? Promise.resolve(ready) : new Promise<TrekStatus>(() => undefined)
+  const opening: Opening = {
+    kind: "change",
+    choice: own,
+    change: changeWith(status),
+    status: missing,
+  }
+  const frame = await frameAfter(
+    app(root, opening),
+    async (input, on) => {
+      await on.shows("3 stops")
+      input.pressEnter()
+      await on.shows("1 / 3")
+      input.pressKey("q")
+      await on.shows("3 stops")
+    },
+    110,
+    30,
+  )
+
+  expect(frame).toContain("● ready")
+})

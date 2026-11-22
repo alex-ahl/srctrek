@@ -54,6 +54,8 @@ type Props = {
   // moves on when the worktree has, for the trek and the proposals to be read again; both are
   // read as the screen opens too
   generation?: number | undefined
+  // told where the trek stands each time that changes, for the screen to open on it again
+  onStatus?: ((status: TrekStatus) => void) | undefined
 }
 
 /**
@@ -71,6 +73,11 @@ function useStanding(first: Props, reads: ChangeReads) {
   const run = (work: Promise<void>) => void work.then(readAll)
 
   useBuildWatch(status, reads.status, { status: setStatus, ended: readProposals })
+  useEffect(() => {
+    first.onStatus?.(status)
+    // only a new status is news; the callback is a fresh one each render
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
   useEffect(() => {
     void readAll().catch(() => undefined)
     // readAll reads through the reads given now; only a new generation asks again
@@ -131,7 +138,7 @@ export function ChangeScreen(props: Props) {
   const { width } = useTerminalDimensions()
   const room = width - 2 * PADDING
   const { status, proposal, run } = useStanding(props, reads)
-  const overview = useOverview(root, status.name, canStep(status))
+  const overview = useOverview(root, status.name, canStep(status), props.generation ?? 0)
   const [asking, setAsking] = useState<Ask | undefined>(undefined)
   const help = useKeysHelp()
 

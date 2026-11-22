@@ -1,4 +1,6 @@
 import { expect, mock, test } from "bun:test"
+import { join } from "node:path"
+import { useEffect, useState } from "react"
 import type { ChangeSummary, ProposedRepo, TrekStatus } from "@srctrek/core"
 import { repoWithTrek } from "@srctrek/testing"
 import type { BuildRead } from "../../src/build-view/read"
@@ -344,4 +346,45 @@ test("x dismisses a proposed repo before it stops the build", async () => {
 
   expect(dismissRepo).toHaveBeenCalledWith("billing")
   expect(stop).not.toHaveBeenCalled()
+})
+
+// Rewrites the trek saved as `name` with a new title, as an agent saving it again would.
+async function retitle(root: string, name: string, title: string) {
+  const path = join(root, ".srctrek", "treks", `${name}.json`)
+  const saved = await Bun.file(path).text()
+  await Bun.write(path, saved.replace(/"title": ?"[^"]*"/, `"title": "${title}"`))
+}
+
+test("a trek saved again under its name shows its new overview once the worktree moves on", async () => {
+  const root = await repoWithTrek()
+  function Moving() {
+    const [generation, setGeneration] = useState(0)
+    useEffect(() => {
+      const timer = setTimeout(
+        () => void retitle(root, "pay", "Pay again").then(() => setGeneration(1)),
+        300,
+      )
+      return () => clearTimeout(timer)
+    }, [])
+
+    return (
+      <ChangeScreen
+        root={root}
+        summary={summary}
+        status={ready}
+        proposals={[]}
+        reads={{
+          status: () => Promise.resolve(ready),
+          build: () => Promise.resolve(NO_BUILD),
+          proposals: () => Promise.resolve([]),
+        }}
+        actions={ACTIONS}
+        generation={generation}
+      />
+    )
+  }
+
+  const frame = await frameAfter(<Moving />, (_input, on) => on.shows("Pay again"), 110, 30)
+
+  expect(frame).toContain("Pay again")
 })

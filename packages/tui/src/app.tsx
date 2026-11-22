@@ -212,6 +212,7 @@ export function App(props: Props) {
         actions={changeActions(change)}
         waysIn={waysIn}
         generation={generation}
+        onStatus={(status) => status !== shown.status && update(shown, { ...shown, status })}
       />
     )
   }
