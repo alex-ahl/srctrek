@@ -1,8 +1,10 @@
-import type { ChangeSummary, OverviewView, TrekStatus } from "@srctrek/core"
+import type { ChangeSummary, OverviewView, ProposedRepo, TrekStatus } from "@srctrek/core"
+import type { BuildRead } from "../build-view/read"
 import { Overview } from "../stepping/ends"
 import { count } from "../ui/text"
 import { useTones } from "../ui/theme"
 import { useStateText } from "../ui/turning"
+import { Building } from "./building"
 import { ChangeLine } from "./line"
 import { statusBlock } from "./status-block"
 
@@ -33,20 +35,37 @@ function Flags({ overview }: { overview: OverviewView }) {
   return <text fg={tones.bad}>{`⚠ ${count(high, "step")} likely wrong`}</text>
 }
 
+// A repo the agent went into that the change doesn't hold, for the user to add or dismiss.
+function Proposal({ proposal }: { proposal: ProposedRepo }) {
+  const tones = useTones()
+  return (
+    <text fg={tones.accent}>
+      {"? "}
+      <span fg={tones.dim}>the agent went into </span>
+      {proposal.name}
+      <span fg={tones.dim}>{`   ${proposal.reason}`}</span>
+    </text>
+  )
+}
+
 /**
- * A change's screen under its title: the change and how big it is, where its trek stands, and,
- * once there's a trek, its overview.
+ * A change's screen under its title: the change and how big it is, where its trek stands, or the
+ * build as it runs, a repo the agent proposed, and, once there's a trek, its overview.
  */
 export function ChangeBody({
   summary,
   status,
   overview,
+  proposal,
+  readBuild,
   canBuild,
   width,
 }: {
   summary: ChangeSummary | undefined
   status: TrekStatus
   overview: OverviewView | undefined
+  proposal: ProposedRepo | undefined
+  readBuild: () => Promise<BuildRead>
   canBuild: boolean
   width: number
 }) {
@@ -54,7 +73,17 @@ export function ChangeBody({
     <box flexDirection="column">
       {summary !== undefined && <ChangeLine summary={summary} width={width} />}
       <text> </text>
-      <StateBlock status={status} canBuild={canBuild} />
+      {status.kind === "building" ? (
+        <Building read={readBuild} width={width} />
+      ) : (
+        <StateBlock status={status} canBuild={canBuild} />
+      )}
+      {proposal !== undefined && (
+        <box flexDirection="column">
+          <text> </text>
+          <Proposal proposal={proposal} />
+        </box>
+      )}
       {overview !== undefined && (
         <box flexDirection="column">
           <text> </text>

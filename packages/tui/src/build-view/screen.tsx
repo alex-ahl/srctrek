@@ -1,11 +1,6 @@
 import { TextAttributes } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
-import {
-  type BuildProgress,
-  type ChangeSummary,
-  type DraftStep,
-  buildProgress,
-} from "@srctrek/core"
+import { type BuildProgress, type ChangeSummary, buildProgress } from "@srctrek/core"
 import { useCallback, useState } from "react"
 import { ChangeLine } from "../change/line"
 import { Footer, type KeyHint } from "../ui/footer"
@@ -16,6 +11,7 @@ import { TitleBar } from "../ui/title-bar"
 import { type BuildRead, buildLabel, clockText, whyEnded } from "./read"
 import { useBuild } from "./use-build"
 import { useStateText } from "../ui/turning"
+import { StepLine } from "./step-line"
 
 type Props = {
   // what's open, for the change's own trek; for any other, the trek by its title or name
@@ -33,12 +29,6 @@ type Props = {
 
 // The last of the agent's reads shown; the count says how many there were, and the log has all.
 const READS_SHOWN = 5
-// A step's id and repo columns, before its summary.
-const ID_WIDTH = 5
-const REPO_WIDTH = 8
-
-const FLAG_WORDS = { high: "⚠ likely wrong", medium: "● risky", low: "● worth knowing" } as const
-
 type StepsProps = { build: BuildRead; progress: BuildProgress; saved: boolean; width: number }
 function Heading({ title, detail }: { title: string; detail: string }) {
   const tones = useTones()
@@ -63,23 +53,6 @@ function Reading({ reads, width }: { reads: readonly string[]; width: number }) 
         </text>
       ))}
     </box>
-  )
-}
-
-// A step of the draft: its id, repo, and summary, a hop marked, and its flag when it has one.
-function StepLine({ step, width }: { step: DraftStep; width: number }) {
-  const tones = useTones()
-  const flag = step.flag === null ? "" : FLAG_WORDS[step.flag]
-  const summary = `${step.kind === "hop" ? "↯ " : ""}${step.summary}`
-  const room = width - 2 - ID_WIDTH - REPO_WIDTH - (flag === "" ? 0 : flag.length + 2)
-
-  return (
-    <text fg={COLOUR.text}>
-      <span fg={tones.dim}>{`  ${step.id.padEnd(ID_WIDTH)}`}</span>
-      {fit(step.repo, REPO_WIDTH - 1).padEnd(REPO_WIDTH)}
-      {fit(summary, room)}
-      {flag !== "" && <span fg={step.flag === "high" ? tones.bad : tones.warn}>{`  ${flag}`}</span>}
-    </text>
   )
 }
 
