@@ -1,16 +1,35 @@
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import type { ChangeSummary, ProposedRepo, TrekStatus } from "@srctrek/core"
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import type { BuildRead } from "../build-view/read"
 import { useBuildWatch } from "../home/watch/use-build-watch"
-import { Footer } from "../ui/footer"
-import { OrKeysHelp, useKeysHelp } from "../ui/keys-help"
+import { Footer, type KeyHint } from "../ui/footer"
+import { type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-help"
 import { PADDING } from "../ui/layout"
+import { moveKeys } from "../ui/move"
 import { TextPrompt } from "../ui/text-prompt"
 import { ChangeBody } from "./body"
-import { type ChangeActions, canStep, changeGroups, changeHints, changeKeys } from "./keys"
+import {
+  type Ask,
+  type ChangeActions,
+  type KeyContext,
+  canStep,
+  changeGroups,
+  changeHints,
+  changeKeys,
+} from "./keys"
 import { ChangeTitleBar } from "./title"
 import { useOverview } from "./use-overview"
+import {
+  type WaysInActions,
+  WaysIn,
+  movedKey,
+  selectedRow,
+  wayRows,
+  waysGroups,
+  waysHints,
+  waysKeys,
+} from "./ways-in"
 
 /** Where the screen reads, as they change, the trek, its latest build, and the repos proposed. */
 export type ChangeReads = Readonly<{
@@ -29,6 +48,8 @@ type Props = {
   proposals: ProposedRepo[]
   reads: ChangeReads
   actions: ChangeActions
+  // for code as it is with no trigger, what its ways in offer once found
+  waysIn?: WaysInActions | undefined
 }
 
 /**
@@ -49,27 +70,87 @@ function useStanding(first: Props, reads: ChangeReads) {
   return { status, proposal: proposals[0], run }
 }
 
+// What the screen shows under the change, and its keys, footer, and ? panel.
+type Shown = Readonly<{
+  body: ReactNode
+  keys: ReadonlyMap<string, () => void>
+  hints: KeyHint[]
+  groups: KeyGroup[]
+}>
+
+/** The code's ways in, once found: chosen with ↑/↓, the selection kept by its key. */
+function useWaysIn(
+  status: TrekStatus,
+  waysIn: WaysInActions | undefined,
+  context: KeyContext,
+  actions: ChangeActions,
+  width: number,
+): Shown | undefined {
+  const [chosen, setChosen] = useState<string | undefined>(undefined)
+  if (status.kind !== "triggers" || waysIn === undefined) {
+    return undefined
+  }
+
+  const rows = wayRows(status.triggers)
+  const selected = selectedRow(rows, chosen)
+  const ways = { ...context, row: rows[selected], actions: waysIn, find: actions.build }
+  const move = (by: number) => setChosen(movedKey(rows, selected, by))
+  return {
+    body: <WaysIn rows={rows} selected={selected} width={width} />,
+    keys: new Map([
+      ...waysKeys(ways),
+      ...moveKeys(move),
+      ["escape", actions.back],
+      ["q", actions.back],
+    ]),
+    hints: waysHints(ways),
+    groups: waysGroups(ways),
+  }
+}
+
+// A letter typed with shift as its capital, "B", so maps name capitals as they're shown.
+const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
+  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
+
 /**
  * A change and its trek: what the change is, where its trek stands or its build as it runs, the
- * repos the agent proposed, and, once there's a trek, its overview, stepped from here.
+ * repos the agent proposed, and, once there's a trek, its overview, stepped from here. For code
+ * as it is, its ways in, once found, each with its trek.
  */
 export function ChangeScreen(props: Props) {
   const { root, summary, reads, actions } = props
   const { width } = useTerminalDimensions()
+  const room = width - 2 * PADDING
   const { status, proposal, run } = useStanding(props, reads)
   const overview = useOverview(root, status.name, canStep(status))
-  const [asking, setAsking] = useState<string | undefined>(undefined)
+  const [asking, setAsking] = useState<Ask | undefined>(undefined)
   const help = useKeysHelp()
 
-  const context = { status, proposal, run, askLocation: setAsking }
-  const keys = new Map([...changeKeys(context, actions), ["?", help.show]])
-  useKeyboard(help.guard((key) => asking === undefined && keys.get(key.name)?.()))
+  const findsWaysIn = summary?.code === true && summary.trigger === undefined
+  const context = { status, findsWaysIn, proposal, run, ask: setAsking }
+  const ways = useWaysIn(status, props.waysIn, context, actions, room)
+  const shown: Shown = ways ?? {
+    body: (
+      <ChangeBody
+        summary={summary}
+        status={status}
+        overview={overview}
+        proposal={proposal}
+        readBuild={reads.build}
+        canBuild={actions.build !== undefined}
+        width={room}
+      />
+    ),
+    keys: changeKeys(context, actions),
+    hints: changeHints(context, actions),
+    groups: changeGroups(context, actions),
+  }
+  const keys = new Map([...shown.keys, ["?", help.show]])
+  useKeyboard(help.guard((key) => asking === undefined && keys.get(shifted(key))?.()))
 
-  const add = (location: string) => {
+  const answer = (text: string) => {
     setAsking(undefined)
-    if (proposal !== undefined) {
-      run(actions.addRepo(proposal.name, location))
-    }
+    asking?.answer(text)
   }
 
   return (
@@ -85,24 +166,17 @@ export function ChangeScreen(props: Props) {
           overflow: "hidden",
         }}
       >
-        <OrKeysHelp open={help.open} groups={changeGroups(context, actions)}>
-          <ChangeBody
-            summary={summary}
-            status={status}
-            overview={overview}
-            proposal={proposal}
-            readBuild={reads.build}
-            canBuild={actions.build !== undefined}
-            width={width - 2 * PADDING}
-          />
+        <OrKeysHelp open={help.open} groups={shown.groups}>
+          {shown.body}
         </OrKeysHelp>
       </box>
       {asking === undefined ? (
-        <Footer keys={help.footer(changeHints(context, actions))} shown="" />
+        <Footer keys={help.footer(shown.hints)} shown="" />
       ) : (
         <TextPrompt
-          question={`Where does ${asking} live? A path or URL, esc to cancel:`}
-          onSubmit={add}
+          question={asking.question}
+          hint={asking.hint}
+          onSubmit={answer}
           onCancel={() => setAsking(undefined)}
         />
       )}

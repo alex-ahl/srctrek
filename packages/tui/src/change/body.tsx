@@ -6,12 +6,12 @@ import { useTones } from "../ui/theme"
 import { useStateText } from "../ui/turning"
 import { Building } from "./building"
 import { ChangeLine } from "./line"
-import { statusBlock } from "./status-block"
+import { type Opened, statusBlock } from "./status-block"
 
 // Where the trek stands: its symbol and state in the state's tone, then dim lines saying why.
-function StateBlock({ status, canBuild }: { status: TrekStatus; canBuild: boolean }) {
+function StateBlock(props: { status: TrekStatus; canBuild: boolean; open: Opened }) {
   const tones = useTones()
-  const block = statusBlock(status, undefined, canBuild)
+  const block = statusBlock(props.status, undefined, props.canBuild, props.open)
   const text = useStateText(block)
 
   return (
@@ -48,6 +48,12 @@ function Proposal({ proposal }: { proposal: ProposedRepo }) {
   )
 }
 
+// What's open, as the state words it: code as it is, from a trigger or not, else a change.
+const openedOf = (summary: ChangeSummary | undefined): Opened => ({
+  code: summary?.code ?? false,
+  trigger: summary?.trigger,
+})
+
 /**
  * A change's screen under its title: the change and how big it is, where its trek stands, or the
  * build as it runs, a repo the agent proposed, and, once there's a trek, its overview.
@@ -76,7 +82,7 @@ export function ChangeBody({
       {status.kind === "building" ? (
         <Building read={readBuild} width={width} />
       ) : (
-        <StateBlock status={status} canBuild={canBuild} />
+        <StateBlock status={status} canBuild={canBuild} open={openedOf(summary)} />
       )}
       {proposal !== undefined && (
         <box flexDirection="column">

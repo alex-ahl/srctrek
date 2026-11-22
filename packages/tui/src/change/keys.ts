@@ -22,14 +22,18 @@ export type ChangeActions = Readonly<{
   back: () => void
 }>
 
+/** A question the screen asks in the footer's place, and what the answer does. */
+export type Ask = Readonly<{ question: string; hint?: string; answer: (text: string) => void }>
+
 /** What the keys need besides the actions: the repo proposed, and how to run and ask. */
 export type KeyContext = Readonly<{
   status: TrekStatus
+  // code as it is with no trigger: b finds its ways in rather than building a trek
+  findsWaysIn: boolean
   // the first repo the agent proposed that's still unsettled
   proposal: ProposedRepo | undefined
   run: (work: Promise<void>) => void
-  // asks where a proposed repo lives, when the agent didn't find out
-  askLocation: (name: string) => void
+  ask: (ask: Ask) => void
 }>
 
 const STEPPABLE: ReadonlySet<TrekStatus["kind"]> = new Set(["ready", "older-guide", "stale"])
@@ -37,8 +41,8 @@ const STEPPABLE: ReadonlySet<TrekStatus["kind"]> = new Set(["ready", "older-guid
 /** Whether the change's trek can be stepped: saved, even when built at older commits. */
 export const canStep = (status: TrekStatus) => STEPPABLE.has(status.kind)
 
-// What b does to the change's trek, in the states it can build from.
-const BUILD_VERBS: Partial<Readonly<Record<TrekStatus["kind"], string>>> = {
+/** What b does to a trek, in the states it can build from. */
+export const BUILD_VERBS: Partial<Readonly<Record<TrekStatus["kind"], string>>> = {
   missing: "build",
   stale: "update",
   ready: "build again",
@@ -46,6 +50,15 @@ const BUILD_VERBS: Partial<Readonly<Record<TrekStatus["kind"], string>>> = {
   unreadable: "build again",
   failed: "build again",
 }
+
+// What b does for code as it is with no trigger, whose ways in are found rather than a trek built.
+const FIND_VERBS: Partial<Readonly<Record<TrekStatus["kind"], string>>> = {
+  missing: "find ways in",
+  failed: "find them again",
+}
+
+const verbOf = ({ status, findsWaysIn }: KeyContext) =>
+  (findsWaysIn ? FIND_VERBS : BUILD_VERBS)[status.kind]
 
 // Enter, and the other place one key away: e for the editor, or n for here.
 function placeHints(status: TrekStatus, { editor, editorFirst }: ChangeActions): KeyHint[] {
@@ -80,7 +93,7 @@ function xHint({ status, proposal }: KeyContext): KeyHint[] {
 
 // What acts on the trek besides stepping it, and on a repo the agent proposed.
 function trekHints(context: KeyContext, actions: ChangeActions): KeyHint[] {
-  const verb = BUILD_VERBS[context.status.kind]
+  const verb = verbOf(context)
   const { proposal } = context
   return [
     ...(verb === undefined || actions.build === undefined ? [] : [{ key: "b", does: verb }]),
@@ -105,17 +118,19 @@ export function changeGroups(context: KeyContext, actions: ChangeActions): KeyGr
 }
 
 // a adds the repo proposed, first asking where it lives when the agent didn't find out.
-function addKey({ proposal, run, askLocation }: KeyContext, actions: ChangeActions) {
+function addKey({ proposal, run, ask }: KeyContext, actions: ChangeActions) {
   if (proposal === undefined) {
     return
   }
 
-  if (proposal.source === undefined) {
-    askLocation(proposal.name)
+  const { name, source } = proposal
+  if (source === undefined) {
+    const question = `Where does ${name} live? A path or URL, esc to cancel:`
+    ask({ question, answer: (location) => run(actions.addRepo(name, location)) })
     return
   }
 
-  run(actions.addRepo(proposal.name))
+  run(actions.addRepo(name))
 }
 
 // x dismisses the repo proposed, else stops the build.
@@ -138,7 +153,7 @@ export function changeKeys(
   const { editor, editorFirst, step, build } = actions
   const stepping = canStep(context.status)
   const enter = editorFirst && editor !== undefined ? editor.open : step
-  const builds = BUILD_VERBS[context.status.kind] !== undefined
+  const builds = verbOf(context) !== undefined
 
   return new Map([
     ["return", () => stepping && enter()],
