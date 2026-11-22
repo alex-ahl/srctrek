@@ -69,14 +69,15 @@ const STATE_WORDS: Readonly<Record<string, string>> = {
   [STATE_LABELS.stale.state]: "trek stale",
 }
 
-// "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours the home screen uses.
-function StatusView({ status }: { status: TrekStatus | undefined }) {
+// "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours a change's screen
+// uses; code as it is says where finding its ways in stands.
+function StatusView({ status, code }: { status: TrekStatus | undefined; code: boolean }) {
   const tones = useTones()
   if (status === undefined) {
     return null
   }
 
-  const { symbol, state, tone } = statusBlock(status, undefined, false)
+  const { symbol, state, tone } = statusBlock(status, undefined, false, { code })
   return <span fg={tones[tone]}>{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
 }
 
@@ -100,7 +101,7 @@ function ChangeView({
       {"  "}
       <span>{fit(row.label, widths.name).padEnd(widths.name)}</span>
       <span fg={tones.dim}>{`  ${row.detail.padEnd(widths.detail)}`}</span>
-      <StatusView status={status} />
+      <StatusView status={status} code={row.choice.kind === "code"} />
     </span>
   )
 }
@@ -213,6 +214,7 @@ export function LandingList({
   note,
   drop,
   tint,
+  height,
 }: {
   items: readonly LandingItem[]
   chosen: number
@@ -221,31 +223,37 @@ export function LandingList({
   // a repo's branches open under its row
   drop: DropView | undefined
   tint: RGBA | undefined
+  // the lines there's room for
+  height: number
 }) {
   const widths = widthsOf(items)
   const noteAt = noteIndex(items)
+  const start = firstShown(items, chosen, noteAt, note !== undefined, height)
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
-      {items.map((item, index) => (
-        <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
-          {index === noteAt && <Note note={note} first={index === 0} />}
-          {startsGroup(items[index - 1], item) && (
-            <Heading group={groupOf(item)} first={index === 0 && noteAt !== 0} />
-          )}
-          {item.kind === "done-fold" && <text> </text>}
-          <Selectable selected={index === chosen && drop === undefined} tint={tint}>
-            <ItemView
-              item={item}
-              selected={index === chosen}
-              open={isOpen(item, drop)}
-              widths={widths}
-              statuses={statuses}
-            />
-          </Selectable>
-          {drop !== undefined && isOpen(item, drop) && <DropLines view={drop} tint={tint} />}
-        </box>
-      ))}
+      {items.slice(start).map((item, shown) => {
+        const index = start + shown
+        return (
+          <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
+            {index === noteAt && <Note note={note} first={index === 0} />}
+            {startsGroup(items[index - 1], item) && (
+              <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
+            )}
+            {item.kind === "done-fold" && <text> </text>}
+            <Selectable selected={index === chosen && drop === undefined} tint={tint}>
+              <ItemView
+                item={item}
+                selected={index === chosen}
+                open={isOpen(item, drop)}
+                widths={widths}
+                statuses={statuses}
+              />
+            </Selectable>
+            {drop !== undefined && isOpen(item, drop) && <DropLines view={drop} tint={tint} />}
+          </box>
+        )
+      })}
       {noteAt === items.length && <Note note={note} first={items.length === 0} />}
     </box>
   )
@@ -264,6 +272,50 @@ const startsGroup = (previous: LandingItem | undefined, item: LandingItem) =>
 function noteIndex(items: readonly LandingItem[]): number {
   const after = items.findIndex((item) => groupOf(item) !== "YOUR WORK")
   return after === -1 ? items.length : after
+}
+
+/**
+ * Where each item's lines start, its heading and the note above it among them, and where its own
+ * line is; a repo's open branches are left out, as they open under the selection.
+ */
+function linesOf(items: readonly LandingItem[], noteAt: number, hasNote: boolean) {
+  const tops: number[] = []
+  const own: number[] = []
+  let line = 0
+  for (const [index, item] of items.entries()) {
+    tops.push(line)
+    if (index === noteAt && hasNote) {
+      line += index === 0 ? 2 : 3
+    }
+
+    if (startsGroup(items[index - 1], item)) {
+      line += index === 0 && noteAt !== 0 ? 1 : 2
+    }
+
+    line += item.kind === "done-fold" ? 1 : 0
+    own.push(line)
+    line += 1
+  }
+
+  return { tops, own, total: line }
+}
+
+/** The first item drawn, so the selected one sits mid-list where the list runs past `height`. */
+function firstShown(
+  items: readonly LandingItem[],
+  chosen: number,
+  noteAt: number,
+  hasNote: boolean,
+  height: number,
+): number {
+  const { tops, own, total } = linesOf(items, noteAt, hasNote)
+  if (total <= height) {
+    return 0
+  }
+
+  const top = Math.min(Math.max((own[chosen] ?? 0) - Math.floor(height / 2), 0), total - height)
+  const first = tops.findIndex((line) => line >= top)
+  return first === -1 ? 0 : Math.min(first, chosen)
 }
 
 function Note({ note, first }: { note: LandingNote | undefined; first: boolean }) {

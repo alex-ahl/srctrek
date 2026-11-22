@@ -382,9 +382,25 @@ function useActions(
   }
 }
 
-// What the footer offers: what's open's keys, else a stop's.
-const footerKeys = (layer: Layer | undefined, next: string): readonly KeyHint[] =>
-  layer === undefined ? stepHints(next) : layerKeys(layer)
+// Before the first stop, n is all there is to do, and the route map.
+const OVERVIEW_HINTS: readonly KeyHint[] = [
+  { key: "n", does: "the first stop" },
+  { key: "r", does: "route" },
+  HELP_HINT,
+]
+
+// What the footer offers: what's open's keys, the overview's, else a stop's.
+function footerKeys(
+  layer: Layer | undefined,
+  view: SessionView | undefined,
+  next: string,
+): readonly KeyHint[] {
+  if (layer !== undefined) {
+    return layerKeys(layer)
+  }
+
+  return view?.kind === "overview" ? OVERVIEW_HINTS : stepHints(next)
+}
 
 // Where the trek is in its route; nowhere until it's open.
 const nearOf = (opened: Extract<Stepping, { kind: "open" }> | undefined): Near =>
@@ -522,7 +538,7 @@ export function SteppingScreen({ root, name, title, editor, onBack, tint }: Prop
           )}
         </OrKeysHelp>
       </Main>
-      <Footer keys={help.footer(footerKeys(layer, nextWords(opened)))} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, view, nextWords(opened)))} shown="" />
     </box>
   )
 }

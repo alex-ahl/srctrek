@@ -46,6 +46,7 @@ test("p from the first stop shows the overview", async () => {
 
   expect(frame).toContain("3 stops")
   expect(frame).not.toContain("1 / 3")
+  expect(frame).toContain("n the first stop · r route · ? keys")
 })
 
 test("the first stop shows its file, the narration over it, and where n and p go", async () => {

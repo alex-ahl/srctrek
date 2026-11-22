@@ -1,6 +1,6 @@
 import { errorText, folderName } from "@srctrek/core"
 import type { RGBA } from "@opentui/core"
-import { useKeyboard } from "@opentui/react"
+import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import type {
   BranchChoices,
   ChangeChoice,
@@ -117,6 +117,9 @@ function useCheckouts(nearby: () => Promise<NearbyCheckout[]>): readonly NearbyC
   return found
 }
 
+// The title bar, the line above the list, what enter opens, and the footer, each with its rule.
+const CHROME_LINES = 7
+
 const DROP_KEYS = [
   { key: "type", does: "to narrow" },
   { key: "enter", does: "take" },
@@ -230,6 +233,7 @@ const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
  */
 export function Landing(props: Props) {
   const tones = useTones()
+  const { height } = useTerminalDimensions()
   const { branches, rows, done, note } = useRows(props)
   const nearby = useCheckouts(props.nearby)
   const [ticked, setTicked] = useState(() =>
@@ -328,6 +332,7 @@ export function Landing(props: Props) {
                     }
               }
               tint={props.tint}
+              height={height - CHROME_LINES}
             />
           </box>
         </OrKeysHelp>

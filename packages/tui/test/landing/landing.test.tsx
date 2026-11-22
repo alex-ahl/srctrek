@@ -30,10 +30,15 @@ const done: DoneTrek[] = [
   { name: "spike-ledger", title: "Posting to the ledger", why: "branch gone" },
 ]
 
-// The user's own branch has a trek; fix/rounding has none; the rest haven't answered yet.
+// The user's own branch has a trek; fix/rounding has none, nor has the code its ways in; the rest
+// haven't answered yet.
 function statusOf(choice: ChangeChoice): Promise<TrekStatus> {
   if (choice.kind === "own" && !choice.uncommitted) {
     return Promise.resolve({ kind: "ready", name: "feature-refunds" })
+  }
+
+  if (choice.kind === "code") {
+    return Promise.resolve({ kind: "missing", name: "web" })
   }
 
   const none: TrekStatus = { kind: "missing", name: "fix-rounding" }
@@ -519,4 +524,41 @@ test("a ticked repo that isn't beside this one stays listed, and goes along with
 
   expect(frame).toMatch(/\[x\] billing +\.\.\/\.\.\/work\/billing +invoices/)
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [billing] })
+})
+
+test("code as it is says where finding its ways in stands, not a trek's state", async () => {
+  const frame = await frameAfter(landing(), (_input, on) => on.shows("ways in not found yet"))
+
+  expect(frame).toMatch(
+    /its ways in +routes, events, and commands to follow +○ ways in not found yet/,
+  )
+})
+
+test("on a short terminal, the list scrolls to keep the selection in view", async () => {
+  const many = Array.from({ length: 12 }, (_, i) => ({
+    name: `old-${String(i)}`,
+    title: `Old trek ${String(i)}`,
+    why: "merged",
+  }))
+  const frame = await frameAfter(
+    <Landing
+      load={() => Promise.resolve(choices)}
+      pullRequests={() => Promise.resolve(open)}
+      nearby={() => Promise.resolve(nearby)}
+      repoBranches={() => Promise.resolve(apiBranches)}
+      fetchRepo={fetchRepo}
+      status={statusOf}
+      done={() => Promise.resolve(many)}
+      from={{ kind: "trek", name: "old-11" }}
+      onPick={() => undefined}
+      onSettings={() => undefined}
+      onQuit={() => undefined}
+      tint={undefined}
+    />,
+    (_input, on) => on.shows("Opens: Old trek 11"),
+    110,
+    24,
+  )
+
+  expect(frame).toMatch(/▶ +Old trek 11 +merged/)
 })
