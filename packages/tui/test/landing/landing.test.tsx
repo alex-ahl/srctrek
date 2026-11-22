@@ -6,7 +6,6 @@ import type {
   OpenPullRequest,
   RepoBranch,
   RepoBranches,
-  RepoPick,
   TrekStatus,
 } from "@srctrek/core"
 import { dropRows, opened } from "../../src/landing/drop"
@@ -101,7 +100,7 @@ type Setup = Partial<{
   onQuit: () => void
   pullRequests: () => Promise<OpenPullRequest[]>
   repoBranches: (path: string) => Promise<RepoBranches>
-  repos: RepoPick[]
+  from: Pick
 }>
 
 function landing(setup: Setup = {}) {
@@ -114,7 +113,7 @@ function landing(setup: Setup = {}) {
       fetchRepo={fetchRepo}
       status={statusOf}
       done={() => Promise.resolve(done)}
-      repos={setup.repos ?? []}
+      from={setup.from}
       onPick={setup.onPick ?? (() => undefined)}
       onSettings={setup.onSettings ?? (() => undefined)}
       onQuit={setup.onQuit ?? (() => undefined)}
@@ -272,6 +271,19 @@ test("the selection stays on its row as rows are listed above it", async () => {
   })
 
   expect(onPick).toHaveBeenCalledWith({ kind: "branch", name: "fix/rounding" })
+})
+
+test("opens on what was opened from it last, its repos ticked", async () => {
+  const api = { path: "../api", changed: true }
+  const frame = await frameAfter(
+    landing({ from: { kind: "branch", name: "fix/rounding", repos: [api] } }),
+    listed,
+    110,
+    34,
+  )
+
+  expect(frame).toContain("Opens: fix/rounding · 1 commit since main, refunds-api in api")
+  expect(frame).toMatch(/\[x\] api/)
 })
 
 test("enter on the done fold lists the treks whose work has landed, and opens one", async () => {
@@ -496,7 +508,7 @@ test("a ticked repo that isn't beside this one stays listed, and goes along with
   const billing = { path: "../../work/billing", changed: true, branch: "invoices" }
   const onPick = mock((_pick: Pick) => undefined)
   const frame = await frameAfter(
-    landing({ onPick, repos: [billing] }),
+    landing({ onPick, from: { ...own, repos: [billing] } }),
     async (input, on) => {
       await listed(input, on)
       input.pressEnter()

@@ -1,8 +1,8 @@
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import type { ChangeSummary, ProposedRepo, TrekStatus } from "@srctrek/core"
-import { type ReactNode, useState } from "react"
+import { type ReactNode, useEffect, useState } from "react"
 import type { BuildRead } from "../build-view/read"
-import { useBuildWatch } from "../home/watch/use-build-watch"
+import { useBuildWatch } from "../watch/use-build-watch"
 import { Footer, type KeyHint } from "../ui/footer"
 import { type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-help"
 import { PADDING } from "../ui/layout"
@@ -34,7 +34,8 @@ import {
 /** Where the screen reads, as they change, the trek, its latest build, and the repos proposed. */
 export type ChangeReads = Readonly<{
   status: () => Promise<TrekStatus>
-  build: () => Promise<BuildRead>
+  // the latest build of the trek by this name
+  build: (name: string) => Promise<BuildRead>
   proposals: () => Promise<ProposedRepo[]>
 }>
 
@@ -50,6 +51,9 @@ type Props = {
   actions: ChangeActions
   // for code as it is with no trigger, what its ways in offer once found
   waysIn?: WaysInActions | undefined
+  // moves on when the worktree has, for the trek and the proposals to be read again; both are
+  // read as the screen opens too
+  generation?: number | undefined
 }
 
 /**
@@ -60,13 +64,18 @@ function useStanding(first: Props, reads: ChangeReads) {
   const [status, setStatus] = useState(first.status)
   const [proposals, setProposals] = useState(first.proposals)
   const readProposals = async () => setProposals(await reads.proposals())
-  const run = (work: Promise<void>) =>
-    void work.then(async () => {
-      setStatus(await reads.status())
-      await readProposals()
-    })
+  const readAll = async () => {
+    setStatus(await reads.status())
+    await readProposals()
+  }
+  const run = (work: Promise<void>) => void work.then(readAll)
 
   useBuildWatch(status, reads.status, { status: setStatus, ended: readProposals })
+  useEffect(() => {
+    void readAll().catch(() => undefined)
+    // readAll reads through the reads given now; only a new generation asks again
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [first.generation])
   return { status, proposal: proposals[0], run }
 }
 

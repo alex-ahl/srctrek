@@ -1,6 +1,6 @@
 import { type Settings, loadSettings, saveSetting } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import type { SettingChange } from "../../settings/rows"
+import type { SettingChange } from "../settings/rows"
 
 // Often enough that an agent's save shows up while the user waits for it.
 const SETTINGS_POLL_MS = 2000

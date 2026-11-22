@@ -1,8 +1,12 @@
 import { type ChangeChoice, GitError, errorText, parsePullRequestUrl } from "@srctrek/core"
-import { useTones } from "../ui/theme"
+import { useKeyboard } from "@opentui/react"
+import { Footer } from "./ui/footer"
+import { PADDING } from "./ui/layout"
+import { useTones } from "./ui/theme"
+import { TitleBar } from "./ui/title-bar"
 
 /** A picked change on its way: still being worked out, or why it couldn't be. */
-export type Opening = Readonly<
+export type Pending = Readonly<
   { kind: "opening"; choice: ChangeChoice } | { kind: "failed"; choice: ChangeChoice; why: string }
 >
 
@@ -41,20 +45,26 @@ export function choiceName(choice: ChangeChoice): string {
   return number === undefined ? choice.url : `pr ${number}`
 }
 
-/** The line above the change's trek while a pick opens, or after it failed; nothing otherwise. */
-export function OpeningLine({ opening }: { opening: Opening | undefined }) {
+/**
+ * A picked change on its way, on a screen of its own: still being worked out, or why it couldn't
+ * be, with esc to go back.
+ */
+export function PendingScreen({ pending, onBack }: { pending: Pending; onBack: () => void }) {
   const tones = useTones()
-  if (opening === undefined) {
-    return null
-  }
+  useKeyboard((key) => key.name === "escape" && onBack())
 
-  const name = choiceName(opening.choice)
-  const line =
-    opening.kind === "opening" ? (
-      <text fg={tones.busy}>{`◐ opening ${name}…`}</text>
-    ) : (
-      <text fg={tones.bad}>{`✕ couldn't open ${name}: ${opening.why}`}</text>
-    )
-
-  return <box style={{ marginBottom: 1, flexShrink: 0 }}>{line}</box>
+  const name = choiceName(pending.choice)
+  return (
+    <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
+      <TitleBar />
+      <box style={{ flexGrow: 1, paddingTop: 1, paddingLeft: PADDING, paddingRight: PADDING }}>
+        {pending.kind === "opening" ? (
+          <text fg={tones.busy}>{`◐ opening ${name}…`}</text>
+        ) : (
+          <text fg={tones.bad}>{`✕ couldn't open ${name}: ${pending.why}`}</text>
+        )}
+      </box>
+      <Footer keys={[{ key: "esc", does: "back" }]} shown="" />
+    </box>
+  )
 }

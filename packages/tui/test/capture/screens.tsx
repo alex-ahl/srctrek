@@ -1,62 +1,36 @@
-import type { ChangeSummary, ProposedRepo, TrekEntry, TrekStatus, TriggerTrek } from "@srctrek/core"
+import type {
+  BranchChoices,
+  ChangeSummary,
+  OpenPullRequest,
+  ProposedRepo,
+  TrekStatus,
+  TriggerTrek,
+} from "@srctrek/core"
 import type { ReactNode } from "react"
-import { App } from "../../src/home/screen"
+import type { BuildRead } from "../../src/build-view/read"
+import { ChangeScreen } from "../../src/change/screen"
+import { Landing } from "../../src/landing/screen"
 
 const noop = () => undefined
+const done = () => Promise.resolve()
 
-const treks: TrekEntry[] = [
+const choices: BranchChoices = {
+  base: "main",
+  own: { name: "feature/refunds", commits: 9 },
+  uncommittedFiles: 2,
+  others: [{ name: "fix/rounding", commits: 1 }],
+}
+
+const pulls: OpenPullRequest[] = [
   {
-    name: "feature-refunds",
-    path: "/r/feature-refunds.json",
-    valid: true,
-    title: "Full refund of order o_1001: button click to the payment provider",
-    overview: "A refund from the button to the payment provider.",
-    trigger: "the Refund button on an order",
-    steps: 19,
-    highFlags: 1,
-    createdAt: "2026-11-09T09:12:00.000Z",
-    repos: 1,
-    code: false,
-    heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
-  },
-  {
-    name: "pr-12",
-    path: "/r/pr-12.json",
-    valid: true,
-    title: "Partial refunds split across two payments",
-    overview: "A refund from the button to the payment provider.",
-    trigger: "the Refund button on an order",
-    steps: 14,
-    highFlags: 0,
-    createdAt: "2026-11-08T16:40:00.000Z",
-    repos: 1,
-    code: false,
-    heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
-  },
-  {
-    name: "orientation",
-    path: "/r/orientation.json",
-    valid: true,
-    title: "How a refund request reaches the worker",
-    overview: "A refund from the button to the payment provider.",
-    trigger: "the Refund button on an order",
-    steps: 15,
-    highFlags: 0,
-    createdAt: "2026-10-21T11:05:00.000Z",
-    repos: 1,
-    code: true,
-    heads: [{ repo: "web", head: { kind: "branch", name: "feature/refunds", uncommitted: false } }],
-  },
-  {
-    name: "pr-9",
-    path: "/r/pr-9.json",
-    valid: false,
-    problem: "steps.3 (s4).via: a link from another repo cites one side only",
+    number: 12,
+    title: "Add partial refunds",
+    author: "alice",
+    url: "https://github.com/acme/web/pull/12",
+    draft: false,
+    reviewRequested: true,
   },
 ]
-
-// Reviewing feature/refunds in web, through the api and the worker, on the morning of Nov 9.
-const NOW = new Date("2026-11-09T10:30:00.000Z")
 
 const summary: ChangeSummary = {
   changed: [
@@ -120,42 +94,75 @@ const triggers: TriggerTrek[] = [
   },
 ]
 
-// The home screen with the change's trek where `status` says, and an agent to build it.
-function home(
-  status: TrekStatus | undefined,
+const NO_BUILD: BuildRead = {
+  log: [],
+  steps: [],
+  state: undefined,
+  started: undefined,
+  ended: undefined,
+  count: 0,
+}
+
+// The landing page, on a branch an agent has worked on.
+const landing = (
+  <Landing
+    load={() => Promise.resolve(choices)}
+    pullRequests={() => Promise.resolve(pulls)}
+    nearby={() => Promise.resolve([])}
+    repoBranches={() => Promise.reject(new Error("unread"))}
+    fetchRepo={done}
+    status={() => Promise.resolve({ kind: "missing", name: "feature-refunds" })}
+    done={() => Promise.resolve([{ name: "spike", title: "Posting to the ledger", why: "merged" }])}
+    from={undefined}
+    onPick={noop}
+    onSettings={noop}
+    onQuit={noop}
+    tint={undefined}
+  />
+)
+
+// A change's screen with its trek where `status` says, and an agent to build it.
+function change(
+  status: TrekStatus,
   extra: { proposals?: ProposedRepo[]; agent?: boolean; summary?: ChangeSummary } = {},
 ) {
-  // a change with no trek yet has none of its own in the list
-  const entries =
-    status !== undefined && status.kind !== "missing" && status.kind !== "empty"
-      ? treks
-      : treks.slice(1)
-  const build = extra.agent === false ? undefined : noop
-
+  const proposals = extra.proposals ?? []
   return (
-    <App
-      entries={entries}
-      onOpen={noop}
-      onQuit={noop}
-      status={status}
-      onBuild={build}
-      onBuildTrigger={build}
-      onReadBuild={() => Promise.reject(new Error("unread"))}
-      proposals={extra.proposals ?? []}
-      onAddRepo={noop}
-      onDismissRepo={noop}
+    <ChangeScreen
+      root="."
       summary={extra.summary ?? summary}
-      now={NOW}
+      status={status}
+      proposals={proposals}
+      reads={{
+        status: () => Promise.resolve(status),
+        build: () => Promise.resolve({ ...NO_BUILD, log: buildLog, state: "building" }),
+        proposals: () => Promise.resolve(proposals),
+      }}
+      actions={{
+        step: noop,
+        editor: undefined,
+        editorFirst: false,
+        build: extra.agent === false ? undefined : done,
+        stop: done,
+        builds: noop,
+        addRepo: done,
+        dismissRepo: done,
+        back: noop,
+      }}
+      waysIn={{ stepTrek: noop, buildTrigger: done, follow: noop }}
     />
   )
 }
 
 /** Every screen and state the terminal draws, by name, with sample data from the refund flow. */
 export const SCREENS: Readonly<Record<string, ReactNode>> = {
-  "home-ready": home({ kind: "ready", name: "feature-refunds" }),
-  "home-proposal": home({ kind: "ready", name: "feature-refunds" }, { proposals: [payments] }),
-  "home-building": home({ kind: "building", name: "feature-refunds", logTail: buildLog }),
-  "home-failed": home({
+  landing,
+  "change-proposal": change(
+    { kind: "building", name: "feature-refunds", logTail: buildLog },
+    { proposals: [payments] },
+  ),
+  "change-building": change({ kind: "building", name: "feature-refunds", logTail: buildLog }),
+  "change-failed": change({
     kind: "failed",
     name: "feature-refunds",
     logTail: [
@@ -163,14 +170,12 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
       "trek: stopped after 3 rejected rounds",
     ],
   }),
-  "home-stale": home({ kind: "stale", name: "feature-refunds", staleStops: 4, stops: 19 }),
-  "home-older-guide": home({ kind: "older-guide", name: "feature-refunds" }),
-  "home-unreadable": home({
+  "change-unreadable": change({
     kind: "unreadable",
     name: "feature-refunds",
     problem: "format_version: Invalid input: expected 1",
   }),
-  "home-unreachable": home({
+  "change-unreachable": change({
     kind: "unreachable",
     name: "feature-refunds",
     unreachable: {
@@ -180,9 +185,11 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
       reason: "missing",
     },
   }),
-  "home-missing": home({ kind: "missing", name: "feature-refunds" }),
-  "home-no-agent": home({ kind: "missing", name: "feature-refunds" }, { agent: false }),
-  "home-empty": home({ kind: "empty", name: "feature-refunds" }, { summary: emptySummary }),
-  "home-triggers": home({ kind: "triggers", name: "api-code", triggers }, { summary: codeSummary }),
-  "home-no-change": home(undefined),
+  "change-missing": change({ kind: "missing", name: "feature-refunds" }),
+  "change-no-agent": change({ kind: "missing", name: "feature-refunds" }, { agent: false }),
+  "change-empty": change({ kind: "empty", name: "feature-refunds" }, { summary: emptySummary }),
+  "code-ways-in": change(
+    { kind: "triggers", name: "api-code", triggers },
+    { summary: codeSummary },
+  ),
 }

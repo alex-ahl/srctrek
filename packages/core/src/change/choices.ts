@@ -99,42 +99,6 @@ export function choiceOfArguments(args: readonly string[]): ChangeChoice {
     : { kind: "pull-request", url: only }
 }
 
-/** Which side of the home screen trek's arguments asked for: the change, or the code as it is. */
-export type HomeFocus = Readonly<{ kind: "change" } | { kind: "code"; trigger?: string }>
-
-/**
- * What the home screen opens with `args`: the change's arguments, the code as it is over the same
- * repos, and the side the arguments asked for. --code asks for the code, a trigger with it for
- * that way in, the change then being the user's own branch with the same repos.
- */
-export function homeSides(args: readonly string[]): {
-  change: string[]
-  code: string[]
-  focus: HomeFocus
-} {
-  const option = args.find((arg) => arg === CODE || arg.startsWith(`${CODE}=`))
-  if (option === undefined) {
-    return { change: [...args], code: codeOver(args), focus: { kind: "change" } }
-  }
-
-  const repos = args.filter((arg) => arg !== option && arg !== ".")
-  const trigger = option.slice(`${CODE}=`.length).trim()
-  const focus: HomeFocus = trigger === "" ? { kind: "code" } : { kind: "code", trigger }
-  return { change: repos.length === 0 ? [] : ["...HEAD", ...repos], code: codeOver(args), focus }
-}
-
-// The code as it is over the repos `args` name: each folder named, this one first when any are,
-// leaving out ranges, pull requests' links, and options.
-function codeOver(args: readonly string[]): string[] {
-  const isRepo = (arg: string) =>
-    arg !== "." &&
-    !arg.startsWith("-") &&
-    !arg.includes("...") &&
-    parsePullRequestUrl(arg) === undefined
-  const repos = args.filter(isRepo)
-  return [CODE, ...(repos.length === 0 ? [] : [".", ...repos])]
-}
-
 /** A branch to choose, and how many commits it has since it left the base. */
 export type BranchChoice = Readonly<{ name: string; commits: number }>
 

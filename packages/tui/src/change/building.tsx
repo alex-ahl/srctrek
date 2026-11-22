@@ -1,4 +1,5 @@
 import { buildProgress } from "@srctrek/core"
+import { useCallback } from "react"
 import type { BuildRead } from "../build-view/read"
 import { clockText } from "../build-view/read"
 import { StepLine } from "../build-view/step-line"
@@ -12,9 +13,15 @@ import { useStateText } from "../ui/turning"
 const STEPS_SHOWN = 8
 
 /** A build as it runs: how long, the steps it has added so far, and what the agent read last. */
-export function Building({ read, width }: { read: () => Promise<BuildRead>; width: number }) {
+export function Building(props: {
+  name: string
+  read: (name: string) => Promise<BuildRead>
+  width: number
+}) {
+  const { name, read, width } = props
   const tones = useTones()
-  const { build, now } = useBuild(read)
+  const latest = useCallback(() => read(name), [read, name])
+  const { build, now } = useBuild(latest)
   const state = useStateText(STATE_LABELS.building)
   const steps = build?.steps ?? []
   const clock = build === undefined ? "" : clockText(build, now)

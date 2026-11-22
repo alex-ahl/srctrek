@@ -3,7 +3,7 @@ import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
 import { DropLines, type DropView } from "./drop-view"
 import { type FoldItem, type RepoItem, repoBranch, repoNotes } from "./repos"
-import type { LandingGroup, LandingRow } from "./rows"
+import type { LandingGroup, LandingRow, Pick } from "./rows"
 import { statusBlock } from "../change/status-block"
 import { Selectable } from "../ui/selectable"
 import { STATE_LABELS } from "../ui/state-labels"
@@ -17,6 +17,16 @@ export type LandingNote = Readonly<{ group: LandingGroup; text: string; tone: To
 const MAX_NAME_WIDTH = 44
 
 const rowKey = (row: LandingRow) => JSON.stringify(row.choice)
+
+/** The key of the row a pick was made on: the change, whatever repos went with it. */
+export function pickKey(pick: Pick): string {
+  if (pick.kind === "trek") {
+    return JSON.stringify(pick)
+  }
+
+  const { repos: _repos, ...change } = pick
+  return JSON.stringify(change)
+}
 
 // Working out a pull request's trek means fetching it first, too slow to do for each row; a done
 // trek's row says how its work ended instead.

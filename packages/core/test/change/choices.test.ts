@@ -5,7 +5,6 @@ import {
   branchChoices,
   choiceArguments,
   choiceOfArguments,
-  homeSides,
   readChangeArguments,
   runGit,
 } from "../../src"
@@ -123,26 +122,5 @@ describe("branchChoices", () => {
     expect(choices.own).toEqual({ name: "feature/refunds", commits: 1 })
     expect(choices.uncommittedFiles).toBe(1)
     expect(choices.others).toEqual([{ name: "fix/rounding", commits: 1 }])
-  })
-})
-
-describe("homeSides", () => {
-  test("opens the change asked for, with the code as it is over the same repos beside it", () => {
-    expect(homeSides([])).toEqual({ change: [], code: ["--code"], focus: { kind: "change" } })
-    expect(homeSides(["main...feature", "../api"])).toEqual({
-      change: ["main...feature", "../api"],
-      code: ["--code", ".", "../api"],
-      focus: { kind: "change" },
-    })
-    expect(homeSides(["https://github.com/o/r/pull/12"]).code).toEqual(["--code"])
-  })
-
-  test("asks for the code with --code, and a way in with its trigger, the change the own branch", () => {
-    expect(homeSides(["--code"])).toEqual({ change: [], code: ["--code"], focus: { kind: "code" } })
-    expect(homeSides(["--code=a refund", ".", "../api"])).toEqual({
-      change: ["...HEAD", "../api"],
-      code: ["--code", ".", "../api"],
-      focus: { kind: "code", trigger: "a refund" },
-    })
   })
 })

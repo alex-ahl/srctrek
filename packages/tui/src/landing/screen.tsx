@@ -11,7 +11,14 @@ import type {
   TrekStatus,
 } from "@srctrek/core"
 import { useEffect, useMemo, useState } from "react"
-import { type LandingItem, type LandingNote, LandingList, itemKey, useStatuses } from "./list"
+import {
+  type LandingItem,
+  type LandingNote,
+  LandingList,
+  itemKey,
+  pickKey,
+  useStatuses,
+} from "./list"
 import { type Ticked, opensWith, repoItems, tickedOf, toggled } from "./repos"
 import type { DropRow } from "./drop"
 import { useDrop } from "./use-drop"
@@ -36,8 +43,8 @@ type Props = {
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   // the treks whose work has landed or gone
   done: () => Promise<DoneTrek[]>
-  // the repos ticked to go with a change, as the page opens
-  repos: readonly RepoPick[]
+  // what was opened from here last, selected again with its repos ticked, as the page opens
+  from: Pick | undefined
   onPick: (pick: Pick) => void
   onSettings: () => void
   onQuit: () => void
@@ -225,12 +232,16 @@ export function Landing(props: Props) {
   const tones = useTones()
   const { branches, rows, done, note } = useRows(props)
   const nearby = useCheckouts(props.nearby)
-  const [ticked, setTicked] = useState(() => tickedOf(props.repos))
+  const [ticked, setTicked] = useState(() =>
+    tickedOf(props.from?.kind === "trek" ? undefined : props.from?.repos),
+  )
   const checkouts = listedCheckouts(nearby, ticked)
   const [foldOpen, setFoldOpen] = useState(false)
-  const [doneOpen, setDoneOpen] = useState(false)
+  const [doneOpen, setDoneOpen] = useState(props.from?.kind === "trek")
   // the selected line by its key, so it stays put as rows load above it
-  const [chosen, setChosen] = useState<string | undefined>(undefined)
+  const [chosen, setChosen] = useState(() =>
+    props.from === undefined ? undefined : pickKey(props.from),
+  )
   const statuses = useStatuses(rows, props.status)
   const help = useKeysHelp()
   // what branches' ages are measured from

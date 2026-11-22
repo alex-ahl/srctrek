@@ -2,7 +2,7 @@ import type { RGBA } from "@opentui/core"
 import { useRenderer } from "@opentui/react"
 import type { Settings } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import { TERMINAL_TONES, type TerminalColours, type Tones, bandFor, tonesFor } from "../../ui/theme"
+import { TERMINAL_TONES, type TerminalColours, type Tones, bandFor, tonesFor } from "../ui/theme"
 
 /**
  * The selected row's band and the states' tones, from the terminal's own colours when it says

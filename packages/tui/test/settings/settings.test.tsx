@@ -1,25 +1,23 @@
 import { expect, mock, test } from "bun:test"
-import type { Settings, TrekEntry } from "@srctrek/core"
+import type { Settings } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import { App } from "../../src/home/screen"
 import type { Editor } from "../../src/editors/editors"
+import { SettingsScreen } from "../../src/settings/screen"
 import type { SettingChange } from "../../src/settings/rows"
 import { frameAfter, pressOn } from "../support/keys"
 
 const noop = () => undefined
 const neovim: Editor = { id: "nvim", label: "Neovim", command: "nvim", steps: true }
-const entries: TrekEntry[] = []
-
-function app(settings: Settings, onChangeSetting: SettingChange = noop) {
+// The settings screen, opened: S on the screens that open it does nothing here.
+function app(settings: Settings, onChange: SettingChange = noop, onBack: () => void = noop) {
   return (
-    <App
-      entries={entries}
-      onOpen={noop}
-      onQuit={noop}
+    <SettingsScreen
+      settings={settings}
       editors={[neovim]}
       editor={neovim}
-      settings={settings}
-      onChangeSetting={onChangeSetting}
+      onChange={onChange}
+      onBack={onBack}
+      tint={undefined}
     />
   )
 }
@@ -94,16 +92,17 @@ test("enter on building automatically or colours turns it the other way", async 
   expect(change).toHaveBeenCalledWith("colours", "terminal")
 })
 
-test("esc goes back to the list", async () => {
-  const frame = await frameAfter(app({}), async (input) => {
-    input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
+test("esc goes back", async () => {
+  const back = mock(noop)
+  await frameAfter(app({}, noop, back), async (input) => {
     input.pressEscape()
-    await Bun.sleep(50)
+    // escape reaches the screen only once the terminal's wait for a longer sequence is over
+    while (back.mock.calls.length === 0) {
+      await Bun.sleep(10)
+    }
   })
 
-  expect(frame).not.toContain("srctrek › settings")
-  expect(frame).toContain("No treks in .srctrek/treks yet.")
+  expect(back).toHaveBeenCalled()
 })
 
 test("enter on the agent asks for its command, saves it, and says whether it works", async () => {
@@ -168,7 +167,7 @@ test("y on the agent copies what to paste into the agent's chat, or shows it whe
 })
 
 test("says when the agent saved its command from its chat", async () => {
-  // The settings as the home screen rereads them: the agent's command arrives after a moment.
+  // The settings as trek rereads them: the agent's command arrives after a moment.
   function Later() {
     const [settings, setSettings] = useState<Settings>({})
     useEffect(() => {

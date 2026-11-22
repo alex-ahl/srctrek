@@ -8,14 +8,15 @@ import { HELP_HINT, type KeyGroup } from "../ui/keys-help"
  * What starts work settles once it's started, and the screen then reads where things stand.
  */
 export type ChangeActions = Readonly<{
-  step: () => void
-  editor: Readonly<{ label: string; open: () => void }> | undefined
+  // each takes the name of the trek, as it stands when the key is pressed
+  step: (name: string) => void
+  editor: Readonly<{ label: string; open: (name: string) => void }> | undefined
   // the settings choose the editor: enter opens it, and n steps here
   editorFirst: boolean
   // absent when no agent is set
   build: (() => Promise<void>) | undefined
-  stop: () => Promise<void>
-  builds: (() => void) | undefined
+  stop: (name: string) => Promise<void>
+  builds: ((name: string) => void) | undefined
   // adds a proposed repo at `location`, or where the agent found it
   addRepo: (name: string, location?: string) => Promise<void>
   dismissRepo: (name: string) => Promise<void>
@@ -141,7 +142,7 @@ function xKey({ status, proposal, run }: KeyContext, actions: ChangeActions) {
   }
 
   if (status.kind === "building") {
-    run(actions.stop())
+    run(actions.stop(status.name))
   }
 }
 
@@ -151,18 +152,19 @@ export function changeKeys(
   actions: ChangeActions,
 ): ReadonlyMap<string, () => void> {
   const { editor, editorFirst, step, build } = actions
+  const { name } = context.status
   const stepping = canStep(context.status)
   const enter = editorFirst && editor !== undefined ? editor.open : step
   const builds = verbOf(context) !== undefined
 
   return new Map([
-    ["return", () => stepping && enter()],
-    ["e", () => stepping && editor?.open()],
-    ["n", () => stepping && editorFirst && step()],
+    ["return", () => stepping && enter(name)],
+    ["e", () => stepping && editor?.open(name)],
+    ["n", () => stepping && editorFirst && step(name)],
     ["b", () => builds && build !== undefined && context.run(build())],
     ["a", () => addKey(context, actions)],
     ["x", () => xKey(context, actions)],
-    ["l", () => actions.builds?.()],
+    ["l", () => actions.builds?.(name)],
     ["escape", actions.back],
     ["q", actions.back],
   ])

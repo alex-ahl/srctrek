@@ -111,11 +111,9 @@ export {
   branchChoices,
   choiceArguments,
   choiceOfArguments,
-  homeSides,
   type BranchChoice,
   type BranchChoices,
   type ChangeChoice,
-  type HomeFocus,
   type RepoPick,
 } from "./change/choices"
 export {

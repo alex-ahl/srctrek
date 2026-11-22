@@ -71,7 +71,8 @@ export function ChangeBody({
   status: TrekStatus
   overview: OverviewView | undefined
   proposal: ProposedRepo | undefined
-  readBuild: () => Promise<BuildRead>
+  // the latest build of the trek by this name, as it stands
+  readBuild: (name: string) => Promise<BuildRead>
   canBuild: boolean
   width: number
 }) {
@@ -80,7 +81,7 @@ export function ChangeBody({
       {summary !== undefined && <ChangeLine summary={summary} width={width} />}
       <text> </text>
       {status.kind === "building" ? (
-        <Building read={readBuild} width={width} />
+        <Building name={status.name} read={readBuild} width={width} />
       ) : (
         <StateBlock status={status} canBuild={canBuild} open={openedOf(summary)} />
       )}
