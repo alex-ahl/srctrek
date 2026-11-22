@@ -1,7 +1,7 @@
 import type { TrekEntry, TrekState, TrekStatus, UnreachableRepo } from "@srctrek/core"
 import type { Row } from "./rows"
 import { isChangeTrek } from "./change-trek"
-import { statusBlock } from "../status-block"
+import { statusBlock } from "../../change/status-block"
 import { STATE_LABELS, type StateLabel, doneLabel } from "../../ui/state-labels"
 import { count } from "../../ui/text"
 

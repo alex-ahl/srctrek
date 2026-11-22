@@ -12,13 +12,13 @@ import { resolve } from "node:path"
 import { useCallback } from "react"
 import type { Choosing } from "./screen"
 import type { FollowChange } from "./watch/follow"
-import type { HomeChange } from "./start"
+import type { OpenChange } from "../change/open-change"
 import { failureReason } from "./opening-line"
 
 // What a pick tells the home screen: it's under way, it opened, or why it couldn't.
 export type PickEvents = Readonly<{
   onOpening: (choice: ChangeChoice) => void
-  onPicked: (choice: ChangeChoice, change: HomeChange) => void
+  onPicked: (choice: ChangeChoice, change: OpenChange) => void
   onFailed: (choice: ChangeChoice, why: string) => void
 }>
 

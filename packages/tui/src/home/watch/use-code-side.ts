@@ -1,7 +1,7 @@
 import type { TrekStatus } from "@srctrek/core"
 import { useState } from "react"
 import type { AskedWayIn } from "../list/rows"
-import type { HomeCode } from "../start"
+import type { OpenCode } from "../../change/open-change"
 import { useBuildWatch } from "./use-build-watch"
 
 /**
@@ -9,7 +9,7 @@ import { useBuildWatch } from "./use-build-watch"
  * for, each watched while it builds; `read` reads both afresh, for `code` as it is now.
  */
 export function useCodeSide(
-  code: HomeCode | undefined,
+  code: OpenCode | undefined,
   first: Readonly<{ status: TrekStatus | undefined; asked: TrekStatus | undefined }>,
   ended: () => Promise<void>,
 ) {
@@ -18,7 +18,7 @@ export function useCodeSide(
   useBuildWatch(status, code?.status, { status: setStatus, ended })
   useBuildWatch(askedStatus, code?.asked?.status, { status: setAskedStatus, ended })
 
-  const read = async (now: HomeCode | undefined) => {
+  const read = async (now: OpenCode | undefined) => {
     setStatus(await now?.status())
     setAskedStatus(await now?.asked?.status())
   }

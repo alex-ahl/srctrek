@@ -7,7 +7,7 @@ import {
   buildProgress,
 } from "@srctrek/core"
 import { useCallback, useState } from "react"
-import { ChangeLine } from "../home/change-line"
+import { ChangeLine } from "../change/line"
 import { Footer, type KeyHint } from "../ui/footer"
 import { PADDING } from "../ui/layout"
 import { builtWhen, count, fit, wrap } from "../ui/text"

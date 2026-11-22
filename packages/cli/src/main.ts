@@ -15,7 +15,7 @@ import {
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
 import { startServe } from "@srctrek/serve"
-import { type HomeChange, startHome } from "@srctrek/tui"
+import { type OpenChange, startHome } from "@srctrek/tui"
 
 // The same repos as trek's args, followed from one trigger: --code="<trigger>" for --code.
 function argsForTrigger(args: string[], trigger: string): string[] {
@@ -37,7 +37,7 @@ async function buildTriggerTrek(
 // What trek's args open, as it stands now, with the agent as the settings name it now: the change
 // and the code as it is over the same repos, and which the args asked for. A change with no trek
 // gets one started right away, when the user asked for that and there's an agent to build it.
-async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
+async function openChange(cwd: string, args: string[]): Promise<OpenChange> {
   const sides = homeSides(args)
   const [change, code] = await Promise.all([
     changeFromArguments(cwd, sides.change),

@@ -1,6 +1,6 @@
 import { type ChangeChoice, choiceArguments } from "@srctrek/core"
 import { useEffect, useRef } from "react"
-import type { HomeChange } from "../start"
+import type { OpenChange } from "../../change/open-change"
 
 /**
  * How the home screen keeps up with the worktree: the change chosen as trek started, what's moved
@@ -11,7 +11,7 @@ export type FollowChange = Readonly<{
   // changes whenever the choice's change might have: a commit or a branch switched, here or in a
   // ticked repo, a trek saved, the agent
   stamp: (choice: ChangeChoice) => Promise<string>
-  open: (args: string[]) => Promise<HomeChange>
+  open: (args: string[]) => Promise<OpenChange>
 }>
 
 // Often enough that a commit or a trek saved elsewhere shows up while the user looks.
@@ -26,7 +26,7 @@ const FOLLOW_MS = 2000
 export function useFollow(
   follow: FollowChange | undefined,
   choice: ChangeChoice,
-  onMoved: (change: HomeChange) => Promise<void>,
+  onMoved: (change: OpenChange) => Promise<void>,
 ) {
   // the choice when the check runs, not when it was set up
   const chosen = useRef(choice)

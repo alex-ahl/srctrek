@@ -1,8 +1,6 @@
 import {
   type BuildRecord,
   type ChangeChoice,
-  type ChangeSummary,
-  type HomeFocus,
   type ProposedRepo,
   type Settings,
   type TrekEntry,
@@ -19,6 +17,7 @@ import { createCliRenderer } from "@opentui/core"
 import { createRoot } from "@opentui/react"
 import { useState } from "react"
 import { App } from "./screen"
+import type { OpenChange } from "../change/open-change"
 import { type Editor, availableEditors, openInEditor } from "../editors/editors"
 import { type FollowChange, useFollow } from "./watch/follow"
 import type { BuildRead } from "../build-view/read"
@@ -31,35 +30,12 @@ import { useSettings } from "./watch/use-settings"
 import { useTerminalTones } from "./watch/use-terminal-tones"
 import { useTrekStates } from "./watch/use-trek-states"
 
-/**
- * The code as it is over the change's repos: where finding its ways in stands, and, with an agent
- * set, finding them and building the trek of one.
- */
-export type HomeCode = {
-  status: () => Promise<TrekStatus>
-  // the way in trek's args asked for by name, with --code="…", and where its trek stands
-  asked?: { name: string; status: () => Promise<TrekStatus> } | undefined
-  find?: (() => Promise<void>) | undefined
-  buildTrigger?: ((trigger: string) => Promise<void>) | undefined
-}
-
-/** What the home screen needs: the change, the code as it is beside it, and which was asked for. */
-export type HomeChange = {
-  // what the change is, for the title bar
-  summary: ChangeSummary
-  status: () => Promise<TrekStatus>
-  // starts building the change's trek; absent when no agent is set
-  build?: (() => Promise<void>) | undefined
-  code: HomeCode
-  focus: HomeFocus
-}
-
 // What trek is about when nothing else was chosen.
 const OWN_BRANCH: ChangeChoice = { kind: "own", uncommitted: false }
 
 type HomeProps = {
   root: string
-  firstChange: HomeChange | undefined
+  firstChange: OpenChange | undefined
   firstChoice: ChangeChoice
   follow: FollowChange | undefined
   firstEntries: TrekEntry[]
@@ -84,7 +60,7 @@ const NO_BUILD: BuildRecord = {
 }
 
 // The keys that start a build, each shown as building straight after; absent with no agent set.
-function buildKeys(change: HomeChange | undefined, started: (start: Promise<void>) => void) {
+function buildKeys(change: OpenChange | undefined, started: (start: Promise<void>) => void) {
   const build = change?.build
   const find = change?.code.find
   const buildTrigger = change?.code.buildTrigger
@@ -118,7 +94,7 @@ function Home(props: HomeProps) {
   const code = useCodeSide(change?.code, firstCode, reloadLists)
 
   // A change worked out anew: the list, proposals, and where its trek stands come with it.
-  const show = async (next: HomeChange) => {
+  const show = async (next: OpenChange) => {
     setChange(next)
     await reloadLists()
     setStatus(await next.status())
@@ -196,7 +172,7 @@ function Home(props: HomeProps) {
  */
 export async function startHome(
   root: string,
-  change?: HomeChange,
+  change?: OpenChange,
   settings: Settings = {},
   follow?: FollowChange,
 ): Promise<void> {

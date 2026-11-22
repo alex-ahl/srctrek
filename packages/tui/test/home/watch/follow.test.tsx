@@ -2,12 +2,12 @@ import { expect, mock, test } from "bun:test"
 import { useEffect, useState } from "react"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { type FollowChange, useFollow } from "../../../src/home/watch/follow"
-import type { HomeChange } from "../../../src/home/start"
+import type { OpenChange } from "../../../src/change/open-change"
 import { pressOn } from "../../support/keys"
 
 const summary = { changed: [], unchanged: [], code: false }
 const empty: TrekStatus = { kind: "empty", name: "feature-refunds" }
-const reopened: HomeChange = {
+const reopened: OpenChange = {
   summary,
   status: () => Promise.resolve(empty),
   code: { status: () => Promise.resolve(empty) },

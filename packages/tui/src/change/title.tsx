@@ -1,5 +1,5 @@
 import type { ChangeSummary } from "@srctrek/core"
-import { changeParts } from "./change-line"
+import { changeParts } from "./line"
 import { useTerminalDimensions } from "@opentui/react"
 import { fit } from "../ui/text"
 import { TitleBar, titleRoom } from "../ui/title-bar"
