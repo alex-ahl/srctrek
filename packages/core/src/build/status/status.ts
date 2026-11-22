@@ -68,9 +68,14 @@ async function buildStatus(root: string, name: string): Promise<TrekStatus> {
   return { kind: "failed", name, logTail: await buildLogTail(root, name, LOG_TAIL_LINES) }
 }
 
-// Plain --code finds the code's triggers: the list once found, else where finding them stands.
+// Plain --code finds the code's triggers: building while they're found again, else the list once
+// found, else where finding them stands. Finding them again that fails leaves the list.
 async function triggersStatus(root: string, change: ResolvedChange): Promise<TrekStatus> {
   const name = await trekNameFor(change)
+  if ((await buildState(root, name)) === "building") {
+    return buildStatus(root, name)
+  }
+
   const triggers = await loadTriggers(root, name, change)
   if (triggers !== undefined) {
     const trekOf = async (trigger: Trigger): Promise<TriggerTrek> => {
