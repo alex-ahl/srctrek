@@ -16,6 +16,8 @@ const refund: TrekEntry = {
   path: "/t/refund.json",
   valid: true,
   title: "Refund orders",
+  overview: "A refund from the button to the payment provider.",
+  trigger: "the Refund button on an order",
   steps: 20,
   highFlags: 0,
   createdAt: "2026-11-09T09:12:00.000Z",

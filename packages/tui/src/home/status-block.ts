@@ -34,7 +34,7 @@ function agentDoes(open: Opened): string {
 
   return open.code
     ? "your agent follows it through the code, as it runs"
-    : "your agent walks the change from its trigger to its outcome"
+    : "your agent walks your changes from their trigger to their outcome"
 }
 
 // A saved trek by its title; its file's name only when it can't be read.
@@ -159,7 +159,7 @@ function nameOnlyBlock(
   if (kind === "empty") {
     return {
       ...STATE_LABELS.empty,
-      details: ["no commits since its base: C picks another change"],
+      details: [],
     }
   }
 

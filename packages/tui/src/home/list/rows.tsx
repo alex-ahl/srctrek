@@ -16,7 +16,7 @@ import { fit } from "../../ui/text"
 export type Row =
   | { kind: "proposal"; proposal: ProposedRepo }
   // your changes, by what they are, while no saved trek stands for them
-  | { kind: "change"; status: TrekStatus; title: string }
+  | { kind: "change"; status: TrekStatus; title: string; canBuild: boolean }
   | { kind: "ways-in"; status: TrekStatus }
   // a way in, by name, with its trek, and where it was found (or that it was asked for)
   | { kind: "trigger"; name: string; trek: TrekStatus; where: string }
@@ -29,8 +29,8 @@ function byNewest(a: TrekEntry, b: TrekEntry): number {
   return built(b).localeCompare(built(a))
 }
 
-/** Your changes, as the title bar names them, and where their trek stands. */
-export type ChangeOpen = Readonly<{ title: string; status: TrekStatus }>
+/** Your changes, as the title bar names them, where their trek stands, and whether b builds it. */
+export type ChangeOpen = Readonly<{ title: string; status: TrekStatus; canBuild: boolean }>
 
 // The states in which no saved trek's row stands for your changes: none yet, building, failed,
 // nothing to trek, or a saved trek that can't be read.
@@ -178,13 +178,24 @@ function WaysInRow({ item: status, selected, context }: RowProps<TrekStatus>) {
   )
 }
 
-// What to do about your changes' trek from its row, in each state the row shows.
+// What to do about your changes' trek from its row, in each state the row shows; with no agent to
+// build it, where to set one.
 const CHANGE_HINTS: Readonly<Partial<Record<TrekStatus["kind"], string>>> = {
   missing: "b builds its trek",
   building: "l its build",
   failed: "b builds it again · l its log",
-  empty: "no commits since its base · C another change",
+  empty: "C another change",
   unreadable: "b rebuilds it",
+}
+
+function changeHint(row: Extract<Row, { kind: "change" }>): string {
+  const builds =
+    row.status.kind === "missing" ||
+    row.status.kind === "failed" ||
+    row.status.kind === "unreadable"
+  return builds && !row.canBuild
+    ? "S sets an agent to build it"
+    : (CHANGE_HINTS[row.status.kind] ?? "")
 }
 
 function ChangeRow({ item: row, selected, context }: RowProps<Extract<Row, { kind: "change" }>>) {
@@ -196,7 +207,7 @@ function ChangeRow({ item: row, selected, context }: RowProps<Extract<Row, { kin
       <Marker selected={selected} context={context} />
       <State label={stateOf(row, context.status, context.states)} width={columns.state} />
       <Title text={row.title} width={columns.title} selected={selected} />
-      <span fg={tones.dim}>{fit(CHANGE_HINTS[row.status.kind] ?? "", rest(context))}</span>
+      <span fg={tones.dim}>{fit(changeHint(row), rest(context))}</span>
     </text>
   )
 }

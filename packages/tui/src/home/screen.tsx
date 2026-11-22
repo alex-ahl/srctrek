@@ -145,22 +145,25 @@ const rowsFor = (props: Props) =>
 const isOfChange = (row: Row | undefined, sections: readonly Section[]) =>
   row === undefined || sections.some((each) => each.id === "change" && each.rows.includes(row))
 
-// Your changes and where their trek stands, for their own row; none until both are known.
+// Your changes and where their trek stands, for their own row, named as the title bar names them,
+// else by their trek's name; none until where it stands is known.
 function changeOpen(props: Props): ChangeOpen | undefined {
   const { summary, status } = props
-  if (summary === undefined || status === undefined) {
+  if (status === undefined) {
     return undefined
   }
 
-  const title = changeParts(summary)
-    .map((part) => part.text)
-    .join("")
-    .replace(/^ · /, "")
-  return { title, status }
+  const named = summary === undefined ? [] : changeParts(summary).map((part) => part.text)
+  const title = named.join("").replace(/^ · /, "")
+  return {
+    title: title === "" ? status.name : title,
+    status,
+    canBuild: props.onBuild !== undefined,
+  }
 }
 
 // What the pane needs to describe a row: both sides, the saved treks, and which keys can build.
-const headingInput = (props: Props, states: ReadonlyMap<string, TrekState>) => ({
+const headingInput = (props: Props, states: ReadonlyMap<string, TrekState>, now: Date) => ({
   status: props.status,
   summary: props.summary,
   entries: props.entries,
@@ -168,6 +171,7 @@ const headingInput = (props: Props, states: ReadonlyMap<string, TrekState>) => (
   canBuild: props.onBuild !== undefined,
   canFind: props.onFindWaysIn !== undefined,
   canBuildTrigger: props.onBuildTrigger !== undefined,
+  now,
 })
 
 export function App(props: Props) {
@@ -228,7 +232,7 @@ export function App(props: Props) {
   useKeyboard(help.guard((key) => onList && listKey(key, actions, shifted)))
 
   const { width, height } = useTerminalDimensions()
-  const heading = headingFor(row, sections, headingInput(props, states))
+  const heading = headingFor(row, sections, headingInput(props, states, now))
   const choosesChange = props.choosing !== undefined && isOfChange(row, sections)
   const { pane, listWidth, room } = layoutOf(width, height, props.opening !== undefined)
   const { start, end } = visibleWindow(lines.length, lineOfItem(lines, selected), room)

@@ -4,9 +4,10 @@ import type { Trek } from "../schema/trek"
 import { listTreks, loadTrekOrProblem, trekPath } from "./store"
 
 /**
- * A saved trek, for lists of treks: a valid one's title, stops, likely-wrong flags, when it was
- * built, how many repos it passes through, whether it follows code as it is rather than a change,
- * and each changed repo's branch or pull request it was built from; else its first problem.
+ * A saved trek, for lists of treks: a valid one's title, what it follows and what starts it, stops,
+ * likely-wrong flags, when it was built, how many repos it passes through, whether it follows code
+ * as it is rather than a change, and each changed repo's branch or pull request it was built from;
+ * else its first problem.
  */
 export type TrekEntry =
   | {
@@ -14,6 +15,9 @@ export type TrekEntry =
       path: string
       valid: true
       title: string
+      overview: string
+      // what starts it, as the trek says: "POST /refunds with amount 499"
+      trigger: string
       steps: number
       highFlags: number
       createdAt: string
@@ -35,6 +39,8 @@ function entryOf(name: string, path: string, trek: Trek): TrekEntry {
     path,
     valid: true,
     title: trek.title,
+    overview: trek.overview,
+    trigger: trek.trigger.input,
     steps: stopIds(trek).size,
     highFlags,
     createdAt: trek.created_at,

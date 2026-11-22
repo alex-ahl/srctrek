@@ -343,7 +343,7 @@
 
   <section>
     <h2>1. The home screen</h2>
-    <p class="note">The list on the left, the selected row described in a pane on the right. The list starts at the same line whatever is selected, so moving through it never shifts it; only the pane's text changes. The pane is behind a divider and opens with a dim line saying what it describes, so it can't be taken for a row. Sections: repos the agent proposed, your changes (a row for them, with where their trek stands, until it's saved; <code>C</code> picks another change), the code as it is (its ways in, each with its trek; <code>◇ not found yet</code> until <code>b</code> finds them), other branches and pull requests, then done treks and files that can't be read, folded with a count. The change is named in the title bar. Every key acts on the selected row, and the footer names what it does there.</p>
+    <p class="note">The list on the left; on the right, a pane with what the selected row doesn't show: a trek's overview, trigger, flags and when it was built; a way in's whole place and what building it does; your changes across their repos and what building does. The state and name stay on the row. The list starts at the same line whatever is selected, so moving through it never shifts it; only the pane's text changes. The pane is behind a divider and opens with a dim line saying what it describes, so it can't be taken for a row. Sections: repos the agent proposed, your changes (a row for them, with where their trek stands, until it's saved; <code>C</code> picks another change), the code as it is (its ways in, each with its trek; <code>◇ not found yet</code> until <code>b</code> finds them), other branches and pull requests, then done treks and files that can't be read, folded with a count. The change is named in the title bar. Every key acts on the selected row, and the footer names what it does there.</p>
     <figure><figcaption>The change's trek selected</figcaption>
       <div class="term screen">
         <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">srctrek</span></span><span>development · 6 commits since origin/development</span></div>
@@ -364,14 +364,14 @@
             <div class="ln dim">▸ DONE  31 treks</div>
           </div>
           <div class="side">
-            <div class="ln dim">your changes</div>
+            <div class="ln dim">the trek of your changes</div>
             <div class="ln"> </div>
-            <div class="ln"><span class="g">● ready</span></div>
-            <div class="ln bold">Stepping in the terminal</div>
-            <div class="ln dim">14 steps · 1 repo</div>
+            <div class="ln">Terminal stepping with the route</div>
+            <div class="ln">map and the call stack in it.</div>
             <div class="ln"> </div>
-            <div class="ln dim">development · 6 commits since</div>
-            <div class="ln dim">origin/development</div>
+            <div class="ln dim">trigger  n on the trek's first stop</div>
+            <div class="ln dim">1 repo · built today 17:52 ·</div>
+            <div class="ln dim">development</div>
           </div>
         </div>
         <div class="foot">enter open · l builds · C another change · ? keys</div>
@@ -399,10 +399,8 @@
           <div class="side">
             <div class="ln dim">a way into the code as it is</div>
             <div class="ln"> </div>
-            <div class="ln"><span class="dim">○ no trek yet</span></div>
-            <div class="ln bold">build a change's trek from the</div>
-            <div class="ln bold">home screen</div>
-            <div class="ln dim">in srctrek</div>
+            <div class="ln dim">event ·</div>
+            <div class="ln dim">packages/tui/src/home/screen.tsx:177</div>
             <div class="ln"> </div>
             <div class="ln it">your agent follows it through the</div>
             <div class="ln it">code, as it runs</div>
@@ -421,7 +419,7 @@
           <div class="ln">  <span class="dim">○ no trek</span>  step to the next stop in the TUI</div>
         </div>
         <div class="help-panel">
-          <div class="ln dim">a way into the code as it is · ○ no trek yet · build a cha…</div>
+          <div class="ln dim">a way into the code as it is · event · packages/tui/src/home…</div>
         </div>
         <div class="foot">enter build its trek · b build · ? keys</div>
       </div>

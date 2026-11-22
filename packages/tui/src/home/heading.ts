@@ -1,22 +1,21 @@
 import type { ChangeSummary, TrekEntry, TrekStatus } from "@srctrek/core"
 import type { Row } from "./list/rows"
-import { type States, stateOf } from "./list/row-state"
+import type { States } from "./list/row-state"
 import type { Section } from "./list/sections"
-import { changeParts } from "./change-line"
-import { type StatusBlock, statusBlock } from "./status-block"
-import { count } from "../ui/text"
+import { statusBlock } from "./status-block"
+import { builtWhen, count } from "../ui/text"
+import type { Tone } from "../ui/theme"
+
+/** A line of the pane: its text, in a tone other than the text's, italic for what the agent does. */
+export type PaneLine = Readonly<{ text: string; tone?: Tone; italic?: boolean }>
 
 /**
- * What the pane beside the list says about the selected row: what it describes, where it stands
- * (its block), and what it's of, such as the change's branch and commits.
+ * What the pane beside the list says about the selected row: what it is, then only what the row and
+ * the title bar don't already show.
  */
-export type Heading = Readonly<{
-  label: string
-  block: StatusBlock | undefined
-  about: string | undefined
-}>
+export type Heading = Readonly<{ label: string; lines: readonly PaneLine[] }>
 
-/** What the heading needs: both sides, the saved treks, and which keys can build. */
+/** What the pane needs: both sides, the saved treks, which keys can build, and the time now. */
 export type HeadingInput = Readonly<{
   status: TrekStatus | undefined
   summary: ChangeSummary | undefined
@@ -25,82 +24,128 @@ export type HeadingInput = Readonly<{
   canBuild: boolean
   canFind: boolean
   canBuildTrigger: boolean
+  now: Date
 }>
 
-// "in web, api": the repos the code as it is is read in, the change's own.
-function codeRepos(summary: ChangeSummary | undefined): string | undefined {
-  const repos = [...(summary?.changed.map(({ repo }) => repo) ?? []), ...(summary?.unchanged ?? [])]
-  return repos.length === 0 ? undefined : `in ${repos.join(", ")}`
+type Valid = Extract<TrekEntry, { valid: true }>
+
+const blank: PaneLine = { text: "" }
+
+// The lines a trek's state adds: what the agent would do, a failed build's last lines, a problem.
+function detailLines(
+  status: TrekStatus,
+  canBuild: boolean,
+  open: { code: boolean; trigger?: string },
+): PaneLine[] {
+  return statusBlock(status, undefined, canBuild, open).details.map((text) => ({
+    text,
+    tone: "dim",
+    italic: true,
+  }))
 }
 
-// "development · 6 commits since origin/development": the change, as its line says it.
-const changeText = (summary: ChangeSummary | undefined) =>
-  summary === undefined
-    ? undefined
-    : changeParts(summary)
-        .map((part) => part.text)
-        .join("")
-
-// The change's own heading: its line, and where its trek stands.
-function changeHeading(input: HeadingInput): Heading {
-  const { status, summary, entries, canBuild } = input
-  const entry = entries.find((each) => each.name === status?.name)
-  const block = status === undefined ? undefined : statusBlock(status, entry, canBuild, summary)
-  return { label: "your changes", block, about: changeText(summary) }
-}
-
-// A saved trek that isn't the change's: where it stands and what it holds.
-function savedHeading(entry: TrekEntry, input: HeadingInput, label: string): Heading {
-  const state = stateOf({ kind: "trek", entry }, undefined, input.states)
-  const known = state ?? { symbol: "·", state: "saved", tone: "dim" as const }
-  if (!entry.valid) {
-    return {
-      label: "a file that isn't a valid trek",
-      block: { ...known, name: entry.name, details: [entry.problem] },
-      about: undefined,
-    }
-  }
-
-  const block: StatusBlock = {
-    ...known,
-    name: entry.title,
-    holds: `${count(entry.steps, "step")} · ${count(entry.repos, "repo")}`,
-    ...(entry.highFlags > 0 ? { flag: `⚠ ${entry.highFlags} likely wrong` } : {}),
-    details: [],
-  }
+// A saved trek: what it follows, what starts it, its likely-wrong flags, when and from what it was
+// built.
+function trekLines(entry: Valid, now: Date): PaneLine[] {
   const heads = entry.heads.map(({ head }) =>
     head.kind === "branch" ? head.name : `pr ${String(head.number)}`,
   )
-  return { label, block, about: heads.length === 0 ? undefined : `of ${heads.join(", ")}` }
+  const from = heads.length === 0 ? "" : ` · ${heads.join(", ")}`
+  const flags: PaneLine[] =
+    entry.highFlags > 0 ? [{ text: `⚠ ${String(entry.highFlags)} likely wrong`, tone: "bad" }] : []
+
+  return [
+    { text: entry.overview },
+    blank,
+    { text: `trigger  ${entry.trigger}`, tone: "dim" },
+    ...flags,
+    {
+      text: `${count(entry.repos, "repo")} · built ${builtWhen(entry.createdAt, now)}${from}`,
+      tone: "dim",
+    },
+  ]
 }
 
-// A row of the code as it is: finding its ways in, or a way in and its trek.
-function codeHeading(row: Row, input: HeadingInput): Heading {
-  const about = codeRepos(input.summary)
-  if (row.kind === "ways-in") {
-    const block = statusBlock(row.status, undefined, input.canFind, { code: true })
-    return { label: "the code's ways in", block, about }
+// Your changes across their repos, where there are several: the title bar names only the first.
+function repoLines(summary: ChangeSummary | undefined): PaneLine[] {
+  const changed = summary?.changed ?? []
+  const unchanged = summary?.unchanged ?? []
+  if (changed.length + unchanged.length < 2) {
+    return []
   }
 
-  if (row.kind === "trigger") {
-    const { name, trek } = row
-    const entry = input.entries.find((each) => each.name === trek.name)
-    const block = statusBlock(trek, entry, input.canBuildTrigger, { code: true, trigger: name })
+  const branch = ({ head }: (typeof changed)[number]) =>
+    head.kind === "branch" ? head.name : `pr ${String(head.number)}`
+  return [
+    ...changed.map((repo) => ({
+      text: `${repo.repo}  ${branch(repo)} · ${count(repo.commits, "commit")}`,
+    })),
+    ...unchanged.map((repo): PaneLine => ({ text: `${repo}  passed through`, tone: "dim" })),
+    blank,
+  ]
+}
+
+const entryNamed = (input: HeadingInput, name: string) =>
+  input.entries.find((each): each is Valid => each.valid && each.name === name)
+
+// Your changes themselves, before a saved trek stands for them.
+function changeHeading(input: HeadingInput): Heading {
+  const { status, summary, canBuild } = input
+  const details = status === undefined ? [] : detailLines(status, canBuild, { code: false })
+  return { label: "your changes", lines: [...repoLines(summary), ...details] }
+}
+
+// A saved trek: its own lines, or, for one that isn't valid, its problem.
+function savedHeading(entry: TrekEntry, label: string, now: Date): Heading {
+  if (!entry.valid) {
     return {
-      label: "a way into the code as it is",
-      block: { ...block, name: block.name ?? name },
-      about,
+      label: "a file that isn't a valid trek",
+      lines: [{ text: entry.problem, tone: "bad" }],
     }
   }
 
+  return { label, lines: trekLines(entry, now) }
+}
+
+// Your changes' trek: its own lines, then what its state adds, such as how much changed since.
+function yourTrekHeading(entry: TrekEntry, input: HeadingInput): Heading {
+  const { label, lines } = savedHeading(entry, "the trek of your changes", input.now)
+  const { status } = input
+  const details = status === undefined ? [] : detailLines(status, input.canBuild, { code: false })
+  return { label, lines: details.length === 0 ? lines : [...lines, blank, ...details] }
+}
+
+// A way in: the whole of where it was found, which the row cuts; then its trek, or what building it
+// does.
+function wayInHeading(row: Extract<Row, { kind: "trigger" }>, input: HeadingInput): Heading {
+  const where: PaneLine = { text: row.where, tone: "dim" }
+  const entry = entryNamed(input, row.trek.name)
+  const rest =
+    entry === undefined
+      ? detailLines(row.trek, input.canBuildTrigger, { code: true, trigger: row.name })
+      : trekLines(entry, input.now)
+  return { label: "a way into the code as it is", lines: [where, blank, ...rest] }
+}
+
+// A row of the code as it is: finding its ways in, a way in, or another trek of the code.
+function codeHeading(row: Row, input: HeadingInput): Heading {
+  if (row.kind === "ways-in") {
+    const lines = detailLines(row.status, input.canFind, { code: true })
+    return { label: "the code's ways in", lines }
+  }
+
+  if (row.kind === "trigger") {
+    return wayInHeading(row, input)
+  }
+
   return row.kind === "trek"
-    ? savedHeading(row.entry, input, "a trek of the code as it is")
+    ? savedHeading(row.entry, "a trek of the code as it is", input.now)
     : changeHeading(input)
 }
 
 /**
- * The heading for the selected row: the change's for its own rows and anything else that isn't a
- * trek, the code as it is for its ways in and their treks, and a saved trek's own for the others.
+ * The pane for the selected row: your changes, their trek, the code as it is, or another saved
+ * trek; your changes when nothing is selected.
  */
 export function headingFor(
   row: Row | undefined,
@@ -112,8 +157,14 @@ export function headingFor(
     return codeHeading(row, input)
   }
 
-  const ofChange = section === undefined || section.id === "change" || section.id === "proposal"
-  return row?.kind === "trek" && !ofChange
-    ? savedHeading(row.entry, input, "a saved trek")
-    : changeHeading(input)
+  if (row?.kind !== "trek") {
+    return changeHeading(input)
+  }
+
+  if (row.entry.name === input.status?.name) {
+    return yourTrekHeading(row.entry, input)
+  }
+
+  const label = section?.id === "change" ? "a trek of your changes" : "a trek of another branch"
+  return savedHeading(row.entry, label, input.now)
 }

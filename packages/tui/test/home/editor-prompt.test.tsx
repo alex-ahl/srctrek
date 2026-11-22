@@ -17,6 +17,8 @@ const withTrek: TrekEntry = {
   path: "/t/a-reply-times-out.json",
   valid: true,
   title: "A reply times out",
+  overview: "A refund from the button to the payment provider.",
+  trigger: "the Refund button on an order",
   steps: 6,
   highFlags: 0,
   createdAt: "2026-11-09T09:12:00.000Z",
