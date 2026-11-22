@@ -30,10 +30,24 @@ export function pressKeyOn(node: ReactNode, key: string): Promise<void> {
   return pressOn(node, (input) => input.pressKey(key))
 }
 
+/**
+ * The screen under test, for waiting on it between keys: until it shows what a key should bring
+ * up, as work a key starts (loading a trek, reading a file) takes as long as it takes; or one draw,
+ * for a key that changes the screen at once.
+ */
+export type Screen = Readonly<{
+  shows: (what: string | RegExp) => Promise<void>
+  drawn: () => Promise<void>
+}>
+
+// How often the screen is looked at while waiting, and how long to wait at most.
+const LOOK_MS = 10
+const WAIT_MS = 4000
+
 /** Renders the node, presses keys with `press`, and returns the screen they leave. */
 export async function frameAfter(
   node: ReactNode,
-  press: (input: MockInput) => void | Promise<void>,
+  press: (input: MockInput, screen: Screen) => void | Promise<void>,
   width = 110,
   height = 24,
 ): Promise<string> {
@@ -45,7 +59,26 @@ export async function frameAfter(
   await new Promise((resolve) => setTimeout(resolve, 0))
   await renderOnce()
 
-  await press(mockInput)
+  const drawn = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await renderOnce()
+  }
+  const shows = async (what: string | RegExp) => {
+    const matches = (frame: string) =>
+      typeof what === "string" ? frame.includes(what) : what.test(frame)
+    const deadline = Date.now() + WAIT_MS
+    await drawn()
+    while (!matches(captureCharFrame())) {
+      if (Date.now() > deadline) {
+        throw new Error(`the screen never showed ${String(what)}:\n${captureCharFrame()}`)
+      }
+
+      await Bun.sleep(LOOK_MS)
+      await renderOnce()
+    }
+  }
+
+  await press(mockInput, { shows, drawn })
   await new Promise((resolve) => setTimeout(resolve, 0))
   await renderOnce()
   const frame = captureCharFrame()

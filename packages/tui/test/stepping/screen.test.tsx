@@ -2,9 +2,9 @@ import { expect, mock, test } from "bun:test"
 import { repoWithShowcase, repoWithSteps, repoWithTrek, repoWithTwoCalls } from "@srctrek/testing"
 import type { PageActions } from "../../src/stepping/page"
 import { SteppingScreen } from "../../src/stepping/screen"
-import { frameAfter } from "../support/keys"
+import { type Screen, frameAfter } from "../support/keys"
 
-const settle = () => Bun.sleep(300)
+type Input = Parameters<Parameters<typeof frameAfter>[1]>[0]
 
 const HERE: PageActions = {
   editor: undefined,
@@ -30,7 +30,12 @@ function stepping(root: string, page: PageActions = HERE) {
 
 test("opens a trek at its page: the overview, and enter to step it here", async () => {
   const root = await repoWithTrek()
-  const frame = await frameAfter(stepping(root), settle, 120, 30)
+  const frame = await frameAfter(
+    stepping(root),
+    (_input, screen) => screen.shows(" stops"),
+    120,
+    30,
+  )
 
   expect(frame).toContain("srctrek › Paying")
   expect(frame).toContain("3 stops")
@@ -41,10 +46,10 @@ test("enter on the page steps to the first stop", async () => {
   const root = await repoWithTrek()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressEnter()
-      await settle()
+      await screen.shows("1 / ")
     },
     120,
     30,
@@ -64,8 +69,8 @@ test("the page offers the editor, a build, and the builds; e opens the editor", 
   }
   const frame = await frameAfter(
     stepping(root, page),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("e")
     },
     120,
@@ -86,8 +91,8 @@ test("with an editor chosen, enter on the page opens it and n steps here", async
   }
   const frame = await frameAfter(
     stepping(root, page),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressEnter()
     },
     120,
@@ -102,10 +107,10 @@ test("n steps to the first step: its file, the narration over it, and where n an
   const root = await repoWithTrek()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("const total = pay()")
     },
     120,
     30,
@@ -124,12 +129,12 @@ test("into, then out, follow the call and come back", async () => {
   const root = await repoWithTrek()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("i")
-      await settle()
+      await screen.shows("export function pay()")
     },
     120,
     30,
@@ -144,14 +149,14 @@ test("the cursor marks its line, and i steps into the call made on it", async ()
   const root = await repoWithTwoCalls()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("const total = pay()")
       input.pressArrow("down")
-      await settle()
+      await screen.drawn()
       input.pressKey("i")
-      await settle()
+      await screen.shows("export function send(total)")
     },
     120,
     30,
@@ -165,14 +170,14 @@ test("d opens a step's details: how it was reached, with the cited line's code, 
   const root = await repoWithTwoCalls()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("i")
-      await settle()
+      await screen.shows("2 / ")
       input.pressKey("d")
-      await settle()
+      await screen.shows("const total = pay()")
     },
     120,
     34,
@@ -189,21 +194,21 @@ test("enter in details goes to the step chosen, closing them", async () => {
   const root = await repoWithTwoCalls()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("i")
-      await settle()
+      await screen.shows("2 / ")
       input.pressKey("d")
-      await settle()
+      await screen.shows("REACHED FROM")
       // past where it came from and the line its evidence cites, to its context
       input.pressArrow("down")
-      await settle()
+      await screen.drawn()
       input.pressArrow("down")
-      await settle()
+      await screen.drawn()
       input.pressEnter()
-      await settle()
+      await screen.shows("returns a fixed amount")
     },
     120,
     34,
@@ -217,12 +222,12 @@ test("? at a stop lists every key, D among them for the change", async () => {
   const root = await repoWithTrek()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("?")
-      await settle()
+      await screen.shows("MOVE")
     },
     120,
     30,
@@ -237,14 +242,14 @@ test("r opens the route: the call tree, what runs at ▶, and the chosen stop be
   const root = await repoWithTwoCalls()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("n")
-      await settle()
+      await screen.shows("2 / ")
       input.pressKey("r")
-      await settle()
+      await screen.shows("RUNNING")
     },
     120,
     24,
@@ -262,18 +267,18 @@ test("enter in the route goes to the stop chosen", async () => {
   const root = await repoWithTwoCalls()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("r")
-      await settle()
+      await screen.shows("RUNNING")
       input.pressArrow("down")
-      await settle()
+      await screen.drawn()
       input.pressArrow("down")
-      await settle()
+      await screen.drawn()
       input.pressEnter()
-      await settle()
+      await screen.shows("3 / ")
     },
     120,
     24,
@@ -285,22 +290,22 @@ test("enter in the route goes to the stop chosen", async () => {
 
 test("← in the route folds a call's stops into its row, and n then steps past them", async () => {
   const root = await repoWithTwoCalls()
-  const steps = async (input: Parameters<Parameters<typeof frameAfter>[1]>[0]) => {
-    await settle()
+  const steps = async (input: Input, screen: Screen) => {
+    await screen.shows(" stops")
     input.pressKey("n")
-    await settle()
+    await screen.shows("1 / ")
     input.pressKey("r")
-    await settle()
+    await screen.shows("RUNNING")
     input.pressArrow("left")
-    await settle()
+    await screen.shows("2 stops")
   }
   const map = await frameAfter(stepping(root), steps, 120, 24)
   const after = await frameAfter(
     stepping(root),
-    async (input) => {
-      await steps(input)
+    async (input, screen) => {
+      await steps(input, screen)
       input.pressKey("r")
-      await settle()
+      await screen.shows("the end of the trek")
     },
     120,
     24,
@@ -316,16 +321,16 @@ test("tab in the route lays the stops out by repo, then as a tree of their files
   const root = await repoWithTwoCalls()
   const frame = await frameAfter(
     stepping(root),
-    async (input) => {
-      await settle()
+    async (input, screen) => {
+      await screen.shows(" stops")
       input.pressKey("n")
-      await settle()
+      await screen.shows("1 / ")
       input.pressKey("r")
-      await settle()
+      await screen.shows("RUNNING")
       input.pressTab()
-      await settle()
+      await screen.drawn()
       input.pressTab()
-      await settle()
+      await screen.shows("tab calls, repos, files")
     },
     120,
     24,
@@ -338,25 +343,23 @@ test("tab in the route lays the stops out by repo, then as a tree of their files
 
 test("a hop says what carries it, beside the code and in the route", async () => {
   const root = await repoWithShowcase()
-  const presses = async (
-    input: Parameters<Parameters<typeof frameAfter>[1]>[0],
-    keys: string[],
-  ) => {
-    await settle()
-    for (const key of keys) {
+  const presses = async (input: Input, screen: Screen, keys: string[]) => {
+    await screen.shows(" stops")
+    // each n reaches the next stop, r the route
+    for (const [i, key] of keys.entries()) {
       input.pressKey(key)
-      await settle()
+      await screen.shows(key === "n" ? `${String(i + 1)} / ` : "RUNNING")
     }
   }
   const stop = await frameAfter(
     stepping(root),
-    (input) => presses(input, ["n", "n", "n", "n"]),
+    (input, screen) => presses(input, screen, ["n", "n", "n", "n"]),
     120,
     24,
   )
   const map = await frameAfter(
     stepping(root),
-    (input) => presses(input, ["n", "n", "n", "n", "r"]),
+    (input, screen) => presses(input, screen, ["n", "n", "n", "n", "r"]),
     120,
     24,
   )
@@ -374,19 +377,29 @@ test("enter on a call found by name in several places opens the nearest, and ←
     ],
     ({ step }) => [step({ summary: "main formats the total" })],
   )
-  const presses = async (input: Parameters<Parameters<typeof frameAfter>[1]>[0], more: boolean) => {
-    await settle()
+  const presses = async (input: Input, screen: Screen, more: boolean) => {
+    await screen.shows(" stops")
     input.pressKey("n")
-    await settle()
+    await screen.shows("const shown = format(250)")
     input.pressEnter()
-    await settle()
+    await screen.shows("1 of 2")
     if (more) {
       input.pressArrow("right")
-      await settle()
+      await screen.shows("2 of 2")
     }
   }
-  const first = await frameAfter(stepping(root), (input) => presses(input, false), 120, 24)
-  const second = await frameAfter(stepping(root), (input) => presses(input, true), 120, 24)
+  const first = await frameAfter(
+    stepping(root),
+    (input, screen) => presses(input, screen, false),
+    120,
+    24,
+  )
+  const second = await frameAfter(
+    stepping(root),
+    (input, screen) => presses(input, screen, true),
+    120,
+    24,
+  )
 
   expect(first).toContain("format · format.ts:1 · found by name · 1 of 2")
   expect(first).toContain("←/→ other places")
