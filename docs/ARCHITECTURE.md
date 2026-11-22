@@ -30,8 +30,8 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
   it starts `trek serve` in the workspace folder and draws the views it answers with. It imports
   only core's types, so its bundle holds none of core's code.
 - **`packages/tui/`** — the terminal front-end (OpenTUI + React) for everything around
-  stepping: a home screen of treks and PRs awaiting review, ranked by high-severity flags; a
-  live view while a trek is built; a route map of the whole trek across repos; and a
+  stepping: a landing page of the changes to look at, each with its trek's state; a change's
+  screen, where its trek is built and shown; a route map of the whole trek across repos; and a
   stepping view with a code panel, for a quick look and for editors without a plugin. Holds
   no trek-building logic.
 - **mcp** — the MCP server (`trek mcp`, stdio, `packages/mcp/`) that the user's agent talks
@@ -229,7 +229,7 @@ A saved trek has passed every rule. When one doesn't load:
   through.
 - **Stale** (a cited file's blob changed since): the trek opens with stale steps marked, and
   an action asks the agent to update them.
-- **Unreachable** (a repo isn't where the trek says): the home screen names the repo and the
+- **Unreachable** (a repo isn't where the trek says): the change's screen names the repo and the
   expected location.
 
 ## Following in the editor

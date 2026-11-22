@@ -6,7 +6,7 @@ the winbar, and step over, into, and out, as in a debugger. Requires `trek` (see
 
 ## Opening a trek
 
-`trek`'s home screen opens a trek with `enter`, starting Neovim with this plugin and its own
+`trek` opens a trek with `enter` on a change's screen, starting Neovim with this plugin and its own
 `trek serve`. To open treks from your own Neovim, add this folder to the runtime path:
 
 ```lua

@@ -17,13 +17,12 @@ terminal. Status: Milestone 5, in progress.
 ### 1. Review a pull request
 
 1. In a repo of the change, run `trek <pull request URL>…`, or `trek` on the branch.
-2. `trek` resolves the change, fetching what's remote, and opens the home screen. With no trek
-   yet and an agent configured, the build starts at once, and the home screen follows it: the
-   overview, then steps as they arrive.
-3. A repo the agent proposes appears as a row: add it to the repos list, or dismiss it. The trek
-   goes on into it either way.
-4. Once saved, the trek is picked out; enter opens its page, and enter there steps it, in the
-   terminal or the chosen editor.
+2. `trek` resolves the change, fetching what's remote, and opens its screen. `b` builds its trek,
+   and the screen follows the build: its steps as they arrive.
+3. A repo the agent proposes shows under the build: `a` adds it to the repos list, `x` dismisses
+   it. The trek goes on into it either way.
+4. Once saved, the screen shows the trek's overview, and enter steps it, in the terminal or the
+   chosen editor.
 5. In the editor: the overview, then next, over, into, and out through the steps, high flags
    inline and predicted values at the ends of their lines; at the end, the outcome.
 
@@ -34,21 +33,23 @@ agent's.
 
 ### 3. Learn unfamiliar code
 
-1. The home screen's code as it is section finds the code's triggers (routes, commands, jobs,
-   handlers) with `b`, each listed with the line that proves it.
-2. Picking one builds its trek, which opens as in flow 1. `trek --code` opens with this section
-   selected; `trek --code="<trigger>"` with that trigger's row, asked for by name.
+1. Code as it is, from the landing page or `trek --code`, finds the code's ways in (routes,
+   commands, jobs, handlers) with `b`, each listed with the line that proves it and its trek's
+   state.
+2. `b` builds the selected one's trek, and enter steps it once built; `B` finds the ways in again.
+   The last row follows a trigger the user names; `trek --code="<trigger>"` opens that trigger's
+   trek on its screen.
 
 ### 4. Come back after the change moved on
 
-The home screen marks the trek stale, with how many steps' files changed; `b` updates it. Until
+The change's screen marks the trek stale, with how many steps' files changed; `b` updates it. Until
 then the editor marks the stale steps. A trek of code as it is stays current while the code moves
 on without touching a step's file.
 
 ### 5. Build from the agent's chat
 
 The user asks their agent for a trek in plain words; the agent builds it through `trek mcp`, and
-`trek` finds it on the home screen.
+`trek` shows it on the change's screen, and on the change's row of the landing page.
 
 ### 6. Ask about a step (Milestone 6)
 
@@ -57,12 +58,12 @@ beside the code with citations to jump to. The answer is saved on the step as a 
 
 ### 7. Step without an editor plugin
 
-From the home screen, the stepping view in the terminal; `e` opens the step in the user's editor
-at its line.
+From a change's screen, the stepping view in the terminal; `e` opens the step in the user's
+editor at its line.
 
 ### 8. When it doesn't work
 
-- No agent configured: the home screen says how to set `SRCTREK_AGENT`.
+- No agent configured: the change's screen says how to set `SRCTREK_AGENT`.
 - A build failed: the end of its log, `b` to build again, `l` for the whole log.
 - A repo isn't reachable: its name and where it was expected.
 - A trek from another format version: says so, with a rebuild.
@@ -70,12 +71,13 @@ at its line.
 
 ### Where a session starts
 
-- **From the terminal:** enter on the home screen opens the trek's page: its overview, with what
-  acts on the trek. Enter there steps it where the user's Step in setting says: the terminal, the
-  default, or an editor found on the machine that can open a trek (Neovim, and `$EDITOR` at the
-  first stop without stepping); the other place is one key away, `e` for the editor or `n` for
-  the terminal. The choice is kept per user, in `$XDG_CONFIG_HOME/srctrek/settings.json` (else
-  `~/.config`); `E` and settings change it.
+- **From the terminal:** `trek` opens the landing page; with arguments, the change they name, on
+  its screen. Enter on a change opens its screen: the change, its trek's state, and, once there's
+  a trek, its overview. Enter there steps it where the user's Step in setting says: the terminal,
+  the default, or an editor found on the machine that can open a trek (Neovim, and `$EDITOR` at
+  the first stop without stepping); the other place is one key away, `e` for the editor or `n`
+  for the terminal. The choice is kept per user, in `$XDG_CONFIG_HOME/srctrek/settings.json`
+  (else `~/.config`); settings changes it.
 - **From the editor:** the plugin or extension lists the saved treks with their status (ready,
   stale, building, failed), opens one, and starts a build. The protocol gains the requests for
   this in Milestone 6.
@@ -236,27 +238,32 @@ terminal's background to its text; until then, or if it never reports them, the 
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 
-- **Home:** the change in the title bar (its branch or pull request, with how many commits since
-  its base, after its repos where there are several). The list across the whole width, in
-  sections: repos the agent proposed (they wait on the user), your changes (titled YOUR CHANGES:
-  a row for them, with where their trek stands, until it's saved, then their trek's row, with
-  other treks of the same branch; `C another change` in the footer there), the code as it
-  is over the same repos (its ways in, `◇ not found yet` until `b` finds them, each way in with its
-  trek's state, its trek listed only there), other saved treks of the code (TREKS OF THE CODE),
-  treks of other branches and pull requests, then done treks
-  (merged, branch gone, or their uncommitted work committed since) and files that can't be read,
-  folded under a heading with a count that enter opens. Every trek shows its state against its
-  branch now, newest first in its section. Enter opens the selected trek's page.
-- **The change's trek, by state:** building (enter watches it), ready, stale (with how many steps
-  changed; `b` updates it), build failed (the end of its log; `b` builds again), can't open (the
-  repo that isn't where it was), built with an older guide (`b` rebuilds), no agent configured
-  (how to set `SRCTREK_AGENT`), nothing to trek.
+- **Landing page,** what `trek` opens on: every change there is to look at, under headings, each
+  with its trek's state. YOUR WORK: the branch checked out, then its uncommitted work as a row of
+  its own. WAITING ON YOUR REVIEW, then OTHER PULL REQUESTS, then OTHER BRANCHES. CODE AS IT IS, one
+  row. MORE REPOS: the repos beside this one, ticked with `space` to go with the change, `→` for a
+  repo's branches. DONE, folded under a count: treks whose work landed or whose branch is gone.
+  The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
+  row as the lists load and follow the worktree. A line above the footer says what enter opens.
+  Pull requests that can't be listed say why under WAITING ON YOUR REVIEW.
+- **A change's screen,** opened with enter: the change in the title bar and on its first line,
+  with its size, then its trek's state: no trek yet (what `b` does, or how to set
+  `SRCTREK_AGENT`), building (the steps as they arrive and what the agent read last, a repo it
+  proposes with `a` to add and `x` to dismiss), ready (the trek's overview and its likely-wrong
+  steps; enter steps it), stale (how many steps' files changed; `b` updates it, enter steps it as
+  it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
+  with an older guide, nothing to trek. `b` always builds the trek: builds, updates, or builds
+  again. A trek saved meanwhile, by `b` or an agent's chat, shows once it's saved. A done trek
+  opens on a screen of its own, with just the trek.
+- **Code as it is:** its ways in, `○ ways in not found yet` until `b` finds them; then each way
+  in with its trek's state and where it's found. Enter steps a way in's trek, `b` builds it, `B`
+  finds the ways in again, and the last row, follow a trigger…, asks for one in the user's words.
 - **Settings,** opened with `S`: where treks are stepped, the agent's command, building
   automatically (off by default), and colours (srctrek's or the terminal's), each with its value; an
   environment variable overrides the settings file, and settings says so beside the value. The agent
   can set its own command from its chat, through srctrek's MCP server, and a test run says whether a
   command works.
-- **Build view,** opened with `l` from any trek: the build's state with the trek's title and a
+- **Build view,** opened with `l` from a change's screen: the build's state with the trek's title and a
   clock, the steps added with their repo and summary, what the agent read, a rejected round's
   problems, and why a build failed; `tab` shows the log itself. The last ten builds of each trek
   are kept, and `←`/`→` step between them.
@@ -271,36 +278,34 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   column per repo, then as a tree of the trek's files: each repo, its folders each on one line,
   each file with its stops, `▶` and `n` on the files the trek is in and goes to; there `↑`/`↓`
   choose a file and its stop shows beside it. Enter goes to the chosen stop.
-- **Stepping,** as good as in the editors: `enter` starts it from a trek's page. At a step, its file
-  with the step's lines tinted, change signs in the gutter, predicted values and arrows at line
-  ends, and the narration on a band over the step. The line `n` goes in from has `n` after its
+- **Stepping,** as good as in the editors: `enter` starts it from a change's screen, at the trek's
+  first stop. At a step, its file with the step's lines tinted, change signs in the gutter,
+  predicted values and arrows at line ends, and the narration on a band over the step. The line `n` goes in from has `n` after its
   arrow on a chip of its own (`[n]` where the terminal's colours aren't known), and the footer
   says where `n` goes. Beside it on a wide terminal: the stop `n` goes to, how it's reached (`into`,
   `back to`, `on to`, or `↯` and what carries the hop, `↯ on a timer to`), its repo and path cut from the left, or `this file` when it's
   in the stop's own file, what it says, its change and flag; under it, the stop `p` goes back to,
   how the trek came from it, and where it is. The band carries the stop's flag in full. A narrow terminal shows the
-  call stack on a line over the code. `i`, `O` and `o` step into, over and out, listed under `?`. The overview comes before the first step, the flags after the last. `e` opens the cursor's line in the user's editor.
+  call stack on a line over the code. `i`, `O` and `o` step into, over and out, listed under `?`. `p` from the first stop shows the overview, and the flags come after the last. `e` opens the cursor's line in the user's editor.
 
 ### Keys
 
 - **One meaning per letter** on every screen; a capital is a variant of its lowercase key (`o`
-  out, `O` over; `d` details, `D` the change; `e` your editor, `E` pick it).
+  out, `O` over; `d` details, `D` the change; `b` build, `B` find the ways in again).
 - **Footers** show the keys that act on what's selected; `?` lists every key of the screen,
   grouped, and any key closes the list. Arrows and `q` are left to `?`.
-- **Shared:** `↑`/`↓` or `j`/`k` move, `enter` the main action, `esc` back, `q` quit on the home
-  screen and back elsewhere, `?` every key; `b` build, `x` stop or dismiss, `l` builds, `e` your
-  editor, `S` settings.
+- **Shared:** `↑`/`↓` or `j`/`k` move, `enter` the main action, `esc` back, `q` quit on the landing
+  page and back elsewhere, `?` every key; `b` build, `a` add, `x` stop or dismiss, `l` builds, `e`
+  your editor, `S` settings.
 
-| Screen      | Keys                                                                                                                               |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Home        | `enter` the trek's page · `b` build, update, or rebuild · `x` stop, or dismiss a                                                   |
-|             | proposal · `l` builds · `C` pick another change · `E` pick where treks are stepped ·                                               |
-|             | `S` settings · `?` keys · `q` quit                                                                                                 |
-| Trek's page | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build · `x`                                                |
-|             | stop · `l` builds · `?` keys · `q` home                                                                                            |
-| Settings    | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                          |
-| Build view  | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                               |
-| Route map   | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close |
-| Stepping    | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                             |
-|             | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                      |
-|             | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` home                                                   |
+| Screen            | Keys                                                                                                                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Landing page      | `enter` open the change, or what's folded · `space` add a repo · `→` a repo's branches · `S` settings · `?` keys · `q` quit                                                                            |
+| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `a` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back |
+| Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                       |
+| Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                              |
+| Build view        | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                                                                                                   |
+| Route map         | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close                                                                     |
+| Stepping          | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                                                                                                 |
+|                   | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                                                                                          |
+|                   | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` back                                                                                                                       |

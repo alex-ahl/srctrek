@@ -1,5 +1,33 @@
 # Handoff
 
+## 2026-11-22 — The landing page, and a screen per change
+
+**Done**
+
+- `trek` opens the landing page: your branch and its uncommitted work, pull requests waiting on
+  your review and the others, the other branches, the code as it is, the repos beside this one to
+  tick, and, folded, treks whose work is done; each with its trek's state. The selection is kept
+  on its row as lists load and the worktree moves on, and on what was opened from it last. `q`
+  quits, `S` opens settings.
+- With any arguments, `trek` opens the change they name on its screen; esc goes to the landing
+  page. A change's screen: the change and its size, its trek's state, the build as it runs with a
+  repo the agent proposes (`a` add, `x` dismiss), and the trek's overview once saved. `b` builds,
+  updates, or builds again; enter steps the trek here or in the chosen editor; `l` opens its
+  builds. A ready trek built again reads as building until the build ends.
+- Code as it is: its ways in, each with its trek; enter steps a way in's trek, `b` builds it, `B`
+  finds the ways in again, and the last row follows a trigger the user names.
+- A trek opens at its first stop; `p` from there shows the overview. The home screen, the change
+  picker (`C`), the trek's page, and `E` are gone.
+
+**Next**
+
+- Plan B: a checked-out pull request is that pull request, listed once under YOUR WORK, its trek
+  named for the pull request (`docs/design/trying.html`).
+- Plan C: several treks of one change, listed on its screen (`docs/design/trying.html`).
+- Later: a build started from an agent's own chat through `trek mcp` showing live on its change's
+  screen.
+- The screen captures' ready, stale, and older-guide states, with a sample trek saved for them.
+
 ## 2026-11-21 — Milestone 7: stepping in the terminal, the route map, the eval baseline
 
 **Done**
