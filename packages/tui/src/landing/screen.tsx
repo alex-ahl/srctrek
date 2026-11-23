@@ -21,6 +21,7 @@ import {
 } from "./list"
 import { type Ticked, opensWith, repoItems, tickedOf, toggled } from "./repos"
 import type { DropRow } from "./drop"
+import type { DropView } from "./drop-view"
 import { useDrop } from "./use-drop"
 import { type DoneTrek, type LandingRow, type Pick, doneRows, landingRows } from "./rows"
 import { Footer, type KeyHint } from "../ui/footer"
@@ -94,27 +95,42 @@ function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
     : { group, text: "nothing waiting on your review", tone: "dim" }
 }
 
-// The changes as each list answers; one that can't be read leaves the others listed.
+// Past this, what's read here is drawn as far as it's read, rather than kept back any longer.
+const LOCAL_WAIT_MS = 500
+
+/** Whether the list is drawn yet: once every list read here has answered, or the wait is up. */
+function useSettled(loads: readonly Loaded<unknown>[]): boolean {
+  const [waited, setWaited] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setWaited(true), LOCAL_WAIT_MS)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return waited || loads.every((loaded) => loaded.kind !== "loading")
+}
+
+// The changes as each list answers; one that can't be read leaves the others listed. Drawn once
+// what's read here is in, so it appears whole; pull requests, asked of the host, fill their place
+// as they come.
 function useRows(props: Props) {
   const branches = useLoaded(props.load)
   const pulls = useLoaded(props.pullRequests)
   const done = useLoaded(props.done)
+  const nearby = useLoaded(props.nearby)
+  const settled = useSettled([branches, done, nearby])
   const rows = useMemo(
     () => landingRows(foundOr(branches, undefined), foundOr(pulls, [])),
     [branches, pulls],
   )
 
-  return { branches, rows, done: doneRows(foundOr(done, [])), note: reviewNote(pulls) }
-}
-
-// The repos beside this one; none until they're found, or when they can't be.
-function useCheckouts(nearby: () => Promise<NearbyCheckout[]>): readonly NearbyCheckout[] {
-  const [found, setFound] = useState<readonly NearbyCheckout[]>([])
-  useEffect(() => {
-    void nearby().then(setFound, () => undefined)
-  }, [nearby])
-
-  return found
+  return {
+    settled,
+    branches,
+    rows,
+    done: doneRows(foundOr(done, [])),
+    nearby: foundOr(nearby, []),
+    note: reviewNote(pulls),
+  }
 }
 
 // The title bar, the line above the list, what enter opens, and the footer, each with its rule.
@@ -226,6 +242,37 @@ function selectedIndex(items: readonly LandingItem[], chosen: string | undefined
 const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
   key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
 
+// A repo's branches as they're drawn under its row, while they're open.
+function dropView(
+  drop: ReturnType<typeof useDrop>,
+  ticked: Ticked,
+  now: Date,
+): DropView | undefined {
+  const open = drop.drop
+  if (open === undefined) {
+    return undefined
+  }
+
+  return { drop: open, rows: drop.rows, problem: drop.problem, pick: ticked.get(open.path), now }
+}
+
+// What enter opens, in words, above the footer.
+function OpensLine({ opens }: { opens: string }) {
+  const tones = useTones()
+  return (
+    <box
+      border={["top"]}
+      borderColor={tones.dim}
+      style={{ flexShrink: 0, paddingLeft: PADDING, paddingRight: PADDING }}
+    >
+      <text fg={COLOUR.text}>
+        <span fg={tones.dim}>Opens: </span>
+        {opens}
+      </text>
+    </box>
+  )
+}
+
 /**
  * Every change there is to look at, each with its trek's state: the user's own work, the pull
  * requests, the repo's other branches, code as it is, the repos beside it to tick and take along,
@@ -234,8 +281,7 @@ const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
 export function Landing(props: Props) {
   const tones = useTones()
   const { height } = useTerminalDimensions()
-  const { branches, rows, done, note } = useRows(props)
-  const nearby = useCheckouts(props.nearby)
+  const { settled, branches, rows, done, nearby, note } = useRows(props)
   const [ticked, setTicked] = useState(() =>
     tickedOf(props.from?.kind === "trek" ? undefined : props.from?.repos),
   )
@@ -315,40 +361,21 @@ export function Landing(props: Props) {
         <OrKeysHelp open={help.open} groups={GROUPS}>
           <box flexDirection="column">
             {branches.kind === "failed" && <text fg={tones.bad}>{`✕ ${branches.why}`}</text>}
-            <LandingList
-              items={items}
-              chosen={selected}
-              statuses={statuses}
-              note={note}
-              drop={
-                drop.drop === undefined
-                  ? undefined
-                  : {
-                      drop: drop.drop,
-                      rows: drop.rows,
-                      problem: drop.problem,
-                      pick: ticked.get(drop.drop.path),
-                      now,
-                    }
-              }
-              tint={props.tint}
-              height={height - CHROME_LINES}
-            />
+            {settled && (
+              <LandingList
+                items={items}
+                chosen={selected}
+                statuses={statuses}
+                note={note}
+                drop={dropView(drop, ticked, now)}
+                tint={props.tint}
+                height={height - CHROME_LINES}
+              />
+            )}
           </box>
         </OrKeysHelp>
       </box>
-      {item !== undefined && (
-        <box
-          border={["top"]}
-          borderColor={tones.dim}
-          style={{ flexShrink: 0, paddingLeft: PADDING, paddingRight: PADDING }}
-        >
-          <text fg={COLOUR.text}>
-            <span fg={tones.dim}>Opens: </span>
-            {opens}
-          </text>
-        </box>
-      )}
+      {settled && item !== undefined && <OpensLine opens={opens} />}
       <Footer keys={drop.drop === undefined ? help.footer(keysFor(item)) : DROP_KEYS} shown="" />
     </box>
   )

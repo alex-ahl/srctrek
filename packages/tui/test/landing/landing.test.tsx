@@ -11,6 +11,7 @@ import type {
 import { dropRows, opened } from "../../src/landing/drop"
 import { type DoneTrek, type Pick, landingRows, pullRequestRows } from "../../src/landing/rows"
 import { Landing } from "../../src/landing/screen"
+import { deferred } from "../support/deferred"
 import { type Screen, frameAfter } from "../support/keys"
 
 const choices: BranchChoices = {
@@ -194,7 +195,7 @@ test("says on each row whether a trek of it exists, as each is worked out", asyn
 
   expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
   expect(frame).toMatch(/fix\/rounding +1 commit since main +○ no trek yet/)
-  expect(frame).toMatch(/feature\/partial-refunds +5 commits since main *\n/)
+  expect(frame).toMatch(/feature\/partial-refunds +5 commits since main +… *\n/)
 })
 
 test("enter opens the selected change", async () => {
@@ -264,13 +265,12 @@ test("says when nothing waits on your review, or why pull requests can't be list
 
 test("the selection stays on its row as rows are listed above it", async () => {
   const onPick = mock((_pick: Pick) => undefined)
-  let answer: (found: OpenPullRequest[]) => void = () => undefined
-  const later = () => new Promise<OpenPullRequest[]>((resolve) => (answer = resolve))
-  await frameAfter(landing({ onPick, pullRequests: later }), async (input, on) => {
+  const pulls = deferred<OpenPullRequest[]>()
+  await frameAfter(landing({ onPick, pullRequests: () => pulls.promise }), async (input, on) => {
     await on.shows("fix/rounding")
     // own, uncommitted, then fix/rounding, with no pull requests listed yet
     await down(input, on, 2)
-    answer(open)
+    pulls.resolve(open)
     await on.shows("#14 Round refunds")
     input.pressEnter()
   })
@@ -590,4 +590,68 @@ test("scrolled into a group, the list still shows the group's heading", async ()
   )
 
   expect(frame).toMatch(/─\n\s*\n  DONE/)
+})
+
+test("waits for what's read here before drawing the list, then draws it whole", async () => {
+  const beside = deferred<NearbyCheckout[]>()
+  let before = ""
+  const whole = await frameAfter(
+    <Landing
+      load={() => Promise.resolve(choices)}
+      pullRequests={() => Promise.resolve(open)}
+      nearby={() => beside.promise}
+      repoBranches={() => Promise.resolve(apiBranches)}
+      fetchRepo={fetchRepo}
+      status={statusOf}
+      done={() => Promise.resolve(done)}
+      from={undefined}
+      onPick={() => undefined}
+      onSettings={() => undefined}
+      onQuit={() => undefined}
+      tint={undefined}
+    />,
+    async (_input, on) => {
+      // the branches and done treks are in; the repos beside this one aren't yet
+      before = await on.frame()
+      beside.resolve(nearby)
+      await on.shows("[ ] api")
+    },
+    110,
+    34,
+  )
+
+  expect(before).not.toContain("feature/refunds")
+  expect(whole).toContain("feature/refunds")
+  expect(whole).toContain("▸ DONE  2")
+})
+
+test("the columns stay where they are as pull requests with long titles arrive", async () => {
+  const pulls = deferred<OpenPullRequest[]>()
+  const long: OpenPullRequest = {
+    number: 12,
+    title: "Split partial refunds across two payments when the first one fails",
+    author: "alice",
+    url: "https://github.com/acme/web/pull/12",
+    draft: false,
+    reviewRequested: false,
+  }
+  const stateAt = (frame: string) =>
+    frame
+      .split("\n")
+      .find((line) => line.includes("feature/refunds"))
+      ?.indexOf("● trek ready")
+  let before = ""
+  const after = await frameAfter(
+    landing({ pullRequests: () => pulls.promise }),
+    async (_input, on) => {
+      await on.shows("● trek ready")
+      before = await on.frame()
+      pulls.resolve([long])
+      await on.shows("Split partial")
+    },
+    120,
+    34,
+  )
+
+  expect(stateAt(after)).toBe(stateAt(before))
 })

@@ -38,6 +38,8 @@ export function pressKeyOn(node: ReactNode, key: string): Promise<void> {
 export type Screen = Readonly<{
   shows: (what: string | RegExp) => Promise<void>
   drawn: () => Promise<void>
+  // the screen as it's drawn now, to compare with a later one
+  frame: () => Promise<string>
 }>
 
 // How often the screen is looked at while waiting, and how long to wait at most.
@@ -78,11 +80,16 @@ export async function frameAfter(
     }
   }
 
-  await press(mockInput, { shows, drawn })
+  const frame = async () => {
+    await drawn()
+    return captureCharFrame()
+  }
+
+  await press(mockInput, { shows, drawn, frame })
   await new Promise((resolve) => setTimeout(resolve, 0))
   await renderOnce()
-  const frame = captureCharFrame()
+  const last = captureCharFrame()
   renderer.destroy()
 
-  return frame
+  return last
 }

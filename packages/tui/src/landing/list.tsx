@@ -13,8 +13,10 @@ import { COLOUR, type Tone, useTones } from "../ui/theme"
 /** A line under a heading that isn't a change to open: still loading, none, or why not. */
 export type LandingNote = Readonly<{ group: LandingGroup; text: string; tone: Tone }>
 
-// A pull request's title can run long; past this, names are cut so the columns stay put.
-const MAX_NAME_WIDTH = 44
+// The name and detail columns are as wide whatever's listed, so a row that arrives late, a pull
+// request's long title, never moves the columns drawn already; longer is cut.
+const NAME_WIDTH = 30
+const DETAIL_WIDTH = 38
 
 const rowKey = (row: LandingRow) => JSON.stringify(row.choice)
 
@@ -71,10 +73,12 @@ const STATE_WORDS: Readonly<Record<string, string>> = {
 
 // "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours a change's screen
 // uses; code as it is says where finding its ways in stands.
-function StatusView({ status, code }: { status: TrekStatus | undefined; code: boolean }) {
+function StatusView(props: { status: TrekStatus | undefined; code: boolean; asked: boolean }) {
+  const { status, code } = props
   const tones = useTones()
+  // "…" where it's being worked out; a pull request's isn't
   if (status === undefined) {
-    return null
+    return props.asked ? <span fg={tones.dim}>{"  …"}</span> : null
   }
 
   const { symbol, state, tone } = statusBlock(status, undefined, false, { code })
@@ -100,8 +104,12 @@ function ChangeView({
     <span>
       {"  "}
       <span>{fit(row.label, widths.name).padEnd(widths.name)}</span>
-      <span fg={tones.dim}>{`  ${row.detail.padEnd(widths.detail)}`}</span>
-      <StatusView status={status} code={row.choice.kind === "code"} />
+      <span fg={tones.dim}>{`  ${fit(row.detail, widths.detail).padEnd(widths.detail)}`}</span>
+      <StatusView
+        status={status}
+        code={row.choice.kind === "code"}
+        asked={quickChoice(row) !== undefined}
+      />
     </span>
   )
 }
@@ -333,15 +341,14 @@ function Note({ note, first }: { note: LandingNote | undefined; first: boolean }
   )
 }
 
-// Each column as wide as its longest: the changes' names and details, and the repos' names and
-// paths, which line up among themselves rather than with a long pull request title above them.
+// The changes' columns as wide as they always are; the repos' names and paths as wide as their
+// longest, lined up among themselves.
 function widthsOf(items: readonly LandingItem[]): Widths {
-  const rows = items.flatMap((item) => (item.kind === "change" ? [item.row] : []))
   const repos = items.flatMap((item) => (item.kind === "repo" ? [item.checkout] : []))
 
   return {
-    name: Math.min(MAX_NAME_WIDTH, Math.max(0, ...rows.map((row) => row.label.length))),
-    detail: Math.max(0, ...rows.map((row) => row.detail.length)),
+    name: NAME_WIDTH,
+    detail: DETAIL_WIDTH,
     repo: Math.max(0, ...repos.map((repo) => repo.name.length)),
     path: Math.max(0, ...repos.map((repo) => repo.path.length)),
   }
