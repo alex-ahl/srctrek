@@ -6,9 +6,10 @@
 
 - `trek` opens the landing page: your branch and its uncommitted work, pull requests waiting on
   your review and the others, the other branches, the code as it is, the repos beside this one to
-  tick, and, folded, treks whose work is done; each with its trek's state. The selection is kept
-  on its row as lists load and the worktree moves on, and on what was opened from it last. `q`
-  quits, `S` opens settings.
+  tick, and, folded, treks whose work is done; each with its trek's state. It's drawn once, with
+  everything it lists, saying it's reading meanwhile; its selection is kept on its row as the
+  worktree moves on, and it stays under the screens opened over it, as it was left. `q` quits, `S`
+  opens settings.
 - With any arguments, `trek` opens the change they name on its screen; esc goes to the landing
   page. A change's screen: the change and its size, its trek's state, the build as it runs with a
   repo the agent proposes (`a` add, `x` dismiss), and the trek's overview once saved. `b` builds,
@@ -16,6 +17,12 @@
   builds. A ready trek built again reads as building until the build ends.
 - Code as it is: its ways in, each with its trek; enter steps a way in's trek, `b` builds it, `B`
   finds the ways in again, and the last row follows a trigger the user names.
+- A change opens whole: the one the selection rests on is worked out ahead (its trek's state, a
+  pull request's title, the trek's overview), so enter opens it in one frame; one not worked out
+  yet keeps the landing page, which says it's opening. Building automatically starts a build only
+  as a change is opened.
+- A change's screen leads with what it is, a pull request by its title, then who opened it, its
+  commits and files.
 - A trek opens at its first stop; `p` from there shows the overview. The home screen, the change
   picker (`C`), the trek's page, and `E` are gone.
 
@@ -27,6 +34,9 @@
 - Later: a build started from an agent's own chat through `trek mcp` showing live on its change's
   screen.
 - The screen captures' ready, stale, and older-guide states, with a sample trek saved for them.
+- Parked: whether a failed build of a ready trek says so, rather than staying ready.
+- Parked: the landing page's scroll leaves out a repo's open branches on a short terminal.
+- Parked: the landing page drawn at once from how it was last, then read again in place.
 
 ## 2026-11-21 — Milestone 7: stepping in the terminal, the route map, the eval baseline
 
