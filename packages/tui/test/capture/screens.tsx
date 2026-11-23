@@ -9,6 +9,7 @@ import type {
 import type { ReactNode } from "react"
 import type { BuildRead } from "../../src/build-view/read"
 import { ChangeScreen } from "../../src/change/screen"
+import { WaysInScreen } from "../../src/change/ways-in-screen"
 import { Landing } from "../../src/landing/screen"
 
 const noop = () => undefined
@@ -124,20 +125,15 @@ const landing = (
 // A change's screen with its trek where `status` says, and an agent to build it.
 function change(
   status: TrekStatus,
-  extra: { proposals?: ProposedRepo[]; agent?: boolean; summary?: ChangeSummary } = {},
+  extra: { proposal?: ProposedRepo; agent?: boolean; summary?: ChangeSummary } = {},
 ) {
-  const proposals = extra.proposals ?? []
   return (
     <ChangeScreen
       root="."
       summary={extra.summary ?? summary}
       status={status}
-      proposals={proposals}
-      reads={{
-        status: () => Promise.resolve(status),
-        build: () => Promise.resolve({ ...NO_BUILD, log: buildLog, state: "building" }),
-        proposals: () => Promise.resolve(proposals),
-      }}
+      proposal={extra.proposal}
+      readBuild={() => Promise.resolve({ ...NO_BUILD, log: buildLog, state: "building" })}
       actions={{
         step: noop,
         editor: undefined,
@@ -149,17 +145,30 @@ function change(
         dismissRepo: done,
         back: noop,
       }}
-      waysIn={{ stepTrek: noop, buildTrigger: done, follow: noop }}
+      run={noop}
+      generation={0}
     />
   )
 }
+
+// The code as it is, its ways in found.
+const waysIn = (
+  <WaysInScreen
+    summary={codeSummary}
+    ways={triggers}
+    actions={{ stepTrek: noop, buildTrigger: done, follow: noop }}
+    find={done}
+    run={noop}
+    back={noop}
+  />
+)
 
 /** Every screen and state the terminal draws, by name, with sample data from the refund flow. */
 export const SCREENS: Readonly<Record<string, ReactNode>> = {
   landing,
   "change-proposal": change(
     { kind: "building", name: "feature-refunds", logTail: buildLog },
-    { proposals: [payments] },
+    { proposal: payments },
   ),
   "change-building": change({ kind: "building", name: "feature-refunds", logTail: buildLog }),
   "change-failed": change({
@@ -188,8 +197,5 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
   "change-missing": change({ kind: "missing", name: "feature-refunds" }),
   "change-no-agent": change({ kind: "missing", name: "feature-refunds" }, { agent: false }),
   "change-empty": change({ kind: "empty", name: "feature-refunds" }, { summary: emptySummary }),
-  "code-ways-in": change(
-    { kind: "triggers", name: "api-code", triggers },
-    { summary: codeSummary },
-  ),
+  "code-ways-in": waysIn,
 }

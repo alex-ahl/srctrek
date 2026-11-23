@@ -5,7 +5,7 @@ import type { ChangeSummary, ProposedRepo, TrekStatus } from "@srctrek/core"
 import { repoWithTrek } from "@srctrek/testing"
 import type { BuildRead } from "../../src/build-view/read"
 import type { ChangeActions } from "../../src/change/keys"
-import { type ChangeReads, ChangeScreen } from "../../src/change/screen"
+import { ChangeScreen } from "../../src/change/screen"
 import { frameAfter } from "../support/keys"
 
 const summary: ChangeSummary = {
@@ -47,25 +47,25 @@ const NO_BUILD: BuildRead = {
 
 type Setup = Readonly<{
   actions?: Partial<ChangeActions>
-  reads?: Partial<ChangeReads>
-  proposals?: ProposedRepo[]
+  readBuild?: () => Promise<BuildRead>
+  proposal?: ProposedRepo
 }>
 
+// Work a key starts runs here and is done with: reading where things stand again is the
+// router's, and tested with it.
+const run = (work: Promise<void>) => void work.catch(() => undefined)
+
 function screen(root: string, status: TrekStatus, setup: Setup = {}) {
-  const { actions = {}, reads = {}, proposals = [] } = setup
   return (
     <ChangeScreen
       root={root}
       summary={summary}
       status={status}
-      proposals={proposals}
-      reads={{
-        status: () => Promise.resolve(status),
-        build: () => Promise.resolve(NO_BUILD),
-        proposals: () => Promise.resolve(proposals),
-        ...reads,
-      }}
-      actions={{ ...ACTIONS, ...actions }}
+      proposal={setup.proposal}
+      readBuild={setup.readBuild ?? (() => Promise.resolve(NO_BUILD))}
+      actions={{ ...ACTIONS, ...setup.actions }}
+      run={run}
+      generation={0}
     />
   )
 }
@@ -225,34 +225,10 @@ const BUILDING: BuildRead = {
   count: 1,
 }
 
-test("b shows the build as soon as it starts", async () => {
-  let started = false
-  const build = mock(() => {
-    started = true
-    return Promise.resolve()
-  })
-  const frame = await frameAfter(
-    screen(".", missing, {
-      actions: { build },
-      reads: { status: () => Promise.resolve(started ? building : missing) },
-    }),
-    async (input, on) => {
-      await on.shows("no trek yet")
-      input.pressKey("b")
-      await on.shows("◐ building")
-    },
-  )
-
-  expect(frame).not.toContain("no trek yet")
-})
-
 test("building: the steps as they arrive, and x stops it", async () => {
   const stop = mock(done)
   const frame = await frameAfter(
-    screen(".", building, {
-      actions: { stop },
-      reads: { build: () => Promise.resolve(BUILDING) },
-    }),
+    screen(".", building, { actions: { stop }, readBuild: () => Promise.resolve(BUILDING) }),
     async (input, on) => {
       await on.shows("createRefund")
       input.pressKey("x")
@@ -266,27 +242,6 @@ test("building: the steps as they arrive, and x stops it", async () => {
   expect(stop).toHaveBeenCalled()
 })
 
-test("a build that ends with a trek shows it ready, without a key", async () => {
-  const root = await repoWithTrek()
-  const name = { name: "pay" }
-  const frame = await frameAfter(
-    screen(
-      root,
-      { ...building, ...name },
-      {
-        reads: {
-          status: () => Promise.resolve({ kind: "ready", ...name }),
-        },
-      },
-    ),
-    (_input, on) => on.shows("3 stops"),
-    110,
-    30,
-  )
-
-  expect(frame).toContain("● ready")
-})
-
 const billing: ProposedRepo = {
   name: "billing",
   source: "../billing",
@@ -294,31 +249,25 @@ const billing: ProposedRepo = {
   evidence: [{ repo: "web", file: "ledger.ts", line: 3 }],
 }
 
-test("a repo the agent proposes: a adds it, and it leaves", async () => {
+test("a repo the agent proposes: a adds it where the agent found it", async () => {
   const addRepo = mock((_name: string, _location?: string) => Promise.resolve())
-  let added = false
-  const frame = await frameAfter(
-    screen(".", building, {
-      actions: { addRepo: (name, location) => ((added = true), addRepo(name, location)) },
-      reads: { proposals: () => Promise.resolve(added ? [] : [billing]) },
-      proposals: [billing],
-    }),
+  await frameAfter(
+    screen(".", building, { actions: { addRepo }, proposal: billing }),
     async (input, on) => {
       await on.shows("the agent went into billing")
       input.pressKey("a")
-      await on.shows(/^(?![\s\S]*went into billing)/)
+      await on.drawn()
     },
   )
 
-  expect(addRepo).toHaveBeenCalledWith("billing", undefined)
-  expect(frame).not.toContain("billing")
+  expect(addRepo).toHaveBeenCalledWith("billing")
 })
 
 test("a proposed repo with no location: a asks where it lives", async () => {
   const addRepo = mock((_name: string, _location?: string) => Promise.resolve())
   const unknown = { ...billing, source: undefined }
   await frameAfter(
-    screen(".", building, { actions: { addRepo }, proposals: [unknown] }),
+    screen(".", building, { actions: { addRepo }, proposal: unknown }),
     async (input, on) => {
       await on.shows("a add billing · x dismiss")
       input.pressKey("a")
@@ -336,7 +285,7 @@ test("x dismisses a proposed repo before it stops the build", async () => {
   const dismissRepo = mock((_name: string) => Promise.resolve())
   const stop = mock(done)
   await frameAfter(
-    screen(".", building, { actions: { dismissRepo, stop }, proposals: [billing] }),
+    screen(".", building, { actions: { dismissRepo, stop }, proposal: billing }),
     async (input, on) => {
       await on.shows("the agent went into billing")
       input.pressKey("x")
@@ -372,13 +321,10 @@ test("a trek saved again under its name shows its new overview once the worktree
         root={root}
         summary={summary}
         status={ready}
-        proposals={[]}
-        reads={{
-          status: () => Promise.resolve(ready),
-          build: () => Promise.resolve(NO_BUILD),
-          proposals: () => Promise.resolve([]),
-        }}
+        proposal={undefined}
+        readBuild={() => Promise.resolve(NO_BUILD)}
         actions={ACTIONS}
+        run={run}
         generation={generation}
       />
     )

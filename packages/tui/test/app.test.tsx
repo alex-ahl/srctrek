@@ -234,3 +234,93 @@ test("back on a change's screen, its trek shows as it last stood, not as it firs
 
   expect(frame).toContain("● ready")
 })
+
+const building: TrekStatus = { kind: "building", name: "feature-refunds", logTail: [] }
+
+test("b on a change shows its build as soon as it starts", async () => {
+  let started = false
+  const build = () => {
+    started = true
+    return Promise.resolve()
+  }
+  const change: OpenChange = {
+    summary,
+    status: () => Promise.resolve(started ? building : missing),
+    build,
+  }
+  const opening: Opening = { kind: "change", choice: own, change, status: missing }
+  const frame = await frameAfter(app(".", opening), async (input, on) => {
+    await on.shows("no trek yet")
+    input.pressKey("b")
+    await on.shows("◐ building")
+  })
+
+  expect(frame).not.toContain("no trek yet")
+})
+
+test("a build that ends with a trek shows it ready, without a key", async () => {
+  const root = await repoWithTrek()
+  const change = changeWith(() => Promise.resolve(ready))
+  const opening: Opening = {
+    kind: "change",
+    choice: own,
+    change,
+    status: { ...building, name: "pay" },
+  }
+  const frame = await frameAfter(app(root, opening), (_input, on) => on.shows("3 stops"), 110, 30)
+
+  expect(frame).toContain("● ready")
+})
+
+test("a repo the agent proposes, once added, leaves the change's screen", async () => {
+  const billing = {
+    name: "billing",
+    source: "../billing",
+    reason: "refunds post to the ledger in billing",
+    evidence: [{ repo: "web", file: "ledger.ts", line: 3 }],
+  }
+  let added = false
+  const proposals = () => Promise.resolve(added ? [] : [billing])
+  const addRepo = () => {
+    added = true
+    return Promise.resolve()
+  }
+  const change = changeWith(() => Promise.resolve(building))
+  const opening: Opening = { kind: "change", choice: own, change, status: building }
+  const frame = await frameAfter(
+    app(".", opening, sources({ proposals, addRepo })),
+    async (input, on) => {
+      await on.shows("the agent went into billing")
+      input.pressKey("a")
+      await on.shows(/^(?![\s\S]*went into billing)/)
+    },
+  )
+
+  expect(frame).toContain("◐ building")
+})
+
+test("code as it is, its ways in found, lists them; esc goes to the landing page", async () => {
+  const code: ChangeSummary = { changed: [], unchanged: ["web"], code: true }
+  const found: TrekStatus = {
+    kind: "triggers",
+    name: "web-code",
+    triggers: [
+      {
+        trigger: {
+          kind: "request",
+          name: "POST /refunds",
+          evidence: { repo: "web", file: "routes.ts", line: 12 },
+        },
+        trek: { kind: "missing", name: "web-post-refunds" },
+      },
+    ],
+  }
+  const change: OpenChange = { summary: code, status: () => Promise.resolve(found) }
+  const opening: Opening = { kind: "change", choice: { kind: "code" }, change, status: found }
+  const frame = await frameAfter(app(".", opening), async (input, on) => {
+    await on.shows("POST /refunds")
+    await escape(input, on, "YOUR WORK")
+  })
+
+  expect(frame).toContain("CODE AS IT IS")
+})

@@ -3,6 +3,7 @@ import type { ChangeSummary, Trigger, TrekStatus } from "@srctrek/core"
 import type { BuildRead } from "../../src/build-view/read"
 import type { ChangeActions } from "../../src/change/keys"
 import { ChangeScreen } from "../../src/change/screen"
+import { WaysInScreen } from "../../src/change/ways-in-screen"
 import type { WaysInActions } from "../../src/change/ways-in"
 import { frameAfter } from "../support/keys"
 
@@ -55,23 +56,37 @@ const found: TrekStatus = {
   ],
 }
 
+// Work a key starts runs here and is done with: reading where things stand again is the router's.
+const run = (work: Promise<void>) => void work.catch(() => undefined)
+
 function screen(
   status: TrekStatus,
   setup: { actions?: Partial<ChangeActions>; ways?: Partial<WaysInActions> } = {},
 ) {
+  const actions = { ...ACTIONS, ...setup.actions }
+  if (status.kind !== "triggers") {
+    return (
+      <ChangeScreen
+        root="."
+        summary={code}
+        status={status}
+        proposal={undefined}
+        readBuild={() => Promise.resolve(NO_BUILD)}
+        actions={actions}
+        run={run}
+        generation={0}
+      />
+    )
+  }
+
   return (
-    <ChangeScreen
-      root="."
+    <WaysInScreen
       summary={code}
-      status={status}
-      proposals={[]}
-      reads={{
-        status: () => Promise.resolve(status),
-        build: () => Promise.resolve(NO_BUILD),
-        proposals: () => Promise.resolve([]),
-      }}
-      actions={{ ...ACTIONS, ...setup.actions }}
-      waysIn={{ ...WAYS, ...setup.ways }}
+      ways={status.triggers}
+      actions={{ ...WAYS, ...setup.ways }}
+      find={actions.build}
+      run={run}
+      back={actions.back}
     />
   )
 }
