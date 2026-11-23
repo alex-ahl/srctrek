@@ -45,6 +45,8 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - `trek doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
 - **Editing settings as JSON:** a key in the terminal's settings opens the settings file in the
   user's editor, and settings reread it on return.
+- **The agent asked for first:** with no agent set, `trek`'s first start opens the agent's setup,
+  `esc` to skip it for now; once skipped, `b` opens it, and no screen says how to set one.
 - **Workspace mode:** `trek` started in a folder of repos rather than in one: the landing page
   lists each repo with its own work, pull requests, and branches, and the treks of all of them;
   a trek that covers several repos listed once.
