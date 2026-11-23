@@ -200,7 +200,7 @@ test("a change that takes a while to open says so on the landing page, then come
   await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("YOUR WORK")
     input.pressEnter()
-    await on.shows("◐ opening your branch…")
+    await on.shows(/feature\/refunds .*[◐◓◑◒] opening…/)
     expect(await on.frame()).toContain("YOUR WORK")
     opened.resolve(changeWith(() => Promise.resolve(missing)))
     await on.shows("no trek yet")
@@ -520,11 +520,11 @@ test("back on the landing page, it's there at once as it was left, its change st
   const frame = await frameAfter(app(".", LANDING, sources({ load })), async (input, on) => {
     await on.shows("YOUR WORK")
     input.pressKey("j")
-    await on.shows("Opens: fix/rounding")
+    await on.shows(/▶ +fix\/rounding/)
     input.pressEnter()
     await on.shows("no trek yet")
     await escape(input, on, "YOUR WORK")
   })
 
-  expect(frame).toContain("Opens: fix/rounding")
+  expect(frame).toMatch(/▶ +fix\/rounding/)
 })

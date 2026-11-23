@@ -8,7 +8,7 @@ export type LandingGroup =
   | "OTHER PULL REQUESTS"
   | "OTHER BRANCHES"
   | "CODE AS IT IS"
-  | "MORE REPOS"
+  | "OTHER REPOS"
   | "DONE"
 
 /** A trek whose work has landed or gone, by its name and title, and how its work ended. */
@@ -17,16 +17,12 @@ export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
 /** What a row opens: a change, or a trek whose change is gone, by its name. */
 export type Pick = ChangeChoice | Readonly<{ kind: "trek"; name: string; why: string }>
 
-/**
- * A row of the landing page: under its heading, its name and what it holds, what it opens, and
- * that in words.
- */
+/** A row of the landing page: under its heading, its name and what it holds, and what it opens. */
 export type LandingRow = Readonly<{
   group: LandingGroup
   label: string
   detail: string
   choice: Pick
-  opens: string
 }>
 
 const since = (commits: number, base: string) => `${count(commits, "commit")} since ${base}`
@@ -40,7 +36,6 @@ function ownRows({ base, own, uncommittedFiles }: BranchChoices): LandingRow[] {
     label: name,
     detail,
     choice: { kind: "own", uncommitted: false },
-    opens: `${name} · ${detail}`,
   }
   if (uncommittedFiles === 0) {
     return [branch]
@@ -54,7 +49,6 @@ function ownRows({ base, own, uncommittedFiles }: BranchChoices): LandingRow[] {
       label: "with uncommitted work",
       detail: `${files} changed`,
       choice: { kind: "own", uncommitted: true },
-      opens: `${name} with ${files} not yet committed`,
     },
   ]
 }
@@ -65,7 +59,6 @@ const otherBranchRows = (choices: BranchChoices): LandingRow[] =>
     label: branch.name,
     detail: since(branch.commits, choices.base),
     choice: { kind: "branch", name: branch.name },
-    opens: `${branch.name} · ${since(branch.commits, choices.base)}`,
   }))
 
 /** Code as it is, with no change: opens on its ways in, where a trigger can be followed too. */
@@ -74,7 +67,6 @@ export const CODE_ROW: LandingRow = {
   label: "its ways in",
   detail: "routes, events, and commands to follow",
   choice: { kind: "code" },
-  opens: "code as it is · its ways in",
 }
 
 // Who opened it, and what sets it apart: waiting on the user's review, or still a draft.
@@ -90,7 +82,6 @@ export function pullRequestRows(open: readonly OpenPullRequest[]): LandingRow[] 
     label: `#${pr.number} ${pr.title}`,
     detail: pullDetail(pr),
     choice: { kind: "pull-request", url: pr.url },
-    opens: `pr ${pr.number} · ${pr.title} · by ${pr.author}`,
   })
   const waiting = open.filter((pr) => pr.reviewRequested)
   const others = open.filter((pr) => !pr.reviewRequested)
@@ -105,7 +96,6 @@ export const doneRows = (done: readonly DoneTrek[]): LandingRow[] =>
     label: trek.title,
     detail: trek.why,
     choice: { kind: "trek", name: trek.name, why: trek.why },
-    opens: `${trek.title} · ${trek.why}`,
   }))
 
 /**

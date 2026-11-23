@@ -15,12 +15,12 @@ import {
   type LandingItem,
   type LandingNote,
   LandingList,
+  choiceKey,
   itemKey,
   statesKnown,
   useStatuses,
 } from "./list"
-import { type Ticked, opensWith, repoItems, toggled } from "./repos"
-import type { DropRow } from "./drop"
+import { type Ticked, repoItems, toggled } from "./repos"
 import type { DropView } from "./drop-view"
 import { type Pending, choiceName } from "../opening"
 import { useDrop } from "./use-drop"
@@ -28,7 +28,7 @@ import { type DoneTrek, type LandingRow, type Pick, doneRows, landingRows } from
 import { Footer, type KeyHint } from "../ui/footer"
 import { HELP_HINT, type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-help"
 import { PADDING } from "../ui/layout"
-import { COLOUR, useTones } from "../ui/theme"
+import { useTones } from "../ui/theme"
 import { moveKeys, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
 import { TitleBar } from "../ui/title-bar"
@@ -152,21 +152,35 @@ function useRows(props: Props) {
   }
 }
 
-// The title bar, the line above the list, what enter opens, and the footer, each with its rule.
-const CHROME_LINES = 7
+// The title bar, the line above the list, and the footer, each with its rule; and a notice, with
+// its rule, while one is shown.
+const chromeLines = (notice: string | undefined) => (notice === undefined ? 5 : 7)
+
+// The row of the change being opened, by its key.
+const openingKey = (opening: Pending | undefined) =>
+  opening?.kind === "opening" ? choiceKey(opening.choice) : undefined
+
+/**
+ * Why a change picked here couldn't be opened, shown once: until the next key, which `seen` is
+ * told of.
+ */
+function useNotice(opening: Pending | undefined) {
+  const [seen, setSeen] = useState<Pending | undefined>(undefined)
+  const failed = opening?.kind === "failed" && opening !== seen ? opening : undefined
+  return {
+    text:
+      failed === undefined
+        ? undefined
+        : `✕ couldn't open ${choiceName(failed.choice)}: ${failed.why}`,
+    seen: () => setSeen(opening),
+  }
+}
 
 const DROP_KEYS = [
   { key: "type", does: "to narrow" },
   { key: "enter", does: "take" },
   { key: "←/esc", does: "close" },
 ]
-
-// The ticks as taking the drop's chosen line would leave them, for the line above the footer.
-function withDropPick(ticked: Ticked, row: DropRow | undefined): Ticked {
-  return row === undefined || row.kind === "more" || row.kind === "fetch"
-    ? ticked
-    : new Map(ticked).set(row.pick.path, row.pick)
-}
 
 // The ticked repos in the order they're listed.
 const picksOf = (ticked: Ticked, checkouts: readonly NearbyCheckout[]): RepoPick[] =>
@@ -243,12 +257,6 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
   return repos.length === 0 ? change : { ...change, repos }
 }
 
-// What the selected line opens, in words, for the line above the footer: a change's own line,
-// else the user's own work, which the ticked repos go with until a change is chosen.
-function opensOf(item: LandingItem | undefined, rows: readonly LandingRow[]): string {
-  return item?.kind === "change" ? item.row.opens : (rows[0]?.opens ?? "")
-}
-
 // The footer: a repo's open branches' keys while they're open, else the selected line's.
 const footerOf = (dropOpen: boolean, line: readonly KeyHint[]): readonly KeyHint[] =>
   dropOpen ? DROP_KEYS : line
@@ -321,31 +329,6 @@ function dropView(
   return { drop: open, rows: drop.rows, problem: drop.problem, pick: ticked.get(open.path), now }
 }
 
-// What enter opens, in words, above the footer; or the change picked as it opens, or why it
-// couldn't.
-function OpensLine({ opens, opening }: { opens: string; opening: Pending | undefined }) {
-  const tones = useTones()
-  const name = opening === undefined ? "" : choiceName(opening.choice)
-  return (
-    <box
-      border={["top"]}
-      borderColor={tones.dim}
-      style={{ flexShrink: 0, paddingLeft: PADDING, paddingRight: PADDING }}
-    >
-      {opening === undefined && (
-        <text fg={COLOUR.text}>
-          <span fg={tones.dim}>Opens: </span>
-          {opens}
-        </text>
-      )}
-      {opening?.kind === "opening" && <text fg={tones.busy}>{`◐ opening ${name}…`}</text>}
-      {opening?.kind === "failed" && (
-        <text fg={tones.bad}>{`✕ couldn't open ${name}: ${opening.why}`}</text>
-      )}
-    </box>
-  )
-}
-
 /**
  * Every change there is to look at, each with its trek's state: the user's own work, the pull
  * requests, the repo's other branches, code as it is, the repos beside it to tick and take along,
@@ -376,12 +359,7 @@ export function Landing(props: Props) {
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
   const openDrop = () => item?.kind === "repo" && drop.open(item.checkout.path)
-  // while a repo's branches are open, the line chosen there says what it would open
-  const opens = opensWith(
-    opensOf(item, rows),
-    withDropPick(ticked, drop.rows?.[drop.drop?.at ?? 0]),
-    checkouts,
-  )
+  const notice = useNotice(props.opening)
 
   const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length)))
   // an opened fold's line gives way to the first of what it held, which takes the selection
@@ -410,7 +388,10 @@ export function Landing(props: Props) {
   // While a repo's branches are open, keys go there.
   useLandingKeys(
     active,
-    help.guard((key) => drop.key(key) || keyActions.get(shifted(key))?.()),
+    help.guard((key) => {
+      notice.seen()
+      return drop.key(key) || keyActions.get(shifted(key))?.()
+    }),
   )
 
   return (
@@ -425,13 +406,13 @@ export function Landing(props: Props) {
             note={note}
             drop={dropView(drop, ticked, now)}
             tint={props.tint}
-            height={height - CHROME_LINES}
+            opening={openingKey(props.opening)}
+            height={height - chromeLines(notice.text)}
           />
         ) : undefined
       }
       failed={branches.kind === "failed" ? branches.why : undefined}
-      opens={settled && item !== undefined ? opens : undefined}
-      opening={props.opening}
+      notice={notice.text}
       footer={footerOf(drop.drop !== undefined, help.footer(keysFor(item)))}
       help={help.open}
     />
@@ -454,15 +435,14 @@ function Reading() {
   return shown ? <text fg={tones.dim}>{`${turning} reading this repo…`}</text> : null
 }
 
-// The page around its list: why the branches couldn't be read, the list once it's drawn, what
-// enter opens, and the footer.
+// The page around its list: why the branches couldn't be read, the list once it's drawn, why a
+// change couldn't be opened, and the footer.
 function LandingView(props: {
   // behind another screen, the page draws nothing
   active: boolean
   list: ReactNode
   failed: string | undefined
-  opens: string | undefined
-  opening: Pending | undefined
+  notice: string | undefined
   footer: readonly KeyHint[]
   help: boolean
 }) {
@@ -491,7 +471,15 @@ function LandingView(props: {
           </box>
         </OrKeysHelp>
       </box>
-      {props.opens !== undefined && <OpensLine opens={props.opens} opening={props.opening} />}
+      {props.notice !== undefined && (
+        <box
+          border={["top"]}
+          borderColor={tones.dim}
+          style={{ flexShrink: 0, paddingLeft: PADDING, paddingRight: PADDING }}
+        >
+          <text fg={tones.bad}>{props.notice}</text>
+        </box>
+      )}
       <Footer keys={props.footer} shown="" />
     </box>
   )

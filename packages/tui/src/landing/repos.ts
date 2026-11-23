@@ -15,7 +15,7 @@ export type RepoItem = Readonly<{
 export type FoldItem = Readonly<{ kind: "fold"; count: number }>
 
 /**
- * The repos to list under MORE REPOS: those with work on them, then, while the rest are folded,
+ * The repos to list under OTHER REPOS: those with work on them, then, while the rest are folded,
  * those ticked and a count of the others; once opened, the rest in their own order, so ticking
  * one never moves the line under the cursor.
  */
@@ -82,31 +82,4 @@ function elsewhereNote({ checkout, pick }: RepoItem): string {
   const taken = pick?.branch
   const out = checkout.branch
   return taken === undefined || out === undefined || taken === out ? "" : `you have ${out} out`
-}
-
-const names = (items: readonly string[]) =>
-  items.length <= 1 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`
-
-/**
- * What picking opens, the change with the ticked repos: "feature/refunds · 3 commits since main,
- * refunds-api in api · worker passed through".
- */
-export function opensWith(
-  change: string,
-  ticked: Ticked,
-  checkouts: readonly NearbyCheckout[],
-): string {
-  const picked = checkouts.filter((checkout) => ticked.has(checkout.path))
-  const changed = picked
-    .filter((checkout) => ticked.get(checkout.path)?.changed === true)
-    .map(
-      (checkout) =>
-        `${ticked.get(checkout.path)?.branch ?? checkout.branch ?? "HEAD"} in ${checkout.name}`,
-    )
-  const passed = picked
-    .filter((checkout) => ticked.get(checkout.path)?.changed === false)
-    .map((checkout) => checkout.name)
-
-  const withChanged = [change, ...changed].join(", ")
-  return passed.length === 0 ? withChanged : `${withChanged} · ${names(passed)} passed through`
 }

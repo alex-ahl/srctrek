@@ -154,7 +154,6 @@ test("offers the user's own work first, then the other branches, each saying wha
     ["OTHER BRANCHES", "feature/partial-refunds", "5 commits since main"],
     ["CODE AS IT IS", "its ways in", "routes, events, and commands to follow"],
   ])
-  expect(rows[1]?.opens).toBe("feature/refunds with 2 files not yet committed")
 })
 
 test("leaves out the uncommitted row when everything is committed", () => {
@@ -170,7 +169,6 @@ test("offers the open pull requests by number and title, with who opened them an
     ["WAITING ON YOUR REVIEW", "#12 Add partial refunds", "alice · review requested"],
     ["OTHER PULL REQUESTS", "#14 Round refunds to cents", "bo · draft"],
   ])
-  expect(rows[0]?.opens).toBe("pr 12 · Add partial refunds · by alice")
 })
 
 test("opens on the user's own branch, every change under its heading", async () => {
@@ -181,9 +179,10 @@ test("opens on the user's own branch, every change under its heading", async () 
   expect(frame).toMatch(/OTHER PULL REQUESTS\s+#14 Round refunds to cents/)
   expect(frame).toMatch(/OTHER BRANCHES\s+fix\/rounding/)
   expect(frame).toMatch(/CODE AS IT IS\s+its ways in/)
-  expect(frame).toContain("MORE REPOS")
+  expect(frame).toContain("OTHER REPOS")
   expect(frame).toContain("▸ DONE  2")
-  expect(frame).toContain("Opens: feature/refunds · 3 commits since main")
+  // with nothing ticked, the row says it all
+  expect(frame).not.toContain("Opens:")
   expect(frame).toContain("enter open · S settings · ? keys")
 })
 
@@ -337,7 +336,7 @@ test("space ticks a repo, which goes along with the change enter opens", async (
     34,
   )
 
-  expect(frame).toContain("Opens: feature/refunds · 3 commits since main, refunds-api in api")
+  expect(frame).toContain("OTHER REPOS · 1 going along")
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
 })
 
@@ -511,9 +510,9 @@ async function toLastDone(input: Input, on: Screen) {
   // scrolled down to it, on a short terminal
   await on.shows("▸ DONE  12")
   input.pressEnter()
-  await on.shows("Opens: Old trek 0")
+  await on.shows(/▶ +Old trek 0 /)
   await down(input, on, 11)
-  await on.shows("Opens: Old trek 11")
+  await on.shows(/▶ +Old trek 11 /)
 }
 
 test("on a short terminal, the list scrolls to keep the selection in view", async () => {
@@ -659,4 +658,59 @@ test("appears whole once the pull requests are in too, never without them first"
   expect(before).not.toContain("YOUR WORK")
   expect(frame).toContain("#14 Round refunds to cents")
   expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
+})
+
+test("a change being opened says so on its own row", async () => {
+  const frame = await frameAfter(
+    <Landing
+      load={() => Promise.resolve(choices)}
+      pullRequests={() => Promise.resolve(open)}
+      nearby={() => Promise.resolve(nearby)}
+      repoBranches={() => Promise.resolve(apiBranches)}
+      fetchRepo={fetchRepo}
+      status={statusOf}
+      done={() => Promise.resolve(done)}
+      opening={{ kind: "opening", choice: { kind: "branch", name: "fix/rounding" } }}
+      onPick={() => undefined}
+      onSettings={() => undefined}
+      onQuit={() => undefined}
+      tint={undefined}
+    />,
+    (_input, on) => on.shows(/fix\/rounding +1 commit since main +[◐◓◑◒] opening…/),
+    110,
+    34,
+  )
+
+  expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
+})
+
+test("a change that couldn't be opened says why, until the next key", async () => {
+  let before = ""
+  const after = await frameAfter(
+    <Landing
+      load={() => Promise.resolve(choices)}
+      pullRequests={() => Promise.resolve(open)}
+      nearby={() => Promise.resolve(nearby)}
+      repoBranches={() => Promise.resolve(apiBranches)}
+      fetchRepo={fetchRepo}
+      status={statusOf}
+      done={() => Promise.resolve(done)}
+      opening={{ kind: "failed", choice: own, why: "no such branch" }}
+      onPick={() => undefined}
+      onSettings={() => undefined}
+      onQuit={() => undefined}
+      tint={undefined}
+    />,
+    async (input, on) => {
+      await on.shows("✕ couldn't open your branch: no such branch")
+      before = await on.frame()
+      input.pressKey("j")
+      await on.shows(/^(?![\s\S]*couldn't open)/)
+    },
+    110,
+    34,
+  )
+
+  expect(before).toContain("YOUR WORK")
+  expect(after).not.toContain("couldn't open")
 })

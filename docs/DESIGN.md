@@ -241,10 +241,11 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 - **Landing page,** what `trek` opens on: every change there is to look at, under headings, each
   with its trek's state. YOUR WORK: the branch checked out, then its uncommitted work as a row of
   its own. WAITING ON YOUR REVIEW, then OTHER PULL REQUESTS, then OTHER BRANCHES. CODE AS IT IS, one
-  row. MORE REPOS: the repos beside this one, ticked with `space` to go with the change, `→` for a
-  repo's branches. DONE, folded under a count: treks whose work landed or whose branch is gone.
+  row. OTHER REPOS: the repos beside this one, ticked with `space` to go with the change, `→` for a
+  repo's branches; its heading counts those going along. DONE, folded under a count: treks whose work landed or whose branch is gone.
   The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
-  row as the lists load and follow the worktree. A line above the footer says what enter opens.
+  row as the lists load and follow the worktree. A change being opened says so on its row; one that
+  couldn't be opened says why above the footer, until the next key.
   Pull requests that can't be listed say why under WAITING ON YOUR REVIEW. The list is drawn
   once what's read here is in, the page saying it's reading when that takes a moment; a trek's
   state being worked out shows the busy symbol turning.
