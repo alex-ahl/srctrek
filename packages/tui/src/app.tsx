@@ -15,12 +15,12 @@ import { WaysInScreen } from "./change/ways-in-screen"
 import { type Editor, openInEditor } from "./editors/editors"
 import type { Pick } from "./landing/rows"
 import { Landing } from "./landing/screen"
-import { PendingScreen, failureReason } from "./opening"
+import { PendingScreen } from "./opening"
+import { detailsOf, startedIfAutomatic, usePreparing } from "./preparing"
 import { SettingsScreen } from "./settings/screen"
 import type { Sources } from "./sources"
 import { type ChangeOpen, type Screen, useStack } from "./stack"
 import { changeInFront, useStanding } from "./standing"
-import { usePullRequestDetails } from "./details"
 import { SteppingScreen } from "./stepping/screen"
 import { TonesContext } from "./ui/theme"
 import { useFollow } from "./watch/follow"
@@ -65,7 +65,6 @@ export function App(props: Props) {
   const front = stack.at(-1)
   const setStatus = (id: number, status: TrekStatus) => update(id, (was) => ({ ...was, status }))
   const { proposal, run, readProposals } = useStanding(changeInFront(front), sources, setStatus)
-  const details = usePullRequestDetails(changeInFront(front)?.choice, sources)
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
   const [entries, setEntries] = useState<readonly TrekEntry[]>([])
@@ -74,10 +73,27 @@ export function App(props: Props) {
   const { settings, changeSetting } = useSettings(props.firstSettings)
   const { tint, tones } = useTerminalTones(settings.colours)
   const chosenEditor = editors.find((each) => each.id === settings.step_in)
+  const preparing = usePreparing({ sources, settings, open, replace })
 
   useEffect(() => {
     void sources.entries().then(setEntries, () => undefined)
   }, [sources, generation])
+
+  // trek's args name the change it opens on, worked out before the screens start; a pull request's
+  // details follow, and its build starts where the settings build automatically
+  useEffect(() => {
+    const first = props.opening
+    if (first.kind === "change") {
+      void detailsOf(first.choice, sources).then(
+        (details) => details !== undefined && update(0, (was) => ({ ...was, details })),
+      )
+      void startedIfAutomatic(first, settings).then(
+        (started) => started !== first && setStatus(0, started.status),
+      )
+    }
+    // only the change trek opened on
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // the change nearest the front, reopened as the worktree moves on
   const following = stack.findLast((screen) => screen.kind === "change")
@@ -89,31 +105,16 @@ export function App(props: Props) {
       await readProposals()
     }
 
+    preparing.forget()
     setGeneration((was) => was + 1)
   })
-
-  // A change picked or followed: worked out on a screen of its own, then shown in its place.
-  const openChoice = (choice: ChangeChoice) => {
-    const id = open({ kind: "pending", pending: { kind: "opening", choice } })
-    const opening = async () => {
-      const change = await sources.open(choiceArguments(choice))
-      replace(id, { kind: "change", choice, change, status: await change.status() })
-    }
-
-    opening().catch((error: unknown) =>
-      replace(id, {
-        kind: "pending",
-        pending: { kind: "failed", choice, why: failureReason(error) },
-      }),
-    )
-  }
 
   const pick = (picked: Pick) => {
     setFrom(picked)
     if (picked.kind === "trek") {
       open({ kind: "done", name: picked.name, why: picked.why })
     } else {
-      openChoice(picked)
+      preparing.openChoice(picked, true)
     }
   }
 
@@ -157,7 +158,7 @@ export function App(props: Props) {
   )
 
   // A change's screen, or, for code as it is once its ways in are found, those.
-  const changeScreen = ({ change, choice, status }: ChangeOpen): ReactNode => {
+  const changeScreen = ({ change, choice, status, ...shown }: ChangeOpen): ReactNode => {
     if (findsWaysIn(change) && status.kind === "triggers") {
       const repos = choice.repos && { repos: choice.repos }
       return (
@@ -167,7 +168,7 @@ export function App(props: Props) {
           actions={{
             stepTrek: (name) => open({ kind: "stepping", name }),
             buildTrigger: change.buildTrigger ?? (() => Promise.resolve()),
-            follow: (trigger) => openChoice({ kind: "code", trigger, ...repos }),
+            follow: (trigger) => preparing.openChoice({ kind: "code", trigger, ...repos }, false),
           }}
           find={change.build}
           run={run}
@@ -180,7 +181,8 @@ export function App(props: Props) {
       <ChangeScreen
         root={root}
         summary={change.summary}
-        details={details}
+        details={shown.details}
+        overview={shown.overview}
         status={status}
         proposal={proposal}
         readBuild={readLatest}
@@ -200,6 +202,8 @@ export function App(props: Props) {
           fetchRepo={sources.fetchRepo}
           status={sources.status}
           from={from}
+          opening={preparing.opening}
+          onRest={(choice) => choice.kind !== "trek" && preparing.rest(choice)}
           onPick={pick}
           onSettings={() => open({ kind: "settings" })}
           onQuit={props.onQuit}

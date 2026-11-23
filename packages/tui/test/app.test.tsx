@@ -1,9 +1,18 @@
 import { expect, mock, test } from "bun:test"
-import type { BranchChoices, ChangeChoice, ChangeSummary, TrekStatus } from "@srctrek/core"
+import type {
+  BranchChoices,
+  ChangeChoice,
+  ChangeSummary,
+  PullRequestDetails,
+  Settings,
+  TrekStatus,
+} from "@srctrek/core"
 import { repoWithTrek } from "@srctrek/testing"
 import { App, type Opening } from "../src/app"
 import type { OpenChange } from "../src/change/open-change"
+import { overviewOf } from "../src/change/overview"
 import type { Sources } from "../src/sources"
+import { deferred } from "./support/deferred"
 import { type Screen, frameAfter } from "./support/keys"
 
 type Input = Parameters<Parameters<typeof frameAfter>[1]>[0]
@@ -39,6 +48,7 @@ function sources(more: Partial<Sources> = {}): Sources {
     load: () => Promise.resolve(choices),
     pullRequests: () => Promise.resolve([]),
     pullRequest: () => Promise.reject(new Error("no pull requests here")),
+    overview: () => Promise.resolve(undefined),
     nearby: () => Promise.resolve([]),
     repoBranches: () => Promise.reject(new Error("no branches here")),
     fetchRepo: () => Promise.resolve(),
@@ -67,13 +77,13 @@ function sources(more: Partial<Sources> = {}): Sources {
 const LANDING: Opening = { kind: "landing" }
 const own: ChangeChoice = { kind: "own", uncommitted: false }
 
-function app(root: string, opening: Opening, from: Sources = sources()) {
+function app(root: string, opening: Opening, from: Sources = sources(), settings: Settings = {}) {
   return (
     <App
       root={root}
       opening={opening}
       sources={from}
-      firstSettings={{}}
+      firstSettings={settings}
       editors={[]}
       onQuit={() => undefined}
     />
@@ -172,7 +182,7 @@ test("S opens settings from the landing page, and esc comes back", async () => {
   expect(frame).not.toContain("srctrek › settings")
 })
 
-test("a change that can't be opened says why, and esc goes back", async () => {
+test("a change that can't be opened says why on the landing page, which stays", async () => {
   const open = () => Promise.reject(new Error("no such branch"))
   const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("YOUR WORK")
@@ -181,6 +191,20 @@ test("a change that can't be opened says why, and esc goes back", async () => {
   })
 
   expect(frame).toContain("✕ couldn't open your branch: no such branch")
+  expect(frame).toContain("YOUR WORK")
+})
+
+test("a change that takes a while to open says so on the landing page, then comes up whole", async () => {
+  const opened = deferred<OpenChange>()
+  const open = () => opened.promise
+  await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+    await on.shows("YOUR WORK")
+    input.pressEnter()
+    await on.shows("◐ opening your branch…")
+    expect(await on.frame()).toContain("YOUR WORK")
+    opened.resolve(changeWith(() => Promise.resolve(missing)))
+    await on.shows("no trek yet")
+  })
 })
 
 test("the worktree moving on reopens the change, and its trek shows as it now stands", async () => {
@@ -350,4 +374,140 @@ test("a pull request's screen names it by its title, and who opened it", async (
   )
 
   expect(frame).toContain("alice · 3 commits · 5 files")
+})
+
+test("a change that opens quickly comes up without an opening screen first", async () => {
+  const opened = deferred<OpenChange>()
+  const open = () => opened.promise
+  const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+    await on.shows("YOUR WORK")
+    input.pressEnter()
+    // the change is being worked out, and quickly, so far
+    expect(await on.frame()).not.toContain("opening")
+    opened.resolve(changeWith(() => Promise.resolve(missing)))
+    await on.shows("no trek yet")
+  })
+
+  expect(frame).toContain("feature/refunds")
+})
+
+test("a pull request opens on its title, never on its number first", async () => {
+  const url = "https://github.com/acme/web/pull/12"
+  const pullRequests = () =>
+    Promise.resolve([
+      {
+        number: 12,
+        title: "Add partial refunds",
+        author: "alice",
+        url,
+        draft: false,
+        reviewRequested: true,
+      },
+    ])
+  const pull: ChangeSummary = {
+    changed: [
+      { repo: "web", base: "main", head: { kind: "pull", number: 12 }, commits: 3, files: 5 },
+    ],
+    unchanged: [],
+    code: false,
+  }
+  const open = () => Promise.resolve({ summary: pull, status: () => Promise.resolve(missing) })
+  const details = deferred<PullRequestDetails>()
+  const pullRequest = () => details.promise
+  await frameAfter(
+    app(".", LANDING, sources({ pullRequests, open, pullRequest })),
+    async (input, on) => {
+      await on.shows("#12 Add partial refunds")
+      input.pressKey("j")
+      await on.drawn()
+      input.pressEnter()
+      // opened, but gh hasn't said what the pull request is yet: the landing page stays
+      expect(await on.frame()).toContain("YOUR WORK")
+      details.resolve({ title: "Add partial refunds", author: "alice", draft: false })
+      await on.shows("alice · 3 commits · 5 files")
+      expect(await on.frame()).toMatch(/ {2}#12 Add partial refunds\s+alice · 3 commits/)
+    },
+  )
+})
+
+test("enter pressed again while a change opens opens it once", async () => {
+  const opened = deferred<OpenChange>()
+  const open = mock((_args: string[]) => opened.promise)
+  await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+    await on.shows("YOUR WORK")
+    input.pressEnter()
+    input.pressEnter()
+    await on.drawn()
+    opened.resolve(changeWith(() => Promise.resolve(missing)))
+    await on.shows("no trek yet")
+    input.pressEscape()
+    await on.shows("YOUR WORK")
+  })
+
+  expect(open).toHaveBeenCalledTimes(1)
+})
+
+test("the change the selection rests on is worked out ahead, so enter opens it at once", async () => {
+  const asked = deferred<undefined>()
+  const open = mock((_args: string[]) => {
+    asked.resolve(undefined)
+    return Promise.resolve(changeWith(() => Promise.resolve(missing)))
+  })
+  await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+    await on.shows("YOUR WORK")
+    // nothing pressed yet: the branch selected is being worked out
+    await asked.promise
+    input.pressEnter()
+    await on.drawn()
+    expect(await on.frame()).toContain("no trek yet")
+  })
+
+  expect(open).toHaveBeenCalledTimes(1)
+})
+
+test("building automatically starts a change's build as it's opened, never ahead of it", async () => {
+  const asked = deferred<undefined>()
+  let started = false
+  const build = mock(() => {
+    started = true
+    return Promise.resolve()
+  })
+  const change: OpenChange = {
+    summary,
+    status: () => Promise.resolve(started ? building : missing),
+    build,
+  }
+  const open = () => {
+    asked.resolve(undefined)
+    return Promise.resolve(change)
+  }
+  await frameAfter(
+    app(".", LANDING, sources({ open }), { build_automatically: true }),
+    async (input, on) => {
+      await on.shows("YOUR WORK")
+      await asked.promise
+      expect(build).not.toHaveBeenCalled()
+      input.pressEnter()
+      await on.shows("◐ building")
+    },
+  )
+
+  expect(build).toHaveBeenCalledTimes(1)
+})
+
+test("a ready trek's screen comes up with its overview, not without it first", async () => {
+  const root = await repoWithTrek()
+  const open = () => Promise.resolve(changeWith(() => Promise.resolve(ready)))
+  const overview = (name: string) => overviewOf(root, name)
+  await frameAfter(
+    app(root, LANDING, sources({ open, overview })),
+    async (input, on) => {
+      await on.shows("YOUR WORK")
+      input.pressEnter()
+      await on.shows("● ready")
+      expect(await on.frame()).toContain("3 stops")
+    },
+    110,
+    30,
+  )
 })

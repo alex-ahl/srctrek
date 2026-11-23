@@ -4,6 +4,7 @@ import {
   type ChangeChoice,
   type NearbyCheckout,
   type OpenPullRequest,
+  type OverviewView,
   type ProposedRepo,
   type PullRequestDetails,
   type RepoBranches,
@@ -28,6 +29,7 @@ import {
 import { resolve } from "node:path"
 import type { BuildRead } from "./build-view/read"
 import type { OpenChange } from "./change/open-change"
+import { overviewOf } from "./change/overview"
 import type { DoneTrek } from "./landing/rows"
 import { doneLabel } from "./ui/state-labels"
 import type { Stamp } from "./watch/follow"
@@ -39,6 +41,8 @@ import type { Stamp } from "./watch/follow"
 export type Sources = Readonly<{
   load: () => Promise<BranchChoices>
   pullRequests: () => Promise<OpenPullRequest[]>
+  // the view before the first stop of the trek saved under this name
+  overview: (name: string) => Promise<OverviewView | undefined>
   // the pull request at a link: its title, who opened it, and whether it's a draft
   pullRequest: (url: string) => Promise<PullRequestDetails>
   nearby: () => Promise<NearbyCheckout[]>
@@ -98,6 +102,7 @@ export function sourcesAt(root: string, ways: Ways): Sources {
     load: () => branchChoices(root),
     pullRequests: () => openPullRequests(root),
     pullRequest: (url) => pullRequestOf(root, url),
+    overview: (name) => overviewOf(root, name),
     nearby: () => nearbyCheckouts(root),
     repoBranches: (path) => repoBranches(resolve(root, path)),
     fetchRepo: (path) => fetchRepo(resolve(root, path)),

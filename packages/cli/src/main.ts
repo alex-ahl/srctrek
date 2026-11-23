@@ -33,20 +33,13 @@ async function buildTriggerTrek(
   await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
 }
 
-// What trek's args open, as it stands now, with the agent as the settings name it now. A change
-// with no trek gets one started right away, when the user asked for that and there's an agent to
-// build it.
+// What trek's args open, as it stands now, with the agent as the settings name it now.
 async function openChange(cwd: string, args: string[]): Promise<OpenChange> {
   const change = await changeFromArguments(cwd, args)
-  const settings = await loadSettings()
-  const agent = agentSetting(settings).command
+  const agent = agentSetting(await loadSettings()).command
 
   const status = () => trekStatus(cwd, change)
   const build = agent === undefined ? undefined : () => buildChangeTrek(cwd, args, change, agent)
-  const startsBuild = settings.build_automatically === true && build !== undefined
-  if (startsBuild && (await status()).kind === "missing") {
-    await build()
-  }
 
   const findsWaysIn = change.code !== undefined && change.code.trigger === undefined
   return {

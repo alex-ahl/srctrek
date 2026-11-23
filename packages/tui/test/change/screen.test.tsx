@@ -375,14 +375,12 @@ async function retitle(root: string, name: string, title: string) {
 
 test("a trek saved again under its name shows its new overview once the worktree moves on", async () => {
   const root = await repoWithTrek()
+  // moves the worktree on, once the screen is drawn
+  let moveOn = () => undefined as void
   function Moving() {
     const [generation, setGeneration] = useState(0)
     useEffect(() => {
-      const timer = setTimeout(
-        () => void retitle(root, "pay", "Pay again").then(() => setGeneration(1)),
-        300,
-      )
-      return () => clearTimeout(timer)
+      moveOn = () => setGeneration((was) => was + 1)
     }, [])
 
     return (
@@ -399,7 +397,17 @@ test("a trek saved again under its name shows its new overview once the worktree
     )
   }
 
-  const frame = await frameAfter(<Moving />, (_input, on) => on.shows("Pay again"), 110, 30)
+  const frame = await frameAfter(
+    <Moving />,
+    async (_input, on) => {
+      await on.shows("3 stops")
+      await retitle(root, "pay", "Pay again")
+      moveOn()
+      await on.shows("Pay again")
+    },
+    110,
+    30,
+  )
 
   expect(frame).toContain("Pay again")
 })

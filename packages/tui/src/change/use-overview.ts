@@ -1,32 +1,23 @@
-import {
-  type OverviewView,
-  loadTrek,
-  openSession,
-  sessionView,
-  trekPath,
-  viewContext,
-} from "@srctrek/core"
+import type { OverviewView } from "@srctrek/core"
 import { useEffect, useState } from "react"
-
-// The view before a trek's first stop, for the trek saved as `name` under `root`.
-async function overviewOf(root: string, name: string): Promise<OverviewView | undefined> {
-  const trek = await loadTrek(trekPath(root, name))
-  const view = sessionView(openSession(trek), await viewContext(root, trek))
-  return view.kind === "overview" ? view : undefined
-}
+import { overviewOf } from "./overview"
 
 /**
- * The overview of the trek saved as `name`, once read, and read again when `generation` moves on,
- * as the trek may have been saved again; none while `shown` is false, or unread.
+ * The overview of the trek saved as `name`: `first`, read before the screen opened, then read again
+ * when `generation` moves on, as the trek may have been saved again; none while `shown` is false,
+ * or unread.
  */
 export function useOverview(
   root: string,
   name: string,
   shown: boolean,
   generation: number,
+  first: OverviewView | undefined,
 ): OverviewView | undefined {
   // kept with the trek it's of, so another trek's never shows while this one's read
-  const [read, setRead] = useState<{ name: string; view: OverviewView | undefined }>()
+  const [read, setRead] = useState<{ name: string; view: OverviewView | undefined } | undefined>(
+    () => (first === undefined ? undefined : { name, view: first }),
+  )
 
   useEffect(() => {
     if (!shown) {

@@ -1,14 +1,20 @@
-import type { ChangeChoice, TrekStatus } from "@srctrek/core"
+import type { ChangeChoice, OverviewView, PullRequestDetails, TrekStatus } from "@srctrek/core"
 import { useRef, useState } from "react"
 import type { OpenChange } from "./change/open-change"
 import type { Pending } from "./opening"
 
-/** A change open, and where its trek last stood. */
+/**
+ * A change open, where its trek last stood, and, for a pull request, its title, who opened it,
+ * and whether it's a draft, once gh has said.
+ */
 export type ChangeOpen = Readonly<{
   kind: "change"
   choice: ChangeChoice
   change: OpenChange
   status: TrekStatus
+  details?: PullRequestDetails | undefined
+  // its trek's overview, read before its screen first shows
+  overview?: OverviewView | undefined
 }>
 
 /** A screen open: the one in front drawn, those under it gone back to in turn. */

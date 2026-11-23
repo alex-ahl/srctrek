@@ -1,5 +1,11 @@
 import { useTerminalDimensions } from "@opentui/react"
-import type { ChangeSummary, ProposedRepo, PullRequestDetails, TrekStatus } from "@srctrek/core"
+import type {
+  ChangeSummary,
+  OverviewView,
+  ProposedRepo,
+  PullRequestDetails,
+  TrekStatus,
+} from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
 import { PADDING } from "../ui/layout"
 import { ChangeBody } from "./body"
@@ -16,6 +22,8 @@ type Props = {
   details?: PullRequestDetails | undefined
   // where the trek stands, and the first repo proposed that's still unsettled
   status: TrekStatus
+  // the trek's overview, when it was read before the screen opened
+  overview?: OverviewView | undefined
   proposal: ProposedRepo | undefined
   // how a trek whose work is done ended, in a word; such a trek has no change to show
   done?: string | undefined
@@ -35,7 +43,7 @@ type Props = {
 export function ChangeScreen(props: Props) {
   const { root, summary, status, proposal, actions, run } = props
   const { width } = useTerminalDimensions()
-  const overview = useOverview(root, status.name, canStep(status), props.generation)
+  const overview = useOverview(root, status.name, canStep(status), props.generation, props.overview)
   const ask = useAsk()
 
   const findsWaysIn = summary?.code === true && summary.trigger === undefined
