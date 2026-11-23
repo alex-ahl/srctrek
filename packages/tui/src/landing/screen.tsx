@@ -11,7 +11,14 @@ import type {
   TrekStatus,
 } from "@srctrek/core"
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
-import { type LandingItem, type LandingNote, LandingList, itemKey, useStatuses } from "./list"
+import {
+  type LandingItem,
+  type LandingNote,
+  LandingList,
+  itemKey,
+  statesKnown,
+  useStatuses,
+} from "./list"
 import { type Ticked, opensWith, repoItems, toggled } from "./repos"
 import type { DropRow } from "./drop"
 import type { DropView } from "./drop-view"
@@ -95,36 +102,48 @@ function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
     : { group, text: "nothing waiting on your review", tone: "dim" }
 }
 
-// Past this, what's read here is drawn as far as it's read, rather than kept back any longer.
-const LOCAL_WAIT_MS = 500
+// Past this, the page is drawn with what it has, the rest filling its place as it comes, rather
+// than kept back any longer, as by a host slow to list its pull requests.
+const REVEAL_WAIT_MS = 1500
 
-/** Whether the list is drawn yet: once every list read here has answered, or the wait is up. */
-function useSettled(loads: readonly Loaded<unknown>[]): boolean {
+/**
+ * Whether the page is drawn yet: once everything it lists has answered, or the wait is up; and
+ * from then on, as what's read again only replaces what's shown.
+ */
+function useSettled(loads: readonly Loaded<unknown>[], known: boolean): boolean {
   const [waited, setWaited] = useState(false)
+  const [drawn, setDrawn] = useState(false)
+  const ready = known && loads.every((loaded) => loaded.kind !== "loading")
   useEffect(() => {
-    const timer = setTimeout(() => setWaited(true), LOCAL_WAIT_MS)
+    const timer = setTimeout(() => setWaited(true), REVEAL_WAIT_MS)
     return () => clearTimeout(timer)
   }, [])
+  // remembered as it's first drawn, so a row read later, its state not known yet, never hides it
+  if ((ready || waited) && !drawn) {
+    setDrawn(true)
+  }
 
-  return waited || loads.every((loaded) => loaded.kind !== "loading")
+  return drawn || ready || waited
 }
 
-// The changes as each list answers; one that can't be read leaves the others listed. Drawn once
-// what's read here is in, so it appears whole; pull requests, asked of the host, fill their place
-// as they come.
+// The changes as each list answers, and where each one's trek stands; one that can't be read
+// leaves the others listed. The page is drawn once all of it is in, so it appears whole, in one
+// frame, rather than growing and shifting as each list answers.
 function useRows(props: Props) {
   const branches = useLoaded(props.load)
   const pulls = useLoaded(props.pullRequests)
   const done = useLoaded(props.done)
   const nearby = useLoaded(props.nearby)
-  const settled = useSettled([branches, done, nearby])
   const rows = useMemo(
     () => landingRows(foundOr(branches, undefined), foundOr(pulls, [])),
     [branches, pulls],
   )
+  const statuses = useStatuses(rows, props.status)
+  const settled = useSettled([branches, done, nearby, pulls], statesKnown(rows, statuses))
 
   return {
     settled,
+    statuses,
     branches,
     rows,
     done: doneRows(foundOr(done, [])),
@@ -334,7 +353,7 @@ function OpensLine({ opens, opening }: { opens: string; opening: Pending | undef
  */
 export function Landing(props: Props) {
   const { height } = useTerminalDimensions()
-  const { settled, branches, rows, done, nearby, note } = useRows(props)
+  const { settled, statuses, branches, rows, done, nearby, note } = useRows(props)
   const [ticked, setTicked] = useState<Ticked>(new Map())
   const [doneOpen, setDoneOpen] = useState(false)
   // the selected line by its key, so it stays put as rows load above it
@@ -342,7 +361,6 @@ export function Landing(props: Props) {
   const active = props.active !== false
   const checkouts = nearby
   const [foldOpen, setFoldOpen] = useState(false)
-  const statuses = useStatuses(rows, props.status)
   const help = useKeysHelp()
   // what branches' ages are measured from
   const now = useNow()

@@ -28,6 +28,12 @@ function quickChoice(row: LandingRow): ChangeChoice | undefined {
   return choice.kind === "pull-request" || choice.kind === "trek" ? undefined : choice
 }
 
+/** Whether every row whose trek's state is worked out here has its state yet. */
+export const statesKnown = (
+  rows: readonly LandingRow[],
+  statuses: ReadonlyMap<string, TrekStatus>,
+): boolean => rows.every((row) => quickChoice(row) === undefined || statuses.has(rowKey(row)))
+
 /** Each row's trek status as it's worked out; one that can't be worked out is left blank. */
 export function useStatuses(
   rows: readonly LandingRow[],

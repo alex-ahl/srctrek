@@ -31,22 +31,20 @@ const done: DoneTrek[] = [
   { name: "spike-ledger", title: "Posting to the ledger", why: "branch gone" },
 ]
 
-// The user's own branch has a trek; fix/rounding has none, nor has the code its ways in; the rest
-// haven't answered yet.
+// The user's own branch has a trek; no other change has, nor has the code its ways in.
 function statusOf(choice: ChangeChoice): Promise<TrekStatus> {
   if (choice.kind === "own" && !choice.uncommitted) {
     return Promise.resolve({ kind: "ready", name: "feature-refunds" })
   }
 
-  if (choice.kind === "code") {
-    return Promise.resolve({ kind: "missing", name: "web" })
-  }
-
-  const none: TrekStatus = { kind: "missing", name: "fix-rounding" }
-  return choice.kind === "branch" && choice.name === "fix/rounding"
-    ? Promise.resolve(none)
-    : new Promise(() => undefined)
+  return Promise.resolve({ kind: "missing", name: choice.kind === "code" ? "web" : "a-change" })
 }
+
+// As statusOf, but feature/partial-refunds's trek is still being worked out.
+const stillWorking = (choice: ChangeChoice): Promise<TrekStatus> =>
+  choice.kind === "branch" && choice.name === "feature/partial-refunds"
+    ? new Promise(() => undefined)
+    : statusOf(choice)
 
 const open: OpenPullRequest[] = [
   {
@@ -105,6 +103,7 @@ type Setup = Partial<{
   onSettings: () => void
   onQuit: () => void
   pullRequests: () => Promise<OpenPullRequest[]>
+  status: (choice: ChangeChoice) => Promise<TrekStatus>
   repoBranches: (path: string) => Promise<RepoBranches>
 }>
 
@@ -116,7 +115,7 @@ function landing(setup: Setup = {}) {
       nearby={() => Promise.resolve(nearby)}
       repoBranches={setup.repoBranches ?? (() => Promise.resolve(apiBranches))}
       fetchRepo={fetchRepo}
-      status={statusOf}
+      status={setup.status ?? statusOf}
       done={() => Promise.resolve(done)}
       onPick={setup.onPick ?? (() => undefined)}
       onSettings={setup.onSettings ?? (() => undefined)}
@@ -189,7 +188,9 @@ test("opens on the user's own branch, every change under its heading", async () 
 })
 
 test("says on each row whether a trek of it exists, as each is worked out", async () => {
-  const frame = await frameAfter(landing(), (_input, on) => on.shows("○ no trek yet"))
+  const frame = await frameAfter(landing({ status: stillWorking }), (_input, on) =>
+    on.shows("○ no trek yet"),
+  )
 
   expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
   expect(frame).toMatch(/fix\/rounding +1 commit since main +○ no trek yet/)
@@ -637,4 +638,25 @@ test("the columns stay where they are as pull requests with long titles arrive",
   )
 
   expect(stateAt(after)).toBe(stateAt(before))
+})
+
+test("appears whole once the pull requests are in too, never without them first", async () => {
+  const pulls = deferred<OpenPullRequest[]>()
+  let before = ""
+  const frame = await frameAfter(
+    landing({ pullRequests: () => pulls.promise }),
+    async (_input, on) => {
+      // what's read here is in, and every trek's state; the host hasn't answered yet
+      await on.shows("reading this repo")
+      before = await on.frame()
+      pulls.resolve(open)
+      await on.shows("YOUR WORK")
+    },
+    110,
+    34,
+  )
+
+  expect(before).not.toContain("YOUR WORK")
+  expect(frame).toContain("#14 Round refunds to cents")
+  expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
 })
