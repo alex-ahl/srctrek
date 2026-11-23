@@ -8,7 +8,6 @@ export type LandingGroup =
   | "OTHER PULL REQUESTS"
   | "OTHER BRANCHES"
   | "CODE AS IT IS"
-  | "OTHER REPOS"
   | "DONE"
 
 /** A trek whose work has landed or gone, by its name and title, and how its work ended. */

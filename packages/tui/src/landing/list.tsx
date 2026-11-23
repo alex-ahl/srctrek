@@ -1,14 +1,12 @@
 import type { RGBA } from "@opentui/core"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import { DropLines, type DropView } from "./drop-view"
-import { type FoldItem, type RepoItem, repoBranch, repoNotes } from "./repos"
 import type { LandingGroup, LandingRow } from "./rows"
 import { statusBlock } from "../change/status-block"
 import { Selectable } from "../ui/selectable"
 import { STATE_LABELS } from "../ui/state-labels"
 import { useTurning } from "../ui/turning"
-import { count, fit } from "../ui/text"
+import { fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 
 /** A line under a heading that isn't a change to open: still loading, none, or why not. */
@@ -75,8 +73,13 @@ const STATE_WORDS: Readonly<Record<string, string>> = {
 }
 
 // "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours a change's screen
-// uses; code as it is says where finding its ways in stands.
-function StatusView(props: { status: TrekStatus | undefined; code: boolean; asked: boolean }) {
+// uses, or dimmed; code as it is says where finding its ways in stands.
+function StatusView(props: {
+  status: TrekStatus | undefined
+  code: boolean
+  asked: boolean
+  muted: boolean
+}) {
   const { status, code } = props
   const tones = useTones()
   // turning where it's being worked out; a pull request's isn't
@@ -85,7 +88,11 @@ function StatusView(props: { status: TrekStatus | undefined; code: boolean; aske
   }
 
   const { symbol, state, tone } = statusBlock(status, undefined, false, { code })
-  return <span fg={tones[tone]}>{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
+  return (
+    <span
+      fg={tones[props.muted ? "dim" : tone]}
+    >{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
+  )
 }
 
 // A change being opened, in its state's place: the busy symbol turning.
@@ -100,29 +107,29 @@ function WorkingOut() {
   return <span fg={tones.dim}>{`  ${useTurning()}`}</span>
 }
 
-// The columns, as wide as their longest, so what follows them lines up.
-type Widths = Readonly<{ name: number; detail: number; repo: number; path: number }>
-
-// One change to open: names lined up, what it holds dimmed after, then its trek's state.
+// One change to open: names lined up, what it holds dimmed after, then its trek's state; all of
+// it dimmed while the sheet over the list has the keys.
 function ChangeView({
   row,
-  widths,
   status,
   opening,
+  muted,
 }: {
   row: LandingRow
-  widths: Widths
   status: TrekStatus | undefined
   // being opened, which its state's place says while it is
   opening: boolean
+  muted: boolean
 }) {
   const tones = useTones()
 
   return (
     <span>
       {"  "}
-      <span>{fit(row.label, widths.name).padEnd(widths.name)}</span>
-      <span fg={tones.dim}>{`  ${fit(row.detail, widths.detail).padEnd(widths.detail)}`}</span>
+      <span {...(muted ? { fg: tones.dim } : {})}>
+        {fit(row.label, NAME_WIDTH).padEnd(NAME_WIDTH)}
+      </span>
+      <span fg={tones.dim}>{`  ${fit(row.detail, DETAIL_WIDTH).padEnd(DETAIL_WIDTH)}`}</span>
       {opening ? (
         <Opening />
       ) : (
@@ -130,22 +137,20 @@ function ChangeView({
           status={status}
           code={row.choice.kind === "code"}
           asked={quickChoice(row) !== undefined}
+          muted={muted}
         />
       )}
     </span>
   )
 }
 
-// A heading, with what's ticked under it, "· 1 going along", where it's the other repos'.
-function Heading(props: { group: LandingGroup; first: boolean; going?: number }) {
+function Heading(props: { group: LandingGroup; first: boolean }) {
   const tones = useTones()
-  const going =
-    props.going === undefined || props.going === 0 ? "" : ` · ${props.going} going along`
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
       {!props.first && <text fg={COLOUR.text}> </text>}
-      <text fg={tones.dim}>{`${props.group}${going}`}</text>
+      <text fg={tones.dim}>{props.group}</text>
     </box>
   )
 }
@@ -153,94 +158,38 @@ function Heading(props: { group: LandingGroup; first: boolean; going?: number })
 /** The done treks folded under their heading and a count, until opened. */
 export type DoneFoldItem = Readonly<{ kind: "done-fold"; count: number }>
 
-/**
- * Something the landing page lists: a change to open, a repo beside this one, the folded rest of
- * them, or the folded done treks.
- */
-export type LandingItem =
-  Readonly<{ kind: "change"; row: LandingRow }> | RepoItem | FoldItem | DoneFoldItem
+/** Something the landing page lists: a change to open, or the folded done treks. */
+export type LandingItem = Readonly<{ kind: "change"; row: LandingRow }> | DoneFoldItem
 
-function groupOf(item: LandingItem): LandingGroup {
-  if (item.kind === "change") {
-    return item.row.group
-  }
-
-  return item.kind === "done-fold" ? "DONE" : "OTHER REPOS"
-}
+const groupOf = (item: LandingItem): LandingGroup =>
+  item.kind === "change" ? item.row.group : "DONE"
 
 /** The item's key, which keeps it selected while the lines around it come and go. */
-export function itemKey(item: LandingItem): string {
-  if (item.kind === "change") {
-    return rowKey(item.row)
-  }
-
-  return item.kind === "repo" ? `repo:${item.checkout.path}` : item.kind
-}
-
-// A repo beside this one: ticked or not, its name and path, its branch, with → to open its
-// branches on the selected row (▾ while they're open), and what it holds.
-function RepoView({
-  item,
-  selected,
-  open,
-  widths,
-}: {
-  item: RepoItem
-  selected: boolean
-  open: boolean
-  widths: Widths
-}) {
-  const tones = useTones()
-  const ticked = item.pick !== undefined
-  const notes = repoNotes(item)
-  const arrow = open ? " ▾" : " ▸"
-
-  return (
-    <span>
-      <span fg={ticked ? tones.accent : tones.dim}>{ticked ? "[x] " : "[ ] "}</span>
-      <span>{item.checkout.name.padEnd(widths.repo)}</span>
-      <span fg={tones.dim}>{`  ${item.checkout.path.padEnd(widths.path)}  `}</span>
-      <span>{repoBranch(item)}</span>
-      {(selected || open) && <span fg={tones.accent}>{arrow}</span>}
-      {notes !== "" && <span fg={tones.dim}>{`  ${notes}`}</span>}
-    </span>
-  )
-}
+export const itemKey = (item: LandingItem): string =>
+  item.kind === "change" ? rowKey(item.row) : item.kind
 
 function ItemView({
   item,
-  selected,
-  open,
-  widths,
   statuses,
   opening,
+  muted,
 }: {
   item: LandingItem
-  selected: boolean
-  open: boolean
-  widths: Widths
   statuses: ReadonlyMap<string, TrekStatus>
   opening: string | undefined
+  muted: boolean
 }) {
   const tones = useTones()
-  if (item.kind === "fold") {
-    return <span fg={tones.dim}>{`▸ ${count(item.count, "more repo")}`}</span>
-  }
-
   if (item.kind === "done-fold") {
     return <span fg={tones.dim}>{`▸ DONE  ${String(item.count)}`}</span>
-  }
-
-  if (item.kind === "repo") {
-    return <RepoView item={item} selected={selected} open={open} widths={widths} />
   }
 
   return (
     <ChangeView
       row={item.row}
-      widths={widths}
       status={statuses.get(rowKey(item.row))}
       opening={rowKey(item.row) === opening}
+      muted={muted}
     />
   )
 }
@@ -255,7 +204,7 @@ export function LandingList({
   statuses,
   opening,
   note,
-  drop,
+  muted,
   tint,
   height,
 }: {
@@ -265,13 +214,12 @@ export function LandingList({
   // the key of the change being opened
   opening: string | undefined
   note: LandingNote | undefined
-  // a repo's branches open under its row
-  drop: DropView | undefined
+  // dimmed, under the sheet that has the keys
+  muted: boolean
   tint: RGBA | undefined
   // the lines there's room for
   height: number
 }) {
-  const widths = widthsOf(items)
   const noteAt = noteIndex(items)
   const start = firstShown(items, chosen, noteAt, note !== undefined, height)
 
@@ -284,24 +232,12 @@ export function LandingList({
             {index === noteAt && <Note note={note} first={index === 0} />}
             {(startsGroup(items[index - 1], item) ||
               (shown === 0 && item.kind !== "done-fold")) && (
-              <Heading
-                group={groupOf(item)}
-                first={index === start && noteAt !== index}
-                going={goingAlong(items)}
-              />
+              <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
             )}
             {item.kind === "done-fold" && <text> </text>}
-            <Selectable selected={index === chosen && drop === undefined} tint={tint}>
-              <ItemView
-                item={item}
-                selected={index === chosen}
-                open={isOpen(item, drop)}
-                widths={widths}
-                statuses={statuses}
-                opening={opening}
-              />
+            <Selectable selected={index === chosen} tint={tint}>
+              <ItemView item={item} statuses={statuses} opening={opening} muted={muted} />
             </Selectable>
-            {drop !== undefined && isOpen(item, drop) && <DropLines view={drop} tint={tint} />}
           </box>
         )
       })}
@@ -309,10 +245,6 @@ export function LandingList({
     </box>
   )
 }
-
-// The repo whose branches are open under it.
-const isOpen = (item: LandingItem, drop: DropView | undefined) =>
-  item.kind === "repo" && item.checkout.path === drop?.drop.path
 
 // An item under a different heading from the one before it, or the first; the done fold is its
 // own heading.
@@ -327,7 +259,7 @@ function noteIndex(items: readonly LandingItem[]): number {
 
 /**
  * Where each item's lines start, its heading and the note above it among them, and where its own
- * line is; a repo's open branches are left out, as they open under the selection.
+ * line is.
  */
 function linesOf(items: readonly LandingItem[], noteAt: number, hasNote: boolean) {
   const tops: number[] = []
@@ -383,10 +315,6 @@ const headed = (items: readonly LandingItem[], at: number) => {
   return item === undefined || item.kind === "done-fold" || startsGroup(items[at - 1], item)
 }
 
-// How many repos beside this one are ticked to go along.
-const goingAlong = (items: readonly LandingItem[]) =>
-  items.filter((item) => item.kind === "repo" && item.pick !== undefined).length
-
 function Note({ note, first }: { note: LandingNote | undefined; first: boolean }) {
   const tones = useTones()
   if (note === undefined) {
@@ -399,17 +327,4 @@ function Note({ note, first }: { note: LandingNote | undefined; first: boolean }
       <text fg={tones[note.tone]}>{`    ${note.text}`}</text>
     </box>
   )
-}
-
-// The changes' columns as wide as they always are; the repos' names and paths as wide as their
-// longest, lined up among themselves.
-function widthsOf(items: readonly LandingItem[]): Widths {
-  const repos = items.flatMap((item) => (item.kind === "repo" ? [item.checkout] : []))
-
-  return {
-    name: NAME_WIDTH,
-    detail: DETAIL_WIDTH,
-    repo: Math.max(0, ...repos.map((repo) => repo.name.length)),
-    path: Math.max(0, ...repos.map((repo) => repo.path.length)),
-  }
 }

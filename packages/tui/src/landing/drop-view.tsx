@@ -133,3 +133,14 @@ export function DropLines({ view, tint }: { view: DropView; tint: RGBA | undefin
     </box>
   )
 }
+
+/** How many lines a repo's open branches take under its row. */
+export function dropHeight({ drop, rows }: DropView): number {
+  if (rows === undefined) {
+    return 1
+  }
+
+  const typed = drop.query === "" ? 0 : 1
+  const fetching = drop.fetch === undefined ? 0 : 1
+  return typed + fetching + Math.max(rows.length, 1)
+}

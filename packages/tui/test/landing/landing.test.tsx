@@ -105,6 +105,7 @@ type Setup = Partial<{
   pullRequests: () => Promise<OpenPullRequest[]>
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   repoBranches: (path: string) => Promise<RepoBranches>
+  nearby: NearbyCheckout[]
 }>
 
 function landing(setup: Setup = {}) {
@@ -112,7 +113,7 @@ function landing(setup: Setup = {}) {
     <Landing
       load={() => Promise.resolve(choices)}
       pullRequests={setup.pullRequests ?? (() => Promise.resolve(open))}
-      nearby={() => Promise.resolve(nearby)}
+      nearby={() => Promise.resolve(setup.nearby ?? nearby)}
       repoBranches={setup.repoBranches ?? (() => Promise.resolve(apiBranches))}
       fetchRepo={fetchRepo}
       status={setup.status ?? statusOf}
@@ -127,11 +128,17 @@ function landing(setup: Setup = {}) {
 
 type Input = Parameters<Parameters<typeof frameAfter>[1]>[0]
 
-// Everything listed: own work, the pull requests, the branches, code, the repos, and done.
+// Everything listed: own work, the pull requests, the branches, code, and done.
 const listed = async (_input: Input, on: Screen) => {
   await on.shows("#14 Round refunds")
-  await on.shows("▸ 2 more repos")
   await on.shows("▸ DONE  2")
+}
+
+// Everything listed, and the repos beside this one in the sheet a opens.
+const sheetOpen = async (input: Input, on: Screen) => {
+  await listed(input, on)
+  input.pressKey("a")
+  await on.shows("ADD REPOS")
 }
 
 // Down `times` rows, a draw after each, so each lands before the next.
@@ -179,11 +186,10 @@ test("opens on the user's own branch, every change under its heading", async () 
   expect(frame).toMatch(/OTHER PULL REQUESTS\s+#14 Round refunds to cents/)
   expect(frame).toMatch(/OTHER BRANCHES\s+fix\/rounding/)
   expect(frame).toMatch(/CODE AS IT IS\s+its ways in/)
-  expect(frame).toContain("OTHER REPOS")
   expect(frame).toContain("▸ DONE  2")
-  // with nothing ticked, the row says it all
-  expect(frame).not.toContain("Opens:")
-  expect(frame).toContain("enter open · S settings · ? keys")
+  // the repos beside this one wait in the sheet a opens
+  expect(frame).not.toContain("../api")
+  expect(frame).toContain("enter open · a add repos · S settings · ? keys")
 })
 
 test("says on each row whether a trek of it exists, as each is worked out", async () => {
@@ -282,7 +288,7 @@ test("enter on the done fold lists the treks whose work has landed, and opens on
     landing({ onPick }),
     async (input, on) => {
       await listed(input, on)
-      await down(input, on, 9)
+      await down(input, on, 7)
       input.pressEnter()
       await on.shows("Applying a coupon")
       input.pressEnter()
@@ -309,46 +315,55 @@ test("S opens settings, and q quits", async () => {
   expect(onQuit).toHaveBeenCalled()
 })
 
-test("lists the repos with work beside this one, folding the rest under a count", async () => {
-  const frame = await frameAfter(landing(), listed, 110, 34)
+test("a slides up every repo beside this one under the changes, those with work first", async () => {
+  const frame = await frameAfter(landing(), sheetOpen, 110, 34)
 
-  expect(frame).toMatch(/\[ \] api +\.\.\/api +refunds-api +4 commits/)
-  expect(frame).toContain("▸ 2 more repos")
-  expect(frame).not.toContain("worker")
+  expect(frame).toMatch(/YOUR WORK\s+▶ +feature\/refunds/)
+  expect(frame).toMatch(
+    /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
+  )
+  expect(frame).not.toContain("more repos")
+  expect(frame).toContain("space add repo · → branches · esc done · ? keys")
 })
 
-test("space ticks a repo, which goes along with the change enter opens", async () => {
+test("space adds a repo in the sheet; esc closes it, the footer naming what goes along", async () => {
   const onPick = mock((_pick: Pick) => undefined)
   const frame = await frameAfter(
     landing({ onPick }),
     async (input, on) => {
-      await listed(input, on)
-      await down(input, on, 7)
+      await sheetOpen(input, on)
       input.pressKey(" ")
-      await on.shows("[x] api")
-      for (const _ of Array.from({ length: 7 })) {
-        input.pressKey("k")
-        await on.drawn()
-      }
+      await on.shows("ADD REPOS · 1 added")
+      input.pressEscape()
+      await on.shows("a add repos · api")
       input.pressEnter()
     },
     110,
     34,
   )
 
-  expect(frame).toContain("OTHER REPOS · 1 going along")
+  expect(frame).not.toContain("ADD REPOS")
+  expect(frame).toContain("enter open · a add repos · api · S settings · ? keys")
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
 })
 
-test("enter on the repos' fold lists the rest, and a repo on its default branch is passed through", async () => {
+test("space on the list adds nothing", async () => {
+  const onPick = mock((_pick: Pick) => undefined)
+  await frameAfter(landing({ onPick }), async (input, on) => {
+    await listed(input, on)
+    input.pressKey(" ")
+    input.pressEnter()
+  })
+
+  expect(onPick).toHaveBeenCalledWith(own)
+})
+
+test("a repo on its default branch is passed through", async () => {
   const frame = await frameAfter(
     landing(),
     async (input, on) => {
-      await listed(input, on)
-      await down(input, on, 8)
-      input.pressEnter()
-      await on.shows("worker")
-      await down(input, on, 1)
+      await sheetOpen(input, on)
+      await down(input, on, 2)
       input.pressKey(" ")
       await on.shows("[x] worker")
     },
@@ -357,6 +372,49 @@ test("enter on the repos' fold lists the rest, and a repo on its default branch 
   )
 
   expect(frame).toMatch(/\[x\] worker +\.\.\/worker +main ▸ +passed through/)
+})
+
+test("with more than two repos added, the footer names two and counts the rest", async () => {
+  const frame = await frameAfter(
+    landing(),
+    async (input, on) => {
+      await sheetOpen(input, on)
+      for (const _ of Array.from({ length: 3 })) {
+        input.pressKey(" ")
+        await down(input, on, 1)
+      }
+      await on.shows("ADD REPOS · 3 added")
+      input.pressEscape()
+      await on.shows("a add repos ·")
+    },
+    110,
+    34,
+  )
+
+  expect(frame).toContain("a add repos · api, docs +1")
+})
+
+test("on a short terminal, the sheet scrolls to keep its selection in view", async () => {
+  const many = Array.from({ length: 20 }, (_, i) => ({
+    path: `../repo-${String(i)}`,
+    name: `repo-${String(i)}`,
+    branch: "main",
+    commits: 1,
+  }))
+  const frame = await frameAfter(
+    landing({ nearby: many }),
+    async (input, on) => {
+      await sheetOpen(input, on)
+      await down(input, on, 19)
+      await on.shows(/▶ \[ \] repo-19 /)
+    },
+    110,
+    24,
+  )
+
+  expect(frame).toMatch(/▶ \[ \] repo-19 /)
+  expect(frame).toContain("ADD REPOS")
+  expect(frame).toContain("YOUR WORK")
 })
 
 test("a repo's drop: the few latest and the checked-out one, the rest under a count, then main", () => {
@@ -388,10 +446,9 @@ test("typing narrows a repo's branches by name, author, or message", () => {
   ])
 })
 
-// The landing with api's branches open.
+// The sheet with api's branches open.
 const openDrop = async (input: Input, on: Screen) => {
-  await listed(input, on)
-  await down(input, on, 7)
+  await sheetOpen(input, on)
   input.pressArrow("right")
   await on.shows("┌")
 }
@@ -461,28 +518,34 @@ test("the fetch line fetches the repo, then lists its branches again", async () 
   expect(fetchRepo).toHaveBeenCalledWith("../api")
 })
 
-test("← closes a repo's branches without taking one", async () => {
-  const frame = await frameAfter(
-    landing(),
-    async (input, on) => {
-      await openDrop(input, on)
-      input.pressArrow("left")
-      await on.drawn()
-    },
-    120,
-    40,
-  )
+test("← and esc close a repo's branches without taking one, leaving the sheet open", async () => {
+  for (const close of ["left", "escape"] as const) {
+    const frame = await frameAfter(
+      landing(),
+      async (input, on) => {
+        await openDrop(input, on)
+        if (close === "left") {
+          input.pressArrow("left")
+        } else {
+          input.pressEscape()
+        }
+        await on.shows("space add repo · → branches")
+      },
+      120,
+      40,
+    )
 
-  expect(frame).not.toContain("┌")
-  expect(frame).toMatch(/\[ \] api +\.\.\/api +refunds-api ▸/)
+    expect(frame).not.toContain("┌")
+    expect(frame).toContain("ADD REPOS")
+    expect(frame).toMatch(/\[ \] api +\.\.\/api +refunds-api ▸/)
+  }
 })
 
 test("says why a repo's branches couldn't be read, instead of waiting for them", async () => {
   const frame = await frameAfter(
     landing({ repoBranches: () => Promise.reject(new Error("no base branch")) }),
     async (input, on) => {
-      await listed(input, on)
-      await down(input, on, 7)
+      await sheetOpen(input, on)
       input.pressArrow("right")
       await on.shows("✕ no base branch")
     },
@@ -506,7 +569,7 @@ test("code as it is says where finding its ways in stands, not a trek's state", 
 async function toLastDone(input: Input, on: Screen) {
   // what's read here is in once the list is drawn; the pull requests once listed
   await on.shows("#14 Round refunds")
-  await down(input, on, 9)
+  await down(input, on, 7)
   // scrolled down to it, on a short terminal
   await on.shows("▸ DONE  12")
   input.pressEnter()
@@ -593,7 +656,7 @@ test("waits for what's read here before drawing the list, saying so once it take
       before = await on.frame()
       await on.shows(/[◐◓◑◒] reading this repo…/)
       beside.resolve(nearby)
-      await on.shows("[ ] api")
+      await on.shows("feature/refunds")
     },
     110,
     34,

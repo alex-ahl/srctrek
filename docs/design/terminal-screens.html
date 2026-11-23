@@ -214,6 +214,12 @@
         color: var(--t-dim);
         white-space: pre;
       }
+      .sheet {
+        border-top: 1px solid var(--t-accent);
+        padding: 8px 12px 10px;
+        display: grid;
+        gap: 2px;
+      }
       .split {
         display: grid;
         grid-template-columns: 1fr 230px;
@@ -346,7 +352,7 @@
 
   <section>
     <h2>2. The landing page</h2>
-    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. The other repos beside this one are listed under these, ticked with space to go along with the change, their heading counting how many. Enter opens the selected change's screen.</p>
+    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, <code>esc</code> is done, and the footer then names the repos added.</p>
     <div class="grid2">
       <figure><figcaption>On a branch an agent has worked on</figcaption>
         <div class="term screen">
@@ -369,7 +375,7 @@
             <div class="ln"> </div>
             <div class="ln dim">▸ DONE  12</div>
           </div>
-          <div class="foot">enter open · space add repo · S settings · ? keys</div>
+          <div class="foot">enter open · a add repos · S settings · ? keys</div>
         </div>
       </figure>
       <figure><figcaption>A branch just made, nothing on it yet</figcaption>
@@ -391,7 +397,67 @@
             <div class="ln"> </div>
             <div class="ln dim">▸ DONE  12</div>
           </div>
-          <div class="foot">enter open · space add repo · S settings · ? keys</div>
+          <div class="foot">enter open · a add repos · S settings · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>a slides up the repos beside this one — api added, billing selected</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln dim">      with uncommitted work    2 files                 ○ no trek yet</div>
+            <div class="ln"> </div>
+            <div class="ln dim">WAITING ON YOUR REVIEW</div>
+            <div class="ln dim">    #12 Add partial refunds    alice · 2h ago          ● trek ready</div>
+          </div>
+          <div class="sheet">
+            <div class="ln"><span class="a">ADD REPOS</span><span class="dim"> · 1 added</span></div>
+            <div class="ln"><span class="a">[x]</span> api        <span class="dim">~/git/api        </span>feature/refunds  <span class="dim">4 commits</span></div>
+            <div class="ln sel"><span class="dim">[ ]</span> billing    <span class="dim">~/git/billing    </span>main<span class="a"> ▸</span></div>
+            <div class="ln"><span class="dim">[ ]</span> ledger     <span class="dim">~/git/ledger     </span>main</div>
+            <div class="ln"><span class="dim">[ ]</span> payouts    <span class="dim">~/git/payouts    </span>main</div>
+          </div>
+          <div class="foot">space add repo · → branches · esc done · ? keys</div>
+        </div>
+      </figure>
+      <figure><figcaption>→ on billing — its branches open under it, in the sheet</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln dim">      with uncommitted work    2 files                 ○ no trek yet</div>
+          </div>
+          <div class="sheet">
+            <div class="ln"><span class="a">ADD REPOS</span><span class="dim"> · 1 added</span></div>
+            <div class="ln"><span class="a">[x]</span> api        <span class="dim">~/git/api        </span>feature/refunds  <span class="dim">4 commits</span></div>
+            <div class="ln"><span class="dim">[ ]</span> billing    <span class="dim">~/git/billing    </span>main<span class="a"> ▾</span></div>
+            <div class="ln sel">    <span class="dim">┌ </span>feature/refunds   <span class="dim">3h ago    you     </span>Export refund rows</div>
+            <div class="ln">    <span class="dim">│ </span>fix/tax-round     <span class="dim">2d ago    bo      </span>Round tax per line</div>
+            <div class="ln">    <span class="dim">└ </span>main              <span class="dim">its default branch · passes it through</span></div>
+            <div class="ln"><span class="dim">[ ]</span> ledger     <span class="dim">~/git/ledger     </span>main</div>
+          </div>
+          <div class="foot">type to narrow · enter take · ←/esc close</div>
+        </div>
+      </figure>
+      <figure><figcaption>After esc — the repos added named beside a in the footer</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web, api, billing</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln">      with uncommitted work    <span class="dim">2 files</span>                 <span class="dim">○</span> no trek yet</div>
+            <div class="ln"> </div>
+            <div class="ln dim">WAITING ON YOUR REVIEW</div>
+            <div class="ln">    #12 Add partial refunds    <span class="dim">alice · 2h ago</span>          <span class="g">●</span> trek ready</div>
+            <div class="ln"> </div>
+            <div class="ln dim">OTHER BRANCHES</div>
+            <div class="ln">    fix/rounding               <span class="dim">1 commit since main</span>     <span class="y">≠</span> trek stale</div>
+            <div class="ln"> </div>
+            <div class="ln dim">▸ DONE  12</div>
+          </div>
+          <div class="foot">enter open · a add repos <span class="a">· api, billing</span> · S settings · ? keys</div>
         </div>
       </figure>
     </div>
@@ -684,7 +750,7 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Screen</th><th>Keys</th></tr></thead>
       <tbody>
-        <tr><td>Landing page</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open the change, or what's folded · <code>space</code> add a repo · <code>→</code> a repo's branches · <code>S</code> settings · <code>q</code> quit</td></tr>
+        <tr><td>Landing page</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open the change, or what's folded · <code>a</code> add repos: <code>space</code> add a repo, <code>→</code> its branches, <code>esc</code> done · <code>S</code> settings · <code>q</code> quit</td></tr>
         <tr><td>A change's screen</td><td><code>enter</code> step it · <code>e</code> your editor, or <code>n</code> here · <code>b</code> build, update, or build again · <code>a</code> add a proposed repo · <code>x</code> stop, or dismiss a proposal · <code>l</code> builds · <code>esc</code> back</td></tr>
         <tr><td>Code as it is</td><td><code>j</code>/<code>k</code> move · <code>enter</code> step a way in's trek · <code>b</code> build it · <code>B</code> find the ways in again · <code>esc</code> back</td></tr>
         <tr><td>Settings</td><td><code>j</code>/<code>k</code> choose · <code>enter</code> change · <code>esc</code> back</td></tr>

@@ -11,35 +11,17 @@ export type RepoItem = Readonly<{
   pick: RepoPick | undefined
 }>
 
-/** The repos with nothing to show folded under a count, until opened. */
-export type FoldItem = Readonly<{ kind: "fold"; count: number }>
-
-/**
- * The repos to list under OTHER REPOS: those with work on them, then, while the rest are folded,
- * those ticked and a count of the others; once opened, the rest in their own order, so ticking
- * one never moves the line under the cursor.
- */
-export function repoItems(
-  checkouts: readonly NearbyCheckout[],
-  ticked: Ticked,
-  open: boolean,
-): Array<RepoItem | FoldItem> {
+/** The repos to list in the sheet: those with work on them, then the rest, each ticked or not. */
+export function repoItems(checkouts: readonly NearbyCheckout[], ticked: Ticked): RepoItem[] {
   const item = (checkout: NearbyCheckout): RepoItem => ({
     kind: "repo",
     checkout,
     pick: ticked.get(checkout.path),
   })
-  const withWork = checkouts.filter((checkout) => checkout.commits > 0).map(item)
+  const withWork = checkouts.filter((checkout) => checkout.commits > 0)
   const rest = checkouts.filter((checkout) => checkout.commits === 0)
-  if (open) {
-    return [...withWork, ...rest.map(item)]
-  }
 
-  const tickedRest = rest.filter((checkout) => ticked.has(checkout.path)).map(item)
-  const folded = rest.length - tickedRest.length
-  const fold: FoldItem[] = folded === 0 ? [] : [{ kind: "fold", count: folded }]
-
-  return [...withWork, ...tickedRest, ...fold]
+  return [...withWork, ...rest].map(item)
 }
 
 /** The ticks with `checkout` ticked, as changed when it has work on it, or unticked. */

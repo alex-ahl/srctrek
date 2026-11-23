@@ -20,8 +20,9 @@ import {
   statesKnown,
   useStatuses,
 } from "./list"
-import { type Ticked, repoItems, toggled } from "./repos"
+import { type RepoItem, type Ticked, repoItems, toggled } from "./repos"
 import type { DropView } from "./drop-view"
+import { RepoSheet, sheetHeight, sheetKey } from "./sheet"
 import { type Pending, choiceName } from "../opening"
 import { useDrop } from "./use-drop"
 import { type DoneTrek, type LandingRow, type Pick, doneRows, landingRows } from "./rows"
@@ -189,22 +190,21 @@ const picksOf = (ticked: Ticked, checkouts: readonly NearbyCheckout[]): RepoPick
     return pick === undefined ? [] : [pick]
   })
 
-// What enter does on a line: opens what's folded there, or the change.
-function enterOn(
-  item: LandingItem | undefined,
-  does: Readonly<{ repos: () => void; done: () => void; pick: () => void }>,
-): () => void {
-  if (item?.kind === "fold") {
-    return does.repos
+// The names of the repos added, the first two and a count of the rest: "api, docs +1".
+function addedNames(ticked: Ticked, checkouts: readonly NearbyCheckout[]): string | undefined {
+  const names = checkouts.filter((checkout) => ticked.has(checkout.path)).map(({ name }) => name)
+  if (names.length === 0) {
+    return undefined
   }
 
-  return item?.kind === "done-fold" ? does.done : does.pick
+  const rest = names.length - 2
+  return rest > 0 ? `${names.slice(0, 2).join(", ")} +${String(rest)}` : names.join(", ")
 }
 
 // The key of the line at `at`, none past the list.
-function keyAt(items: readonly LandingItem[], at: number): string | undefined {
+function keyAt<T>(items: readonly T[], at: number, keyOf: (item: T) => string): string | undefined {
   const item = items[at]
-  return item === undefined ? undefined : itemKey(item)
+  return item === undefined ? undefined : keyOf(item)
 }
 
 // How long the selection stays on a change before what it opens is worked out ahead.
@@ -257,41 +257,60 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
   return repos.length === 0 ? change : { ...change, repos }
 }
 
-// The footer: a repo's open branches' keys while they're open, else the selected line's.
-const footerOf = (dropOpen: boolean, line: readonly KeyHint[]): readonly KeyHint[] =>
-  dropOpen ? DROP_KEYS : line
+const DONE_HINT: KeyHint = { key: "esc", does: "done" }
 
-// The keys for the line selected: enter opens a change or a fold, space ticks a repo.
-function keysFor(item: LandingItem | undefined): KeyHint[] {
-  const repo =
-    item?.kind === "repo"
-      ? [
+// The keys for the list's line selected, and a to add repos, naming those added.
+function listKeys(item: LandingItem | undefined, added: string | undefined): KeyHint[] {
+  const add = { key: "a", does: "add repos", ...(added === undefined ? {} : { mark: added }) }
+  return [
+    { key: "enter", does: item?.kind === "change" ? "open" : "show" },
+    add,
+    { key: "S", does: "settings" },
+    HELP_HINT,
+  ]
+}
+
+// The keys for the sheet's repo selected: space ticks it, → its branches.
+function sheetKeys(item: RepoItem | undefined): KeyHint[] {
+  const line =
+    item === undefined
+      ? []
+      : [
           { key: "space", does: item.pick === undefined ? "add repo" : "remove repo" },
           { key: "→", does: "branches" },
         ]
-      : [{ key: "enter", does: item?.kind === "change" ? "open" : "show" }]
 
-  return [...repo, { key: "S", does: "settings" }, HELP_HINT]
+  return [...line, DONE_HINT, HELP_HINT]
 }
+
+// The footer: a repo's open branches' keys while they're open, else the selected line's.
+const footerOf = (dropOpen: boolean, line: readonly KeyHint[]): readonly KeyHint[] =>
+  dropOpen ? DROP_KEYS : line
 
 const GROUPS: readonly KeyGroup[] = [
   {
     title: "the selected line",
     keys: [
       { key: "enter", does: "open the change, or show what's folded" },
-      { key: "space", does: "add a repo to the change, or remove it" },
-      { key: "→", does: "a repo's branches" },
       { key: "↑/↓", does: "choose a line (also j/k)" },
+    ],
+  },
+  {
+    title: "repos to go along",
+    keys: [
+      { key: "a", does: "add repos to the change" },
+      { key: "space", does: "add a repo, or remove it" },
+      { key: "→", does: "a repo's branches" },
+      { key: "esc", does: "done" },
     ],
   },
   { title: "screens", keys: [{ key: "S", does: "settings" }] },
   { title: "leave", keys: [{ key: "q", does: "quit" }] },
 ]
 
-// The lines in order: the changes, the repos beside this one, then the done treks, folded.
+// The lines in order: the changes, then the done treks, folded.
 function itemsOf(
   rows: readonly LandingRow[],
-  repos: LandingItem[],
   done: readonly LandingRow[],
   doneOpen: boolean,
 ): LandingItem[] {
@@ -302,14 +321,21 @@ function itemsOf(
       ? []
       : [{ kind: "done-fold", count: done.length }]
 
-  return [...rows.map(change), ...repos, ...doneItems]
+  return [...rows.map(change), ...doneItems]
 }
 
 /** The selected line: the one with the key chosen, so it stays put as lines load around it. */
-function selectedIndex(items: readonly LandingItem[], chosen: string | undefined): number {
-  const at = items.findIndex((item) => itemKey(item) === chosen)
+function selectedIndex<T>(
+  items: readonly T[],
+  chosen: string | undefined,
+  keyOf: (item: T) => string,
+): number {
+  const at = items.findIndex((item) => keyOf(item) === chosen)
   return at === -1 ? 0 : at
 }
+
+// At most half the room below the title bar goes to the sheet, so the changes stay in view.
+const sheetMost = (room: number) => Math.floor(room / 2)
 
 // A letter typed with shift as its capital, "S", so maps name capitals as they're shown.
 const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
@@ -331,8 +357,9 @@ function dropView(
 
 /**
  * Every change there is to look at, each with its trek's state: the user's own work, the pull
- * requests, the repo's other branches, code as it is, the repos beside it to tick and take along,
- * and, folded, the treks whose work is done. Opens on the user's own branch.
+ * requests, the repo's other branches, code as it is, and, folded, the treks whose work is done;
+ * the repos beside it to tick and take along in a sheet slid up over the list. Opens on the
+ * user's own branch.
  */
 export function Landing(props: Props) {
   const { height } = useTerminalDimensions()
@@ -343,14 +370,18 @@ export function Landing(props: Props) {
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const active = props.active !== false
   const checkouts = nearby
-  const [foldOpen, setFoldOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [sheetChosen, setSheetChosen] = useState<string | undefined>(undefined)
   const help = useKeysHelp()
   // what branches' ages are measured from
   const now = useNow()
 
-  const items = itemsOf(rows, repoItems(checkouts, ticked, foldOpen), done, doneOpen)
-  const selected = selectedIndex(items, chosen)
+  const items = itemsOf(rows, done, doneOpen)
+  const selected = selectedIndex(items, chosen, itemKey)
   const item = items[selected]
+  const sheetItems = repoItems(checkouts, ticked)
+  const sheetAt = selectedIndex(sheetItems, sheetChosen, sheetKey)
+  const repo = sheetItems[sheetAt]
   const repos = picksOf(ticked, checkouts)
   // what enter opens from the selected line, when it's a change's
   const picked = item?.kind === "change" ? pickOf(item.row, repos) : undefined
@@ -358,41 +389,53 @@ export function Landing(props: Props) {
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
-  const openDrop = () => item?.kind === "repo" && drop.open(item.checkout.path)
+  const openDrop = () => repo !== undefined && drop.open(repo.checkout.path)
   const notice = useNotice(props.opening)
+  const shownDrop = dropView(drop, ticked, now)
 
-  const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length)))
+  const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length), itemKey))
+  const moveInSheet = (by: number) =>
+    setSheetChosen(keyAt(sheetItems, stepped(sheetAt, by, sheetItems.length), sheetKey))
   // an opened fold's line gives way to the first of what it held, which takes the selection
-  const unfold = (opened: readonly LandingItem[]) => setChosen(keyAt(opened, selected))
-  const enter = enterOn(item, {
-    repos: () => {
-      setFoldOpen(true)
-      unfold(itemsOf(rows, repoItems(checkouts, ticked, true), done, doneOpen))
-    },
-    done: () => {
+  const enter = () => {
+    if (item?.kind === "done-fold") {
       setDoneOpen(true)
-      unfold(itemsOf(rows, repoItems(checkouts, ticked, foldOpen), done, true))
-    },
-    pick: () => picked !== undefined && props.onPick(picked),
-  })
-  const keyActions = new Map([
-    ["return", enter],
-    ["space", () => item?.kind === "repo" && setTicked(toggled(ticked, item.checkout))],
-    ["right", openDrop],
-    ["l", openDrop],
-    ["S", props.onSettings],
+      setChosen(keyAt(itemsOf(rows, done, true), selected, itemKey))
+    } else if (picked !== undefined) {
+      props.onPick(picked)
+    }
+  }
+  const common: Array<[string, () => void]> = [
     ["q", props.onQuit],
     ["?", help.show],
+  ]
+  const listActions = new Map([
+    ["return", enter],
+    ["a", () => setSheetOpen(true)],
+    ["S", props.onSettings],
+    ...common,
     ...moveKeys(move),
   ])
-  // While a repo's branches are open, keys go there.
+  const sheetActions = new Map([
+    ["space", () => repo !== undefined && setTicked(toggled(ticked, repo.checkout))],
+    ["right", openDrop],
+    ["l", openDrop],
+    ["escape", () => setSheetOpen(false)],
+    ...common,
+    ...moveKeys(moveInSheet),
+  ])
+  // While a repo's branches are open, keys go there; while the sheet is, there.
   useLandingKeys(
     active,
     help.guard((key) => {
       notice.seen()
-      return drop.key(key) || keyActions.get(shifted(key))?.()
+      const actions = sheetOpen ? sheetActions : listActions
+      return drop.key(key) || actions.get(shifted(key))?.()
     }),
   )
+
+  const room = height - chromeLines(notice.text)
+  const sheetLines = sheetOpen ? sheetHeight(sheetItems, shownDrop, sheetMost(room)) : 0
 
   return (
     <LandingView
@@ -404,16 +447,30 @@ export function Landing(props: Props) {
             chosen={selected}
             statuses={statuses}
             note={note}
-            drop={dropView(drop, ticked, now)}
+            muted={sheetOpen}
             tint={props.tint}
             opening={openingKey(props.opening)}
-            height={height - chromeLines(notice.text)}
+            height={room - sheetLines}
+          />
+        ) : undefined
+      }
+      sheet={
+        sheetOpen ? (
+          <RepoSheet
+            items={sheetItems}
+            chosen={sheetAt}
+            drop={shownDrop}
+            tint={props.tint}
+            height={sheetLines}
           />
         ) : undefined
       }
       failed={branches.kind === "failed" ? branches.why : undefined}
       notice={notice.text}
-      footer={footerOf(drop.drop !== undefined, help.footer(keysFor(item)))}
+      footer={footerOf(
+        drop.drop !== undefined,
+        help.footer(sheetOpen ? sheetKeys(repo) : listKeys(item, addedNames(ticked, checkouts))),
+      )}
       help={help.open}
     />
   )
@@ -435,12 +492,13 @@ function Reading() {
   return shown ? <text fg={tones.dim}>{`${turning} reading this repo…`}</text> : null
 }
 
-// The page around its list: why the branches couldn't be read, the list once it's drawn, why a
-// change couldn't be opened, and the footer.
+// The page around its list: why the branches couldn't be read, the list once it's drawn, the
+// sheet under it while it's open, why a change couldn't be opened, and the footer.
 function LandingView(props: {
   // behind another screen, the page draws nothing
   active: boolean
   list: ReactNode
+  sheet: ReactNode
   failed: string | undefined
   notice: string | undefined
   footer: readonly KeyHint[]
@@ -471,6 +529,7 @@ function LandingView(props: {
           </box>
         </OrKeysHelp>
       </box>
+      {props.sheet}
       {props.notice !== undefined && (
         <box
           border={["top"]}
