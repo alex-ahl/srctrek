@@ -98,7 +98,12 @@ export {
   type UnchangedRepo,
 } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
-export { openPullRequests, type OpenPullRequest } from "./repos/open-pull-requests"
+export {
+  openPullRequests,
+  pullRequestOf,
+  type OpenPullRequest,
+  type PullRequestDetails,
+} from "./repos/open-pull-requests"
 export { fetchRepo, repoBranches, type RepoBranch, type RepoBranches } from "./repos/branches"
 export { cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"

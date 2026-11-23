@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { chmod, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { openPullRequests } from "../../src"
+import { openPullRequests, pullRequestOf } from "../../src"
 import { rejection } from "../support/rejection"
 import { tempDir } from "@srctrek/testing"
 
@@ -70,5 +70,21 @@ esac`)
     expect(String(error)).toContain(
       "gh: To get started with GitHub CLI, please run:  gh auth login",
     )
+  })
+})
+
+describe("pullRequestOf", () => {
+  test("is the pull request at a link: its title, who opened it, and whether it's a draft", async () => {
+    const gh = await fakeGh(
+      `echo '{"title":"Add partial refunds","author":{"login":"alice"},"isDraft":true}'`,
+    )
+
+    const pull = await pullRequestOf(
+      await tempDir("repo-"),
+      "https://github.com/acme/api/pull/12",
+      gh,
+    )
+
+    expect(pull).toEqual({ title: "Add partial refunds", author: "alice", draft: true })
   })
 })

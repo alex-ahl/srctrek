@@ -48,6 +48,27 @@ async function runGh(cwd: string, gh: string, args: string[]): Promise<unknown> 
   return JSON.parse(stdout) as unknown
 }
 
+/** A pull request as its screen names it: its title, who opened it, and whether it's a draft. */
+export type PullRequestDetails = Readonly<{ title: string; author: string; draft: boolean }>
+
+const ViewedSchema = z.object({
+  title: z.string(),
+  author: z.object({ login: z.string() }),
+  isDraft: z.boolean(),
+})
+
+/** The pull request at `url`, through the user's own gh; throws with gh's own words when it can't. */
+export async function pullRequestOf(
+  cwd: string,
+  url: string,
+  gh = "gh",
+): Promise<PullRequestDetails> {
+  const viewed = ViewedSchema.parse(
+    await runGh(cwd, gh, ["pr", "view", url, "--json", "title,author,isDraft"]),
+  )
+  return { title: viewed.title, author: viewed.author.login, draft: viewed.isDraft }
+}
+
 /**
  * The open pull requests of the repo at `cwd`, through the user's own gh: those waiting on their
  * review first, then the rest newest first, as gh lists them. Throws with gh's own words when it
