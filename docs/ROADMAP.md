@@ -45,6 +45,9 @@ After version 1, in no fixed order. Version 1's scope is in `DECISIONS.md`.
 - `trek doctor`: agent CLI found and logged in, editor connection, git credentials, cache.
 - **Editing settings as JSON:** a key in the terminal's settings opens the settings file in the
   user's editor, and settings reread it on return.
+- **Workspace mode:** `trek` started in a folder of repos rather than in one: the landing page
+  lists each repo with its own work, pull requests, and branches, and the treks of all of them;
+  a trek that covers several repos listed once.
 - Presenting: a trek walked through for a team, with large narration and the route map.
 - Web GUI served by the same binary (`trek --gui`).
 - **srctrek.nvim:** the Neovim plugin copied on each release to a repo of its own, installable by
