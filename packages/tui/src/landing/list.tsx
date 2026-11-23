@@ -237,7 +237,8 @@ export function LandingList({
         return (
           <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
             {index === noteAt && <Note note={note} first={index === 0} />}
-            {startsGroup(items[index - 1], item) && (
+            {(startsGroup(items[index - 1], item) ||
+              (shown === 0 && item.kind !== "done-fold")) && (
               <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
             )}
             {item.kind === "done-fold" && <text> </text>}

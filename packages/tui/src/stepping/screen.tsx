@@ -221,7 +221,7 @@ const STEP_GROUPS: readonly KeyGroup[] = [
       { key: "e", does: "the cursor's line in your editor" },
     ],
   },
-  { title: "leave", keys: [{ key: "q", does: "home" }] },
+  { title: "leave", keys: [{ key: "q", does: "back" }] },
 ]
 
 type KeyMap = ReadonlyMap<string, () => void>

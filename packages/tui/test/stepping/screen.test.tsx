@@ -167,7 +167,7 @@ test("? at a stop lists every key, D among them for the change", async () => {
 
   expect(frame).toContain("MOVE")
   expect(frame).toMatch(/D +the change to the stop's file/)
-  expect(frame).toMatch(/q +home/)
+  expect(frame).toMatch(/q +back/)
 })
 
 test("r opens the route: the call tree, what runs at ▶, and the chosen stop beside it", async () => {

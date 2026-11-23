@@ -3,15 +3,25 @@ import type { BuildRead } from "../build-view/read"
 import { Overview } from "../stepping/ends"
 import { count } from "../ui/text"
 import { useTones } from "../ui/theme"
+import type { StateLabel } from "../ui/state-labels"
 import { useStateText } from "../ui/turning"
 import { Building } from "./building"
 import { ChangeLine } from "./line"
 import { type Opened, statusBlock } from "./status-block"
 
-// Where the trek stands: its symbol and state in the state's tone, then dim lines saying why.
-function StateBlock(props: { status: TrekStatus; canBuild: boolean; open: Opened }) {
+// Where the trek stands: its symbol and state in the state's tone, then dim lines saying why; a
+// trek whose work is done, how it ended.
+function StateBlock(props: {
+  status: TrekStatus
+  done: string | undefined
+  canBuild: boolean
+  open: Opened
+}) {
   const tones = useTones()
-  const block = statusBlock(props.status, undefined, props.canBuild, props.open)
+  const block =
+    props.done === undefined
+      ? statusBlock(props.status, undefined, props.canBuild, props.open)
+      : { ...doneBlock(props.done), details: [] }
   const text = useStateText(block)
 
   return (
@@ -23,6 +33,8 @@ function StateBlock(props: { status: TrekStatus; canBuild: boolean; open: Opened
     </box>
   )
 }
+
+const doneBlock = (why: string): StateLabel => ({ symbol: "✓", state: why, tone: "dim" })
 
 // The steps the agent marked likely wrong, said before the trek is stepped.
 function Flags({ overview }: { overview: OverviewView }) {
@@ -63,6 +75,7 @@ export function ChangeBody({
   status,
   overview,
   proposal,
+  done,
   readBuild,
   canBuild,
   width,
@@ -71,6 +84,8 @@ export function ChangeBody({
   status: TrekStatus
   overview: OverviewView | undefined
   proposal: ProposedRepo | undefined
+  // how a trek whose work is done ended, in a word
+  done: string | undefined
   // the latest build of the trek by this name, as it stands
   readBuild: (name: string) => Promise<BuildRead>
   canBuild: boolean
@@ -78,12 +93,16 @@ export function ChangeBody({
 }) {
   return (
     <box flexDirection="column">
-      {summary !== undefined && <ChangeLine summary={summary} width={width} />}
-      <text> </text>
+      {summary !== undefined && (
+        <box flexDirection="column">
+          <ChangeLine summary={summary} width={width} />
+          <text> </text>
+        </box>
+      )}
       {status.kind === "building" ? (
         <Building name={status.name} read={readBuild} width={width} />
       ) : (
-        <StateBlock status={status} canBuild={canBuild} open={openedOf(summary)} />
+        <StateBlock status={status} done={done} canBuild={canBuild} open={openedOf(summary)} />
       )}
       {proposal !== undefined && (
         <box flexDirection="column">

@@ -39,6 +39,12 @@ export type KeyContext = Readonly<{
 
 const STEPPABLE: ReadonlySet<TrekStatus["kind"]> = new Set(["ready", "older-guide", "stale"])
 
+// No trek yet, or nothing to trek: no build to look at.
+const UNBUILT: ReadonlySet<TrekStatus["kind"]> = new Set(["missing", "empty"])
+
+const offersBuilds = (status: TrekStatus, actions: ChangeActions) =>
+  actions.builds !== undefined && !UNBUILT.has(status.kind)
+
 /** Whether the change's trek can be stepped: saved, even when built at older commits. */
 export const canStep = (status: TrekStatus) => STEPPABLE.has(status.kind)
 
@@ -100,7 +106,7 @@ function trekHints(context: KeyContext, actions: ChangeActions): KeyHint[] {
     ...(verb === undefined || actions.build === undefined ? [] : [{ key: "b", does: verb }]),
     ...(proposal === undefined ? [] : [{ key: "a", does: `add ${proposal.name}` }]),
     ...xHint(context),
-    ...(actions.builds === undefined ? [] : [{ key: "l", does: "builds" }]),
+    ...(offersBuilds(context.status, actions) ? [{ key: "l", does: "builds" }] : []),
   ]
 }
 
@@ -164,7 +170,7 @@ export function changeKeys(
     ["b", () => builds && build !== undefined && context.run(build())],
     ["a", () => addKey(context, actions)],
     ["x", () => xKey(context, actions)],
-    ["l", () => actions.builds?.(name)],
+    ["l", () => offersBuilds(context.status, actions) && actions.builds?.(name)],
     ["escape", actions.back],
     ["q", actions.back],
   ])

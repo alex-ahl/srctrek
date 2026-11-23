@@ -51,7 +51,7 @@ export function choiceName(choice: ChangeChoice): string {
  */
 export function PendingScreen({ pending, onBack }: { pending: Pending; onBack: () => void }) {
   const tones = useTones()
-  useKeyboard((key) => key.name === "escape" && onBack())
+  useKeyboard((key) => (key.name === "escape" || key.name === "q") && onBack())
 
   const name = choiceName(pending.choice)
   return (

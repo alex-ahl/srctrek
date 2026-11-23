@@ -15,6 +15,8 @@ type Props = {
   // where the trek stands, and the first repo proposed that's still unsettled
   status: TrekStatus
   proposal: ProposedRepo | undefined
+  // how a trek whose work is done ended, in a word; such a trek has no change to show
+  done?: string | undefined
   // the latest build of the trek by this name
   readBuild: (name: string) => Promise<BuildRead>
   actions: ChangeActions
@@ -50,6 +52,7 @@ export function ChangeScreen(props: Props) {
         status={status}
         overview={overview}
         proposal={proposal}
+        done={props.done}
         readBuild={props.readBuild}
         canBuild={actions.build !== undefined}
         width={width - 2 * PADDING}

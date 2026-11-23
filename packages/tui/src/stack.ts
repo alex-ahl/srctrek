@@ -17,7 +17,7 @@ export type Screen =
   | Readonly<{ kind: "pending"; pending: Pending }>
   | ChangeOpen
   // a trek whose change is gone, on a change's screen with just the trek
-  | Readonly<{ kind: "done"; name: string }>
+  | Readonly<{ kind: "done"; name: string; why: string }>
   | Readonly<{ kind: "stepping"; name: string }>
   | Readonly<{ kind: "builds"; name: string; change: OpenChange | undefined }>
   | Readonly<{ kind: "settings" }>

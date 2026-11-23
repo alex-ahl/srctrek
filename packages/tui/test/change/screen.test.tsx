@@ -334,3 +334,35 @@ test("a trek saved again under its name shows its new overview once the worktree
 
   expect(frame).toContain("Pay again")
 })
+
+test("with no trek yet, offers no builds to look at", async () => {
+  const frame = await frameAfter(screen(".", missing, { actions: { builds: noop } }), (_i, on) =>
+    on.shows("no trek yet"),
+  )
+
+  expect(frame).toContain("b build · ? keys")
+  expect(frame).not.toContain("l builds")
+})
+
+test("a trek whose work is done says how it ended, the trek first", async () => {
+  const root = await repoWithTrek()
+  const frame = await frameAfter(
+    <ChangeScreen
+      root={root}
+      summary={undefined}
+      status={ready}
+      done="merged"
+      proposal={undefined}
+      readBuild={() => Promise.resolve(NO_BUILD)}
+      actions={{ ...ACTIONS, build: undefined }}
+      run={run}
+      generation={0}
+    />,
+    (_input, on) => on.shows("3 stops"),
+    110,
+    30,
+  )
+
+  expect(frame).toMatch(/─\n\s*\n  ✓ merged/)
+  expect(frame).not.toContain("● ready")
+})

@@ -15,7 +15,7 @@ export type LandingGroup =
 export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
 
 /** What a row opens: a change, or a trek whose change is gone, by its name. */
-export type Pick = ChangeChoice | Readonly<{ kind: "trek"; name: string }>
+export type Pick = ChangeChoice | Readonly<{ kind: "trek"; name: string; why: string }>
 
 /**
  * A row of the landing page: under its heading, its name and what it holds, what it opens, and
@@ -104,7 +104,7 @@ export const doneRows = (done: readonly DoneTrek[]): LandingRow[] =>
     group: "DONE",
     label: trek.title,
     detail: trek.why,
-    choice: { kind: "trek", name: trek.name },
+    choice: { kind: "trek", name: trek.name, why: trek.why },
     opens: `${trek.title} · ${trek.why}`,
   }))
 

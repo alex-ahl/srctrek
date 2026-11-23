@@ -308,7 +308,7 @@ test("enter on the done fold lists the treks whose work has landed, and opens on
 
   expect(frame).toMatch(/DONE\s+▶ +Applying a coupon +merged/)
   expect(frame).toMatch(/Posting to the ledger +branch gone/)
-  expect(onPick).toHaveBeenCalledWith({ kind: "trek", name: "feature-coupons" })
+  expect(onPick).toHaveBeenCalledWith({ kind: "trek", name: "feature-coupons", why: "merged" })
 })
 
 test("S opens settings, and q quits", async () => {
@@ -549,7 +549,7 @@ test("on a short terminal, the list scrolls to keep the selection in view", asyn
       fetchRepo={fetchRepo}
       status={statusOf}
       done={() => Promise.resolve(many)}
-      from={{ kind: "trek", name: "old-11" }}
+      from={{ kind: "trek", name: "old-11", why: "merged" }}
       onPick={() => undefined}
       onSettings={() => undefined}
       onQuit={() => undefined}
@@ -561,4 +561,33 @@ test("on a short terminal, the list scrolls to keep the selection in view", asyn
   )
 
   expect(frame).toMatch(/▶ +Old trek 11 +merged/)
+})
+
+test("scrolled into a group, the list still shows the group's heading", async () => {
+  const many = Array.from({ length: 12 }, (_, i) => ({
+    name: `old-${String(i)}`,
+    title: `Old trek ${String(i)}`,
+    why: "merged",
+  }))
+  const frame = await frameAfter(
+    <Landing
+      load={() => Promise.resolve(choices)}
+      pullRequests={() => Promise.resolve(open)}
+      nearby={() => Promise.resolve(nearby)}
+      repoBranches={() => Promise.resolve(apiBranches)}
+      fetchRepo={fetchRepo}
+      status={statusOf}
+      done={() => Promise.resolve(many)}
+      from={{ kind: "trek", name: "old-11", why: "merged" }}
+      onPick={() => undefined}
+      onSettings={() => undefined}
+      onQuit={() => undefined}
+      tint={undefined}
+    />,
+    (_input, on) => on.shows("Opens: Old trek 11"),
+    110,
+    20,
+  )
+
+  expect(frame).toMatch(/─\n\s*\n  DONE/)
 })

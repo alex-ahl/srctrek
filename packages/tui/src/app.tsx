@@ -109,7 +109,7 @@ export function App(props: Props) {
   const pick = (picked: Pick) => {
     setFrom(picked)
     if (picked.kind === "trek") {
-      open({ kind: "done", name: picked.name })
+      open({ kind: "done", name: picked.name, why: picked.why })
     } else {
       openChoice(picked)
     }
@@ -219,6 +219,7 @@ export function App(props: Props) {
           root={root}
           summary={undefined}
           status={{ kind: "ready", name: shown.name }}
+          done={shown.why}
           proposal={undefined}
           readBuild={readLatest}
           actions={changeActions(undefined)}

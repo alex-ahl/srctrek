@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test"
+import { expect, mock, test } from "bun:test"
 import { type ChangeChoice, GitError } from "@srctrek/core"
 import { type Pending, PendingScreen, choiceName, failureReason } from "../src/opening"
 import { frameAfter } from "./support/keys"
@@ -36,4 +36,17 @@ test("gives what git said last as the reason, not the command it ran", () => {
     "could not read Username for 'https://github.com': terminal prompts disabled",
   )
   expect(failureReason(new Error("no base branch"))).toBe("no base branch")
+})
+
+test("q goes back, as esc does", async () => {
+  const back = mock(() => undefined)
+  await frameAfter(
+    <PendingScreen pending={{ kind: "opening", choice: pull }} onBack={back} />,
+    async (input, on) => {
+      await on.shows("opening pr 12")
+      input.pressKey("q")
+    },
+  )
+
+  expect(back).toHaveBeenCalled()
 })
