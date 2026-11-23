@@ -115,7 +115,6 @@ const landing = (
     fetchRepo={done}
     status={() => Promise.resolve({ kind: "missing", name: "feature-refunds" })}
     done={() => Promise.resolve([{ name: "spike", title: "Posting to the ledger", why: "merged" }])}
-    from={undefined}
     onPick={noop}
     onSettings={noop}
     onQuit={noop}

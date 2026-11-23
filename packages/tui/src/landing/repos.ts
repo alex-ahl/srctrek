@@ -14,11 +14,6 @@ export type RepoItem = Readonly<{
 /** The repos with nothing to show folded under a count, until opened. */
 export type FoldItem = Readonly<{ kind: "fold"; count: number }>
 
-/** The ticks a choice already carries. */
-export function tickedOf(repos: readonly RepoPick[] | undefined): Ticked {
-  return new Map((repos ?? []).map((repo) => [repo.path, repo]))
-}
-
 /**
  * The repos to list under MORE REPOS: those with work on them, then, while the rest are folded,
  * those ticked and a count of the others; once opened, the rest in their own order, so ticking

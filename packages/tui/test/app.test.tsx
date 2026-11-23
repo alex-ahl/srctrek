@@ -511,3 +511,20 @@ test("a ready trek's screen comes up with its overview, not without it first", a
     30,
   )
 })
+
+test("back on the landing page, it's there at once as it was left, its change still selected", async () => {
+  // read once, as the page first opens; never again, so it can't catch up by reading
+  let loads = 0
+  const load = () =>
+    loads++ === 0 ? Promise.resolve(choices) : new Promise<BranchChoices>(() => undefined)
+  const frame = await frameAfter(app(".", LANDING, sources({ load })), async (input, on) => {
+    await on.shows("YOUR WORK")
+    input.pressKey("j")
+    await on.shows("Opens: fix/rounding")
+    input.pressEnter()
+    await on.shows("no trek yet")
+    await escape(input, on, "YOUR WORK")
+  })
+
+  expect(frame).toContain("Opens: fix/rounding")
+})

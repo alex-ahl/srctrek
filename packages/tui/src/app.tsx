@@ -68,8 +68,6 @@ export function App(props: Props) {
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
   const [entries, setEntries] = useState<readonly TrekEntry[]>([])
-  // what was opened from the landing page last, selected there again on the way back
-  const [from, setFrom] = useState<Pick | undefined>(undefined)
   const { settings, changeSetting } = useSettings(props.firstSettings)
   const { tint, tones } = useTerminalTones(settings.colours)
   const chosenEditor = editors.find((each) => each.id === settings.step_in)
@@ -110,7 +108,6 @@ export function App(props: Props) {
   })
 
   const pick = (picked: Pick) => {
-    setFrom(picked)
     if (picked.kind === "trek") {
       open({ kind: "done", name: picked.name, why: picked.why })
     } else {
@@ -193,23 +190,10 @@ export function App(props: Props) {
     )
   }
 
+  // the screens over the landing page; the landing page is drawn on its own, kept under them
   const screen = (shown: Screen): ReactNode => {
     if (shown.kind === "landing") {
-      return (
-        <Landing
-          {...landing}
-          repoBranches={sources.repoBranches}
-          fetchRepo={sources.fetchRepo}
-          status={sources.status}
-          from={from}
-          opening={preparing.opening}
-          onRest={(choice) => choice.kind !== "trek" && preparing.rest(choice)}
-          onPick={pick}
-          onSettings={() => open({ kind: "settings" })}
-          onQuit={props.onQuit}
-          tint={tint}
-        />
-      )
+      return undefined
     }
 
     if (shown.kind === "pending") {
@@ -273,12 +257,30 @@ export function App(props: Props) {
     )
   }
 
-  // keyed by the screen, so one opened in another's place starts afresh
+  // The landing page stays under the screens opened over it, drawn only in front, so going back
+  // finds it at once as it was left. The screen in front is keyed by itself, so one opened in
+  // another's place starts afresh.
+  const onLanding = front === undefined || front.kind === "landing"
   return (
     <TonesContext.Provider value={tones}>
-      <box key={front?.id ?? 0} style={{ width: "100%", height: "100%" }}>
-        {front === undefined ? undefined : screen(front)}
-      </box>
+      <Landing
+        {...landing}
+        active={onLanding}
+        repoBranches={sources.repoBranches}
+        fetchRepo={sources.fetchRepo}
+        status={sources.status}
+        opening={preparing.opening}
+        onRest={(choice) => choice.kind !== "trek" && preparing.rest(choice)}
+        onPick={pick}
+        onSettings={() => open({ kind: "settings" })}
+        onQuit={props.onQuit}
+        tint={tint}
+      />
+      {!onLanding && (
+        <box key={front.id} style={{ width: "100%", height: "100%" }}>
+          {screen(front)}
+        </box>
+      )}
     </TonesContext.Provider>
   )
 }

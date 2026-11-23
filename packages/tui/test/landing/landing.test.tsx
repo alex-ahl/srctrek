@@ -106,7 +106,6 @@ type Setup = Partial<{
   onQuit: () => void
   pullRequests: () => Promise<OpenPullRequest[]>
   repoBranches: (path: string) => Promise<RepoBranches>
-  from: Pick
 }>
 
 function landing(setup: Setup = {}) {
@@ -119,7 +118,6 @@ function landing(setup: Setup = {}) {
       fetchRepo={fetchRepo}
       status={statusOf}
       done={() => Promise.resolve(done)}
-      from={setup.from}
       onPick={setup.onPick ?? (() => undefined)}
       onSettings={setup.onSettings ?? (() => undefined)}
       onQuit={setup.onQuit ?? (() => undefined)}
@@ -276,19 +274,6 @@ test("the selection stays on its row as rows are listed above it", async () => {
   })
 
   expect(onPick).toHaveBeenCalledWith({ kind: "branch", name: "fix/rounding" })
-})
-
-test("opens on what was opened from it last, its repos ticked", async () => {
-  const api = { path: "../api", changed: true }
-  const frame = await frameAfter(
-    landing({ from: { kind: "branch", name: "fix/rounding", repos: [api] } }),
-    listed,
-    110,
-    34,
-  )
-
-  expect(frame).toContain("Opens: fix/rounding · 1 commit since main, refunds-api in api")
-  expect(frame).toMatch(/\[x\] api/)
 })
 
 test("enter on the done fold lists the treks whose work has landed, and opens one", async () => {
@@ -509,23 +494,6 @@ test("says why a repo's branches couldn't be read, instead of waiting for them",
   expect(frame).not.toContain("finding branches")
 })
 
-test("a ticked repo that isn't beside this one stays listed, and goes along with a pick", async () => {
-  const billing = { path: "../../work/billing", changed: true, branch: "invoices" }
-  const onPick = mock((_pick: Pick) => undefined)
-  const frame = await frameAfter(
-    landing({ onPick, from: { ...own, repos: [billing] } }),
-    async (input, on) => {
-      await listed(input, on)
-      input.pressEnter()
-    },
-    110,
-    40,
-  )
-
-  expect(frame).toMatch(/\[x\] billing +\.\.\/\.\.\/work\/billing +invoices/)
-  expect(onPick).toHaveBeenCalledWith({ ...own, repos: [billing] })
-})
-
 test("code as it is says where finding its ways in stands, not a trek's state", async () => {
   const frame = await frameAfter(landing(), (_input, on) => on.shows("ways in not found yet"))
 
@@ -533,6 +501,19 @@ test("code as it is says where finding its ways in stands, not a trek's state", 
     /its ways in +routes, events, and commands to follow +○ ways in not found yet/,
   )
 })
+
+// The done treks opened, and the last of the twelve selected.
+async function toLastDone(input: Input, on: Screen) {
+  // what's read here is in once the list is drawn; the pull requests once listed
+  await on.shows("#14 Round refunds")
+  await down(input, on, 9)
+  // scrolled down to it, on a short terminal
+  await on.shows("▸ DONE  12")
+  input.pressEnter()
+  await on.shows("Opens: Old trek 0")
+  await down(input, on, 11)
+  await on.shows("Opens: Old trek 11")
+}
 
 test("on a short terminal, the list scrolls to keep the selection in view", async () => {
   const many = Array.from({ length: 12 }, (_, i) => ({
@@ -549,13 +530,12 @@ test("on a short terminal, the list scrolls to keep the selection in view", asyn
       fetchRepo={fetchRepo}
       status={statusOf}
       done={() => Promise.resolve(many)}
-      from={{ kind: "trek", name: "old-11", why: "merged" }}
       onPick={() => undefined}
       onSettings={() => undefined}
       onQuit={() => undefined}
       tint={undefined}
     />,
-    (_input, on) => on.shows("Opens: Old trek 11"),
+    toLastDone,
     110,
     24,
   )
@@ -578,13 +558,12 @@ test("scrolled into a group, the list still shows the group's heading", async ()
       fetchRepo={fetchRepo}
       status={statusOf}
       done={() => Promise.resolve(many)}
-      from={{ kind: "trek", name: "old-11", why: "merged" }}
       onPick={() => undefined}
       onSettings={() => undefined}
       onQuit={() => undefined}
       tint={undefined}
     />,
-    (_input, on) => on.shows("Opens: Old trek 11"),
+    toLastDone,
     110,
     20,
   )
@@ -604,7 +583,6 @@ test("waits for what's read here before drawing the list, then draws it whole", 
       fetchRepo={fetchRepo}
       status={statusOf}
       done={() => Promise.resolve(done)}
-      from={undefined}
       onPick={() => undefined}
       onSettings={() => undefined}
       onQuit={() => undefined}

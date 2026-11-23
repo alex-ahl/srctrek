@@ -1,5 +1,5 @@
-import { errorText, folderName } from "@srctrek/core"
-import type { RGBA } from "@opentui/core"
+import { errorText } from "@srctrek/core"
+import type { KeyEvent, RGBA } from "@opentui/core"
 import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import type {
   BranchChoices,
@@ -11,15 +11,8 @@ import type {
   TrekStatus,
 } from "@srctrek/core"
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
-import {
-  type LandingItem,
-  type LandingNote,
-  LandingList,
-  itemKey,
-  pickKey,
-  useStatuses,
-} from "./list"
-import { type Ticked, opensWith, repoItems, tickedOf, toggled } from "./repos"
+import { type LandingItem, type LandingNote, LandingList, itemKey, useStatuses } from "./list"
+import { type Ticked, opensWith, repoItems, toggled } from "./repos"
 import type { DropRow } from "./drop"
 import type { DropView } from "./drop-view"
 import { type Pending, choiceName } from "../opening"
@@ -45,8 +38,9 @@ type Props = {
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   // the treks whose work has landed or gone
   done: () => Promise<DoneTrek[]>
-  // what was opened from here last, selected again with its repos ticked, as the page opens
-  from: Pick | undefined
+  // whether the page is in front: behind another screen it keeps where it was, drawing nothing
+  // and taking no keys, so going back finds it at once as it was left
+  active?: boolean | undefined
   // a change picked here that's being worked out, or why it couldn't be
   opening?: Pending | undefined
   onPick: (pick: Pick) => void
@@ -154,22 +148,6 @@ function withDropPick(ticked: Ticked, row: DropRow | undefined): Ticked {
     : new Map(ticked).set(row.pick.path, row.pick)
 }
 
-// A ticked repo that isn't beside this one, such as one trek was started with by path or URL,
-// listed from its tick so picking keeps it.
-const fromPick = (pick: RepoPick): NearbyCheckout => ({
-  path: pick.path,
-  name: folderName(pick.path),
-  branch: pick.branch,
-  commits: 0,
-})
-
-// The repos beside this one, then any ticked that aren't among them.
-function listedCheckouts(nearby: readonly NearbyCheckout[], ticked: Ticked): NearbyCheckout[] {
-  const unlisted = [...ticked.values()].filter((pick) => !nearby.some((n) => n.path === pick.path))
-
-  return [...nearby, ...unlisted.map(fromPick)]
-}
-
 // The ticked repos in the order they're listed.
 const picksOf = (ticked: Ticked, checkouts: readonly NearbyCheckout[]): RepoPick[] =>
   checkouts.flatMap((checkout) => {
@@ -189,21 +167,6 @@ function enterOn(
   return item?.kind === "done-fold" ? does.done : does.pick
 }
 
-// The repos a pick took along, ticked again as the page opens on it.
-const reposOf = (pick: Pick | undefined) => (pick?.kind === "trek" ? undefined : pick?.repos)
-
-/**
- * What's selected, ticked, and open as the page opens on what was opened from it last: that line
- * selected by its key, which keeps it as rows load above it; its repos ticked; the done treks open
- * when it was one of them.
- */
-function useFirstSelection(from: Pick | undefined) {
-  const [ticked, setTicked] = useState(() => tickedOf(reposOf(from)))
-  const [doneOpen, setDoneOpen] = useState(from?.kind === "trek")
-  const [chosen, setChosen] = useState(() => from && pickKey(from))
-  return { ticked, setTicked, doneOpen, setDoneOpen, chosen, setChosen }
-}
-
 // The key of the line at `at`, none past the list.
 function keyAt(items: readonly LandingItem[], at: number): string | undefined {
   const item = items[at]
@@ -214,8 +177,13 @@ function keyAt(items: readonly LandingItem[], at: number): string | undefined {
 const REST_MS = 150
 
 /** Tells `onRest` what the selection would open once it has stayed on it a moment. */
-function useResting(pick: Pick | undefined, onRest: ((pick: Pick) => void) | undefined) {
-  const key = pick === undefined ? undefined : JSON.stringify(pick)
+function useResting(
+  active: boolean,
+  pick: Pick | undefined,
+  onRest: ((pick: Pick) => void) | undefined,
+) {
+  // behind another screen, the page's selection isn't where the user is looking
+  const key = !active || pick === undefined ? undefined : JSON.stringify(pick)
   const latest = useRef({ pick, onRest })
   useEffect(() => {
     latest.current = { pick, onRest }
@@ -234,6 +202,15 @@ function useResting(pick: Pick | undefined, onRest: ((pick: Pick) => void) | und
     }, REST_MS)
     return () => clearTimeout(timer)
   }, [key])
+}
+
+// The page's keys, taken only while it's in front.
+function useLandingKeys(active: boolean, handle: (key: KeyEvent) => void) {
+  useKeyboard((key) => {
+    if (active) {
+      handle(key)
+    }
+  })
 }
 
 // What enter opens from a change's line, with the ticked repos when it's a change.
@@ -357,10 +334,12 @@ function OpensLine({ opens, opening }: { opens: string; opening: Pending | undef
 export function Landing(props: Props) {
   const { height } = useTerminalDimensions()
   const { settled, branches, rows, done, nearby, note } = useRows(props)
-  const { ticked, setTicked, doneOpen, setDoneOpen, chosen, setChosen } = useFirstSelection(
-    props.from,
-  )
-  const checkouts = listedCheckouts(nearby, ticked)
+  const [ticked, setTicked] = useState<Ticked>(new Map())
+  const [doneOpen, setDoneOpen] = useState(false)
+  // the selected line by its key, so it stays put as rows load above it
+  const [chosen, setChosen] = useState<string | undefined>(undefined)
+  const active = props.active !== false
+  const checkouts = nearby
   const [foldOpen, setFoldOpen] = useState(false)
   const statuses = useStatuses(rows, props.status)
   const help = useKeysHelp()
@@ -373,7 +352,7 @@ export function Landing(props: Props) {
   const repos = picksOf(ticked, checkouts)
   // what enter opens from the selected line, when it's a change's
   const picked = item?.kind === "change" ? pickOf(item.row, repos) : undefined
-  useResting(picked, props.onRest)
+  useResting(active, picked, props.onRest)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
@@ -410,10 +389,14 @@ export function Landing(props: Props) {
     ...moveKeys(move),
   ])
   // While a repo's branches are open, keys go there.
-  useKeyboard(help.guard((key) => drop.key(key) || keyActions.get(shifted(key))?.()))
+  useLandingKeys(
+    active,
+    help.guard((key) => drop.key(key) || keyActions.get(shifted(key))?.()),
+  )
 
   return (
     <LandingView
+      active={active}
       list={
         settled ? (
           <LandingList
@@ -439,6 +422,8 @@ export function Landing(props: Props) {
 // The page around its list: why the branches couldn't be read, the list once it's drawn, what
 // enter opens, and the footer.
 function LandingView(props: {
+  // behind another screen, the page draws nothing
+  active: boolean
   list: ReactNode
   failed: string | undefined
   opens: string | undefined
@@ -447,6 +432,10 @@ function LandingView(props: {
   help: boolean
 }) {
   const tones = useTones()
+  if (!props.active) {
+    return null
+  }
+
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
       <TitleBar />
