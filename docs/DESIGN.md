@@ -245,7 +245,9 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   repo's branches. DONE, folded under a count: treks whose work landed or whose branch is gone.
   The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
   row as the lists load and follow the worktree. A line above the footer says what enter opens.
-  Pull requests that can't be listed say why under WAITING ON YOUR REVIEW.
+  Pull requests that can't be listed say why under WAITING ON YOUR REVIEW. The list is drawn
+  once what's read here is in, the page saying it's reading when that takes a moment; a trek's
+  state being worked out shows the busy symbol turning.
 - **A change's screen,** opened with enter: the change in the title bar, and over its first two
   lines what it is (a pull request by its title) and, under it, who opened a pull request and
   whether it's a draft, its commits, and its files, each repo's where there are several; then its

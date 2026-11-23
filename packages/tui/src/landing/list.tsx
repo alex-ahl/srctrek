@@ -7,6 +7,7 @@ import type { LandingGroup, LandingRow } from "./rows"
 import { statusBlock } from "../change/status-block"
 import { Selectable } from "../ui/selectable"
 import { STATE_LABELS } from "../ui/state-labels"
+import { useTurning } from "../ui/turning"
 import { count, fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 
@@ -66,13 +67,19 @@ const STATE_WORDS: Readonly<Record<string, string>> = {
 function StatusView(props: { status: TrekStatus | undefined; code: boolean; asked: boolean }) {
   const { status, code } = props
   const tones = useTones()
-  // "…" where it's being worked out; a pull request's isn't
+  // turning where it's being worked out; a pull request's isn't
   if (status === undefined) {
-    return props.asked ? <span fg={tones.dim}>{"  …"}</span> : null
+    return props.asked ? <WorkingOut /> : null
   }
 
   const { symbol, state, tone } = statusBlock(status, undefined, false, { code })
   return <span fg={tones[tone]}>{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
+}
+
+// A trek's state being worked out: the busy symbol turning, dim, in the state's place.
+function WorkingOut() {
+  const tones = useTones()
+  return <span fg={tones.dim}>{`  ${useTurning()}`}</span>
 }
 
 // The columns, as wide as their longest, so what follows them lines up.

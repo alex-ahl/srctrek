@@ -25,6 +25,7 @@ import { COLOUR, useTones } from "../ui/theme"
 import { moveKeys, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
 import { TitleBar } from "../ui/title-bar"
+import { useTurning } from "../ui/turning"
 
 type Props = {
   // the changes to list: the branches, the open pull requests, the repos beside this one
@@ -419,6 +420,22 @@ export function Landing(props: Props) {
   )
 }
 
+// How long the page reads before it says it's reading, so a quick read never flashes it.
+const READING_SHOWN_MS = 150
+
+// What the page says while it's still reading, once that takes a while: the busy symbol turning.
+function Reading() {
+  const tones = useTones()
+  const [shown, setShown] = useState(false)
+  const turning = useTurning(shown)
+  useEffect(() => {
+    const timer = setTimeout(() => setShown(true), READING_SHOWN_MS)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return shown ? <text fg={tones.dim}>{`${turning} reading this repo…`}</text> : null
+}
+
 // The page around its list: why the branches couldn't be read, the list once it's drawn, what
 // enter opens, and the footer.
 function LandingView(props: {
@@ -452,7 +469,7 @@ function LandingView(props: {
         <OrKeysHelp open={props.help} groups={GROUPS}>
           <box flexDirection="column">
             {props.failed !== undefined && <text fg={tones.bad}>{`✕ ${props.failed}`}</text>}
-            {props.list}
+            {props.list ?? <Reading />}
           </box>
         </OrKeysHelp>
       </box>

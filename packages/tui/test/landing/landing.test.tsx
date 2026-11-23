@@ -193,7 +193,7 @@ test("says on each row whether a trek of it exists, as each is worked out", asyn
 
   expect(frame).toMatch(/feature\/refunds +3 commits since main +● trek ready/)
   expect(frame).toMatch(/fix\/rounding +1 commit since main +○ no trek yet/)
-  expect(frame).toMatch(/feature\/partial-refunds +5 commits since main +… *\n/)
+  expect(frame).toMatch(/feature\/partial-refunds +5 commits since main +[◐◓◑◒] *\n/)
 })
 
 test("enter opens the selected change", async () => {
@@ -571,7 +571,7 @@ test("scrolled into a group, the list still shows the group's heading", async ()
   expect(frame).toMatch(/─\n\s*\n  DONE/)
 })
 
-test("waits for what's read here before drawing the list, then draws it whole", async () => {
+test("waits for what's read here before drawing the list, saying so once it takes a while", async () => {
   const beside = deferred<NearbyCheckout[]>()
   let before = ""
   const whole = await frameAfter(
@@ -591,6 +591,7 @@ test("waits for what's read here before drawing the list, then draws it whole", 
     async (_input, on) => {
       // the branches and done treks are in; the repos beside this one aren't yet
       before = await on.frame()
+      await on.shows(/[◐◓◑◒] reading this repo…/)
       beside.resolve(nearby)
       await on.shows("[ ] api")
     },
@@ -599,6 +600,10 @@ test("waits for what's read here before drawing the list, then draws it whole", 
   )
 
   expect(before).not.toContain("feature/refunds")
+  // a read that's quick enough never shows it's reading
+  expect(before).not.toContain("reading")
+  expect(before).toContain("srctrek")
+  expect(before).toContain("? keys")
   expect(whole).toContain("feature/refunds")
   expect(whole).toContain("▸ DONE  2")
 })
