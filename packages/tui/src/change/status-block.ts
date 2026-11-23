@@ -29,12 +29,12 @@ const findsWaysIn = (open: Opened) => open.code && open.trigger === undefined
 // What the agent does when b is pressed, in a reader's words.
 function agentDoes(open: Opened): string {
   if (findsWaysIn(open)) {
-    return "your agent finds the routes, events, and commands that start things here"
+    return "b has your agent find the routes, events, and commands that start things here"
   }
 
   return open.code
-    ? "your agent follows it through the code, as it runs"
-    : "your agent walks your changes from their trigger to their outcome"
+    ? "b builds one: your agent follows it through the code, as it runs"
+    : "b builds one: your agent picks an example and follows it from its trigger to its outcome"
 }
 
 // A saved trek by its title; its file's name only when it can't be read.

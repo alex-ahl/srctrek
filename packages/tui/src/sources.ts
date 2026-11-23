@@ -5,6 +5,7 @@ import {
   type NearbyCheckout,
   type OpenPullRequest,
   type ProposedRepo,
+  type PullRequestDetails,
   type RepoBranches,
   type TrekEntry,
   type TrekStatus,
@@ -18,6 +19,7 @@ import {
   loadTrekEntries,
   nearbyCheckouts,
   openPullRequests,
+  pullRequestOf,
   readBuild as readBuildAt,
   repoBranches,
   stopBuild,
@@ -37,6 +39,8 @@ import type { Stamp } from "./watch/follow"
 export type Sources = Readonly<{
   load: () => Promise<BranchChoices>
   pullRequests: () => Promise<OpenPullRequest[]>
+  // the pull request at a link: its title, who opened it, and whether it's a draft
+  pullRequest: (url: string) => Promise<PullRequestDetails>
   nearby: () => Promise<NearbyCheckout[]>
   repoBranches: (path: string) => Promise<RepoBranches>
   fetchRepo: (path: string) => Promise<void>
@@ -93,6 +97,7 @@ export function sourcesAt(root: string, ways: Ways): Sources {
   return {
     load: () => branchChoices(root),
     pullRequests: () => openPullRequests(root),
+    pullRequest: (url) => pullRequestOf(root, url),
     nearby: () => nearbyCheckouts(root),
     repoBranches: (path) => repoBranches(resolve(root, path)),
     fetchRepo: (path) => fetchRepo(resolve(root, path)),

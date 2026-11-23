@@ -40,6 +40,7 @@ const summary: ChangeSummary = {
       base: "main",
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 9,
+      files: 14,
     },
   ],
   unchanged: ["api", "worker"],

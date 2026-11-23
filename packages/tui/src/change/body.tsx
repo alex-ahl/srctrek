@@ -1,4 +1,10 @@
-import type { ChangeSummary, OverviewView, ProposedRepo, TrekStatus } from "@srctrek/core"
+import type {
+  ChangeSummary,
+  OverviewView,
+  ProposedRepo,
+  PullRequestDetails,
+  TrekStatus,
+} from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
 import { Overview } from "../stepping/ends"
 import { count } from "../ui/text"
@@ -6,7 +12,7 @@ import { useTones } from "../ui/theme"
 import type { StateLabel } from "../ui/state-labels"
 import { useStateText } from "../ui/turning"
 import { Building } from "./building"
-import { ChangeLine } from "./line"
+import { ChangeHeading } from "./line"
 import { type Opened, statusBlock } from "./status-block"
 
 // Where the trek stands: its symbol and state in the state's tone, then dim lines saying why; a
@@ -72,6 +78,7 @@ const openedOf = (summary: ChangeSummary | undefined): Opened => ({
  */
 export function ChangeBody({
   summary,
+  details,
   status,
   overview,
   proposal,
@@ -81,6 +88,8 @@ export function ChangeBody({
   width,
 }: {
   summary: ChangeSummary | undefined
+  // a pull request's title, who opened it, and whether it's a draft, once known
+  details: PullRequestDetails | undefined
   status: TrekStatus
   overview: OverviewView | undefined
   proposal: ProposedRepo | undefined
@@ -95,7 +104,7 @@ export function ChangeBody({
     <box flexDirection="column">
       {summary !== undefined && (
         <box flexDirection="column">
-          <ChangeLine summary={summary} width={width} />
+          <ChangeHeading summary={summary} details={details} width={width} />
           <text> </text>
         </box>
       )}

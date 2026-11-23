@@ -1,5 +1,10 @@
 import { TextAttributes } from "@opentui/core"
-import type { ChangeSummary, ChangedRepoSummary, RangeHead } from "@srctrek/core"
+import type {
+  ChangeSummary,
+  ChangedRepoSummary,
+  PullRequestDetails,
+  RangeHead,
+} from "@srctrek/core"
 import { count, fit } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 
@@ -94,13 +99,12 @@ export function fittedParts(parts: readonly Part[], width: number): Part[] {
   ).kept
 }
 
-/** The first line of the home screen's block: what's open, picked or given. */
-export function ChangeLine({ summary, width }: { summary: ChangeSummary; width: number }) {
+// The parts in their looks: what was picked in bold, the rest plain or dim.
+function PartsText({ parts }: { parts: readonly Part[] }) {
   const tones = useTones()
-
   return (
     <text fg={COLOUR.text}>
-      {fittedParts(changeParts(summary), width).map((part, i) =>
+      {parts.map((part, i) =>
         part.look === "bold" ? (
           <span key={i} attributes={TextAttributes.BOLD}>
             {part.text}
@@ -112,5 +116,92 @@ export function ChangeLine({ summary, width }: { summary: ChangeSummary; width: 
         ),
       )}
     </text>
+  )
+}
+
+/** What's open, in full, on one line cut to `width`. */
+export function ChangeLine({ summary, width }: { summary: ChangeSummary; width: number }) {
+  return <PartsText parts={fittedParts(changeParts(summary), width)} />
+}
+
+// "#12 Add partial refunds" once the pull request's title is known, else as the change names it.
+function titleOf(first: ChangedRepoSummary, details: PullRequestDetails | undefined): string {
+  return first.head.kind === "pull" && details !== undefined
+    ? `#${first.head.number} ${details.title}`
+    : headLabel(first.head)
+}
+
+/**
+ * The change's first line on its screen: the branch or pull request by its title, the other repos
+ * it changes, and those it passes through; or code as it is.
+ */
+export function titleParts(
+  summary: ChangeSummary,
+  details: PullRequestDetails | undefined,
+): Part[] {
+  const [first, ...others] = summary.changed
+  if (summary.code || first === undefined) {
+    return changeParts(summary)
+  }
+
+  return [
+    bold(titleOf(first, details)),
+    ...withOthers(first, others),
+    ...passedThrough(summary.unchanged),
+  ]
+}
+
+// "9 commits since main" for one branch, the commits alone for a pull request; across repos, all
+// of their commits.
+function commitsText(changed: readonly ChangedRepoSummary[]): string {
+  const [only] = changed
+  if (changed.length === 1 && only !== undefined) {
+    return sizeOf(only)
+  }
+
+  const commits = changed.reduce((sum, repo) => sum + repo.commits, 0)
+  return commits === 0 ? "no commits" : count(commits, "commit")
+}
+
+/**
+ * The change's second line: who opened a pull request and whether it's a draft, then how many
+ * commits and files, each repo's files where there are several; none for code as it is.
+ */
+export function sizeText(
+  summary: ChangeSummary,
+  details: PullRequestDetails | undefined,
+): string | undefined {
+  const { changed } = summary
+  if (summary.code || changed.length === 0) {
+    return undefined
+  }
+
+  const who = details === undefined ? [] : [details.author, ...(details.draft ? ["draft"] : [])]
+  const files = count(
+    changed.reduce((sum, repo) => sum + repo.files, 0),
+    "file",
+  )
+  const each =
+    changed.length > 1 ? [changed.map((repo) => `${repo.repo} ${repo.files}`).join(", ")] : []
+  return [...who, commitsText(changed), files, ...each].join(" · ")
+}
+
+/** The top of a change's screen: what the change is, then who opened it and how big it is. */
+export function ChangeHeading({
+  summary,
+  details,
+  width,
+}: {
+  summary: ChangeSummary
+  details: PullRequestDetails | undefined
+  width: number
+}) {
+  const tones = useTones()
+  const size = sizeText(summary, details)
+  return (
+    <box flexDirection="column">
+      <PartsText parts={fittedParts(titleParts(summary, details), width)} />
+      {size !== undefined && <text fg={tones.dim}>{fit(size, width)}</text>}
+    </box>
   )
 }

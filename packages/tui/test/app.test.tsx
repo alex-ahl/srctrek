@@ -22,6 +22,7 @@ const summary: ChangeSummary = {
       base: "main",
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 3,
+      files: 5,
     },
   ],
   unchanged: [],
@@ -37,6 +38,7 @@ function sources(more: Partial<Sources> = {}): Sources {
   return {
     load: () => Promise.resolve(choices),
     pullRequests: () => Promise.resolve([]),
+    pullRequest: () => Promise.reject(new Error("no pull requests here")),
     nearby: () => Promise.resolve([]),
     repoBranches: () => Promise.reject(new Error("no branches here")),
     fetchRepo: () => Promise.resolve(),
@@ -323,4 +325,29 @@ test("code as it is, its ways in found, lists them; esc goes to the landing page
   })
 
   expect(frame).toContain("CODE AS IT IS")
+})
+
+test("a pull request's screen names it by its title, and who opened it", async () => {
+  const url = "https://github.com/acme/web/pull/12"
+  const pull: ChangeSummary = {
+    changed: [
+      { repo: "web", base: "main", head: { kind: "pull", number: 12 }, commits: 3, files: 5 },
+    ],
+    unchanged: [],
+    code: false,
+  }
+  const change: OpenChange = { summary: pull, status: () => Promise.resolve(missing) }
+  const pullRequest = () =>
+    Promise.resolve({ title: "Add partial refunds", author: "alice", draft: false })
+  const opening: Opening = {
+    kind: "change",
+    choice: { kind: "pull-request", url },
+    change,
+    status: missing,
+  }
+  const frame = await frameAfter(app(".", opening, sources({ pullRequest })), (_input, on) =>
+    on.shows("#12 Add partial refunds"),
+  )
+
+  expect(frame).toContain("alice · 3 commits · 5 files")
 })

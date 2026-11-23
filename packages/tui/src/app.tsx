@@ -20,6 +20,7 @@ import { SettingsScreen } from "./settings/screen"
 import type { Sources } from "./sources"
 import { type ChangeOpen, type Screen, useStack } from "./stack"
 import { changeInFront, useStanding } from "./standing"
+import { usePullRequestDetails } from "./details"
 import { SteppingScreen } from "./stepping/screen"
 import { TonesContext } from "./ui/theme"
 import { useFollow } from "./watch/follow"
@@ -64,6 +65,7 @@ export function App(props: Props) {
   const front = stack.at(-1)
   const setStatus = (id: number, status: TrekStatus) => update(id, (was) => ({ ...was, status }))
   const { proposal, run, readProposals } = useStanding(changeInFront(front), sources, setStatus)
+  const details = usePullRequestDetails(changeInFront(front)?.choice, sources)
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
   const [entries, setEntries] = useState<readonly TrekEntry[]>([])
@@ -178,6 +180,7 @@ export function App(props: Props) {
       <ChangeScreen
         root={root}
         summary={change.summary}
+        details={details}
         status={status}
         proposal={proposal}
         readBuild={readLatest}

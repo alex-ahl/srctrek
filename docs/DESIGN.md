@@ -246,8 +246,10 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
   row as the lists load and follow the worktree. A line above the footer says what enter opens.
   Pull requests that can't be listed say why under WAITING ON YOUR REVIEW.
-- **A change's screen,** opened with enter: the change in the title bar and on its first line,
-  with its size, then its trek's state: no trek yet (what `b` does, or how to set
+- **A change's screen,** opened with enter: the change in the title bar, and over its first two
+  lines what it is (a pull request by its title) and, under it, who opened a pull request and
+  whether it's a draft, its commits, and its files, each repo's where there are several; then its
+  trek's state: no trek yet (what `b` does, or how to set
   `SRCTREK_AGENT`), building (the steps as they arrive and what the agent read last, a repo it
   proposes with `a` to add and `x` to dismiss), ready (the trek's overview and its likely-wrong
   steps; enter steps it), stale (how many steps' files changed; `b` updates it, enter steps it as

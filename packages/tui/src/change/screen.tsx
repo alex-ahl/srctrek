@@ -1,5 +1,5 @@
 import { useTerminalDimensions } from "@opentui/react"
-import type { ChangeSummary, ProposedRepo, TrekStatus } from "@srctrek/core"
+import type { ChangeSummary, ProposedRepo, PullRequestDetails, TrekStatus } from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
 import { PADDING } from "../ui/layout"
 import { ChangeBody } from "./body"
@@ -12,6 +12,8 @@ type Props = {
   root: string
   // what the change is; absent for a trek whose change is gone
   summary: ChangeSummary | undefined
+  // a pull request's title, who opened it, and whether it's a draft, once known
+  details?: PullRequestDetails | undefined
   // where the trek stands, and the first repo proposed that's still unsettled
   status: TrekStatus
   proposal: ProposedRepo | undefined
@@ -49,6 +51,7 @@ export function ChangeScreen(props: Props) {
     >
       <ChangeBody
         summary={summary}
+        details={props.details}
         status={status}
         overview={overview}
         proposal={proposal}

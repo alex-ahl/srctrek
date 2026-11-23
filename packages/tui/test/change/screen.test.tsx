@@ -15,6 +15,7 @@ const summary: ChangeSummary = {
       base: "main",
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 9,
+      files: 14,
     },
   ],
   unchanged: [],
@@ -73,10 +74,78 @@ function screen(root: string, status: TrekStatus, setup: Setup = {}) {
 const missing: TrekStatus = { kind: "missing", name: "feature-refunds" }
 const ready: TrekStatus = { kind: "ready", name: "pay" }
 
-test("leads with the change: its branch and how big it is", async () => {
+test("leads with the change: its branch, then how big it is", async () => {
   const frame = await frameAfter(screen(".", missing), (_input, on) => on.shows("no trek yet"))
 
-  expect(frame).toContain("feature/refunds · 9 commits since main")
+  expect(frame).toMatch(/\n {2}feature\/refunds *\n {2}9 commits since main · 14 files *\n/)
+})
+
+test("a pull request leads with its number and title, then who opened it and how big it is", async () => {
+  const pull: ChangeSummary = {
+    changed: [
+      { repo: "web", base: "main", head: { kind: "pull", number: 12 }, commits: 3, files: 5 },
+    ],
+    unchanged: [],
+    code: false,
+  }
+  const frame = await frameAfter(
+    <ChangeScreen
+      root="."
+      summary={pull}
+      details={{ title: "Add partial refunds", author: "alice", draft: true }}
+      status={missing}
+      proposal={undefined}
+      readBuild={() => Promise.resolve(NO_BUILD)}
+      actions={ACTIONS}
+      run={run}
+      generation={0}
+    />,
+    (_input, on) => on.shows("no trek yet"),
+  )
+
+  expect(frame).toMatch(
+    /\n {2}#12 Add partial refunds *\n {2}alice · draft · 3 commits · 5 files *\n/,
+  )
+})
+
+test("a change across repos says how many files each changes", async () => {
+  const across: ChangeSummary = {
+    changed: [
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "branch", name: "feature/refunds", uncommitted: false },
+        commits: 9,
+        files: 6,
+      },
+      {
+        repo: "api",
+        base: "main",
+        head: { kind: "branch", name: "refunds-api", uncommitted: false },
+        commits: 2,
+        files: 8,
+      },
+    ],
+    unchanged: [],
+    code: false,
+  }
+  const frame = await frameAfter(
+    <ChangeScreen
+      root="."
+      summary={across}
+      status={missing}
+      proposal={undefined}
+      readBuild={() => Promise.resolve(NO_BUILD)}
+      actions={ACTIONS}
+      run={run}
+      generation={0}
+    />,
+    (_input, on) => on.shows("no trek yet"),
+    120,
+  )
+
+  expect(frame).toContain("feature/refunds · with api on refunds-api")
+  expect(frame).toContain("11 commits · 14 files · web 6, api 8")
 })
 
 test("with no trek yet, says what b does, and b builds", async () => {
@@ -90,7 +159,7 @@ test("with no trek yet, says what b does, and b builds", async () => {
   )
 
   expect(frame).toContain("○ no trek yet")
-  expect(frame).toContain("your agent walks your changes from their trigger to their outcome")
+  expect(frame).toContain("b builds one: your agent picks an example and follows it")
   expect(frame).toContain("b build · ? keys")
   expect(build).toHaveBeenCalled()
 })
