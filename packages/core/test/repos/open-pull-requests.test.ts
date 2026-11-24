@@ -13,6 +13,9 @@ const LISTED = [
     url: "https://github.com/acme/api/pull/14",
     isDraft: true,
     headRefOid: "b14",
+    baseRefName: "main",
+    updatedAt: "2026-11-20T10:00:00Z",
+    commits: [{ oid: "c1" }, { oid: "c2" }],
   },
   {
     number: 12,
@@ -21,6 +24,9 @@ const LISTED = [
     url: "https://github.com/acme/api/pull/12",
     isDraft: false,
     headRefOid: "a12",
+    baseRefName: "release/2.1",
+    updatedAt: "2026-11-22T09:00:00Z",
+    commits: [{ oid: "c3" }, { oid: "c4" }, { oid: "c5" }],
   },
 ]
 
@@ -33,7 +39,7 @@ async function fakeGh(script: string): Promise<string> {
 }
 
 describe("openPullRequests", () => {
-  test("lists the open pull requests with their head commits, those waiting on the user's review first", async () => {
+  test("lists the open pull requests with their heads, bases, commits, and last updates, those waiting on the user's review first", async () => {
     const gh = await fakeGh(`case "$*" in
   *review-requested*) echo '[{"number":12}]' ;;
   *) echo '${JSON.stringify(LISTED)}' ;;
@@ -50,6 +56,9 @@ esac`)
         draft: false,
         reviewRequested: true,
         head: "a12",
+        base: "release/2.1",
+        updatedAt: "2026-11-22T09:00:00Z",
+        commits: 3,
       },
       {
         number: 14,
@@ -59,6 +68,9 @@ esac`)
         draft: true,
         reviewRequested: false,
         head: "b14",
+        base: "main",
+        updatedAt: "2026-11-20T10:00:00Z",
+        commits: 2,
       },
     ])
   })

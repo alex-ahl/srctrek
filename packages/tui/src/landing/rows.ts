@@ -1,9 +1,8 @@
 import type { BranchChoices, ChangeChoice, OpenPullRequest } from "@srctrek/core"
 import { count } from "../ui/text"
 
-/** The headings the landing page's rows sit under, in the order they're listed. */
-export type LandingGroup =
-  "YOUR WORK" | "PULL REQUESTS" | "OTHER BRANCHES" | "CODE AS IT IS" | "DONE"
+/** The groups the landing page's rows sit in, by the names on their rules, in their order. */
+export type LandingGroup = "your work" | "pull requests" | "branches" | "code as it is" | "done"
 
 /** A trek whose work has landed or gone, by its name and title, and how its work ended. */
 export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
@@ -25,14 +24,15 @@ export type LandingRow = Readonly<{
   pull?: Readonly<{ number: number; head: string }>
 }>
 
-const since = (commits: number, base: string) => `${count(commits, "commit")} since ${base}`
+// What a branch holds, its base named once, in the title bar.
+const commitsOf = (commits: number) => count(commits, "commit")
 
 // The user's own branch, then the same with what isn't committed yet, when there's any.
-function ownRows({ base, own, uncommittedFiles }: BranchChoices): LandingRow[] {
+function ownRows({ own, uncommittedFiles }: BranchChoices): LandingRow[] {
   const name = own?.name ?? "the checked-out commit"
-  const detail = own === undefined ? "not on a branch" : since(own.commits, base)
+  const detail = own === undefined ? "not on a branch" : commitsOf(own.commits)
   const branch: LandingRow = {
-    group: "YOUR WORK",
+    group: "your work",
     label: name,
     detail,
     choice: { kind: "own", uncommitted: false },
@@ -45,7 +45,7 @@ function ownRows({ base, own, uncommittedFiles }: BranchChoices): LandingRow[] {
   return [
     branch,
     {
-      group: "YOUR WORK",
+      group: "your work",
       label: "with uncommitted work",
       detail: `${files} changed`,
       choice: { kind: "own", uncommitted: true },
@@ -55,29 +55,41 @@ function ownRows({ base, own, uncommittedFiles }: BranchChoices): LandingRow[] {
 
 const otherBranchRows = (choices: BranchChoices): LandingRow[] =>
   choices.others.map((branch) => ({
-    group: "OTHER BRANCHES",
+    group: "branches",
     label: branch.name,
-    detail: since(branch.commits, choices.base),
+    detail: commitsOf(branch.commits),
     choice: { kind: "branch", name: branch.name },
   }))
 
 /** Code as it is, with no change: opens on its ways in, where a trigger can be followed too. */
 export const CODE_ROW: LandingRow = {
-  group: "CODE AS IT IS",
+  group: "code as it is",
   label: "its ways in",
-  detail: "routes, events, and commands to follow",
+  detail: "",
   choice: { kind: "code" },
 }
 
-// Who opened it, and whether it's still a draft.
-const pullDetail = (pr: OpenPullRequest): string => (pr.draft ? `${pr.author} · draft` : pr.author)
+// What a pull request holds: its commits, the branch it would merge into where that isn't the
+// repo's own, and whether it's a draft: "3 commits · into release/2.1 · draft".
+function pullDetail(pr: OpenPullRequest, base: string): string {
+  const same = base === "" || pr.base === base.replace(/^origin\//, "")
+  const into = same ? "" : `into ${pr.base}`
+  return [count(pr.commits, "commit"), into, pr.draft ? "draft" : ""].filter(Boolean).join(" · ")
+}
 
-/** The open pull requests, those waiting on the user's review first, marked so. */
-export function pullRequestRows(open: readonly OpenPullRequest[]): LandingRow[] {
+// The latest changed first.
+const latestFirst = (prs: readonly OpenPullRequest[]) =>
+  prs.toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+
+/**
+ * The open pull requests, each group's latest changed first: those waiting on the user's review
+ * with their own work, marked so, then the rest.
+ */
+export function pullRequestRows(open: readonly OpenPullRequest[], base: string): LandingRow[] {
   const row = (pr: OpenPullRequest): LandingRow => ({
-    group: "PULL REQUESTS",
+    group: pr.reviewRequested ? "your work" : "pull requests",
     label: `#${pr.number} ${pr.title}`,
-    detail: pullDetail(pr),
+    detail: pullDetail(pr, base),
     ...(pr.reviewRequested ? { mark: "review requested" } : {}),
     choice: { kind: "pull-request", url: pr.url },
     pull: { number: pr.number, head: pr.head },
@@ -85,13 +97,13 @@ export function pullRequestRows(open: readonly OpenPullRequest[]): LandingRow[] 
   const waiting = open.filter((pr) => pr.reviewRequested)
   const others = open.filter((pr) => !pr.reviewRequested)
 
-  return [...waiting.map(row), ...others.map(row)]
+  return [...latestFirst(waiting).map(row), ...latestFirst(others).map(row)]
 }
 
 /** The treks whose work has landed or gone, each opened by its name. */
 export const doneRows = (done: readonly DoneTrek[]): LandingRow[] =>
   done.map((trek) => ({
-    group: "DONE",
+    group: "done",
     label: trek.title,
     detail: "",
     choice: { kind: "trek", name: trek.name, why: trek.why },
@@ -108,7 +120,7 @@ export function landingRows(
   const own = choices === undefined ? [] : ownRows(choices)
   const others = choices === undefined ? [] : otherBranchRows(choices)
 
-  return [...own, ...pullRequestRows(pulls), ...others, CODE_ROW]
+  return [...own, ...pullRequestRows(pulls, choices?.base ?? ""), ...others, CODE_ROW]
 }
 
 // A pick without the repos ticked to go with it.

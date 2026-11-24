@@ -148,6 +148,7 @@ export function App(props: Props) {
       pullRequests: () => sources.pullRequests(),
       nearby: () => sources.nearby(),
       done: () => sources.done(),
+      entries: () => sources.entries(),
     }),
     // a new generation is a new set, for the page to ask again
     // oxlint-disable-next-line react-hooks/exhaustive-deps

@@ -8,6 +8,7 @@ import type {
   OpenPullRequest,
   RepoBranches,
   RepoPick,
+  TrekEntry,
   TrekStatus,
 } from "@srctrek/core"
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
@@ -33,6 +34,7 @@ import { Footer, type KeyHint } from "../ui/footer"
 import { HELP_HINT, type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-help"
 import { PADDING } from "../ui/layout"
 import { useTones } from "../ui/theme"
+import { count } from "../ui/text"
 import { moveKeys, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
 import { TitleBar } from "../ui/title-bar"
@@ -49,6 +51,8 @@ type Props = {
   // where the trek of each change stands, filled in as each is worked out
   status: (choice: ChangeChoice) => Promise<TrekStatus>
   pullStatus: StatusOf["pullStatus"]
+  // the saved treks, for when each was built
+  entries: () => Promise<TrekEntry[]>
   // how often the pull requests are read again while the page is in front
   pullsEvery?: number | undefined
   // the treks whose work has landed or gone
@@ -110,7 +114,7 @@ const foundOr = <T,>(loaded: Loaded<T>, none: T): T =>
 
 // The pull requests, with none to open yet: still asking, none, or why they can't be listed.
 function pullsNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
-  const group = "PULL REQUESTS"
+  const group = "pull requests"
   if (pulls.kind === "loading") {
     return { group, text: "finding pull requests…", tone: "dim" }
   }
@@ -157,6 +161,8 @@ function useRows(props: Props) {
   )
   const done = useLoaded(props.done)
   const nearby = useLoaded(props.nearby)
+  const entries = useLoaded(props.entries)
+  const builtAt = useMemo(() => builtTimes(foundOr(entries, [])), [entries])
   const rows = useMemo(
     () => landingRows(foundOr(branches, undefined), foundOr(pulls, [])),
     [branches, pulls],
@@ -167,6 +173,7 @@ function useRows(props: Props) {
   return {
     settled,
     statuses,
+    builtAt,
     branches,
     rows,
     done: doneRows(foundOr(done, [])),
@@ -174,6 +181,10 @@ function useRows(props: Props) {
     note: pullsNote(pulls),
   }
 }
+
+// When each saved trek was built, by its name; one that can't be read has no time.
+const builtTimes = (entries: readonly TrekEntry[]): ReadonlyMap<string, string> =>
+  new Map(entries.flatMap((entry) => (entry.valid ? [[entry.name, entry.createdAt] as const] : [])))
 
 // The title bar, the line above the list, and the footer, each with its rule; and a notice, with
 // its rule, while one is shown.
@@ -274,14 +285,35 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
 }
 
 // The keys for the list's line selected, and a to add repos.
-function listKeys(item: LandingItem | undefined): KeyHint[] {
+function listKeys(done: number): KeyHint[] {
+  const doneKey = done === 0 ? [] : [{ key: "d", does: count(done, "done trek") }]
   return [
-    { key: "enter", does: item?.kind === "change" ? "open" : "show" },
+    { key: "enter", does: "open" },
     { key: "a", does: "add repos" },
+    ...doneKey,
     { key: "S", does: "settings" },
     HELP_HINT,
   ]
 }
+
+// The page's keys: the sheet's while it's open, else the done treks' or the changes'.
+function pageKeys(
+  sheet: readonly KeyHint[] | undefined,
+  showingDone: boolean,
+  done: number,
+): readonly KeyHint[] {
+  if (sheet !== undefined) {
+    return sheet
+  }
+
+  return showingDone ? DONE_KEYS : listKeys(done)
+}
+
+const DONE_KEYS: readonly KeyHint[] = [
+  { key: "enter", does: "open" },
+  { key: "esc", does: "back" },
+  HELP_HINT,
+]
 
 // The footer: a repo's open branches' keys while they're open, else the selected line's.
 const footerOf = (dropOpen: boolean, line: readonly KeyHint[]): readonly KeyHint[] =>
@@ -309,21 +341,9 @@ const GROUPS: readonly KeyGroup[] = [
   { title: "leave", keys: [{ key: "q", does: "quit" }] },
 ]
 
-// The lines in order: the changes, then the done treks, folded.
-function itemsOf(
-  rows: readonly LandingRow[],
-  done: readonly LandingRow[],
-  doneOpen: boolean,
-): LandingItem[] {
-  const change = (row: LandingRow): LandingItem => ({ kind: "change", row })
-  const doneItems: LandingItem[] = doneOpen
-    ? done.map(change)
-    : done.length === 0
-      ? []
-      : [{ kind: "done-fold", count: done.length }]
-
-  return [...rows.map(change), ...doneItems]
-}
+// The lines listed: the changes, or, on their own view, the done treks.
+const itemsOf = (rows: readonly LandingRow[]): LandingItem[] =>
+  rows.map((row) => ({ kind: "change", row }))
 
 // At most half the room below the title bar goes to the sheet, so the changes stay in view.
 const sheetMost = (room: number) => Math.floor(room / 2)
@@ -354,9 +374,10 @@ function dropView(
  */
 export function Landing(props: Props) {
   const { height } = useTerminalDimensions()
-  const { settled, statuses, branches, rows, done, nearby, note } = useRows(props)
+  const { settled, statuses, builtAt, branches, rows, done, nearby, note } = useRows(props)
   const [ticked, setTicked] = useState<Ticked>(new Map())
-  const [doneOpen, setDoneOpen] = useState(false)
+  // the done treks shown on their own view, in the changes' place
+  const [showingDone, setShowingDone] = useState(false)
   // the selected line by its key, so it stays put as rows load above it
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const active = props.active !== false
@@ -365,12 +386,12 @@ export function Landing(props: Props) {
   // what branches' ages are measured from
   const now = useNow()
 
-  const items = itemsOf(rows, done, doneOpen)
+  const items = itemsOf(showingDone ? done : rows)
   const selected = selectedIndex(items, chosen, itemKey)
   const item = items[selected]
   const repos = picksOf(ticked, checkouts)
   // what enter opens from the selected line, when it's a change's
-  const picked = item?.kind === "change" ? pickOf(item.row, repos) : undefined
+  const picked = item === undefined ? undefined : pickOf(item.row, repos)
   useResting(active, picked, props.onRest)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
@@ -385,17 +406,22 @@ export function Landing(props: Props) {
   const shownDrop = dropView(drop, ticked, now)
 
   const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length), itemKey))
-  // an opened fold's line gives way to the first of what it held, which takes the selection
-  const enter = () => {
-    if (item?.kind === "done-fold") {
-      setDoneOpen(true)
-      setChosen(keyAt(itemsOf(rows, done, true), selected, itemKey))
-    } else if (picked !== undefined) {
-      props.onPick(picked)
-    }
+  const enter = () => picked !== undefined && props.onPick(picked)
+  // switching views starts at the top of what's shown
+  const showDone = (shown: boolean) => {
+    setShowingDone(shown)
+    setChosen(undefined)
   }
+  const doneActions = new Map([
+    ["return", enter],
+    ["escape", () => showDone(false)],
+    ["q", props.onQuit],
+    ["?", help.show],
+    ...moveKeys(move),
+  ])
   const keyActions = new Map([
     ["return", enter],
+    ["d", () => done.length > 0 && showDone(true)],
     ["a", sheet.show],
     ["S", props.onSettings],
     ["q", props.onQuit],
@@ -407,7 +433,8 @@ export function Landing(props: Props) {
     active,
     help.guard((key) => {
       notice.seen()
-      return drop.key(key) || sheet.key(key) || keyActions.get(shifted(key))?.()
+      const actions = showingDone ? doneActions : keyActions
+      return drop.key(key) || sheet.key(key) || actions.get(shifted(key))?.()
     }),
   )
 
@@ -423,7 +450,8 @@ export function Landing(props: Props) {
             items={items}
             chosen={selected}
             statuses={statuses}
-            note={note}
+            builtAt={builtAt}
+            note={showingDone ? undefined : note}
             muted={sheet.open}
             tint={props.tint}
             opening={openingKey(props.opening)}
@@ -445,11 +473,13 @@ export function Landing(props: Props) {
         ) : undefined
       }
       added={addedNames(ticked, checkouts)}
+      base={branches.kind === "ready" ? branches.found.base : undefined}
+      showingDone={showingDone}
       failed={branches.kind === "failed" ? branches.why : undefined}
       notice={notice.text}
       footer={footerOf(
         drop.drop !== undefined,
-        help.footer(sheet.open ? sheet.keys : listKeys(item)),
+        help.footer(pageKeys(sheet.open ? sheet.keys : undefined, showingDone, done.length)),
       )}
       help={help.open}
     />
@@ -472,6 +502,27 @@ function Reading() {
   return shown ? <text fg={tones.dim}>{`${turning} reading this repo…`}</text> : null
 }
 
+// What the title bar says the page shows: the done treks, or what the changes are measured
+// against.
+function titleOf(showingDone: boolean, base: string | undefined): ReactNode {
+  if (showingDone) {
+    return "done treks"
+  }
+
+  return base === undefined ? undefined : <Against base={base} />
+}
+
+// What the changes are measured against, named once in the title bar: "against main".
+function Against({ base }: { base: string }) {
+  const tones = useTones()
+  return (
+    <span>
+      <span fg={tones.dim}>against </span>
+      {base}
+    </span>
+  )
+}
+
 // The repos going along with the change, in the title bar: "with api, docs +1".
 function Added({ names }: { names: string }) {
   const tones = useTones()
@@ -492,6 +543,10 @@ function LandingView(props: {
   sheet: ReactNode
   // the repos added to go along, by name
   added: string | undefined
+  // what the changes are measured against
+  base: string | undefined
+  // the done treks shown in the changes' place
+  showingDone: boolean
   failed: string | undefined
   notice: string | undefined
   footer: readonly KeyHint[]
@@ -504,7 +559,10 @@ function LandingView(props: {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <TitleBar right={props.added === undefined ? undefined : <Added names={props.added} />} />
+      <TitleBar
+        left={titleOf(props.showingDone, props.base)}
+        right={props.added === undefined ? undefined : <Added names={props.added} />}
+      />
       <box
         flexDirection="column"
         style={{

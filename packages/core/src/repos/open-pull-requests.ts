@@ -10,6 +10,11 @@ export type OpenPullRequest = Readonly<{
   reviewRequested: boolean
   // the commit its branch is at now
   head: string
+  // the branch it would merge into
+  base: string
+  // when it last changed, and how many commits it holds
+  updatedAt: string
+  commits: number
 }>
 
 const ListedSchema = z.array(
@@ -20,6 +25,9 @@ const ListedSchema = z.array(
     url: z.string(),
     isDraft: z.boolean(),
     headRefOid: z.string(),
+    baseRefName: z.string(),
+    updatedAt: z.string(),
+    commits: z.array(z.unknown()),
   }),
 )
 
@@ -78,7 +86,12 @@ export async function pullRequestOf(
  * can't list them (not installed, not logged in, not a GitHub repo).
  */
 export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPullRequest[]> {
-  const fields = ["--json", "number,title,author,url,isDraft,headRefOid", "--limit", LIMIT]
+  const fields = [
+    "--json",
+    "number,title,author,url,isDraft,headRefOid,baseRefName,updatedAt,commits",
+    "--limit",
+    LIMIT,
+  ]
   const [listed, waiting] = await Promise.all([
     runGh(cwd, gh, ["pr", "list", ...fields]),
     runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", "--json", "number"]),
@@ -93,6 +106,9 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
     draft: pr.isDraft,
     reviewRequested: requested.has(pr.number),
     head: pr.headRefOid,
+    base: pr.baseRefName,
+    updatedAt: pr.updatedAt,
+    commits: pr.commits.length,
   }))
 
   return open.toSorted((a, b) => Number(b.reviewRequested) - Number(a.reviewRequested))

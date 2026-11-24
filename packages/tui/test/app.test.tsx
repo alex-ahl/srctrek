@@ -98,7 +98,7 @@ async function escape(input: Input, on: Screen, then: string) {
 }
 
 test("with nothing asked for, opens on the landing page", async () => {
-  const frame = await frameAfter(app(".", LANDING), (_input, on) => on.shows("YOUR WORK"))
+  const frame = await frameAfter(app(".", LANDING), (_input, on) => on.shows("your work"))
 
   expect(frame).toContain("feature/refunds")
 })
@@ -108,14 +108,14 @@ test("enter on a change opens its screen, and esc goes back to the landing page"
     Promise.resolve(changeWith(() => Promise.resolve(missing))),
   )
   const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressEnter()
     await on.shows("no trek yet")
-    await escape(input, on, "YOUR WORK")
+    await escape(input, on, "your work")
   })
 
   expect(open).toHaveBeenCalledWith([])
-  expect(frame).toContain("YOUR WORK")
+  expect(frame).toContain("your work")
 })
 
 test("a change asked for opens on its screen, and esc goes to the landing page", async () => {
@@ -123,10 +123,10 @@ test("a change asked for opens on its screen, and esc goes to the landing page",
   const opening: Opening = { kind: "change", choice: own, change, status: missing }
   const frame = await frameAfter(app(".", opening), async (input, on) => {
     await on.shows("no trek yet")
-    await escape(input, on, "YOUR WORK")
+    await escape(input, on, "your work")
   })
 
-  expect(frame).toContain("PULL REQUESTS")
+  expect(frame).toContain("pull requests")
 })
 
 test("enter steps a ready trek from its first stop, and q comes back to the change", async () => {
@@ -155,12 +155,8 @@ test("a done trek opens on a screen of its own", async () => {
   const frame = await frameAfter(
     app(root, LANDING, sources({ done })),
     async (input, on) => {
-      await on.shows("▸ 1 trek")
-      for (const _ of [1, 2, 3, 4]) {
-        input.pressKey("j")
-        await on.drawn()
-      }
-      input.pressEnter()
+      await on.shows("d: 1 done trek")
+      input.pressKey("d")
       await on.shows("merged")
       input.pressEnter()
       await on.shows("3 stops")
@@ -174,10 +170,10 @@ test("a done trek opens on a screen of its own", async () => {
 
 test("S opens settings from the landing page, and esc comes back", async () => {
   const frame = await frameAfter(app(".", LANDING), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressKey("S", { shift: true })
     await on.shows("srctrek › settings")
-    await escape(input, on, "YOUR WORK")
+    await escape(input, on, "your work")
   })
 
   expect(frame).not.toContain("srctrek › settings")
@@ -186,23 +182,23 @@ test("S opens settings from the landing page, and esc comes back", async () => {
 test("a change that can't be opened says why on the landing page, which stays", async () => {
   const open = () => Promise.reject(new Error("no such branch"))
   const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressEnter()
     await on.shows("no such branch")
   })
 
   expect(frame).toContain("✕ couldn't open your branch: no such branch")
-  expect(frame).toContain("YOUR WORK")
+  expect(frame).toContain("your work")
 })
 
 test("a change that takes a while to open says so on the landing page, then comes up whole", async () => {
   const opened = deferred<OpenChange>()
   const open = () => opened.promise
   await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressEnter()
     await on.shows(/feature\/refunds .*[◐◓◑◒] opening…/)
-    expect(await on.frame()).toContain("YOUR WORK")
+    expect(await on.frame()).toContain("your work")
     opened.resolve(changeWith(() => Promise.resolve(missing)))
     await on.shows("no trek yet")
   })
@@ -346,10 +342,10 @@ test("code as it is, its ways in found, lists them; esc goes to the landing page
   const opening: Opening = { kind: "change", choice: { kind: "code" }, change, status: found }
   const frame = await frameAfter(app(".", opening), async (input, on) => {
     await on.shows("POST /refunds")
-    await escape(input, on, "YOUR WORK")
+    await escape(input, on, "your work")
   })
 
-  expect(frame).toContain("CODE AS IT IS")
+  expect(frame).toContain("code as it is")
 })
 
 test("a pull request's screen names it by its title, and who opened it", async () => {
@@ -381,7 +377,7 @@ test("a change that opens quickly comes up without an opening screen first", asy
   const opened = deferred<OpenChange>()
   const open = () => opened.promise
   const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressEnter()
     // the change is being worked out, and quickly, so far
     expect(await on.frame()).not.toContain("opening")
@@ -404,6 +400,9 @@ test("a pull request opens on its title, never on its number first", async () =>
         draft: false,
         reviewRequested: true,
         head: "a12",
+        base: "main",
+        updatedAt: "2026-11-23T10:00:00Z",
+        commits: 3,
       },
     ])
   const pull: ChangeSummary = {
@@ -424,7 +423,7 @@ test("a pull request opens on its title, never on its number first", async () =>
       await on.drawn()
       input.pressEnter()
       // opened, but gh hasn't said what the pull request is yet: the landing page stays
-      expect(await on.frame()).toContain("YOUR WORK")
+      expect(await on.frame()).toContain("your work")
       details.resolve({ title: "Add partial refunds", author: "alice", draft: false })
       await on.shows("alice · 3 commits · 5 files")
       expect(await on.frame()).toMatch(/ {2}#12 Add partial refunds\s+alice · 3 commits/)
@@ -436,14 +435,14 @@ test("enter pressed again while a change opens opens it once", async () => {
   const opened = deferred<OpenChange>()
   const open = mock((_args: string[]) => opened.promise)
   await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressEnter()
     input.pressEnter()
     await on.drawn()
     opened.resolve(changeWith(() => Promise.resolve(missing)))
     await on.shows("no trek yet")
     input.pressEscape()
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
   })
 
   expect(open).toHaveBeenCalledTimes(1)
@@ -456,7 +455,7 @@ test("the change the selection rests on is worked out ahead, so enter opens it a
     return Promise.resolve(changeWith(() => Promise.resolve(missing)))
   })
   await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     // nothing pressed yet: the branch selected is being worked out
     await asked.promise
     input.pressEnter()
@@ -486,7 +485,7 @@ test("building automatically starts a change's build as it's opened, never ahead
   await frameAfter(
     app(".", LANDING, sources({ open }), { build_automatically: true }),
     async (input, on) => {
-      await on.shows("YOUR WORK")
+      await on.shows("your work")
       await asked.promise
       expect(build).not.toHaveBeenCalled()
       input.pressEnter()
@@ -504,7 +503,7 @@ test("a ready trek's screen comes up with its overview, not without it first", a
   await frameAfter(
     app(root, LANDING, sources({ open, overview })),
     async (input, on) => {
-      await on.shows("YOUR WORK")
+      await on.shows("your work")
       input.pressEnter()
       await on.shows("● ready")
       expect(await on.frame()).toContain("3 stops")
@@ -520,12 +519,12 @@ test("back on the landing page, it's there at once as it was left, its change st
   const load = () =>
     loads++ === 0 ? Promise.resolve(choices) : new Promise<BranchChoices>(() => undefined)
   const frame = await frameAfter(app(".", LANDING, sources({ load })), async (input, on) => {
-    await on.shows("YOUR WORK")
+    await on.shows("your work")
     input.pressKey("j")
     await on.shows(/▶ fix\/rounding/)
     input.pressEnter()
     await on.shows("no trek yet")
-    await escape(input, on, "YOUR WORK")
+    await escape(input, on, "your work")
   })
 
   expect(frame).toMatch(/▶ fix\/rounding/)

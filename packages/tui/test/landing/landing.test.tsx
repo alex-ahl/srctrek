@@ -6,6 +6,7 @@ import type {
   OpenPullRequest,
   RepoBranch,
   RepoBranches,
+  TrekEntry,
   TrekStatus,
 } from "@srctrek/core"
 import { dropRows, opened } from "../../src/landing/drop"
@@ -55,6 +56,9 @@ const open: OpenPullRequest[] = [
     draft: false,
     reviewRequested: true,
     head: "a12",
+    base: "main",
+    updatedAt: "2026-11-23T10:00:00Z",
+    commits: 3,
   },
   {
     number: 14,
@@ -64,6 +68,9 @@ const open: OpenPullRequest[] = [
     draft: true,
     reviewRequested: false,
     head: "b14",
+    base: "main",
+    updatedAt: "2026-11-23T10:00:00Z",
+    commits: 3,
   },
 ]
 
@@ -106,6 +113,25 @@ const nearby: NearbyCheckout[] = [
 
 const fetchRepo = mock((_path: string) => Promise.resolve())
 
+// The trek of the user's branch, built two hours ago.
+const entries = (): Promise<TrekEntry[]> =>
+  Promise.resolve([
+    {
+      name: "feature-refunds",
+      path: "feature-refunds.json",
+      valid: true,
+      title: "Partial refund of order o_1002",
+      overview: "",
+      trigger: "POST /refunds",
+      steps: 14,
+      highFlags: 0,
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      repos: 1,
+      code: false,
+      heads: [],
+    },
+  ])
+
 type Setup = Partial<{
   onPick: (pick: Pick) => void
   onSettings: () => void
@@ -127,6 +153,7 @@ function landing(setup: Setup = {}) {
       fetchRepo={fetchRepo}
       status={setup.status ?? statusOf}
       pullStatus={pullStatusOf}
+      entries={entries}
       {...(setup.pullsEvery === undefined ? {} : { pullsEvery: setup.pullsEvery })}
       done={() => Promise.resolve(done)}
       onPick={setup.onPick ?? (() => undefined)}
@@ -142,7 +169,7 @@ type Input = Parameters<Parameters<typeof frameAfter>[1]>[0]
 // Everything listed: own work, the pull requests, the branches, code, and done.
 const listed = async (_input: Input, on: Screen) => {
   await on.shows("#14 Round refunds")
-  await on.shows("▸ 2 treks")
+  await on.shows("d: 2 done treks")
 }
 
 // Everything listed, and the repos beside this one in the sheet a opens.
@@ -172,13 +199,13 @@ test("offers the user's own work first, then the other branches, each saying wha
   const rows = landingRows(choices, open)
 
   expect(rows.map((row) => [row.group, row.label, row.detail])).toEqual([
-    ["YOUR WORK", "feature/refunds", "3 commits since main"],
-    ["YOUR WORK", "with uncommitted work", "2 files changed"],
-    ["PULL REQUESTS", "#12 Add partial refunds", "alice"],
-    ["PULL REQUESTS", "#14 Round refunds to cents", "bo · draft"],
-    ["OTHER BRANCHES", "fix/rounding", "1 commit since main"],
-    ["OTHER BRANCHES", "feature/partial-refunds", "5 commits since main"],
-    ["CODE AS IT IS", "its ways in", "routes, events, and commands to follow"],
+    ["your work", "feature/refunds", "3 commits"],
+    ["your work", "with uncommitted work", "2 files changed"],
+    ["your work", "#12 Add partial refunds", "3 commits"],
+    ["pull requests", "#14 Round refunds to cents", "3 commits · draft"],
+    ["branches", "fix/rounding", "1 commit"],
+    ["branches", "feature/partial-refunds", "5 commits"],
+    ["code as it is", "its ways in", ""],
   ])
 })
 
@@ -188,35 +215,73 @@ test("leaves out the uncommitted row when everything is committed", () => {
   expect(labels).not.toContain("with uncommitted work")
 })
 
-test("offers the open pull requests by number and title, with who opened them and what waits", () => {
-  const rows = pullRequestRows(open)
+test("offers the open pull requests by number and title, with their commits and what waits", () => {
+  const rows = pullRequestRows(open, "main")
 
   expect(rows.map((row) => [row.group, row.label, row.detail, row.mark])).toEqual([
-    ["PULL REQUESTS", "#12 Add partial refunds", "alice", "review requested"],
-    ["PULL REQUESTS", "#14 Round refunds to cents", "bo · draft", undefined],
+    ["your work", "#12 Add partial refunds", "3 commits", "review requested"],
+    ["pull requests", "#14 Round refunds to cents", "3 commits · draft", undefined],
+  ])
+})
+
+test("a pull request into another branch than the repo's says so; each group's latest first", () => {
+  const older: OpenPullRequest = {
+    number: 14,
+    title: "Round refunds to cents",
+    author: "bo",
+    url: "https://github.com/acme/web/pull/14",
+    draft: true,
+    reviewRequested: false,
+    head: "b14",
+    base: "main",
+    updatedAt: "2026-11-20T10:00:00Z",
+    commits: 3,
+  }
+  const into = { ...older, number: 16, base: "release/2.1", updatedAt: "2026-11-23T12:00:00Z" }
+  const rows = pullRequestRows([older, into], "origin/main")
+
+  expect(rows.map((row) => [row.label, row.detail])).toEqual([
+    ["#16 Round refunds to cents", "3 commits · into release/2.1 · draft"],
+    ["#14 Round refunds to cents", "3 commits · draft"],
   ])
 })
 
 test("opens on the user's own branch, every change under its heading", async () => {
   const frame = await frameAfter(landing(), listed, 110, 34)
 
-  // the change's name, what it holds right after, then its trek's state
-  expect(frame).toMatch(/YOUR WORK\s+▶ feature\/refunds  3 commits since main +● ready/)
-  // uncommitted work under its branch
-  expect(frame).toMatch(/\n {6}with uncommitted work  2 files changed +○ no trek yet/)
-  // the pull requests in one group, those waiting on the user's review first; a pull request's
-  // trek from its head as listed
+  // what the changes are measured against, once
+  expect(frame).toMatch(/srctrek › against main/)
+  // what needs the user first: their own work, then the pull requests waiting on their review
   expect(frame).toMatch(
-    /PULL REQUESTS\s+#12 Add partial refunds  alice · review requested +● ready\s+#14 Round refunds to cents  bo · draft +○ no trek yet/,
+    /\n  your work *\s+▶ feature\/refunds +3 commits +● ready  built 2h ago\s+with uncommitted work +2 files changed +○ no trek yet\s+#12 Add partial refunds +3 commits · review requested +● ready/,
   )
-  expect(frame).toMatch(/OTHER BRANCHES\s+fix\/rounding  1 commit since main +○ no trek yet/)
+  // uncommitted work set in under its branch
+  expect(frame).toMatch(/\n {8}with uncommitted work/)
+  // each group under a rule, a blank line before it
   expect(frame).toMatch(
-    /CODE AS IT IS\s+its ways in  routes, events, and commands to follow +○ not found yet/,
+    /● ready *\n *\n +pull requests *\s+#14 Round refunds to cents +3 commits · draft +○ no trek yet/,
   )
-  expect(frame).toMatch(/\n  DONE *\n    ▸ 2 treks/)
+  expect(frame).toMatch(/\n  branches *\s+fix\/rounding +1 commit +○ no trek yet/)
+  expect(frame).toMatch(/\n  code as it is *\s+its ways in +○ not found yet/)
+  // the done treks wait on a view of their own
+  expect(frame).not.toMatch(/\n  done/)
+  // a group's name at the page's left, its rows set in under it, nothing drawn
+  expect(frame).toMatch(/\n {2}your work *\n {4}▶ feature/)
+  // a ready trek says when it was built
+  expect(frame).toMatch(/feature\/refunds +3 commits +● ready  built 2h ago/)
+  // one table: every row's state in one column
+  const stateAt = (name: string) =>
+    frame
+      .split("\n")
+      .find((line) => line.includes(name))
+      ?.search(/[●○≠]/)
+  expect(stateAt("feature/refunds")).toBe(stateAt("its ways in"))
+  expect(stateAt("#12 Add")).toBe(stateAt("fix/rounding"))
   // the repos beside this one wait in the sheet a opens
   expect(frame).not.toContain("../api")
-  expect(frame).toContain("↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys")
+  expect(frame).toContain(
+    "↵: open  ¦  a: add repos  ¦  d: 2 done treks  ¦  S: settings  ¦  ?: keys",
+  )
 })
 
 test("says on each row whether a trek of it exists, as each is worked out", async () => {
@@ -224,9 +289,9 @@ test("says on each row whether a trek of it exists, as each is worked out", asyn
     on.shows("○ no trek yet"),
   )
 
-  expect(frame).toMatch(/feature\/refunds  3 commits since main +● ready/)
-  expect(frame).toMatch(/fix\/rounding  1 commit since main +○ no trek yet/)
-  expect(frame).toMatch(/feature\/partial-refunds  5 commits since main +[◐◓◑◒]/)
+  expect(frame).toMatch(/feature\/refunds +3 commits +● ready/)
+  expect(frame).toMatch(/fix\/rounding +1 commit +○ no trek yet/)
+  expect(frame).toMatch(/feature\/partial-refunds +5 commits +[◐◓◑◒]/)
 })
 
 test("enter opens the selected change", async () => {
@@ -282,15 +347,15 @@ test("code as it is is one row, opening its ways in", async () => {
 
 test("says when there are no pull requests, or why they can't be listed", async () => {
   const none = await frameAfter(landing({ pullRequests: () => Promise.resolve([]) }), (_i, on) =>
-    on.shows(/PULL REQUESTS +none/),
+    on.shows(/\n  pull requests  none/),
   )
   const failed = await frameAfter(
     landing({ pullRequests: () => Promise.reject(new Error("gh: not logged in")) }),
     (_i, on) => on.shows("✕ gh: not logged in"),
   )
 
-  expect(none).toMatch(/PULL REQUESTS +none *\n/)
-  expect(failed).toMatch(/PULL REQUESTS +✕ gh: not logged in *\n/)
+  expect(none).toMatch(/\n  pull requests  none *\n/)
+  expect(failed).toMatch(/\n  pull requests  ✕ gh: not logged in *\n/)
   expect(failed).toContain("fix/rounding")
 })
 
@@ -309,14 +374,13 @@ test("the selection stays on its row as rows are listed above it", async () => {
   expect(onPick).toHaveBeenCalledWith({ kind: "branch", name: "fix/rounding" })
 })
 
-test("enter on the done fold lists the treks whose work has landed, and opens one", async () => {
+test("d lists the treks whose work has landed on a view of their own; enter opens one", async () => {
   const onPick = mock((_pick: Pick) => undefined)
   const frame = await frameAfter(
     landing({ onPick }),
     async (input, on) => {
       await listed(input, on)
-      await down(input, on, 7)
-      input.pressEnter()
+      input.pressKey("d")
       await on.shows("Applying a coupon")
       input.pressEnter()
     },
@@ -324,10 +388,25 @@ test("enter on the done fold lists the treks whose work has landed, and opens on
     40,
   )
 
-  // how a done trek's work ended is its state
-  expect(frame).toMatch(/DONE\s+▶ Applying a coupon +✓ merged/)
+  // how a done trek's work ended is its state; the changes give way to them
+  expect(frame).toMatch(/srctrek › done treks/)
+  expect(frame).toMatch(/\n  done *\s+▶ Applying a coupon +✓ merged/)
   expect(frame).toMatch(/Posting to the ledger +✓ branch gone/)
+  expect(frame).not.toContain("feature/refunds")
+  expect(frame).toContain("↵: open  ¦  esc: back")
   expect(onPick).toHaveBeenCalledWith({ kind: "trek", name: "feature-coupons", why: "merged" })
+})
+
+test("esc from the done treks goes back to the changes", async () => {
+  const frame = await frameAfter(landing(), async (input, on) => {
+    await listed(input, on)
+    input.pressKey("d")
+    await on.shows("Applying a coupon")
+    input.pressEscape()
+    await on.shows("feature/refunds")
+  })
+
+  expect(frame).not.toContain("Applying a coupon")
 })
 
 test("S opens settings, and q quits", async () => {
@@ -346,7 +425,7 @@ test("S opens settings, and q quits", async () => {
 test("a slides up every repo beside this one under the changes, those with work first", async () => {
   const frame = await frameAfter(landing(), sheetOpen, 110, 34)
 
-  expect(frame).toMatch(/YOUR WORK\s+▶ feature\/refunds/)
+  expect(frame).toMatch(/\n  your work *\s+▶ feature\/refunds/)
   expect(frame).toMatch(
     /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
   )
@@ -371,8 +450,10 @@ test("space adds a repo in the sheet; esc closes it, the title bar naming what g
   )
 
   expect(frame).not.toContain("ADD REPOS")
-  expect(frame).toMatch(/srctrek +with api *\n/)
-  expect(frame).toContain("↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys")
+  expect(frame).toMatch(/srctrek › against main +with api *\n/)
+  expect(frame).toContain(
+    "↵: open  ¦  a: add repos  ¦  d: 2 done treks  ¦  S: settings  ¦  ?: keys",
+  )
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
 })
 
@@ -502,7 +583,7 @@ test("with more than two repos added, the title bar names two and counts the res
     34,
   )
 
-  expect(frame).toMatch(/srctrek +with api, docs \+1 *\n/)
+  expect(frame).toMatch(/srctrek › against main +with api, docs \+1 *\n/)
 })
 
 test("on a short terminal, the sheet scrolls to keep its selection in view", async () => {
@@ -525,7 +606,7 @@ test("on a short terminal, the sheet scrolls to keep its selection in view", asy
 
   expect(frame).toMatch(/▶ \[ \] repo-19 /)
   expect(frame).toContain("ADD REPOS")
-  expect(frame).toContain("YOUR WORK")
+  expect(frame).toMatch(/\n  your work/)
 })
 
 test("a repo's drop: the few latest and the checked-out one, the rest under a count, then main", () => {
@@ -671,17 +752,14 @@ test("says why a repo's branches couldn't be read, instead of waiting for them",
 test("code as it is says where finding its ways in stands, not a trek's state", async () => {
   const frame = await frameAfter(landing(), (_input, on) => on.shows("not found yet"))
 
-  expect(frame).toMatch(/its ways in  routes, events, and commands to follow +○ not found yet/)
+  expect(frame).toMatch(/its ways in +○ not found yet/)
 })
 
 // The done treks opened, and the last of the twelve selected.
 async function toLastDone(input: Input, on: Screen) {
   // what's read here is in once the list is drawn; the pull requests once listed
   await on.shows("#14 Round refunds")
-  await down(input, on, 7)
-  // scrolled down to it, on a short terminal
-  await on.shows("▸ 12 treks")
-  input.pressEnter()
+  input.pressKey("d")
   await on.shows(/▶ Old trek 0 /)
   await down(input, on, 11)
   await on.shows(/▶ Old trek 11 /)
@@ -702,6 +780,7 @@ test("on a short terminal, the list scrolls to keep the selection in view", asyn
       fetchRepo={fetchRepo}
       status={statusOf}
       pullStatus={pullStatusOf}
+      entries={entries}
       done={() => Promise.resolve(many)}
       onPick={() => undefined}
       onSettings={() => undefined}
@@ -731,6 +810,7 @@ test("scrolled into a group, the list still shows the group's heading", async ()
       fetchRepo={fetchRepo}
       status={statusOf}
       pullStatus={pullStatusOf}
+      entries={entries}
       done={() => Promise.resolve(many)}
       onPick={() => undefined}
       onSettings={() => undefined}
@@ -742,7 +822,7 @@ test("scrolled into a group, the list still shows the group's heading", async ()
     20,
   )
 
-  expect(frame).toMatch(/─\n\s*\n  DONE/)
+  expect(frame).toMatch(/─\n\s*\n  done/)
 })
 
 test("waits for what's read here before drawing the list, saying so once it takes a while", async () => {
@@ -757,6 +837,7 @@ test("waits for what's read here before drawing the list, saying so once it take
       fetchRepo={fetchRepo}
       status={statusOf}
       pullStatus={pullStatusOf}
+      entries={entries}
       done={() => Promise.resolve(done)}
       onPick={() => undefined}
       onSettings={() => undefined}
@@ -780,10 +861,10 @@ test("waits for what's read here before drawing the list, saying so once it take
   expect(before).toContain("srctrek")
   expect(before).toContain("?: keys")
   expect(whole).toContain("feature/refunds")
-  expect(whole).toContain("▸ 2 treks")
+  expect(whole).toContain("d: 2 done treks")
 })
 
-test("a long title is cut past 40% of the width, the states lined up after the longest row", async () => {
+test("a long title takes the room what the rows hold doesn't need before it's cut", async () => {
   const long: OpenPullRequest = {
     number: 12,
     title: "Split partial refunds across two payments when the first one fails",
@@ -792,6 +873,9 @@ test("a long title is cut past 40% of the width, the states lined up after the l
     draft: false,
     reviewRequested: false,
     head: "c12",
+    base: "main",
+    updatedAt: "2026-11-23T10:00:00Z",
+    commits: 3,
   }
   const frame = await frameAfter(
     landing({ pullRequests: () => Promise.resolve([long]) }),
@@ -799,14 +883,28 @@ test("a long title is cut past 40% of the width, the states lined up after the l
     120,
     34,
   )
-  const stateAt = (name: string) =>
-    frame
-      .split("\n")
-      .find((line) => line.includes(name))
-      ?.search(/[●○≠]/)
 
-  expect(frame).toContain("#12 Split partial refunds across two payment…  alice")
-  expect(stateAt("feature/refunds  3")).toBe(stateAt("#12 Split"))
+  expect(frame).toMatch(
+    /#12 Split partial refunds across two payments when the first one fa… +3 commits +● ready/,
+  )
+})
+
+test("the table fills the row up to 120 columns, its states at the right edge; narrow, nothing wraps", async () => {
+  const lineOf = (frame: string, name: string) =>
+    frame.split("\n").find((line) => line.includes(name)) ?? ""
+  const wide = await frameAfter(landing(), listed, 110, 34)
+  const narrow = await frameAfter(landing(), (_input, on) => on.shows("its ways in"), 70, 34)
+
+  // the longest state ends at the row's end
+  expect(lineOf(wide, "feature/refunds").trimEnd()).toHaveLength(110 - 2)
+  // on a very wide terminal, at 120 columns, so a state stays within a glance of its name
+  const widest = await frameAfter(landing(), listed, 200, 34)
+  expect(lineOf(widest, "feature/refunds").trimEnd()).toHaveLength(2 + 120)
+  // a review asked for fits its column, the author given up first, the names cut so what they hold
+  // keeps its room: the state where the others are
+  expect(lineOf(narrow, "#12 Add").search(/●/)).toBe(lineOf(narrow, "feature/refunds").search(/●/))
+  expect(narrow).toMatch(/#12 Add partial re… +review requested +● ready/)
+  expect(narrow).not.toMatch(/\n {2}(yet|ready)/)
 })
 
 test("appears whole once the pull requests are in too, never without them first", async () => {
@@ -819,15 +917,15 @@ test("appears whole once the pull requests are in too, never without them first"
       await on.shows("reading this repo")
       before = await on.frame()
       pulls.resolve(open)
-      await on.shows("YOUR WORK")
+      await on.shows(/\n  your work/)
     },
     110,
     34,
   )
 
-  expect(before).not.toContain("YOUR WORK")
+  expect(before).not.toMatch(/\n  your work/)
   expect(frame).toContain("#14 Round refunds to cents")
-  expect(frame).toMatch(/feature\/refunds  3 commits since main +● ready/)
+  expect(frame).toMatch(/feature\/refunds +3 commits +● ready/)
 })
 
 test("a change being opened says so on its own row", async () => {
@@ -840,6 +938,7 @@ test("a change being opened says so on its own row", async () => {
       fetchRepo={fetchRepo}
       status={statusOf}
       pullStatus={pullStatusOf}
+      entries={entries}
       done={() => Promise.resolve(done)}
       opening={{ kind: "opening", choice: { kind: "branch", name: "fix/rounding" } }}
       onPick={() => undefined}
@@ -847,12 +946,12 @@ test("a change being opened says so on its own row", async () => {
       onQuit={() => undefined}
       tint={undefined}
     />,
-    (_input, on) => on.shows(/fix\/rounding  1 commit since main +[◐◓◑◒] opening…/),
+    (_input, on) => on.shows(/fix\/rounding +1 commit +[◐◓◑◒] opening…/),
     110,
     34,
   )
 
-  expect(frame).toMatch(/feature\/refunds  3 commits since main +● ready/)
+  expect(frame).toMatch(/feature\/refunds +3 commits +● ready/)
 })
 
 test("a change that couldn't be opened says why, until the next key", async () => {
@@ -866,6 +965,7 @@ test("a change that couldn't be opened says why, until the next key", async () =
       fetchRepo={fetchRepo}
       status={statusOf}
       pullStatus={pullStatusOf}
+      entries={entries}
       done={() => Promise.resolve(done)}
       opening={{ kind: "failed", choice: own, why: "no such branch" }}
       onPick={() => undefined}
@@ -883,7 +983,7 @@ test("a change that couldn't be opened says why, until the next key", async () =
     34,
   )
 
-  expect(before).toContain("YOUR WORK")
+  expect(before).toMatch(/\n  your work/)
   expect(after).not.toContain("couldn't open")
 })
 

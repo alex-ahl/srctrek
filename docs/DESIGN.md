@@ -241,16 +241,23 @@ Every screen's footer lists its keys, each key bold in the text's colour, then a
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 `↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
 
-- **Landing page,** what `trek` opens on: every change there is to look at, under dim headings.
-  Each row is the change's name, cut past 40% of the width, and right after it what it holds,
-  dimmed; then its trek's state (`● ready`, `≠ stale`, `○ no trek yet`), the states lined up just
-  past the longest row, within 100 columns. YOUR WORK: the branch checked out, then its
-  uncommitted work set in under it. PULL REQUESTS, those waiting on your review first, marked
-  `review requested` in the accent; a pull request's trek state comes from its head as listed,
+- **Landing page,** what `trek` opens on: every change there is to look at, as one table across
+  the row, up to 120 columns. The title bar names what the changes are measured against, once:
+  `srctrek › against main`. Each row is the change's name, taking
+  the room what the rows hold doesn't need, its commits, dimmed (`9 commits`; a pull request's base
+  where it isn't the repo's, `into release/2.1`, and `draft`), and its trek's state (`● ready`,
+  `≠ stale`, `○ no trek yet`), lined up at the right edge, with when the trek was built where there's
+  room: `● ready  built 2h ago`. On a narrow terminal names are cut first, past half the row, and
+  what a change holds keeps at least 20 columns. The groups sit under their
+  names, dim, at the page's left, their rows set in under them, a blank line before each but the
+  first: your work first, the branch checked out with its uncommitted work set in under it and
+  the pull requests waiting on your review, marked `review requested` in the accent; then the
+  other pull requests, latest changed first, branches, latest committed first, and code as it is,
+  one row. `d` opens the done treks on a view of their own, `esc` back: treks whose work landed
+  or whose branch is gone, each saying how its work ended as its state, `✓ merged`; the footer
+  counts them, `d: 12 done treks`. A pull request's trek state comes from its head as listed,
   with nothing fetched: `≠ stale` once the head has moved past the commit its trek was built at.
-  The pull requests are read again each minute while the page is in front. Then OTHER BRANCHES,
-  CODE AS IT IS, one row, and DONE: treks whose work landed or whose branch is gone, folded under
-  `▸ 12 treks`, each saying how its work ended where the states are, `✓ merged`. `a` slides up
+  The pull requests are read again each minute while the page is in front. `a` slides up
   ADD REPOS from the bottom, the changes dimmed above it with the selected one still marked: every
   repo beside this one, those with work first, ticked with `space` to go with the change, `→` for
   a repo's branches; typing narrows them by name or path, as it does a repo's branches, and `esc`
@@ -258,8 +265,8 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
   names them on its right: `with api, docs +1`. The selection starts on the branch checked out,
   even with nothing on it yet, and is kept on its row as the lists load and follow the worktree.
   A change being opened says so on its row; one that couldn't be opened says why above the
-  footer, until the next key. With no pull requests, their heading says so, `PULL REQUESTS
-none`, or why they can't be listed. The list is drawn once what's read here is in, the page
+  footer, until the next key. With no pull requests, their heading says so, `pull requests  none`,
+  or why they can't be listed. The list is drawn once what's read here is in, the page
   saying it's reading when that takes a moment; a trek's state being worked out shows the busy
   symbol turning.
 - **A change's screen,** opened with enter: the change in the title bar, and over its first two
