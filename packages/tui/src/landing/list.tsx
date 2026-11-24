@@ -6,6 +6,7 @@ import type { LandingGroup, LandingRow } from "./rows"
 import { statusBlock } from "../change/status-block"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
+import { DONE_SYMBOL } from "../ui/state-labels"
 import { useTurning } from "../ui/turning"
 import { count, fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
@@ -13,13 +14,17 @@ import { COLOUR, type Tone, useTones } from "../ui/theme"
 /** What a heading says of a group with nothing to open in it: still loading, none, or why not. */
 export type LandingNote = Readonly<{ group: LandingGroup; text: string; tone: Tone }>
 
-// Names are cut past this share of the width, so one long title can't push every row's details
-// far from its name.
+// Names are cut past this share of the width, so one long title leaves room for what it holds.
 const NAME_SHARE = 0.4
 
-// The selection marker's room, and the gap between columns.
+// The selection marker's room; the gap between a name and what it holds; the least before a state.
 const MARKER = 2
 const GAP = "  "
+const STATE_GAP = 4
+
+// The widest the rows run, state included, so on a wide terminal a row's state stays near its
+// name.
+const BLOCK = 100
 
 const rowKey = (row: LandingRow) => JSON.stringify(row.choice)
 
@@ -88,23 +93,20 @@ export function useStatuses(
   return found
 }
 
-// Code as it is in a row's first column; "ways in" is in its name.
+// Code as it is's, "ways in" being in its name.
 const STATE_WORDS: Readonly<Record<string, string>> = {
   "ways in not found yet": "not found yet",
 }
 
-// Where a row's trek isn't worked out here, holding its place so the column has no holes.
-const NOT_WORKED_OUT = "·"
-
 // The opening state's text, which the column always has room for.
 const OPENING = "◐ opening…"
 
-/** A row's trek state as its first column words it, and the tone it's drawn in. */
+/** A row's trek state as its column words it, and the tone it's drawn in. */
 type StateCell = Readonly<{ text: string; tone: Tone }>
 
 // "● ready", "≠ stale", "○ no trek yet": in the words and colours a change's screen uses; code
-// as it is says where finding its ways in stands; turning while being opened or worked out; a dot
-// for a done trek's, not worked out here.
+// as it is says where finding its ways in stands; a done trek how its work ended, "✓ merged";
+// turning while being opened or worked out.
 function stateCell(
   row: LandingRow,
   status: TrekStatus | undefined,
@@ -115,8 +117,12 @@ function stateCell(
     return { text: `${turning} opening…`, tone: "busy" }
   }
 
+  if (row.choice.kind === "trek") {
+    return { text: `${DONE_SYMBOL} ${row.choice.why}`, tone: "dim" }
+  }
+
   if (status === undefined) {
-    return { text: workedOut(row) ? turning : NOT_WORKED_OUT, tone: "dim" }
+    return { text: workedOut(row) ? turning : "", tone: "dim" }
   }
 
   const { symbol, state, tone } = statusBlock(status, undefined, false, {
@@ -125,16 +131,27 @@ function stateCell(
   return { text: `${symbol} ${STATE_WORDS[state] ?? state}`, tone }
 }
 
-// The uncommitted work on the user's branch, drawn under it as its own.
-const underBranch = (row: LandingRow) => row.choice.kind === "own" && row.choice.uncommitted
+// The uncommitted work on the user's branch, set in under it as its own.
+const indentOf = (row: LandingRow) =>
+  row.choice.kind === "own" && row.choice.uncommitted ? "  " : ""
 
-const UNDER_BRANCH = "└ "
+// A row's text before its state: set in, its name cut to `name`, what it holds, its mark.
+const leftText = (row: LandingRow, name: number) =>
+  [
+    indentOf(row),
+    fit(row.label, name - indentOf(row).length),
+    row.detail === "" ? "" : `${GAP}${row.detail}`,
+    row.mark === undefined ? "" : `${MARK_SEPARATOR}${row.mark}`,
+  ].join("")
 
-// The states' column, where names are cut, and the room a row has after the selection marker.
-type Widths = Readonly<{ state: number; name: number; room: number }>
+const MARK_SEPARATOR = " · "
 
-// One change to open: its trek's state first, then its name, and right after it what it holds,
-// dimmed; all of it dimmed while the sheet over the list has the keys.
+// Where names are cut, and where the states' column starts after the selection marker.
+type Widths = Readonly<{ name: number; state: number }>
+
+// One change to open: its name, what it holds right after it, dimmed, and a mark in the accent;
+// then, lined up with the rest, its trek's state; all of it dimmed while the sheet over the list
+// has the keys.
 function ChangeView({
   row,
   cell,
@@ -147,22 +164,32 @@ function ChangeView({
   muted: boolean
 }) {
   const tones = useTones()
-  const branch = underBranch(row) ? UNDER_BRANCH : ""
-  const name = fit(row.label, widths.name - branch.length)
-  const left = widths.room - widths.state - branch.length - name.length - 2 * GAP.length
+  const indent = indentOf(row)
+  const name = fit(row.label, widths.name - indent.length)
+  const before = indent.length + name.length + GAP.length
+  const mark = row.mark === undefined ? "" : `${MARK_SEPARATOR}${row.mark}`
+  const detail =
+    row.detail === "" ? "" : fit(row.detail, widths.state - STATE_GAP - before - mark.length)
+  const left = indent.length + name.length + (detail === "" ? 0 : GAP.length + detail.length)
 
   return (
     <span>
-      <span fg={tones[muted ? "dim" : cell.tone]}>{cell.text.padEnd(widths.state)}</span>
-      {GAP}
-      <span fg={tones.dim}>{branch}</span>
+      {indent}
       <span {...(muted ? { fg: tones.dim } : {})}>{name}</span>
-      <span fg={tones.dim}>{`${GAP}${fit(row.detail, Math.max(left, 0))}`}</span>
+      <span fg={tones.dim}>{detail === "" ? "" : `${GAP}${detail}`}</span>
+      {mark !== "" && (
+        <span>
+          <span fg={tones.dim}>{MARK_SEPARATOR}</span>
+          <span fg={muted ? tones.dim : tones.accent}>{row.mark}</span>
+        </span>
+      )}
+      {" ".repeat(Math.max(widths.state - left - mark.length, STATE_GAP))}
+      <span fg={tones[muted ? "dim" : cell.tone]}>{cell.text}</span>
     </span>
   )
 }
 
-// A group's heading, dim, and what it says of the group: nothing in it, or nothing waiting.
+// A group's heading, dim, and what it says of a group with nothing in it.
 function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNote | undefined }) {
   const tones = useTones()
   const { note } = props
@@ -238,18 +265,31 @@ function cellsOf(
   )
 }
 
-// The states' column as wide as the longest, room for opening one kept; names cut past their
-// share of the row.
-function widthsOf(cells: ReadonlyMap<string, StateCell>, width: number): Widths {
+// Names cut past their share of the row; the states lined up just past the longest row, within a
+// block a glance takes in, with room for the longest state, opening one's kept.
+function widthsOf(
+  items: readonly LandingItem[],
+  cells: ReadonlyMap<string, StateCell>,
+  width: number,
+): Widths {
   const room = width - 2 * PADDING - MARKER
-  const state = Math.max(OPENING.length, ...[...cells.values()].map((cell) => cell.text.length))
+  const name = Math.floor(room * NAME_SHARE)
+  const longestState = Math.max(
+    OPENING.length,
+    ...[...cells.values()].map((cell) => cell.text.length),
+  )
+  const rows = items.flatMap((item) => (item.kind === "change" ? [item.row] : []))
+  const longestRow = Math.max(0, ...rows.map((row) => leftText(row, name).length))
 
-  return { state, name: Math.floor(room * NAME_SHARE), room }
+  return {
+    name,
+    state: Math.min(longestRow + STATE_GAP, BLOCK - MARKER - longestState, room - longestState),
+  }
 }
 
 /**
- * Everything to open under its heading, the selected line on the tint; the note on what waits on
- * the user's review, for when there's none to open yet, sits where it would.
+ * Everything to open under its heading, the selected line on the tint; the note on the pull
+ * requests, for when there are none to open yet, sits where they would.
  */
 export function LandingList({
   items,
@@ -276,12 +316,9 @@ export function LandingList({
   const { width } = useTerminalDimensions()
   const turning = useTurning(busy(items, statuses, opening))
   const cells = cellsOf(items, statuses, opening, turning)
-  const widths = widthsOf(cells, width)
-  // a note on a group that's listed goes on its heading; else it's a heading of its own
-  const onHeading = note !== undefined && items.some((item) => groupOf(item) === note.group)
-  const alone = onHeading ? undefined : note
+  const widths = widthsOf(items, cells, width)
   const noteAt = noteIndex(items)
-  const start = firstShown(items, chosen, noteAt, alone !== undefined, height)
+  const start = firstShown(items, chosen, noteAt, note !== undefined, height)
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
@@ -289,13 +326,9 @@ export function LandingList({
         const index = start + shown
         return (
           <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
-            {index === noteAt && <Note note={alone} first={index === 0} />}
+            {index === noteAt && <Note note={note} first={index === 0} />}
             {(startsGroup(items[index - 1], item) || shown === 0) && (
-              <Heading
-                group={groupOf(item)}
-                first={index === start && (noteAt !== index || alone === undefined)}
-                note={onHeading && note.group === groupOf(item) ? note : undefined}
-              />
+              <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
             )}
             <Selectable selected={index === chosen} tint={tint}>
               <ItemView item={item} cells={cells} widths={widths} muted={muted} />
@@ -303,7 +336,7 @@ export function LandingList({
           </box>
         )
       })}
-      {noteAt === items.length && <Note note={alone} first={items.length === 0} />}
+      {noteAt === items.length && <Note note={note} first={items.length === 0} />}
     </box>
   )
 }
@@ -312,7 +345,7 @@ export function LandingList({
 const startsGroup = (previous: LandingItem | undefined, item: LandingItem) =>
   previous === undefined || groupOf(previous) !== groupOf(item)
 
-// The note on what waits on the user's review goes where those would: after their own work.
+// The note on the pull requests, with none to list yet, goes where they would: after own work.
 function noteIndex(items: readonly LandingItem[]): number {
   const after = items.findIndex((item) => groupOf(item) !== "YOUR WORK")
   return after === -1 ? items.length : after

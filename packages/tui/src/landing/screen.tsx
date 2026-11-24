@@ -108,10 +108,9 @@ const PULLS_EVERY_MS = 60_000
 const foundOr = <T,>(loaded: Loaded<T>, none: T): T =>
   loaded.kind === "ready" ? loaded.found : none
 
-// What waits on the user's review, with nothing to open under it yet: still asking, none, or why;
-// none said on the other pull requests' heading where there are some, sparing a group of its own.
-function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
-  const group = "WAITING ON YOUR REVIEW"
+// The pull requests, with none to open yet: still asking, none, or why they can't be listed.
+function pullsNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
+  const group = "PULL REQUESTS"
   if (pulls.kind === "loading") {
     return { group, text: "finding pull requests…", tone: "dim" }
   }
@@ -120,13 +119,7 @@ function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
     return { group, text: `✕ ${pulls.why}`, tone: "bad" }
   }
 
-  if (pulls.found.some((pr) => pr.reviewRequested)) {
-    return undefined
-  }
-
-  return pulls.found.length === 0
-    ? { group, text: "none", tone: "dim" }
-    : { group: "OTHER PULL REQUESTS", text: "none waiting on your review", tone: "dim" }
+  return pulls.found.length === 0 ? { group, text: "none", tone: "dim" } : undefined
 }
 
 // Past this, the page is drawn with what it has, the rest filling its place as it comes, rather
@@ -178,7 +171,7 @@ function useRows(props: Props) {
     rows,
     done: doneRows(foundOr(done, [])),
     nearby: foundOr(nearby, []),
-    note: reviewNote(pulls),
+    note: pullsNote(pulls),
   }
 }
 

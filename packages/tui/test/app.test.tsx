@@ -126,7 +126,7 @@ test("a change asked for opens on its screen, and esc goes to the landing page",
     await escape(input, on, "YOUR WORK")
   })
 
-  expect(frame).toContain("WAITING ON YOUR REVIEW")
+  expect(frame).toContain("PULL REQUESTS")
 })
 
 test("enter steps a ready trek from its first stop, and q comes back to the change", async () => {
@@ -201,7 +201,7 @@ test("a change that takes a while to open says so on the landing page, then come
   await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("YOUR WORK")
     input.pressEnter()
-    await on.shows(/[◐◓◑◒] opening… +feature\/refunds/)
+    await on.shows(/feature\/refunds .*[◐◓◑◒] opening…/)
     expect(await on.frame()).toContain("YOUR WORK")
     opened.resolve(changeWith(() => Promise.resolve(missing)))
     await on.shows("no trek yet")
@@ -522,11 +522,11 @@ test("back on the landing page, it's there at once as it was left, its change st
   const frame = await frameAfter(app(".", LANDING, sources({ load })), async (input, on) => {
     await on.shows("YOUR WORK")
     input.pressKey("j")
-    await on.shows(/▶ ○ no trek yet +fix\/rounding/)
+    await on.shows(/▶ fix\/rounding/)
     input.pressEnter()
     await on.shows("no trek yet")
     await escape(input, on, "YOUR WORK")
   })
 
-  expect(frame).toMatch(/▶ ○ no trek yet +fix\/rounding/)
+  expect(frame).toMatch(/▶ fix\/rounding/)
 })

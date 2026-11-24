@@ -360,26 +360,26 @@
 
   <section>
     <h2>2. The landing page</h2>
-    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). Each row leads with its trek's state, then the change's name, then what it holds, dimmed; a group with nothing in it says so on its heading's line, and when nothing waits on your review it's said on the other pull requests' heading. A pull request's trek state comes from its head as listed, the list read again each minute. The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, typing narrows them by name or path, <code>esc</code> clears what's typed and then is done, and the title bar then names the repos added.</p>
+    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). Each row is the change's name, what it holds right after it, dimmed, and its trek's state, lined up with the rest just past the longest row; the pull requests are one group, those waiting on your review first and marked so. A pull request's trek state comes from its head as listed, the list read again each minute. The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, typing narrows them by name or path, <code>esc</code> clears what's typed and then is done, and the title bar then names the repos added.</p>
     <div class="grid2">
       <figure><figcaption>On a branch an agent has worked on</figcaption>
         <div class="term screen">
           <div class="tb"><span><b>srctrek</b></span><span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
-            <div class="ln sel">  <span class="dim">○</span> no trek yet  feature/refunds  <span class="dim">9 commits since main</span></div>
-            <div class="ln">  <span class="dim">○</span> no trek yet  <span class="dim">└</span> with uncommitted work  <span class="dim">2 files</span></div>
+            <div class="ln sel">  feature/refunds  <span class="dim">9 commits since main</span>                <span class="dim">○</span> no trek yet</div>
+            <div class="ln">    with uncommitted work  <span class="dim">2 files</span>                     <span class="dim">○</span> no trek yet</div>
             <div class="ln"> </div>
-            <div class="ln dim">WAITING ON YOUR REVIEW</div>
-            <div class="ln">  <span class="g">●</span> <span class="g">ready</span>        #12 Add partial refunds  <span class="dim">alice · 2h ago</span></div>
-            <div class="ln">  <span class="dim">○</span> no trek yet  #15 Retry failed payouts  <span class="dim">bo · 1d ago</span></div>
+            <div class="ln dim">PULL REQUESTS</div>
+            <div class="ln">  #12 Add partial refunds  <span class="dim">alice</span><span class="dim"> · </span><span class="a">review requested</span>    <span class="g">●</span> <span class="g">ready</span></div>
+            <div class="ln">  #15 Retry failed payouts  <span class="dim">bo</span><span class="dim"> · </span><span class="a">review requested</span>      <span class="dim">○</span> no trek yet</div>
             <div class="ln"> </div>
             <div class="ln dim">OTHER BRANCHES</div>
-            <div class="ln">  <span class="y">≠</span> <span class="y">stale</span>        fix/rounding  <span class="dim">1 commit since main</span></div>
+            <div class="ln">  fix/rounding  <span class="dim">1 commit since main</span>                    <span class="y">≠</span> <span class="y">stale</span></div>
             <div class="ln">  <span class="dim">▸ 6 more</span></div>
             <div class="ln"> </div>
             <div class="ln dim">CODE AS IT IS</div>
-            <div class="ln">  <span class="g">●</span> <span class="g">2 treks</span>      web and api as they are  <span class="dim">7 ways in</span></div>
+            <div class="ln">  web and api as they are  <span class="dim">7 ways in</span>                   <span class="g">●</span> <span class="g">2 treks</span></div>
             <div class="ln"> </div>
             <div class="ln dim">DONE</div>
             <div class="ln">  <span class="dim">▸ 12 treks</span></div>
@@ -392,17 +392,17 @@
           <div class="tb"><span><b>srctrek</b></span><span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
-            <div class="ln sel">                   feature/payouts  <span class="dim">nothing since main yet</span></div>
+            <div class="ln sel">  feature/payouts  <span class="dim">nothing since main yet</span></div>
             <div class="ln"> </div>
-            <div class="ln dim">WAITING ON YOUR REVIEW</div>
-            <div class="ln">  <span class="g">●</span> <span class="g">ready</span>          #12 Add partial refunds  <span class="dim">alice · 2h ago</span></div>
+            <div class="ln dim">PULL REQUESTS</div>
+            <div class="ln">  #12 Add partial refunds  <span class="dim">alice</span><span class="dim"> · </span><span class="a">review requested</span>       <span class="g">●</span> <span class="g">ready</span></div>
             <div class="ln"> </div>
             <div class="ln dim">OTHER BRANCHES</div>
-            <div class="ln">  <span class="dim">○</span> no trek yet    feature/refunds  <span class="dim">9 commits since main</span></div>
-            <div class="ln">  <span class="y">≠</span> <span class="y">stale</span>          fix/rounding  <span class="dim">1 commit since main</span></div>
+            <div class="ln">  feature/refunds  <span class="dim">9 commits since main</span>                   <span class="dim">○</span> no trek yet</div>
+            <div class="ln">  fix/rounding  <span class="dim">1 commit since main</span>                       <span class="y">≠</span> <span class="y">stale</span></div>
             <div class="ln"> </div>
             <div class="ln dim">CODE AS IT IS</div>
-            <div class="ln">  <span class="dim">○</span> not found yet  web as it is  <span class="dim">routes, events, and commands to follow</span></div>
+            <div class="ln">  web as it is  <span class="dim">routes, events, and commands to follow</span>    <span class="dim">○</span> not found yet</div>
             <div class="ln"> </div>
             <div class="ln dim">DONE</div>
             <div class="ln">  <span class="dim">▸ 12 treks</span></div>
@@ -415,11 +415,11 @@
           <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
-            <div class="ln sel">  <span class="dim">○</span> no trek yet  feature/refunds  <span class="dim">9 commits since main</span></div>
-            <div class="ln dim">  ○ no trek yet  <span class="dim">└</span> with uncommitted work  2 files</div>
+            <div class="ln sel">  feature/refunds  <span class="dim">9 commits since main</span>                <span class="dim">○</span> no trek yet</div>
+            <div class="ln dim">    with uncommitted work  2 files                     ○ no trek yet</div>
             <div class="ln"> </div>
-            <div class="ln dim">WAITING ON YOUR REVIEW</div>
-            <div class="ln dim">  ● ready        #12 Add partial refunds  alice · 2h ago</div>
+            <div class="ln dim">PULL REQUESTS</div>
+            <div class="ln dim">  #12 Add partial refunds  <span class="dim">alice</span><span class="dim"> · </span><span class="a">review requested</span>    ● ready</div>
           </div>
           <div class="sheet">
             <div class="ln"><span class="a">ADD REPOS</span><span class="dim"> · 1 added</span></div>
@@ -436,8 +436,8 @@
           <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
-            <div class="ln sel">  <span class="dim">○</span> no trek yet  feature/refunds  <span class="dim">9 commits since main</span></div>
-            <div class="ln dim">  ○ no trek yet  <span class="dim">└</span> with uncommitted work  2 files</div>
+            <div class="ln sel">  feature/refunds  <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln dim">    with uncommitted work  2 files         ○ no trek yet</div>
           </div>
           <div class="sheet">
             <div class="ln"><span class="a">ADD REPOS</span><span class="dim"> · 1 added</span></div>
@@ -456,8 +456,8 @@
           <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
-            <div class="ln sel">  <span class="dim">○</span> no trek yet  feature/refunds  <span class="dim">9 commits since main</span></div>
-            <div class="ln dim">  ○ no trek yet  <span class="dim">└</span> with uncommitted work  2 files</div>
+            <div class="ln sel">  feature/refunds  <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln dim">    with uncommitted work  2 files         ○ no trek yet</div>
           </div>
           <div class="sheet">
             <div class="ln"><span class="a">ADD REPOS</span><span class="dim"> · 1 added</span>  / bil▏</div>
@@ -472,14 +472,14 @@
           <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api, billing</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
-            <div class="ln sel">  <span class="dim">○</span> no trek yet  feature/refunds  <span class="dim">9 commits since main</span></div>
-            <div class="ln">  <span class="dim">○</span> no trek yet  <span class="dim">└</span> with uncommitted work  <span class="dim">2 files</span></div>
+            <div class="ln sel">  feature/refunds  <span class="dim">9 commits since main</span>                <span class="dim">○</span> no trek yet</div>
+            <div class="ln">    with uncommitted work  <span class="dim">2 files</span>                     <span class="dim">○</span> no trek yet</div>
             <div class="ln"> </div>
-            <div class="ln dim">WAITING ON YOUR REVIEW</div>
-            <div class="ln">  <span class="g">●</span> <span class="g">ready</span>        #12 Add partial refunds  <span class="dim">alice · 2h ago</span></div>
+            <div class="ln dim">PULL REQUESTS</div>
+            <div class="ln">  #12 Add partial refunds  <span class="dim">alice</span><span class="dim"> · </span><span class="a">review requested</span>    <span class="g">●</span> <span class="g">ready</span></div>
             <div class="ln"> </div>
             <div class="ln dim">OTHER BRANCHES</div>
-            <div class="ln">  <span class="y">≠</span> <span class="y">stale</span>        fix/rounding  <span class="dim">1 commit since main</span></div>
+            <div class="ln">  fix/rounding  <span class="dim">1 commit since main</span>                    <span class="y">≠</span> <span class="y">stale</span></div>
             <div class="ln"> </div>
             <div class="ln dim">DONE</div>
             <div class="ln">  <span class="dim">▸ 12 treks</span></div>

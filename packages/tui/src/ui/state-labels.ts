@@ -27,7 +27,10 @@ const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], st
   committed: "committed",
 }
 
+/** The symbol of a trek whose work has landed or gone. */
+export const DONE_SYMBOL = "✓"
+
 /** A trek whose work has landed or gone: "✓ merged", "✓ branch gone", "✓ committed". */
 export function doneLabel(why: Extract<TrekState, { kind: "done" }>["why"]): StateLabel {
-  return { symbol: "✓", state: DONE_WORD[why], tone: "dim" }
+  return { symbol: DONE_SYMBOL, state: DONE_WORD[why], tone: "dim" }
 }

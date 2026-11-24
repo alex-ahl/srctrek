@@ -3,12 +3,7 @@ import { count } from "../ui/text"
 
 /** The headings the landing page's rows sit under, in the order they're listed. */
 export type LandingGroup =
-  | "YOUR WORK"
-  | "WAITING ON YOUR REVIEW"
-  | "OTHER PULL REQUESTS"
-  | "OTHER BRANCHES"
-  | "CODE AS IT IS"
-  | "DONE"
+  "YOUR WORK" | "PULL REQUESTS" | "OTHER BRANCHES" | "CODE AS IT IS" | "DONE"
 
 /** A trek whose work has landed or gone, by its name and title, and how its work ended. */
 export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
@@ -25,6 +20,8 @@ export type LandingRow = Readonly<{
   label: string
   detail: string
   choice: Pick
+  // what sets it apart, drawn in the accent after what it holds: "review requested"
+  mark?: string
   pull?: Readonly<{ number: number; head: string }>
 }>
 
@@ -72,18 +69,16 @@ export const CODE_ROW: LandingRow = {
   choice: { kind: "code" },
 }
 
-// Who opened it, and what sets it apart: waiting on the user's review, or still a draft.
-function pullDetail(pr: OpenPullRequest): string {
-  const marks = [pr.reviewRequested ? "review requested" : "", pr.draft ? "draft" : ""]
-  return [pr.author, ...marks.filter(Boolean)].join(" · ")
-}
+// Who opened it, and whether it's still a draft.
+const pullDetail = (pr: OpenPullRequest): string => (pr.draft ? `${pr.author} · draft` : pr.author)
 
-/** The open pull requests, those waiting on the user's review apart from the rest. */
+/** The open pull requests, those waiting on the user's review first, marked so. */
 export function pullRequestRows(open: readonly OpenPullRequest[]): LandingRow[] {
   const row = (pr: OpenPullRequest): LandingRow => ({
-    group: pr.reviewRequested ? "WAITING ON YOUR REVIEW" : "OTHER PULL REQUESTS",
+    group: "PULL REQUESTS",
     label: `#${pr.number} ${pr.title}`,
     detail: pullDetail(pr),
+    ...(pr.reviewRequested ? { mark: "review requested" } : {}),
     choice: { kind: "pull-request", url: pr.url },
     pull: { number: pr.number, head: pr.head },
   })
@@ -98,7 +93,7 @@ export const doneRows = (done: readonly DoneTrek[]): LandingRow[] =>
   done.map((trek) => ({
     group: "DONE",
     label: trek.title,
-    detail: trek.why,
+    detail: "",
     choice: { kind: "trek", name: trek.name, why: trek.why },
   }))
 
