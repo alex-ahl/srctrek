@@ -237,9 +237,9 @@ background and deeper ones on a light one, and secondary text is mixed 60% of th
 terminal's background to its text; until then, or if it never reports them, the terminal's own
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
-Every screen's footer lists its keys, each key bold in the text's colour and what it does dimmed
-after it, split from the next by a dim `¦`, with `enter` drawn as `↵`:
-`↵ open  ¦  a add repos  ¦  S settings  ¦  ? keys`.
+Every screen's footer lists its keys, each key bold in the text's colour, then a colon and what it
+does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
+`↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
 
 - **Landing page,** what `trek` opens on: every change there is to look at, under headings, each
   with its trek's state. YOUR WORK: the branch checked out, then its uncommitted work as a row of

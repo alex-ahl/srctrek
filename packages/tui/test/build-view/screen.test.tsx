@@ -62,7 +62,7 @@ test("shows the build as it stands: its title, steps, what was read, and a round
   expect(frame).toMatch(/STEPS {2}2 steps added\s+s1 {2}s2/)
   expect(frame).toMatch(/READING {2}2 reads/)
   expect(frame).toMatch(/REJECTED {2}1 round\s+s3: cites web src\/db\.ts:88, which is blank/)
-  expect(frame).toContain("x stop  ¦  tab the log  ¦  esc back")
+  expect(frame).toContain("x: stop  ¦  tab: the log  ¦  esc: back")
 })
 
 test("says why a build ended without a trek, and offers to build again", async () => {
@@ -76,7 +76,7 @@ test("says why a build ended without a trek, and offers to build again", async (
 
   expect(frame).toContain("✕ build failed  Refunding an order  after 1m 12s")
   expect(frame).toMatch(/WHY\s+Error: rate limit reached/)
-  expect(frame).toContain("b build again  ¦  tab the log")
+  expect(frame).toContain("b: build again  ¦  tab: the log")
   expect(frame).not.toContain("x stop")
 })
 
@@ -136,7 +136,7 @@ test("← steps to an older build, saying which, with nothing to stop or build t
 
   expect(asked).toContain(1)
   expect(frame).toMatch(/build 1 of 2 · started/)
-  expect(frame).toContain("←/→ older, newer")
+  expect(frame).toContain("←/→: older, newer")
   expect(frame).not.toContain("x stop")
   expect(frame).not.toContain("b build again")
 })

@@ -10,12 +10,12 @@ const SEPARATOR = "  ¦  "
 
 const keyLabel = (key: string) => (key === "enter" ? "↵" : key)
 
-/** Keys as a line of hints: "↑/↓ choose  ¦  ↵ pick  ¦  esc cancel". */
+/** Keys as a line of hints: "↑/↓: choose  ¦  ↵: pick  ¦  esc: cancel". */
 export function keysText(keys: readonly KeyHint[]): string {
-  return keys.map(({ key, does }) => `${keyLabel(key)} ${does}`).join(SEPARATOR)
+  return keys.map(({ key, does }) => `${keyLabel(key)}: ${does}`).join(SEPARATOR)
 }
 
-/** Keys as a line of hints, each key in the text's colour and bold, the rest dimmed. */
+/** Keys as a line of hints, each key in the text's colour and bold, a colon and the rest dimmed. */
 export function KeyHints({ keys }: { keys: readonly KeyHint[] }) {
   const tones = useTones()
   return (
@@ -26,7 +26,7 @@ export function KeyHints({ keys }: { keys: readonly KeyHint[] }) {
           <span fg={COLOUR.text} attributes={TextAttributes.BOLD}>
             {keyLabel(key)}
           </span>
-          {` ${does}`}
+          {`: ${does}`}
         </span>
       ))}
     </text>

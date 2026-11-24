@@ -180,7 +180,7 @@ function useNotice(opening: Pending | undefined) {
 }
 
 const DROP_KEYS = [
-  { key: "type", does: "to narrow" },
+  { key: "type", does: "narrow" },
   { key: "enter", does: "take" },
   { key: "←/esc", does: "close" },
 ]

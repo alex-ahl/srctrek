@@ -46,7 +46,7 @@ test("p from the first stop shows the overview", async () => {
 
   expect(frame).toContain("3 stops")
   expect(frame).not.toContain("1 / 3")
-  expect(frame).toContain("n the first stop  ¦  r route  ¦  ? keys")
+  expect(frame).toContain("n: the first stop  ¦  r: route  ¦  ?: keys")
 })
 
 test("the first stop shows its file, the narration over it, and where n and p go", async () => {
@@ -64,7 +64,7 @@ test("the first stop shows its file, the narration over it, and where n and p go
   expect(frame).toMatch(/into pay /)
   expect(frame).toMatch(/PREVIOUS  p\s+.*\n.*the overview/)
   expect(frame).toMatch(/1 ▶ +const total = pay\(\) +→ \[n\] /)
-  expect(frame).toContain("n into pay  ¦  p back  ¦  r route")
+  expect(frame).toContain("n: into pay  ¦  p: back  ¦  r: route")
 })
 
 test("into, then out, follow the call and come back", async () => {
@@ -123,7 +123,7 @@ test("d opens a step's details: how it was reached, with the cited line's code, 
   expect(frame).toMatch(/› +stop 1/)
   expect(frame).toMatch(/main\.ts:1 [^\n]*\n +const total = pay\(\)/)
   expect(frame).toContain("CONTEXT")
-  expect(frame).toContain("↵ go there")
+  expect(frame).toContain("↵: go there")
 })
 
 test("enter in details goes to the step chosen, closing them", async () => {
@@ -240,7 +240,7 @@ test("← in the route folds a call's stops into its row, and n then steps past 
   expect(map).toMatch(/▶  1  ▸ main\.ts:1  2 stops/)
   expect(map).not.toMatch(/│ pay\.ts:1/)
   expect(after).toContain("the end of the trek")
-  expect(after).toContain("n the end  ¦  p back")
+  expect(after).toContain("n: the end  ¦  p: back")
 })
 
 test("tab in the route lays the stops out by repo, then as a tree of their files", async () => {
@@ -254,7 +254,7 @@ test("tab in the route lays the stops out by repo, then as a tree of their files
       input.pressTab()
       await screen.drawn()
       input.pressTab()
-      await screen.shows("tab calls, repos, files")
+      await screen.shows("tab: calls, repos, files")
     },
     120,
     24,
@@ -262,7 +262,7 @@ test("tab in the route lays the stops out by repo, then as a tree of their files
 
   expect(frame).toMatch(/▶ +main\.ts +1 \+/)
   expect(frame).toMatch(/n +pay\.ts +2 \+/)
-  expect(frame).toContain("tab calls, repos, files")
+  expect(frame).toContain("tab: calls, repos, files")
 })
 
 test("a hop says what carries it, beside the code and in the route", async () => {
@@ -324,6 +324,6 @@ test("enter on a call found by name in several places opens the nearest, and ←
   )
 
   expect(first).toContain("format · format.ts:1 · found by name · 1 of 2")
-  expect(first).toContain("←/→ other places")
+  expect(first).toContain("←/→: other places")
   expect(second).toContain("format · vendor/format.ts:1 · found by name · 2 of 2")
 })

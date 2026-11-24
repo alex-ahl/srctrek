@@ -8,5 +8,5 @@ test("keys read as the key, then what it does, spaced apart, enter drawn as ↵"
     { key: "?", does: "keys" },
   ])
 
-  expect(text).toBe("↵ open  ¦  a add repos  ¦  ? keys")
+  expect(text).toBe("↵: open  ¦  a: add repos  ¦  ?: keys")
 })

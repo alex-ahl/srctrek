@@ -22,7 +22,7 @@ const tickHint = (repo: RepoItem | undefined): KeyHint[] =>
 function sheetKeys(repo: RepoItem | undefined, query: string): KeyHint[] {
   const branches = repo === undefined ? [] : [{ key: "→", does: "branches" }]
   return [
-    { key: "type", does: "to narrow" },
+    { key: "type", does: "narrow" },
     ...tickHint(repo),
     ...branches,
     { key: "esc", does: query === "" ? "done" : "clear" },

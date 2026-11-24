@@ -158,7 +158,7 @@ test("y on the agent copies what to paste into the agent's chat, or shows it whe
     32,
   )
 
-  expect(frame).toContain("y copy for your agent")
+  expect(frame).toContain("y: copy for your agent")
   expect(frame).toContain("Press y to copy this, then paste it into your agent's chat:")
   expect(frame).toContain("▌ Set up srctrek so it can start you to build treks on your own.")
   const copied = frame.includes("✓ Copied. Send it in your agent's chat")
