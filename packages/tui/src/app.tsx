@@ -269,6 +269,7 @@ export function App(props: Props) {
         repoBranches={sources.repoBranches}
         fetchRepo={sources.fetchRepo}
         status={sources.status}
+        pullStatus={sources.pullStatus}
         opening={preparing.opening}
         onRest={(choice) => choice.kind !== "trek" && preparing.rest(choice)}
         onPick={pick}

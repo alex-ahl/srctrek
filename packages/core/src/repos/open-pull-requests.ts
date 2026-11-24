@@ -8,6 +8,8 @@ export type OpenPullRequest = Readonly<{
   url: string
   draft: boolean
   reviewRequested: boolean
+  // the commit its branch is at now
+  head: string
 }>
 
 const ListedSchema = z.array(
@@ -17,6 +19,7 @@ const ListedSchema = z.array(
     author: z.object({ login: z.string() }),
     url: z.string(),
     isDraft: z.boolean(),
+    headRefOid: z.string(),
   }),
 )
 
@@ -75,7 +78,7 @@ export async function pullRequestOf(
  * can't list them (not installed, not logged in, not a GitHub repo).
  */
 export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPullRequest[]> {
-  const fields = ["--json", "number,title,author,url,isDraft", "--limit", LIMIT]
+  const fields = ["--json", "number,title,author,url,isDraft,headRefOid", "--limit", LIMIT]
   const [listed, waiting] = await Promise.all([
     runGh(cwd, gh, ["pr", "list", ...fields]),
     runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", "--json", "number"]),
@@ -89,6 +92,7 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
     url: pr.url,
     draft: pr.isDraft,
     reviewRequested: requested.has(pr.number),
+    head: pr.headRefOid,
   }))
 
   return open.toSorted((a, b) => Number(b.reviewRequested) - Number(a.reviewRequested))

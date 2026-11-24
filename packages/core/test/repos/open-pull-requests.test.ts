@@ -12,6 +12,7 @@ const LISTED = [
     author: { login: "bo" },
     url: "https://github.com/acme/api/pull/14",
     isDraft: true,
+    headRefOid: "b14",
   },
   {
     number: 12,
@@ -19,6 +20,7 @@ const LISTED = [
     author: { login: "alice" },
     url: "https://github.com/acme/api/pull/12",
     isDraft: false,
+    headRefOid: "a12",
   },
 ]
 
@@ -31,7 +33,7 @@ async function fakeGh(script: string): Promise<string> {
 }
 
 describe("openPullRequests", () => {
-  test("lists the open pull requests, those waiting on the user's review first", async () => {
+  test("lists the open pull requests with their head commits, those waiting on the user's review first", async () => {
     const gh = await fakeGh(`case "$*" in
   *review-requested*) echo '[{"number":12}]' ;;
   *) echo '${JSON.stringify(LISTED)}' ;;
@@ -47,6 +49,7 @@ esac`)
         url: "https://github.com/acme/api/pull/12",
         draft: false,
         reviewRequested: true,
+        head: "a12",
       },
       {
         number: 14,
@@ -55,6 +58,7 @@ esac`)
         url: "https://github.com/acme/api/pull/14",
         draft: true,
         reviewRequested: false,
+        head: "b14",
       },
     ])
   })

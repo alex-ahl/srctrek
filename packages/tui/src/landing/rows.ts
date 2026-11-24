@@ -16,12 +16,16 @@ export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
 /** What a row opens: a change, or a trek whose change is gone, by its name. */
 export type Pick = ChangeChoice | Readonly<{ kind: "trek"; name: string; why: string }>
 
-/** A row of the landing page: under its heading, its name and what it holds, and what it opens. */
+/**
+ * A row of the landing page: under its heading, its name and what it holds, and what it opens; a
+ * pull request's row, its number and head, which its trek's state is read from.
+ */
 export type LandingRow = Readonly<{
   group: LandingGroup
   label: string
   detail: string
   choice: Pick
+  pull?: Readonly<{ number: number; head: string }>
 }>
 
 const since = (commits: number, base: string) => `${count(commits, "commit")} since ${base}`
@@ -81,6 +85,7 @@ export function pullRequestRows(open: readonly OpenPullRequest[]): LandingRow[] 
     label: `#${pr.number} ${pr.title}`,
     detail: pullDetail(pr),
     choice: { kind: "pull-request", url: pr.url },
+    pull: { number: pr.number, head: pr.head },
   })
   const waiting = open.filter((pr) => pr.reviewRequested)
   const others = open.filter((pr) => !pr.reviewRequested)

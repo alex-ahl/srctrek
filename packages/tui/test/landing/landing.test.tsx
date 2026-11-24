@@ -54,6 +54,7 @@ const open: OpenPullRequest[] = [
     url: "https://github.com/acme/web/pull/12",
     draft: false,
     reviewRequested: true,
+    head: "a12",
   },
   {
     number: 14,
@@ -62,8 +63,15 @@ const open: OpenPullRequest[] = [
     url: "https://github.com/acme/web/pull/14",
     draft: true,
     reviewRequested: false,
+    head: "b14",
   },
 ]
+
+// #12's trek was built at its head; #14 has none.
+const pullStatusOf = ({ number }: Readonly<{ number: number }>): Promise<TrekStatus> =>
+  Promise.resolve(
+    number === 12 ? { kind: "ready", name: "pr-12" } : { kind: "missing", name: `pr-${number}` },
+  )
 
 // api's branches, most recent first: refunds-v2 by alice, refunds-api checked out, then older.
 const HOUR = 60 * 60 * 1000
@@ -104,6 +112,7 @@ type Setup = Partial<{
   onQuit: () => void
   pullRequests: () => Promise<OpenPullRequest[]>
   status: (choice: ChangeChoice) => Promise<TrekStatus>
+  pullsEvery: number
   repoBranches: (path: string) => Promise<RepoBranches>
   nearby: NearbyCheckout[]
 }>
@@ -117,6 +126,8 @@ function landing(setup: Setup = {}) {
       repoBranches={setup.repoBranches ?? (() => Promise.resolve(apiBranches))}
       fetchRepo={fetchRepo}
       status={setup.status ?? statusOf}
+      pullStatus={pullStatusOf}
+      {...(setup.pullsEvery === undefined ? {} : { pullsEvery: setup.pullsEvery })}
       done={() => Promise.resolve(done)}
       onPick={setup.onPick ?? (() => undefined)}
       onSettings={setup.onSettings ?? (() => undefined)}
@@ -191,9 +202,11 @@ test("opens on the user's own branch, every change under its heading", async () 
 
   // what a change holds right after its name
   expect(frame).toMatch(/YOUR WORK\s+▶ ● ready +feature\/refunds  3 commits since main/)
-  // a pull request's trek isn't worked out here: a dim dot holds its place
-  expect(frame).toMatch(/WAITING ON YOUR REVIEW\s+· +#12 Add partial refunds  alice/)
-  expect(frame).toMatch(/OTHER PULL REQUESTS\s+· +#14 Round refunds to cents/)
+  // a pull request's trek, from its head as listed
+  expect(frame).toMatch(/WAITING ON YOUR REVIEW\s+● ready +#12 Add partial refunds  alice/)
+  expect(frame).toMatch(/OTHER PULL REQUESTS\s+○ no trek yet +#14 Round refunds to cents/)
+  // uncommitted work under its branch
+  expect(frame).toMatch(/○ no trek yet +└ with uncommitted work  2 files changed/)
   expect(frame).toMatch(/OTHER BRANCHES\s+○ no trek yet +fix\/rounding/)
   expect(frame).toMatch(/CODE AS IT IS\s+○ not found yet +its ways in/)
   // folded where the states are
@@ -274,6 +287,13 @@ test("says when nothing waits on your review, or why pull requests can't be list
   )
 
   expect(none).toMatch(/WAITING ON YOUR REVIEW +none *\n/)
+  const others = await frameAfter(
+    landing({ pullRequests: () => Promise.resolve(open.filter((pr) => !pr.reviewRequested)) }),
+    (_i, on) => on.shows("#14 Round refunds"),
+  )
+  // said on the other pull requests' heading, a group of its own spared
+  expect(others).toMatch(/OTHER PULL REQUESTS +none waiting on your review *\n/)
+  expect(others).not.toContain("WAITING ON YOUR REVIEW")
   expect(failed).toMatch(/WAITING ON YOUR REVIEW +✕ gh: not logged in *\n/)
   expect(failed).toContain("fix/rounding")
 })
@@ -684,6 +704,7 @@ test("on a short terminal, the list scrolls to keep the selection in view", asyn
       repoBranches={() => Promise.resolve(apiBranches)}
       fetchRepo={fetchRepo}
       status={statusOf}
+      pullStatus={pullStatusOf}
       done={() => Promise.resolve(many)}
       onPick={() => undefined}
       onSettings={() => undefined}
@@ -712,6 +733,7 @@ test("scrolled into a group, the list still shows the group's heading", async ()
       repoBranches={() => Promise.resolve(apiBranches)}
       fetchRepo={fetchRepo}
       status={statusOf}
+      pullStatus={pullStatusOf}
       done={() => Promise.resolve(many)}
       onPick={() => undefined}
       onSettings={() => undefined}
@@ -737,6 +759,7 @@ test("waits for what's read here before drawing the list, saying so once it take
       repoBranches={() => Promise.resolve(apiBranches)}
       fetchRepo={fetchRepo}
       status={statusOf}
+      pullStatus={pullStatusOf}
       done={() => Promise.resolve(done)}
       onPick={() => undefined}
       onSettings={() => undefined}
@@ -772,6 +795,7 @@ test("the states stay where they are as pull requests with long titles arrive, s
     url: "https://github.com/acme/web/pull/12",
     draft: false,
     reviewRequested: false,
+    head: "c12",
   }
   const stateAt = (frame: string) =>
     frame
@@ -826,6 +850,7 @@ test("a change being opened says so on its own row", async () => {
       repoBranches={() => Promise.resolve(apiBranches)}
       fetchRepo={fetchRepo}
       status={statusOf}
+      pullStatus={pullStatusOf}
       done={() => Promise.resolve(done)}
       opening={{ kind: "opening", choice: { kind: "branch", name: "fix/rounding" } }}
       onPick={() => undefined}
@@ -851,6 +876,7 @@ test("a change that couldn't be opened says why, until the next key", async () =
       repoBranches={() => Promise.resolve(apiBranches)}
       fetchRepo={fetchRepo}
       status={statusOf}
+      pullStatus={pullStatusOf}
       done={() => Promise.resolve(done)}
       opening={{ kind: "failed", choice: own, why: "no such branch" }}
       onPick={() => undefined}
@@ -870,4 +896,21 @@ test("a change that couldn't be opened says why, until the next key", async () =
 
   expect(before).toContain("YOUR WORK")
   expect(after).not.toContain("couldn't open")
+})
+
+test("reads the pull requests again while open, their rows following", async () => {
+  let reads = 0
+  const pullRequests = () => {
+    reads += 1
+    return Promise.resolve(
+      reads === 1
+        ? open
+        : open.slice(0, 1).map((pr) => ({ ...pr, title: "Add partial refunds v2" })),
+    )
+  }
+  const frame = await frameAfter(landing({ pullRequests, pullsEvery: 50 }), (_i, on) =>
+    on.shows("Add partial refunds v2"),
+  )
+
+  expect(frame).not.toContain("#14 Round refunds")
 })

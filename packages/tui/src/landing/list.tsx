@@ -1,4 +1,4 @@
-import { type RGBA, TextAttributes } from "@opentui/core"
+import type { RGBA } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/react"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
@@ -23,12 +23,30 @@ const GAP = "  "
 
 const rowKey = (row: LandingRow) => JSON.stringify(row.choice)
 
-// Working out a pull request's trek means fetching it first, too slow to do for each row; a done
-// trek's row says how its work ended instead.
-function quickChoice(row: LandingRow): ChangeChoice | undefined {
-  const { choice } = row
-  return choice.kind === "pull-request" || choice.kind === "trek" ? undefined : choice
+/** How the landing page reads where each row's trek stands: a change's, and a pull request's. */
+export type StatusOf = Readonly<{
+  status: (choice: ChangeChoice) => Promise<TrekStatus>
+  pullStatus: (pr: NonNullable<LandingRow["pull"]>) => Promise<TrekStatus>
+}>
+
+// Reading where a row's trek stands: a pull request's from its head as listed, as working out
+// the change would fetch it first; none for a done trek's row, which says how its work ended.
+function askOf(row: LandingRow, read: StatusOf): (() => Promise<TrekStatus>) | undefined {
+  const { choice, pull } = row
+  if (choice.kind === "trek") {
+    return undefined
+  }
+
+  if (choice.kind === "pull-request") {
+    return pull === undefined ? undefined : () => read.pullStatus(pull)
+  }
+
+  return () => read.status(choice)
 }
+
+// Whether a row's trek state is read on the landing page.
+const workedOut = (row: LandingRow) =>
+  row.choice.kind !== "trek" && (row.choice.kind !== "pull-request" || row.pull !== undefined)
 
 /** The key of the row a change is listed on, whatever repos are ticked to go with it. */
 export function choiceKey(choice: ChangeChoice): string {
@@ -40,23 +58,23 @@ export function choiceKey(choice: ChangeChoice): string {
 export const statesKnown = (
   rows: readonly LandingRow[],
   statuses: ReadonlyMap<string, TrekStatus>,
-): boolean => rows.every((row) => quickChoice(row) === undefined || statuses.has(rowKey(row)))
+): boolean => rows.every((row) => !workedOut(row) || statuses.has(rowKey(row)))
 
 /** Each row's trek status as it's worked out; one that can't be worked out is left blank. */
 export function useStatuses(
   rows: readonly LandingRow[],
-  status: (choice: ChangeChoice) => Promise<TrekStatus>,
+  { status, pullStatus }: StatusOf,
 ): ReadonlyMap<string, TrekStatus> {
   const [found, setFound] = useState<ReadonlyMap<string, TrekStatus>>(new Map())
   useEffect(() => {
     let current = true
     for (const row of rows) {
-      const choice = quickChoice(row)
-      if (choice === undefined) {
+      const ask = askOf(row, { status, pullStatus })
+      if (ask === undefined) {
         continue
       }
 
-      void status(choice).then(
+      void ask().then(
         (each) => current && setFound((known) => new Map(known).set(rowKey(row), each)),
         () => undefined,
       )
@@ -65,7 +83,7 @@ export function useStatuses(
     return () => {
       current = false
     }
-  }, [rows, status])
+  }, [rows, status, pullStatus])
 
   return found
 }
@@ -86,7 +104,7 @@ type StateCell = Readonly<{ text: string; tone: Tone }>
 
 // "● ready", "≠ stale", "○ no trek yet": in the words and colours a change's screen uses; code
 // as it is says where finding its ways in stands; turning while being opened or worked out; a dot
-// for a pull request's or a done trek's, not worked out here.
+// for a done trek's, not worked out here.
 function stateCell(
   row: LandingRow,
   status: TrekStatus | undefined,
@@ -98,7 +116,7 @@ function stateCell(
   }
 
   if (status === undefined) {
-    return { text: quickChoice(row) === undefined ? NOT_WORKED_OUT : turning, tone: "dim" }
+    return { text: workedOut(row) ? turning : NOT_WORKED_OUT, tone: "dim" }
   }
 
   const { symbol, state, tone } = statusBlock(status, undefined, false, {
@@ -106,6 +124,11 @@ function stateCell(
   })
   return { text: `${symbol} ${STATE_WORDS[state] ?? state}`, tone }
 }
+
+// The uncommitted work on the user's branch, drawn under it as its own.
+const underBranch = (row: LandingRow) => row.choice.kind === "own" && row.choice.uncommitted
+
+const UNDER_BRANCH = "└ "
 
 // The states' column, where names are cut, and the room a row has after the selection marker.
 type Widths = Readonly<{ state: number; name: number; room: number }>
@@ -124,20 +147,22 @@ function ChangeView({
   muted: boolean
 }) {
   const tones = useTones()
-  const name = fit(row.label, widths.name)
-  const left = widths.room - widths.state - name.length - 2 * GAP.length
+  const branch = underBranch(row) ? UNDER_BRANCH : ""
+  const name = fit(row.label, widths.name - branch.length)
+  const left = widths.room - widths.state - branch.length - name.length - 2 * GAP.length
 
   return (
     <span>
       <span fg={tones[muted ? "dim" : cell.tone]}>{cell.text.padEnd(widths.state)}</span>
       {GAP}
+      <span fg={tones.dim}>{branch}</span>
       <span {...(muted ? { fg: tones.dim } : {})}>{name}</span>
       <span fg={tones.dim}>{`${GAP}${fit(row.detail, Math.max(left, 0))}`}</span>
     </span>
   )
 }
 
-// A group's heading, bold, and what it says of a group with nothing in it.
+// A group's heading, dim, and what it says of the group: nothing in it, or nothing waiting.
 function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNote | undefined }) {
   const tones = useTones()
   const { note } = props
@@ -145,8 +170,8 @@ function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNot
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
       {!props.first && <text fg={COLOUR.text}> </text>}
-      <text fg={COLOUR.text}>
-        <span attributes={TextAttributes.BOLD}>{props.group}</span>
+      <text fg={tones.dim}>
+        {props.group}
         {note !== undefined && <span fg={tones[note.tone]}>{`${GAP}${note.text}`}</span>}
       </text>
     </box>
@@ -194,10 +219,7 @@ const busy = (
 ) =>
   opening !== undefined ||
   items.some(
-    (item) =>
-      item.kind === "change" &&
-      quickChoice(item.row) !== undefined &&
-      !statuses.has(rowKey(item.row)),
+    (item) => item.kind === "change" && workedOut(item.row) && !statuses.has(rowKey(item.row)),
   )
 
 // Each row's state cell, by its key.
@@ -255,8 +277,11 @@ export function LandingList({
   const turning = useTurning(busy(items, statuses, opening))
   const cells = cellsOf(items, statuses, opening, turning)
   const widths = widthsOf(cells, width)
+  // a note on a group that's listed goes on its heading; else it's a heading of its own
+  const onHeading = note !== undefined && items.some((item) => groupOf(item) === note.group)
+  const alone = onHeading ? undefined : note
   const noteAt = noteIndex(items)
-  const start = firstShown(items, chosen, noteAt, note !== undefined, height)
+  const start = firstShown(items, chosen, noteAt, alone !== undefined, height)
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
@@ -264,9 +289,13 @@ export function LandingList({
         const index = start + shown
         return (
           <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
-            {index === noteAt && <Note note={note} first={index === 0} />}
+            {index === noteAt && <Note note={alone} first={index === 0} />}
             {(startsGroup(items[index - 1], item) || shown === 0) && (
-              <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
+              <Heading
+                group={groupOf(item)}
+                first={index === start && (noteAt !== index || alone === undefined)}
+                note={onHeading && note.group === groupOf(item) ? note : undefined}
+              />
             )}
             <Selectable selected={index === chosen} tint={tint}>
               <ItemView item={item} cells={cells} widths={widths} muted={muted} />
@@ -274,7 +303,7 @@ export function LandingList({
           </box>
         )
       })}
-      {noteAt === items.length && <Note note={note} first={items.length === 0} />}
+      {noteAt === items.length && <Note note={alone} first={items.length === 0} />}
     </box>
   )
 }

@@ -7,7 +7,8 @@ import { stopIds } from "./stops"
 import { pathExists } from "../../files"
 import { PROMPT_HASH } from "../../prompts/texts"
 import { loadTrek, loadTrekOrProblem, trekPath } from "../../treks/store"
-import { trekNameFor } from "./name"
+import type { Trek } from "../../schema/trek"
+import { pullTrekName, trekNameFor } from "./name"
 import { type Trigger, loadTriggers } from "../triggers"
 import { trekState } from "./trek-state"
 
@@ -24,7 +25,8 @@ export type TrekStatus = Readonly<
   | { kind: "ready" | "older-guide" | "missing" | "empty"; name: string }
   | { kind: "unreadable"; name: string; problem: string }
   | { kind: "unreachable"; name: string; unreachable: UnreachableRepo }
-  | { kind: "stale"; name: string; staleStops: number; stops: number }
+  // how many stops changed isn't known for a pull request read from its listing alone
+  | { kind: "stale"; name: string; staleStops: number | undefined; stops: number }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
   | { kind: "triggers"; name: string; triggers: TriggerTrek[] }
 >
@@ -172,6 +174,38 @@ async function nameFor(root: string, change: ResolvedChange): Promise<string> {
   }
 
   return next
+}
+
+// The commit a pull request's trek was built at: its repo whose head is that pull request.
+const builtAt = (trek: Trek, number: number) =>
+  trek.repos.find((repo) => repo.head?.kind === "pull" && repo.head.number === number)?.revision
+
+/**
+ * Where a pull request's trek stands, from its head as listed, with nothing fetched: a build under
+ * way or failed first; else ready when its trek was built at that head, stale when the head has
+ * moved, how many stops changed not known; else missing.
+ */
+export async function pullRequestStatus(
+  root: string,
+  pr: Readonly<{ number: number; head: string }>,
+): Promise<TrekStatus> {
+  const name = pullTrekName(pr.number)
+  const state = await buildState(root, name)
+  const path = trekPath(root, name)
+  if (state === "building" || state === "failed" || !(await pathExists(path))) {
+    return buildStatus(root, name)
+  }
+
+  const saved = await loadTrekOrProblem(path)
+  if ("problem" in saved) {
+    return { kind: "unreadable", name, problem: saved.problem }
+  }
+
+  if (builtAt(saved.trek, pr.number) === pr.head) {
+    return readyStatus(root, name)
+  }
+
+  return { kind: "stale", name, staleStops: undefined, stops: stopIds(saved.trek).size }
 }
 
 /** The status of the change's trek, by the name a new trek of it would get. */

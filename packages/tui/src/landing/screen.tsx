@@ -18,6 +18,7 @@ import {
   choiceKey,
   itemKey,
   statesKnown,
+  type StatusOf,
   useStatuses,
 } from "./list"
 import { type Ticked, toggled } from "./repos"
@@ -47,6 +48,9 @@ type Props = {
   fetchRepo: (path: string) => Promise<void>
   // where the trek of each change stands, filled in as each is worked out
   status: (choice: ChangeChoice) => Promise<TrekStatus>
+  pullStatus: StatusOf["pullStatus"]
+  // how often the pull requests are read again while the page is in front
+  pullsEvery?: number | undefined
   // the treks whose work has landed or gone
   done: () => Promise<DoneTrek[]>
   // whether the page is in front: behind another screen it keeps where it was, drawing nothing
@@ -69,27 +73,43 @@ type Loaded<T> =
   | Readonly<{ kind: "ready"; found: T }>
   | Readonly<{ kind: "failed"; why: string }>
 
-/** What `load` answers; asked again only when `load` is a new one. */
-function useLoaded<T>(load: () => Promise<T>): Loaded<T> {
+/**
+ * What `load` answers; asked again when `load` is a new one, and every `every` ms while given. A
+ * read again that fails keeps what was found, so a moment offline doesn't empty the list.
+ */
+function useLoaded<T>(load: () => Promise<T>, every?: number): Loaded<T> {
   const [loaded, setLoaded] = useState<Loaded<T>>({ kind: "loading" })
   useEffect(() => {
     let current = true
-    void load().then(
-      (found) => current && setLoaded({ kind: "ready", found }),
-      (error: unknown) => current && setLoaded({ kind: "failed", why: errorText(error) }),
-    )
+    const read = () =>
+      void load().then(
+        (found) => current && setLoaded({ kind: "ready", found }),
+        (error: unknown) =>
+          current &&
+          setLoaded((was) =>
+            was.kind === "ready" ? was : { kind: "failed", why: errorText(error) },
+          ),
+      )
+    read()
+    const timer = every === undefined ? undefined : setInterval(read, every)
+
     return () => {
       current = false
+      clearInterval(timer)
     }
-  }, [load])
+  }, [load, every])
 
   return loaded
 }
 
+// Often enough that a pull request pushed to shows its trek stale soon after, one request a time.
+const PULLS_EVERY_MS = 60_000
+
 const foundOr = <T,>(loaded: Loaded<T>, none: T): T =>
   loaded.kind === "ready" ? loaded.found : none
 
-// What waits on the user's review, with nothing to open under it yet: still asking, none, or why.
+// What waits on the user's review, with nothing to open under it yet: still asking, none, or why;
+// none said on the other pull requests' heading where there are some, sparing a group of its own.
 function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
   const group = "WAITING ON YOUR REVIEW"
   if (pulls.kind === "loading") {
@@ -100,9 +120,13 @@ function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
     return { group, text: `✕ ${pulls.why}`, tone: "bad" }
   }
 
-  return pulls.found.some((pr) => pr.reviewRequested)
-    ? undefined
-    : { group, text: "none", tone: "dim" }
+  if (pulls.found.some((pr) => pr.reviewRequested)) {
+    return undefined
+  }
+
+  return pulls.found.length === 0
+    ? { group, text: "none", tone: "dim" }
+    : { group: "OTHER PULL REQUESTS", text: "none waiting on your review", tone: "dim" }
 }
 
 // Past this, the page is drawn with what it has, the rest filling its place as it comes, rather
@@ -134,14 +158,17 @@ function useSettled(loads: readonly Loaded<unknown>[], known: boolean): boolean 
 // frame, rather than growing and shifting as each list answers.
 function useRows(props: Props) {
   const branches = useLoaded(props.load)
-  const pulls = useLoaded(props.pullRequests)
+  const pulls = useLoaded(
+    props.pullRequests,
+    props.active === false ? undefined : (props.pullsEvery ?? PULLS_EVERY_MS),
+  )
   const done = useLoaded(props.done)
   const nearby = useLoaded(props.nearby)
   const rows = useMemo(
     () => landingRows(foundOr(branches, undefined), foundOr(pulls, [])),
     [branches, pulls],
   )
-  const statuses = useStatuses(rows, props.status)
+  const statuses = useStatuses(rows, { status: props.status, pullStatus: props.pullStatus })
   const settled = useSettled([branches, done, nearby, pulls], statesKnown(rows, statuses))
 
   return {

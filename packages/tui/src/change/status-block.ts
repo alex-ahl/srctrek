@@ -63,9 +63,11 @@ function staleBlock(
   entry: TrekEntry | undefined,
 ): StatusBlock {
   const changed =
-    staleStops === 0
-      ? "built at older commits, though none of its steps' files changed"
-      : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
+    staleStops === undefined
+      ? "built at an older head of the pull request"
+      : staleStops === 0
+        ? "built at older commits, though none of its steps' files changed"
+        : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
 
   return {
     ...STATE_LABELS.stale,

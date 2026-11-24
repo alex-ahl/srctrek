@@ -30,6 +30,7 @@ const pulls: OpenPullRequest[] = [
     url: "https://github.com/acme/web/pull/12",
     draft: false,
     reviewRequested: true,
+    head: "a12",
   },
 ]
 
@@ -114,6 +115,7 @@ const landing = (
     repoBranches={() => Promise.reject(new Error("unread"))}
     fetchRepo={done}
     status={() => Promise.resolve({ kind: "missing", name: "feature-refunds" })}
+    pullStatus={() => Promise.resolve({ kind: "missing", name: "pr-12" })}
     done={() => Promise.resolve([{ name: "spike", title: "Posting to the ledger", why: "merged" }])}
     onPick={noop}
     onSettings={noop}

@@ -53,6 +53,7 @@ function sources(more: Partial<Sources> = {}): Sources {
     repoBranches: () => Promise.reject(new Error("no branches here")),
     fetchRepo: () => Promise.resolve(),
     status: () => Promise.resolve(missing),
+    pullStatus: () => Promise.resolve(missing),
     done: () => Promise.resolve([]),
     open: () => Promise.resolve(changeWith(() => Promise.resolve(missing))),
     stamp: () => Promise.resolve("still"),
@@ -402,6 +403,7 @@ test("a pull request opens on its title, never on its number first", async () =>
         url,
         draft: false,
         reviewRequested: true,
+        head: "a12",
       },
     ])
   const pull: ChangeSummary = {

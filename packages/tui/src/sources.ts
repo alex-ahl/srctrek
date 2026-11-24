@@ -21,6 +21,7 @@ import {
   nearbyCheckouts,
   openPullRequests,
   pullRequestOf,
+  pullRequestStatus,
   readBuild as readBuildAt,
   repoBranches,
   stopBuild,
@@ -33,6 +34,9 @@ import { overviewOf } from "./change/overview"
 import type { DoneTrek } from "./landing/rows"
 import { doneLabel } from "./ui/state-labels"
 import type { Stamp } from "./watch/follow"
+
+/** A pull request as its trek's state is read: its number, and the commit its branch is at. */
+export type PullHead = Pick<OpenPullRequest, "number" | "head">
 
 /**
  * Everything the screens read and change, apart from the screens: the changes to list, where
@@ -49,6 +53,8 @@ export type Sources = Readonly<{
   repoBranches: (path: string) => Promise<RepoBranches>
   fetchRepo: (path: string) => Promise<void>
   status: (choice: ChangeChoice) => Promise<TrekStatus>
+  // a pull request's trek, from its number and head as listed, with nothing fetched
+  pullStatus: (pr: PullHead) => Promise<TrekStatus>
   done: () => Promise<DoneTrek[]>
   // the change trek's args name, as it stands now
   open: (args: string[]) => Promise<OpenChange>
@@ -107,6 +113,7 @@ export function sourcesAt(root: string, ways: Ways): Sources {
     repoBranches: (path) => repoBranches(resolve(root, path)),
     fetchRepo: (path) => fetchRepo(resolve(root, path)),
     status: (choice) => choiceStatus(root, choice),
+    pullStatus: (pr) => pullRequestStatus(root, pr),
     done: () => doneTreks(root),
     open: ways.open,
     stamp: ways.stamp,
