@@ -156,7 +156,7 @@ The vocabulary every surface shares, shown in place on a step in the review page
 The stop number, its tags ("existing code" or "new file", "guessed link", "context available",
 "trek's version", "stale"),
 the step's place as `repo: path` with the repo in its own colour, and the call stack, its frames
-below the step's dimmed; every part is split from the next by a dim `│`. "away" sits at the right end, so it
+below the step's dimmed; every part is split from the next by a dim `¦`. "away" sits at the right end, so it
 doesn't move the rest.
 
 ### Call stack
@@ -238,7 +238,8 @@ terminal's background to its text; until then, or if it never reports them, the 
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
 Every screen's footer lists its keys, each key bold in the text's colour and what it does dimmed
-after it, three spaces apart, with `enter` drawn as `↵`: `↵ open   a add repos   S settings   ? keys`.
+after it, split from the next by a dim `¦`, with `enter` drawn as `↵`:
+`↵ open  ¦  a add repos  ¦  S settings  ¦  ? keys`.
 
 - **Landing page,** what `trek` opens on: every change there is to look at, under headings, each
   with its trek's state. YOUR WORK: the branch checked out, then its uncommitted work as a row of

@@ -197,7 +197,7 @@ test("opens on the user's own branch, every change under its heading", async () 
   expect(frame).toContain("▸ DONE  2")
   // the repos beside this one wait in the sheet a opens
   expect(frame).not.toContain("../api")
-  expect(frame).toContain("↵ open   a add repos   S settings   ? keys")
+  expect(frame).toContain("↵ open  ¦  a add repos  ¦  S settings  ¦  ? keys")
 })
 
 test("says on each row whether a trek of it exists, as each is worked out", async () => {
@@ -331,7 +331,7 @@ test("a slides up every repo beside this one under the changes, those with work 
     /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
   )
   expect(frame).not.toContain("more repos")
-  expect(frame).toContain("type to narrow   space add repo   → branches   esc done")
+  expect(frame).toContain("type to narrow  ¦  space add repo  ¦  → branches  ¦  esc done")
 })
 
 test("space adds a repo in the sheet; esc closes it, the title bar naming what goes along", async () => {
@@ -352,7 +352,7 @@ test("space adds a repo in the sheet; esc closes it, the title bar naming what g
 
   expect(frame).not.toContain("ADD REPOS")
   expect(frame).toMatch(/srctrek +with api *\n/)
-  expect(frame).toContain("↵ open   a add repos   S settings   ? keys")
+  expect(frame).toContain("↵ open  ¦  a add repos  ¦  S settings  ¦  ? keys")
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
 })
 
@@ -385,7 +385,7 @@ test("typing narrows the sheet's repos by name or path, space still adding", asy
   expect(frame).toMatch(/ADD REPOS · 1 added +\/ wo▏ *\n/)
   expect(frame).not.toContain("../api")
   expect(frame).not.toContain("../docs")
-  expect(frame).toContain("type to narrow   space remove repo   → branches   esc clear")
+  expect(frame).toContain("type to narrow  ¦  space remove repo  ¦  → branches  ¦  esc clear")
 })
 
 test("in the sheet, letters are typed, not keys; nothing matching says so", async () => {
@@ -552,7 +552,7 @@ test("→ on a repo opens its branches under it, with when, who, and what", asyn
   expect(frame).toContain("▸ 1 more branches")
   expect(frame).toMatch(/│ main +its default branch · passes it through/)
   expect(frame).toContain("└ ↻ look for new branches on the remote")
-  expect(frame).toContain("type to narrow   ↵ take   ←/esc close")
+  expect(frame).toContain("type to narrow  ¦  ↵ take  ¦  ←/esc close")
 })
 
 test("enter takes a branch, ticking the repo on it", async () => {
@@ -620,7 +620,7 @@ test("← and esc close a repo's branches without taking one, leaving the sheet 
         } else {
           input.pressEscape()
         }
-        await on.shows("space add repo   → branches")
+        await on.shows("space add repo  ¦  → branches")
       },
       120,
       40,

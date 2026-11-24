@@ -97,7 +97,7 @@ test("lists the code's ways in, each with its trek's state and where it's found"
   expect(frame).toMatch(/● +POST \/refunds +routes\/refunds\.ts:12/)
   expect(frame).toMatch(/○ +nightly reconcile +jobs\/reconcile\.ts:4/)
   expect(frame).toContain("follow a trigger…")
-  expect(frame).toContain("↵ step its trek   b build again   B find ways in again   ? keys")
+  expect(frame).toContain("↵ step its trek  ¦  b build again  ¦  B find ways in again  ¦  ? keys")
 })
 
 test("enter on a way in with a trek steps it", async () => {
@@ -115,7 +115,7 @@ test("b on a way in with no trek builds it", async () => {
   const frame = await frameAfter(screen(found, { ways: { buildTrigger } }), async (input, on) => {
     await on.shows("POST /refunds")
     input.pressArrow("down")
-    await on.shows("b build   B")
+    await on.shows("b build  ¦  B")
     input.pressKey("b")
   })
 
@@ -159,6 +159,6 @@ test("before its ways in are found: says so, and b finds them", async () => {
     input.pressKey("b")
   })
 
-  expect(frame).toContain("b find ways in   ? keys")
+  expect(frame).toContain("b find ways in  ¦  ? keys")
   expect(build).toHaveBeenCalled()
 })

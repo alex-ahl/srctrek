@@ -6,17 +6,16 @@ import { COLOUR, useTones } from "./theme"
 /** A key and what it does, as the footer lists them. */
 export type KeyHint = Readonly<{ key: string; does: string }>
 
-// Spaces rather than dots between hints, as the key's colour already sets each apart.
-const SEPARATOR = "   "
+const SEPARATOR = "  ¦  "
 
 const keyLabel = (key: string) => (key === "enter" ? "↵" : key)
 
-/** Keys as a line of hints: "↑/↓ choose   ↵ pick   esc cancel". */
+/** Keys as a line of hints: "↑/↓ choose  ¦  ↵ pick  ¦  esc cancel". */
 export function keysText(keys: readonly KeyHint[]): string {
   return keys.map(({ key, does }) => `${keyLabel(key)} ${does}`).join(SEPARATOR)
 }
 
-/** Keys as a line of hints, each key in the text's colour and bold, what it does dimmed. */
+/** Keys as a line of hints, each key in the text's colour and bold, the rest dimmed. */
 export function KeyHints({ keys }: { keys: readonly KeyHint[] }) {
   const tones = useTones()
   return (
