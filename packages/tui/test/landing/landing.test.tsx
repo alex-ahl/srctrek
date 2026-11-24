@@ -197,7 +197,7 @@ test("opens on the user's own branch, every change under its heading", async () 
   expect(frame).toContain("▸ DONE  2")
   // the repos beside this one wait in the sheet a opens
   expect(frame).not.toContain("../api")
-  expect(frame).toContain("enter open · a add repos · S settings · ? keys")
+  expect(frame).toContain("↵ open   a add repos   S settings   ? keys")
 })
 
 test("says on each row whether a trek of it exists, as each is worked out", async () => {
@@ -331,10 +331,10 @@ test("a slides up every repo beside this one under the changes, those with work 
     /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
   )
   expect(frame).not.toContain("more repos")
-  expect(frame).toContain("type to narrow · space add repo · → branches · esc done")
+  expect(frame).toContain("type to narrow   space add repo   → branches   esc done")
 })
 
-test("space adds a repo in the sheet; esc closes it, the footer naming what goes along", async () => {
+test("space adds a repo in the sheet; esc closes it, the title bar naming what goes along", async () => {
   const onPick = mock((_pick: Pick) => undefined)
   const frame = await frameAfter(
     landing({ onPick }),
@@ -343,7 +343,7 @@ test("space adds a repo in the sheet; esc closes it, the footer naming what goes
       input.pressKey(" ")
       await on.shows("ADD REPOS · 1 added")
       input.pressEscape()
-      await on.shows("a add repos · api")
+      await on.shows("a add repos")
       input.pressEnter()
     },
     110,
@@ -351,7 +351,8 @@ test("space adds a repo in the sheet; esc closes it, the footer naming what goes
   )
 
   expect(frame).not.toContain("ADD REPOS")
-  expect(frame).toContain("enter open · a add repos · api · S settings · ? keys")
+  expect(frame).toMatch(/srctrek +with api *\n/)
+  expect(frame).toContain("↵ open   a add repos   S settings   ? keys")
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
 })
 
@@ -384,7 +385,7 @@ test("typing narrows the sheet's repos by name or path, space still adding", asy
   expect(frame).toMatch(/ADD REPOS · 1 added +\/ wo▏ *\n/)
   expect(frame).not.toContain("../api")
   expect(frame).not.toContain("../docs")
-  expect(frame).toContain("type to narrow · space remove repo · → branches · esc clear")
+  expect(frame).toContain("type to narrow   space remove repo   → branches   esc clear")
 })
 
 test("in the sheet, letters are typed, not keys; nothing matching says so", async () => {
@@ -464,7 +465,7 @@ test("a repo on its default branch is passed through", async () => {
   expect(frame).toMatch(/\[x\] worker +\.\.\/worker +main ▸ +passed through/)
 })
 
-test("with more than two repos added, the footer names two and counts the rest", async () => {
+test("with more than two repos added, the title bar names two and counts the rest", async () => {
   const frame = await frameAfter(
     landing(),
     async (input, on) => {
@@ -475,13 +476,13 @@ test("with more than two repos added, the footer names two and counts the rest",
       }
       await on.shows("ADD REPOS · 3 added")
       input.pressEscape()
-      await on.shows("a add repos ·")
+      await on.shows("a add repos")
     },
     110,
     34,
   )
 
-  expect(frame).toContain("a add repos · api, docs +1")
+  expect(frame).toMatch(/srctrek +with api, docs \+1 *\n/)
 })
 
 test("on a short terminal, the sheet scrolls to keep its selection in view", async () => {
@@ -551,7 +552,7 @@ test("→ on a repo opens its branches under it, with when, who, and what", asyn
   expect(frame).toContain("▸ 1 more branches")
   expect(frame).toMatch(/│ main +its default branch · passes it through/)
   expect(frame).toContain("└ ↻ look for new branches on the remote")
-  expect(frame).toContain("type to narrow · enter take · ←/esc close")
+  expect(frame).toContain("type to narrow   ↵ take   ←/esc close")
 })
 
 test("enter takes a branch, ticking the repo on it", async () => {
@@ -619,7 +620,7 @@ test("← and esc close a repo's branches without taking one, leaving the sheet 
         } else {
           input.pressEscape()
         }
-        await on.shows("space add repo · → branches")
+        await on.shows("space add repo   → branches")
       },
       120,
       40,

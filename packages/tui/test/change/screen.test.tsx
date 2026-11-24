@@ -160,7 +160,7 @@ test("with no trek yet, says what b does, and b builds", async () => {
 
   expect(frame).toContain("○ no trek yet")
   expect(frame).toContain("b builds one: your agent picks an example and follows it")
-  expect(frame).toContain("b build · ? keys")
+  expect(frame).toContain("b build   ? keys")
   expect(build).toHaveBeenCalled()
 })
 
@@ -191,7 +191,7 @@ test("ready: the trek's overview, and enter steps it", async () => {
   expect(frame).toContain("Pay")
   expect(frame).toContain("main pays through a helper.")
   expect(frame).toContain("⚠ 1 step likely wrong")
-  expect(frame).toContain("enter step here · b build again · l builds · ? keys")
+  expect(frame).toContain("↵ step here   b build again   l builds   ? keys")
   expect(step).toHaveBeenCalled()
 })
 
@@ -208,7 +208,7 @@ test("ready, with an editor: e opens it", async () => {
     30,
   )
 
-  expect(frame).toContain("enter step here · e step in Neovim · b build again")
+  expect(frame).toContain("↵ step here   e step in Neovim   b build again")
   expect(open).toHaveBeenCalled()
 })
 
@@ -229,7 +229,7 @@ test("ready, with the editor chosen to step in: enter opens it, and n steps here
     30,
   )
 
-  expect(frame).toContain("enter step in Neovim · n step here")
+  expect(frame).toContain("↵ step in Neovim   n step here")
   expect(open).toHaveBeenCalled()
   expect(step).toHaveBeenCalled()
 })
@@ -241,7 +241,7 @@ test("stale: how many stops changed, the overview still, and b updates", async (
 
   expect(frame).toContain("≠ stale")
   expect(frame).toContain("1 of 3 steps' files changed since it was built")
-  expect(frame).toContain("enter step it as it is · b update")
+  expect(frame).toContain("↵ step it as it is   b update")
 })
 
 test("a failed build: the end of its log, and b builds again", async () => {
@@ -254,7 +254,7 @@ test("a failed build: the end of its log, and b builds again", async () => {
 
   expect(frame).toContain("✕ build failed")
   expect(frame).toContain("round 3 rejected, giving up")
-  expect(frame).toContain("b build again · ? keys")
+  expect(frame).toContain("b build again   ? keys")
   expect(frame).not.toContain("enter")
 })
 
@@ -307,7 +307,7 @@ test("building: the steps as they arrive, and x stops it", async () => {
   expect(frame).toContain("2 steps so far")
   expect(frame).toContain("opened ledger/post.ts")
   expect(frame).toMatch(/s1 +web +POST \/refunds/)
-  expect(frame).toContain("x stop · ? keys")
+  expect(frame).toContain("x stop   ? keys")
   expect(stop).toHaveBeenCalled()
 })
 
@@ -338,7 +338,7 @@ test("a proposed repo with no location: a asks where it lives", async () => {
   await frameAfter(
     screen(".", building, { actions: { addRepo }, proposal: unknown }),
     async (input, on) => {
-      await on.shows("a add billing · x dismiss")
+      await on.shows("a add billing   x dismiss")
       input.pressKey("a")
       await on.shows("Where does billing live?")
       await input.typeText("../billing")
@@ -417,7 +417,7 @@ test("with no trek yet, offers no builds to look at", async () => {
     on.shows("no trek yet"),
   )
 
-  expect(frame).toContain("b build · ? keys")
+  expect(frame).toContain("b build   ? keys")
   expect(frame).not.toContain("l builds")
 })
 

@@ -1,33 +1,50 @@
+import { TextAttributes } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/react"
 import { PADDING } from "./layout"
-import { useTones } from "./theme"
+import { COLOUR, useTones } from "./theme"
 
-/** A key and what it does, as the footer lists them, and what it holds now, in the accent. */
-export type KeyHint = Readonly<{ key: string; does: string; mark?: string }>
+/** A key and what it does, as the footer lists them. */
+export type KeyHint = Readonly<{ key: string; does: string }>
 
-const hintText = ({ key, does }: KeyHint) => `${key} ${does}`
+// Spaces rather than dots between hints, as the key's colour already sets each apart.
+const SEPARATOR = "   "
 
-const markText = ({ mark }: KeyHint) => (mark === undefined ? "" : ` · ${mark}`)
+const keyLabel = (key: string) => (key === "enter" ? "↵" : key)
 
-const SEPARATOR = " · "
-
-/** Keys as a line of hints: "↑/↓ choose · enter pick · esc cancel". */
+/** Keys as a line of hints: "↑/↓ choose   ↵ pick   esc cancel". */
 export function keysText(keys: readonly KeyHint[]): string {
-  return keys.map((hint) => hintText(hint) + markText(hint)).join(SEPARATOR)
+  return keys.map(({ key, does }) => `${keyLabel(key)} ${does}`).join(SEPARATOR)
+}
+
+/** Keys as a line of hints, each key in the text's colour and bold, what it does dimmed. */
+export function KeyHints({ keys }: { keys: readonly KeyHint[] }) {
+  const tones = useTones()
+  return (
+    <text fg={tones.dim}>
+      {keys.map(({ key, does }, at) => (
+        <span key={key}>
+          {at === 0 ? "" : SEPARATOR}
+          <span fg={COLOUR.text} attributes={TextAttributes.BOLD}>
+            {keyLabel(key)}
+          </span>
+          {` ${does}`}
+        </span>
+      ))}
+    </text>
+  )
 }
 
 // The gap kept between the keys and the count of rows shown.
 const GAP = 2
 
 /**
- * The bottom line, ruled off above: the keys and what each does, dimmed, and how many rows are
- * shown, when there's room for it beside the keys.
+ * The bottom line, ruled off above: the keys and what each does, and how many rows are shown,
+ * dimmed, when there's room for it beside the keys.
  */
 export function Footer({ keys, shown }: { keys: readonly KeyHint[]; shown: string }) {
   const tones = useTones()
   const { width } = useTerminalDimensions()
-  const text = keysText(keys)
-  const fits = text.length + GAP + shown.length <= width - 2 * PADDING
+  const fits = keysText(keys).length + GAP + shown.length <= width - 2 * PADDING
   return (
     <box
       flexDirection="row"
@@ -36,15 +53,7 @@ export function Footer({ keys, shown }: { keys: readonly KeyHint[]; shown: strin
       borderColor={tones.dim}
       style={{ paddingLeft: PADDING, paddingRight: PADDING, flexShrink: 0 }}
     >
-      <text fg={tones.dim}>
-        {keys.map((hint, at) => (
-          <span key={hint.key}>
-            {at === 0 ? "" : SEPARATOR}
-            {hintText(hint)}
-            <span fg={tones.accent}>{markText(hint)}</span>
-          </span>
-        ))}
-      </text>
+      <KeyHints keys={keys} />
       <text fg={tones.dim}>{shown === "" || !fits ? "" : `  ${shown}`}</text>
     </box>
   )

@@ -46,7 +46,7 @@ test("p from the first stop shows the overview", async () => {
 
   expect(frame).toContain("3 stops")
   expect(frame).not.toContain("1 / 3")
-  expect(frame).toContain("n the first stop · r route · ? keys")
+  expect(frame).toContain("n the first stop   r route   ? keys")
 })
 
 test("the first stop shows its file, the narration over it, and where n and p go", async () => {
@@ -64,7 +64,7 @@ test("the first stop shows its file, the narration over it, and where n and p go
   expect(frame).toMatch(/into pay /)
   expect(frame).toMatch(/PREVIOUS  p\s+.*\n.*the overview/)
   expect(frame).toMatch(/1 ▶ +const total = pay\(\) +→ \[n\] /)
-  expect(frame).toContain("n into pay · p back · r route")
+  expect(frame).toContain("n into pay   p back   r route")
 })
 
 test("into, then out, follow the call and come back", async () => {
@@ -123,7 +123,7 @@ test("d opens a step's details: how it was reached, with the cited line's code, 
   expect(frame).toMatch(/› +stop 1/)
   expect(frame).toMatch(/main\.ts:1 [^\n]*\n +const total = pay\(\)/)
   expect(frame).toContain("CONTEXT")
-  expect(frame).toContain("enter go there")
+  expect(frame).toContain("↵ go there")
 })
 
 test("enter in details goes to the step chosen, closing them", async () => {
@@ -240,7 +240,7 @@ test("← in the route folds a call's stops into its row, and n then steps past 
   expect(map).toMatch(/▶  1  ▸ main\.ts:1  2 stops/)
   expect(map).not.toMatch(/│ pay\.ts:1/)
   expect(after).toContain("the end of the trek")
-  expect(after).toContain("n the end · p back")
+  expect(after).toContain("n the end   p back")
 })
 
 test("tab in the route lays the stops out by repo, then as a tree of their files", async () => {

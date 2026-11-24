@@ -13,9 +13,9 @@ export function titleRoom(width: number): number {
 
 /**
  * The top line of every screen: srctrek, then what the screen is about after a "›", and anything
- * on the right, dimmed; ruled off below.
+ * on the right, dimmed text or drawn as given; ruled off below.
  */
-export function TitleBar({ left, right }: { left?: ReactNode; right?: string }) {
+export function TitleBar({ left, right }: { left?: ReactNode; right?: ReactNode }) {
   const tones = useTones()
 
   return (
@@ -31,7 +31,7 @@ export function TitleBar({ left, right }: { left?: ReactNode; right?: string }) 
         {left !== undefined && <span fg={tones.dim}>{SEPARATOR}</span>}
         {left}
       </text>
-      {right !== undefined && right !== "" && <text fg={tones.dim}>{right}</text>}
+      {typeof right === "string" ? right !== "" && <text fg={tones.dim}>{right}</text> : right}
     </box>
   )
 }

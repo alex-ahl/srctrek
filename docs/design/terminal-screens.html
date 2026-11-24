@@ -220,6 +220,10 @@
         display: grid;
         gap: 2px;
       }
+      .k {
+        color: var(--t-fg);
+        font-weight: 600;
+      }
       .split {
         display: grid;
         grid-template-columns: 1fr 230px;
@@ -352,11 +356,11 @@
 
   <section>
     <h2>2. The landing page</h2>
-    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, typing narrows them by name or path, <code>esc</code> clears what's typed and then is done, and the footer then names the repos added.</p>
+    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, typing narrows them by name or path, <code>esc</code> clears what's typed and then is done, and the title bar then names the repos added.</p>
     <div class="grid2">
       <figure><figcaption>On a branch an agent has worked on</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="tb"><span><b>srctrek</b></span><span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
             <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
@@ -375,12 +379,12 @@
             <div class="ln"> </div>
             <div class="ln dim">▸ DONE  12</div>
           </div>
-          <div class="foot">enter open · a add repos · S settings · ? keys</div>
+          <div class="foot"><span class="k">↵</span> open   <span class="k">a</span> add repos   <span class="k">S</span> settings   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>A branch just made, nothing on it yet</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b></span><span>web</span></div>
+          <div class="tb"><span><b>srctrek</b></span><span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
             <div class="ln sel">    feature/payouts            <span class="dim">nothing since main yet</span></div>
@@ -397,12 +401,12 @@
             <div class="ln"> </div>
             <div class="ln dim">▸ DONE  12</div>
           </div>
-          <div class="foot">enter open · a add repos · S settings · ? keys</div>
+          <div class="foot"><span class="k">↵</span> open   <span class="k">a</span> add repos   <span class="k">S</span> settings   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>a slides up the repos beside this one — api added, billing selected</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
             <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
@@ -418,12 +422,12 @@
             <div class="ln"><span class="dim">[ ]</span> ledger     <span class="dim">~/git/ledger     </span>main</div>
             <div class="ln"><span class="dim">[ ]</span> payouts    <span class="dim">~/git/payouts    </span>main</div>
           </div>
-          <div class="foot">type to narrow · space add repo · → branches · esc done</div>
+          <div class="foot"><span class="k">type</span> to narrow   <span class="k">space</span> add repo   <span class="k">→</span> branches   <span class="k">esc</span> done</div>
         </div>
       </figure>
       <figure><figcaption>→ on billing — its branches open under it, in the sheet</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
             <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
@@ -438,12 +442,12 @@
             <div class="ln">    <span class="dim">└ </span>main              <span class="dim">its default branch · passes it through</span></div>
             <div class="ln"><span class="dim">[ ]</span> ledger     <span class="dim">~/git/ledger     </span>main</div>
           </div>
-          <div class="foot">type to narrow · enter take · ←/esc close</div>
+          <div class="foot"><span class="k">type</span> to narrow   <span class="k">↵</span> take   <span class="k">←/esc</span> close</div>
         </div>
       </figure>
       <figure><figcaption>Typing narrows the repos by name or path, space still adding</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
             <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
@@ -454,12 +458,12 @@
             <div class="ln sel"><span class="dim">[ ]</span> billing    <span class="dim">~/git/billing    </span>main<span class="a"> ▸</span></div>
             <div class="ln"><span class="dim">[ ]</span> billing-ui <span class="dim">~/git/billing-ui </span>main</div>
           </div>
-          <div class="foot">type to narrow · space add repo · → branches · esc clear</div>
+          <div class="foot"><span class="k">type</span> to narrow   <span class="k">space</span> add repo   <span class="k">→</span> branches   <span class="k">esc</span> clear</div>
         </div>
       </figure>
-      <figure><figcaption>After esc — the repos added named beside a in the footer</figcaption>
+      <figure><figcaption>After esc — the title bar names the repos added</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b></span><span>web, api, billing</span></div>
+          <div class="tb"><span><b>srctrek</b></span><span><span class="dim">with</span> <span class="a">api, billing</span></span></div>
           <div class="pane">
             <div class="ln dim">YOUR WORK</div>
             <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
@@ -473,7 +477,7 @@
             <div class="ln"> </div>
             <div class="ln dim">▸ DONE  12</div>
           </div>
-          <div class="foot">enter open · a add repos <span class="a">· api, billing</span> · S settings · ? keys</div>
+          <div class="foot"><span class="k">↵</span> open   <span class="k">a</span> add repos   <span class="k">S</span> settings   <span class="k">?</span> keys</div>
         </div>
       </figure>
     </div>
@@ -495,7 +499,7 @@
             <div class="ln">  <span class="bold">b</span> builds one: the agent picks an example and follows it</div>
             <div class="ln">    from its trigger to its outcome, across web and api.</div>
           </div>
-          <div class="foot">b build · S settings · ? keys</div>
+          <div class="foot"><span class="k">b</span> build   <span class="k">S</span> settings   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>Building, with a repo the agent proposes</figcaption>
@@ -513,7 +517,7 @@
             <div class="ln"> </div>
             <div class="ln"><span class="a">?</span> the agent went into <span class="bold">billing</span>   <span class="dim">a add it to the change · x dismiss</span></div>
           </div>
-          <div class="foot">x stop · l the log · ? keys</div>
+          <div class="foot"><span class="k">x</span> stop   <span class="k">l</span> the log   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>Ready — the trek's overview, and enter steps it</figcaption>
@@ -529,7 +533,7 @@
             <div class="ln">  <span class="dim">to</span>    a ledger row, and refund.created on the queue</div>
             <div class="ln">  <span class="r">⚠</span> 1 likely wrong   <span class="dim">stop 9 · amount in cents, read as units</span></div>
           </div>
-          <div class="foot">enter step here · e Neovim · b build again · l builds · ? keys</div>
+          <div class="foot"><span class="k">↵</span> step here   <span class="k">e</span> Neovim   <span class="k">b</span> build again   <span class="k">l</span> builds   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>Stale</figcaption>
@@ -544,7 +548,7 @@
             <div class="ln">  <span class="dim">from</span>  POST /refunds with { order: o_1002, amount: 40 }</div>
             <div class="ln">  <span class="dim">to</span>    a ledger row, and refund.created on the queue</div>
           </div>
-          <div class="foot">b update · enter step it as it is · l builds · ? keys</div>
+          <div class="foot"><span class="k">b</span> update   <span class="k">↵</span> step it as it is   <span class="k">l</span> builds   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>The build failed</figcaption>
@@ -558,7 +562,7 @@
             <div class="ln dim">  │ trek: step 6 cites api/handlers/refunds.ts:88, past the file's end</div>
             <div class="ln dim">  │ trek: round 3 rejected, giving up</div>
           </div>
-          <div class="foot">b build again · l the whole log · ? keys</div>
+          <div class="foot"><span class="k">b</span> build again   <span class="k">l</span> the whole log   <span class="k">?</span> keys</div>
         </div>
       </figure>
       <figure><figcaption>The code as it is — its ways in, each with its trek</figcaption>
@@ -574,7 +578,7 @@
             <div class="ln">  <span class="dim">○</span> refund.created         <span class="dim">worker/consumers.ts:22</span></div>
             <div class="ln dim">  ▸ 3 more</div>
           </div>
-          <div class="foot">enter step its trek · b build it · B find ways in again · ? keys</div>
+          <div class="foot"><span class="k">↵</span> step its trek   <span class="k">b</span> build it   <span class="k">B</span> find ways in again   <span class="k">?</span> keys</div>
         </div>
       </figure>
     </div>
@@ -603,7 +607,7 @@
           <div class="ln dim">to know how to start your agent.</div>
           <div class="ln g">✓ the command starts and answers</div>
         </div>
-        <div class="foot">↑/↓ choose · enter type it · c copy for your agent · esc back</div>
+        <div class="foot"><span class="k">↑/↓</span> choose   <span class="k">↵</span> type it   <span class="k">c</span> copy for your agent   <span class="k">esc</span> back</div>
       </div>
     </figure>
     <figure><figcaption>Off, and the environment setting the agent</figcaption>
@@ -618,7 +622,7 @@
           <div class="ln dim">On, trek starts building a change's trek as it opens, when there's none and</div>
           <div class="ln dim">an agent is set. Off, it waits for b.</div>
         </div>
-        <div class="foot">↑/↓ choose · enter turn on · esc back</div>
+        <div class="foot"><span class="k">↑/↓</span> choose   <span class="k">↵</span> turn on   <span class="k">esc</span> back</div>
       </div>
     </figure>
     <figure><figcaption>The terminal's colours, sampled in its own palette</figcaption>
@@ -632,7 +636,7 @@
           <div class="ln dim">srctrek's keep states apart in any theme; the terminal's follow its own green,</div>
           <div class="ln dim">yellow, and red.</div>
         </div>
-        <div class="foot">↑/↓ choose · enter use srctrek's · esc back</div>
+        <div class="foot"><span class="k">↑/↓</span> choose   <span class="k">↵</span> use srctrek's   <span class="k">esc</span> back</div>
       </div>
     </figure>
     <div class="grid2">
@@ -658,7 +662,7 @@
             <div class="ln"><span class="a">▌ </span>reconnected.</div>
             <div class="ln g">✓ Copied. Send it in your agent's chat; its command shows up here once saved.</div>
           </div>
-          <div class="foot">↑/↓ choose · enter type it · c copy for your agent · esc back</div>
+          <div class="foot"><span class="k">↑/↓</span> choose   <span class="k">↵</span> type it   <span class="k">c</span> copy for your agent   <span class="k">esc</span> back</div>
         </div>
       </figure>
     </div>
@@ -685,7 +689,7 @@
           <div class="ln"><span class="y">rejected</span> s15: crosses from api to worker without citing worker <span class="dim">· the agent is fixing it</span></div>
           <div class="ln"><span class="y">proposed</span> payments, ../payments-service <span class="dim">· opened in this build</span></div>
         </div>
-        <div class="foot">l full log · esc back · the build goes on if trek quits</div>
+        <div class="foot"><span class="k">l</span> full log   <span class="k">esc</span> back   <span class="dim">the build goes on if trek quits</span></div>
       </div>
     </figure>
   </section>
@@ -723,7 +727,7 @@
             <div class="node">      s18 provider refund</div>
           </div>
         </div>
-        <div class="foot">j/k move · enter open in nvim · s step here · c changed only · f flags only · esc back</div>
+        <div class="foot"><span class="k">j/k</span> move   <span class="k">↵</span> open in nvim   <span class="k">s</span> step here   <span class="k">c</span> changed only   <span class="k">f</span> flags only   <span class="k">esc</span> back</div>
       </div>
     </figure>
   </section>
@@ -756,7 +760,7 @@
             <div class="ln">click listener</div>
           </div>
         </div>
-        <div class="foot">n next · p prev · i into · o out · O over · t details · e open in $EDITOR · r route · q back</div>
+        <div class="foot"><span class="k">n</span> next   <span class="k">p</span> prev   <span class="k">i</span> into   <span class="k">o</span> out   <span class="k">O</span> over   <span class="k">t</span> details   <span class="k">e</span> open in $EDITOR   <span class="k">r</span> route   <span class="k">q</span> back</div>
       </div>
     </figure>
   </section>

@@ -237,6 +237,8 @@ background and deeper ones on a light one, and secondary text is mixed 60% of th
 terminal's background to its text; until then, or if it never reports them, the terminal's own
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
 `≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
+Every screen's footer lists its keys, each key bold in the text's colour and what it does dimmed
+after it, three spaces apart, with `enter` drawn as `↵`: `↵ open   a add repos   S settings   ? keys`.
 
 - **Landing page,** what `trek` opens on: every change there is to look at, under headings, each
   with its trek's state. YOUR WORK: the branch checked out, then its uncommitted work as a row of
@@ -245,8 +247,8 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   ADD REPOS from the bottom, the changes dimmed above it with the selected one still marked: every
   repo beside this one, those with work first, ticked with `space` to go with the change, `→` for
   a repo's branches; typing narrows them by name or path, as it does a repo's branches, and `esc`
-  clears what's typed, then closes the sheet. Its heading counts those added, and the footer names
-  them after `a add repos`.
+  clears what's typed, then closes the sheet. Its heading counts those added, and the title bar names
+  them on its right: `with api, docs +1`.
   The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
   row as the lists load and follow the worktree. A change being opened says so on its row; one that
   couldn't be opened says why above the footer, until the next key.

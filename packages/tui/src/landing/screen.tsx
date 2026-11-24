@@ -253,12 +253,11 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
   return repos.length === 0 ? change : { ...change, repos }
 }
 
-// The keys for the list's line selected, and a to add repos, naming those added.
-function listKeys(item: LandingItem | undefined, added: string | undefined): KeyHint[] {
-  const add = { key: "a", does: "add repos", ...(added === undefined ? {} : { mark: added }) }
+// The keys for the list's line selected, and a to add repos.
+function listKeys(item: LandingItem | undefined): KeyHint[] {
   return [
     { key: "enter", does: item?.kind === "change" ? "open" : "show" },
-    add,
+    { key: "a", does: "add repos" },
     { key: "S", does: "settings" },
     HELP_HINT,
   ]
@@ -425,11 +424,12 @@ export function Landing(props: Props) {
           />
         ) : undefined
       }
+      added={addedNames(ticked, checkouts)}
       failed={branches.kind === "failed" ? branches.why : undefined}
       notice={notice.text}
       footer={footerOf(
         drop.drop !== undefined,
-        help.footer(sheet.open ? sheet.keys : listKeys(item, addedNames(ticked, checkouts))),
+        help.footer(sheet.open ? sheet.keys : listKeys(item)),
       )}
       help={help.open}
     />
@@ -452,6 +452,17 @@ function Reading() {
   return shown ? <text fg={tones.dim}>{`${turning} reading this repo…`}</text> : null
 }
 
+// The repos going along with the change, in the title bar: "with api, docs +1".
+function Added({ names }: { names: string }) {
+  const tones = useTones()
+  return (
+    <text fg={tones.dim}>
+      {"with "}
+      <span fg={tones.accent}>{names}</span>
+    </text>
+  )
+}
+
 // The page around its list: why the branches couldn't be read, the list once it's drawn, the
 // sheet under it while it's open, why a change couldn't be opened, and the footer.
 function LandingView(props: {
@@ -459,6 +470,8 @@ function LandingView(props: {
   active: boolean
   list: ReactNode
   sheet: ReactNode
+  // the repos added to go along, by name
+  added: string | undefined
   failed: string | undefined
   notice: string | undefined
   footer: readonly KeyHint[]
@@ -471,7 +484,7 @@ function LandingView(props: {
 
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
-      <TitleBar />
+      <TitleBar right={props.added === undefined ? undefined : <Added names={props.added} />} />
       <box
         flexDirection="column"
         style={{
