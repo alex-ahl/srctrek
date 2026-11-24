@@ -154,7 +154,7 @@ test("a done trek opens on a screen of its own", async () => {
   const frame = await frameAfter(
     app(root, LANDING, sources({ done })),
     async (input, on) => {
-      await on.shows("▸ DONE  1")
+      await on.shows("▸ 1 trek")
       for (const _ of [1, 2, 3, 4]) {
         input.pressKey("j")
         await on.drawn()
@@ -200,7 +200,7 @@ test("a change that takes a while to open says so on the landing page, then come
   await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("YOUR WORK")
     input.pressEnter()
-    await on.shows(/feature\/refunds .*[◐◓◑◒] opening…/)
+    await on.shows(/[◐◓◑◒] opening… +feature\/refunds/)
     expect(await on.frame()).toContain("YOUR WORK")
     opened.resolve(changeWith(() => Promise.resolve(missing)))
     await on.shows("no trek yet")
@@ -520,11 +520,11 @@ test("back on the landing page, it's there at once as it was left, its change st
   const frame = await frameAfter(app(".", LANDING, sources({ load })), async (input, on) => {
     await on.shows("YOUR WORK")
     input.pressKey("j")
-    await on.shows(/▶ +fix\/rounding/)
+    await on.shows(/▶ ○ no trek yet +fix\/rounding/)
     input.pressEnter()
     await on.shows("no trek yet")
     await escape(input, on, "YOUR WORK")
   })
 
-  expect(frame).toMatch(/▶ +fix\/rounding/)
+  expect(frame).toMatch(/▶ ○ no trek yet +fix\/rounding/)
 })

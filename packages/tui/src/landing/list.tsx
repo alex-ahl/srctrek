@@ -1,21 +1,25 @@
-import type { RGBA } from "@opentui/core"
+import { type RGBA, TextAttributes } from "@opentui/core"
+import { useTerminalDimensions } from "@opentui/react"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
 import type { LandingGroup, LandingRow } from "./rows"
 import { statusBlock } from "../change/status-block"
+import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
-import { STATE_LABELS } from "../ui/state-labels"
 import { useTurning } from "../ui/turning"
-import { fit } from "../ui/text"
+import { count, fit } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 
-/** A line under a heading that isn't a change to open: still loading, none, or why not. */
+/** What a heading says of a group with nothing to open in it: still loading, none, or why not. */
 export type LandingNote = Readonly<{ group: LandingGroup; text: string; tone: Tone }>
 
-// The name and detail columns are as wide whatever's listed, so a row that arrives late, a pull
-// request's long title, never moves the columns drawn already; longer is cut.
-const NAME_WIDTH = 30
-const DETAIL_WIDTH = 38
+// Names are cut past this share of the width, so one long title can't push every row's details
+// far from its name.
+const NAME_SHARE = 0.4
+
+// The selection marker's room, and the gap between columns.
+const MARKER = 2
+const GAP = "  "
 
 const rowKey = (row: LandingRow) => JSON.stringify(row.choice)
 
@@ -66,91 +70,85 @@ export function useStatuses(
   return found
 }
 
-// The block's words read as the trek's state on a row; "ready" alone could be the branch.
+// Code as it is in a row's first column; "ways in" is in its name.
 const STATE_WORDS: Readonly<Record<string, string>> = {
-  [STATE_LABELS.ready.state]: "trek ready",
-  [STATE_LABELS.stale.state]: "trek stale",
+  "ways in not found yet": "not found yet",
 }
 
-// "● trek ready", "≠ trek stale", "○ no trek yet": in the words and colours a change's screen
-// uses, or dimmed; code as it is says where finding its ways in stands.
-function StatusView(props: {
-  status: TrekStatus | undefined
-  code: boolean
-  asked: boolean
-  muted: boolean
-}) {
-  const { status, code } = props
-  const tones = useTones()
-  // turning where it's being worked out; a pull request's isn't
-  if (status === undefined) {
-    return props.asked ? <WorkingOut /> : null
+// Where a row's trek isn't worked out here, holding its place so the column has no holes.
+const NOT_WORKED_OUT = "·"
+
+// The opening state's text, which the column always has room for.
+const OPENING = "◐ opening…"
+
+/** A row's trek state as its first column words it, and the tone it's drawn in. */
+type StateCell = Readonly<{ text: string; tone: Tone }>
+
+// "● ready", "≠ stale", "○ no trek yet": in the words and colours a change's screen uses; code
+// as it is says where finding its ways in stands; turning while being opened or worked out; a dot
+// for a pull request's or a done trek's, not worked out here.
+function stateCell(
+  row: LandingRow,
+  status: TrekStatus | undefined,
+  opening: boolean,
+  turning: string,
+): StateCell {
+  if (opening) {
+    return { text: `${turning} opening…`, tone: "busy" }
   }
 
-  const { symbol, state, tone } = statusBlock(status, undefined, false, { code })
-  return (
-    <span
-      fg={tones[props.muted ? "dim" : tone]}
-    >{`  ${symbol} ${STATE_WORDS[state] ?? state}`}</span>
-  )
+  if (status === undefined) {
+    return { text: quickChoice(row) === undefined ? NOT_WORKED_OUT : turning, tone: "dim" }
+  }
+
+  const { symbol, state, tone } = statusBlock(status, undefined, false, {
+    code: row.choice.kind === "code",
+  })
+  return { text: `${symbol} ${STATE_WORDS[state] ?? state}`, tone }
 }
 
-// A change being opened, in its state's place: the busy symbol turning.
-function Opening() {
-  const tones = useTones()
-  return <span fg={tones.busy}>{`  ${useTurning()} opening…`}</span>
-}
+// The states' column, where names are cut, and the room a row has after the selection marker.
+type Widths = Readonly<{ state: number; name: number; room: number }>
 
-// A trek's state being worked out: the busy symbol turning, dim, in the state's place.
-function WorkingOut() {
-  const tones = useTones()
-  return <span fg={tones.dim}>{`  ${useTurning()}`}</span>
-}
-
-// One change to open: names lined up, what it holds dimmed after, then its trek's state; all of
-// it dimmed while the sheet over the list has the keys.
+// One change to open: its trek's state first, then its name, and right after it what it holds,
+// dimmed; all of it dimmed while the sheet over the list has the keys.
 function ChangeView({
   row,
-  status,
-  opening,
+  cell,
+  widths,
   muted,
 }: {
   row: LandingRow
-  status: TrekStatus | undefined
-  // being opened, which its state's place says while it is
-  opening: boolean
+  cell: StateCell
+  widths: Widths
   muted: boolean
 }) {
   const tones = useTones()
+  const name = fit(row.label, widths.name)
+  const left = widths.room - widths.state - name.length - 2 * GAP.length
 
   return (
     <span>
-      {"  "}
-      <span {...(muted ? { fg: tones.dim } : {})}>
-        {fit(row.label, NAME_WIDTH).padEnd(NAME_WIDTH)}
-      </span>
-      <span fg={tones.dim}>{`  ${fit(row.detail, DETAIL_WIDTH).padEnd(DETAIL_WIDTH)}`}</span>
-      {opening ? (
-        <Opening />
-      ) : (
-        <StatusView
-          status={status}
-          code={row.choice.kind === "code"}
-          asked={quickChoice(row) !== undefined}
-          muted={muted}
-        />
-      )}
+      <span fg={tones[muted ? "dim" : cell.tone]}>{cell.text.padEnd(widths.state)}</span>
+      {GAP}
+      <span {...(muted ? { fg: tones.dim } : {})}>{name}</span>
+      <span fg={tones.dim}>{`${GAP}${fit(row.detail, Math.max(left, 0))}`}</span>
     </span>
   )
 }
 
-function Heading(props: { group: LandingGroup; first: boolean }) {
+// A group's heading, bold, and what it says of a group with nothing in it.
+function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNote | undefined }) {
   const tones = useTones()
+  const { note } = props
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
       {!props.first && <text fg={COLOUR.text}> </text>}
-      <text fg={tones.dim}>{props.group}</text>
+      <text fg={COLOUR.text}>
+        <span attributes={TextAttributes.BOLD}>{props.group}</span>
+        {note !== undefined && <span fg={tones[note.tone]}>{`${GAP}${note.text}`}</span>}
+      </text>
     </box>
   )
 }
@@ -170,28 +168,61 @@ export const itemKey = (item: LandingItem): string =>
 
 function ItemView({
   item,
-  statuses,
-  opening,
+  cells,
+  widths,
   muted,
 }: {
   item: LandingItem
-  statuses: ReadonlyMap<string, TrekStatus>
-  opening: string | undefined
+  cells: ReadonlyMap<string, StateCell>
+  widths: Widths
   muted: boolean
 }) {
   const tones = useTones()
   if (item.kind === "done-fold") {
-    return <span fg={tones.dim}>{`▸ DONE  ${String(item.count)}`}</span>
+    return <span fg={tones.dim}>{`▸ ${count(item.count, "trek")}`}</span>
   }
 
-  return (
-    <ChangeView
-      row={item.row}
-      status={statuses.get(rowKey(item.row))}
-      opening={rowKey(item.row) === opening}
-      muted={muted}
-    />
+  const cell = cells.get(rowKey(item.row)) ?? { text: "", tone: "dim" }
+  return <ChangeView row={item.row} cell={cell} widths={widths} muted={muted} />
+}
+
+// Whether a row's state is turning: a change being opened, or one still being worked out.
+const busy = (
+  items: readonly LandingItem[],
+  statuses: ReadonlyMap<string, TrekStatus>,
+  opening: string | undefined,
+) =>
+  opening !== undefined ||
+  items.some(
+    (item) =>
+      item.kind === "change" &&
+      quickChoice(item.row) !== undefined &&
+      !statuses.has(rowKey(item.row)),
   )
+
+// Each row's state cell, by its key.
+function cellsOf(
+  items: readonly LandingItem[],
+  statuses: ReadonlyMap<string, TrekStatus>,
+  opening: string | undefined,
+  turning: string,
+): ReadonlyMap<string, StateCell> {
+  const rows = items.flatMap((item) => (item.kind === "change" ? [item.row] : []))
+  return new Map(
+    rows.map((row) => {
+      const key = rowKey(row)
+      return [key, stateCell(row, statuses.get(key), key === opening, turning)]
+    }),
+  )
+}
+
+// The states' column as wide as the longest, room for opening one kept; names cut past their
+// share of the row.
+function widthsOf(cells: ReadonlyMap<string, StateCell>, width: number): Widths {
+  const room = width - 2 * PADDING - MARKER
+  const state = Math.max(OPENING.length, ...[...cells.values()].map((cell) => cell.text.length))
+
+  return { state, name: Math.floor(room * NAME_SHARE), room }
 }
 
 /**
@@ -220,6 +251,10 @@ export function LandingList({
   // the lines there's room for
   height: number
 }) {
+  const { width } = useTerminalDimensions()
+  const turning = useTurning(busy(items, statuses, opening))
+  const cells = cellsOf(items, statuses, opening, turning)
+  const widths = widthsOf(cells, width)
   const noteAt = noteIndex(items)
   const start = firstShown(items, chosen, noteAt, note !== undefined, height)
 
@@ -230,13 +265,11 @@ export function LandingList({
         return (
           <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
             {index === noteAt && <Note note={note} first={index === 0} />}
-            {(startsGroup(items[index - 1], item) ||
-              (shown === 0 && item.kind !== "done-fold")) && (
+            {(startsGroup(items[index - 1], item) || shown === 0) && (
               <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
             )}
-            {item.kind === "done-fold" && <text> </text>}
             <Selectable selected={index === chosen} tint={tint}>
-              <ItemView item={item} statuses={statuses} opening={opening} muted={muted} />
+              <ItemView item={item} cells={cells} widths={widths} muted={muted} />
             </Selectable>
           </box>
         )
@@ -246,10 +279,9 @@ export function LandingList({
   )
 }
 
-// An item under a different heading from the one before it, or the first; the done fold is its
-// own heading.
+// An item under a different heading from the one before it, or the first.
 const startsGroup = (previous: LandingItem | undefined, item: LandingItem) =>
-  item.kind !== "done-fold" && (previous === undefined || groupOf(previous) !== groupOf(item))
+  previous === undefined || groupOf(previous) !== groupOf(item)
 
 // The note on what waits on the user's review goes where those would: after their own work.
 function noteIndex(items: readonly LandingItem[]): number {
@@ -268,14 +300,13 @@ function linesOf(items: readonly LandingItem[], noteAt: number, hasNote: boolean
   for (const [index, item] of items.entries()) {
     tops.push(line)
     if (index === noteAt && hasNote) {
-      line += index === 0 ? 2 : 3
+      line += index === 0 ? 1 : 2
     }
 
     if (startsGroup(items[index - 1], item)) {
       line += index === 0 && noteAt !== 0 ? 1 : 2
     }
 
-    line += item.kind === "done-fold" ? 1 : 0
     own.push(line)
     line += 1
   }
@@ -309,22 +340,12 @@ function firstShown(
   return first
 }
 
-// Whether the line at `at` comes with its heading, or is the done fold, a heading of its own.
+// Whether the line at `at` comes with its heading.
 const headed = (items: readonly LandingItem[], at: number) => {
   const item = items[at]
-  return item === undefined || item.kind === "done-fold" || startsGroup(items[at - 1], item)
+  return item === undefined || startsGroup(items[at - 1], item)
 }
 
 function Note({ note, first }: { note: LandingNote | undefined; first: boolean }) {
-  const tones = useTones()
-  if (note === undefined) {
-    return null
-  }
-
-  return (
-    <box flexDirection="column" style={{ flexShrink: 0 }}>
-      <Heading group={note.group} first={first} />
-      <text fg={tones[note.tone]}>{`    ${note.text}`}</text>
-    </box>
-  )
+  return note === undefined ? null : <Heading group={note.group} first={first} note={note} />
 }

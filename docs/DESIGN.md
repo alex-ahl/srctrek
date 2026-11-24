@@ -241,10 +241,12 @@ Every screen's footer lists its keys, each key bold in the text's colour, then a
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 `↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
 
-- **Landing page,** what `trek` opens on: every change there is to look at, under headings, each
-  with its trek's state. YOUR WORK: the branch checked out, then its uncommitted work as a row of
+- **Landing page,** what `trek` opens on: every change there is to look at, under bold headings.
+  Each row leads with its trek's state (`● ready`, `≠ stale`, `○ no trek yet`, or a dim `·` where
+  it isn't worked out, as for a pull request), then the change's name, cut past 40% of the width,
+  and right after it what it holds, dimmed. YOUR WORK: the branch checked out, then its uncommitted work as a row of
   its own. WAITING ON YOUR REVIEW, then OTHER PULL REQUESTS, then OTHER BRANCHES. CODE AS IT IS, one
-  row. DONE, folded under a count: treks whose work landed or whose branch is gone. `a` slides up
+  row. DONE: treks whose work landed or whose branch is gone, folded under `▸ 12 treks` where the states are. `a` slides up
   ADD REPOS from the bottom, the changes dimmed above it with the selected one still marked: every
   repo beside this one, those with work first, ticked with `space` to go with the change, `→` for
   a repo's branches; typing narrows them by name or path, as it does a repo's branches, and `esc`
@@ -253,7 +255,8 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
   The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
   row as the lists load and follow the worktree. A change being opened says so on its row; one that
   couldn't be opened says why above the footer, until the next key.
-  Pull requests that can't be listed say why under WAITING ON YOUR REVIEW. The list is drawn
+  A group with nothing in it says so on its heading's line: `WAITING ON YOUR REVIEW  none`, or why
+  pull requests can't be listed. The list is drawn
   once what's read here is in, the page saying it's reading when that takes a moment; a trek's
   state being worked out shows the busy symbol turning.
 - **A change's screen,** opened with enter: the change in the title bar, and over its first two

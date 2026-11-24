@@ -102,7 +102,7 @@ function reviewNote(pulls: Loaded<OpenPullRequest[]>): LandingNote | undefined {
 
   return pulls.found.some((pr) => pr.reviewRequested)
     ? undefined
-    : { group, text: "nothing waiting on your review", tone: "dim" }
+    : { group, text: "none", tone: "dim" }
 }
 
 // Past this, the page is drawn with what it has, the rest filling its place as it comes, rather
