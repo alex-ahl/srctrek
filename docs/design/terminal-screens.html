@@ -352,7 +352,7 @@
 
   <section>
     <h2>2. The landing page</h2>
-    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, <code>esc</code> is done, and the footer then names the repos added.</p>
+    <p class="note">Every change there is to look at, each with its trek's state: your work (the branch checked out, then its uncommitted work), pull requests waiting on your review, other branches, the code as it is, and, folded under a count, treks whose change is gone (merged, or its branch deleted). The selection starts on your branch, even with nothing on it yet. Left open, the rows follow commits, branch switches, and treks saved by an agent; the selection stays where it is. Enter opens the selected change's screen. <code>a</code> slides up every repo beside this one from the bottom, those with work first, the changes dimmed above with the selected one still marked: <code>space</code> adds a repo to go along with the change, <code>→</code> opens its branches, typing narrows them by name or path, <code>esc</code> clears what's typed and then is done, and the footer then names the repos added.</p>
     <div class="grid2">
       <figure><figcaption>On a branch an agent has worked on</figcaption>
         <div class="term screen">
@@ -418,7 +418,7 @@
             <div class="ln"><span class="dim">[ ]</span> ledger     <span class="dim">~/git/ledger     </span>main</div>
             <div class="ln"><span class="dim">[ ]</span> payouts    <span class="dim">~/git/payouts    </span>main</div>
           </div>
-          <div class="foot">space add repo · → branches · esc done · ? keys</div>
+          <div class="foot">type to narrow · space add repo · → branches · esc done</div>
         </div>
       </figure>
       <figure><figcaption>→ on billing — its branches open under it, in the sheet</figcaption>
@@ -439,6 +439,22 @@
             <div class="ln"><span class="dim">[ ]</span> ledger     <span class="dim">~/git/ledger     </span>main</div>
           </div>
           <div class="foot">type to narrow · enter take · ←/esc close</div>
+        </div>
+      </figure>
+      <figure><figcaption>Typing narrows the repos by name or path, space still adding</figcaption>
+        <div class="term screen">
+          <div class="tb"><span><b>srctrek</b></span><span>web, api</span></div>
+          <div class="pane">
+            <div class="ln dim">YOUR WORK</div>
+            <div class="ln sel">    feature/refunds            <span class="dim">9 commits since main</span>    <span class="dim">○</span> no trek yet</div>
+            <div class="ln dim">      with uncommitted work    2 files                 ○ no trek yet</div>
+          </div>
+          <div class="sheet">
+            <div class="ln"><span class="a">ADD REPOS</span><span class="dim"> · 1 added</span>  / bil▏</div>
+            <div class="ln sel"><span class="dim">[ ]</span> billing    <span class="dim">~/git/billing    </span>main<span class="a"> ▸</span></div>
+            <div class="ln"><span class="dim">[ ]</span> billing-ui <span class="dim">~/git/billing-ui </span>main</div>
+          </div>
+          <div class="foot">type to narrow · space add repo · → branches · esc clear</div>
         </div>
       </figure>
       <figure><figcaption>After esc — the repos added named beside a in the footer</figcaption>
@@ -750,7 +766,7 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Screen</th><th>Keys</th></tr></thead>
       <tbody>
-        <tr><td>Landing page</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open the change, or what's folded · <code>a</code> add repos: <code>space</code> add a repo, <code>→</code> its branches, <code>esc</code> done · <code>S</code> settings · <code>q</code> quit</td></tr>
+        <tr><td>Landing page</td><td><code>j</code>/<code>k</code> move · <code>enter</code> open the change, or what's folded · <code>a</code> add repos: <code>space</code> add a repo, <code>→</code> its branches, type to narrow, <code>esc</code> clear or done · <code>S</code> settings · <code>q</code> quit</td></tr>
         <tr><td>A change's screen</td><td><code>enter</code> step it · <code>e</code> your editor, or <code>n</code> here · <code>b</code> build, update, or build again · <code>a</code> add a proposed repo · <code>x</code> stop, or dismiss a proposal · <code>l</code> builds · <code>esc</code> back</td></tr>
         <tr><td>Code as it is</td><td><code>j</code>/<code>k</code> move · <code>enter</code> step a way in's trek · <code>b</code> build it · <code>B</code> find the ways in again · <code>esc</code> back</td></tr>
         <tr><td>Settings</td><td><code>j</code>/<code>k</code> choose · <code>enter</code> change · <code>esc</code> back</td></tr>

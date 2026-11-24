@@ -149,6 +149,14 @@ async function down(input: Input, on: Screen, times: number) {
   }
 }
 
+// Down `times` repos in the sheet, where letters are typed: by the arrow.
+async function downSheet(input: Input, on: Screen, times: number) {
+  for (const _ of Array.from({ length: times })) {
+    input.pressArrow("down")
+    await on.drawn()
+  }
+}
+
 test("offers the user's own work first, then the other branches, each saying what it opens", () => {
   const rows = landingRows(choices, open)
 
@@ -323,7 +331,7 @@ test("a slides up every repo beside this one under the changes, those with work 
     /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
   )
   expect(frame).not.toContain("more repos")
-  expect(frame).toContain("space add repo · → branches · esc done · ? keys")
+  expect(frame).toContain("type to narrow · space add repo · → branches · esc done")
 })
 
 test("space adds a repo in the sheet; esc closes it, the footer naming what goes along", async () => {
@@ -358,12 +366,94 @@ test("space on the list adds nothing", async () => {
   expect(onPick).toHaveBeenCalledWith(own)
 })
 
+test("typing narrows the sheet's repos by name or path, space still adding", async () => {
+  const frame = await frameAfter(
+    landing(),
+    async (input, on) => {
+      await sheetOpen(input, on)
+      input.pressKey("w")
+      input.pressKey("o")
+      await on.shows("/ wo▏")
+      input.pressKey(" ")
+      await on.shows("[x] worker")
+    },
+    110,
+    34,
+  )
+
+  expect(frame).toMatch(/ADD REPOS · 1 added +\/ wo▏ *\n/)
+  expect(frame).not.toContain("../api")
+  expect(frame).not.toContain("../docs")
+  expect(frame).toContain("type to narrow · space remove repo · → branches · esc clear")
+})
+
+test("in the sheet, letters are typed, not keys; nothing matching says so", async () => {
+  const onQuit = mock(() => undefined)
+  const frame = await frameAfter(
+    landing({ onQuit }),
+    async (input, on) => {
+      await sheetOpen(input, on)
+      input.pressKey("j")
+      input.pressKey("q")
+      await on.shows("/ jq▏")
+    },
+    110,
+    34,
+  )
+
+  expect(frame).toContain("no repo matches")
+  expect(onQuit).not.toHaveBeenCalled()
+})
+
+test("the count of repos added includes those the narrowing hides", async () => {
+  const frame = await frameAfter(
+    landing(),
+    async (input, on) => {
+      await sheetOpen(input, on)
+      input.pressKey(" ")
+      input.pressKey("w")
+      await on.shows("/ w▏")
+    },
+    110,
+    34,
+  )
+
+  expect(frame).toContain("ADD REPOS · 1 added")
+  expect(frame).not.toContain("../api")
+})
+
+test("esc clears what's typed, then closes the sheet, which opens again unnarrowed", async () => {
+  const frame = await frameAfter(
+    landing(),
+    async (input, on) => {
+      await sheetOpen(input, on)
+      input.pressKey("w")
+      await on.shows("/ w▏")
+      input.pressEscape()
+      await on.shows("esc done")
+      input.pressKey("w")
+      await on.shows("/ w▏")
+      input.pressEscape()
+      await on.shows("esc done")
+      input.pressEscape()
+      await on.shows("a add repos")
+      input.pressKey("a")
+      await on.shows("ADD REPOS")
+    },
+    110,
+    34,
+  )
+
+  expect(frame).toContain("../api")
+  expect(frame).not.toContain("/ w")
+})
+
 test("a repo on its default branch is passed through", async () => {
   const frame = await frameAfter(
     landing(),
     async (input, on) => {
       await sheetOpen(input, on)
-      await down(input, on, 2)
+      await downSheet(input, on, 2)
       input.pressKey(" ")
       await on.shows("[x] worker")
     },
@@ -381,7 +471,7 @@ test("with more than two repos added, the footer names two and counts the rest",
       await sheetOpen(input, on)
       for (const _ of Array.from({ length: 3 })) {
         input.pressKey(" ")
-        await down(input, on, 1)
+        await downSheet(input, on, 1)
       }
       await on.shows("ADD REPOS · 3 added")
       input.pressEscape()
@@ -405,7 +495,7 @@ test("on a short terminal, the sheet scrolls to keep its selection in view", asy
     landing({ nearby: many }),
     async (input, on) => {
       await sheetOpen(input, on)
-      await down(input, on, 19)
+      await downSheet(input, on, 19)
       await on.shows(/▶ \[ \] repo-19 /)
     },
     110,

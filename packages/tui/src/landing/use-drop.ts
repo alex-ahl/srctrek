@@ -4,10 +4,10 @@ import { stepped } from "../ui/move"
 import { type Drop, type DropRow, dropRows, opened } from "./drop"
 
 /** A key as the picker hands it on: its name, and the text it types, if any. */
-type DropKey = Readonly<{ name: string; sequence?: string; ctrl?: boolean; meta?: boolean }>
+export type DropKey = Readonly<{ name: string; sequence?: string; ctrl?: boolean; meta?: boolean }>
 
-// A letter, digit, or sign typed to narrow the branches, not a key that does something.
-const typed = (key: DropKey) =>
+/** A letter, digit, or sign typed to narrow a list, not a key that does something. */
+export const typed = (key: DropKey) =>
   key.ctrl !== true && key.meta !== true && key.sequence?.length === 1 && key.sequence >= " "
 
 /**

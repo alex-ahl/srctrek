@@ -20,9 +20,11 @@ import {
   statesKnown,
   useStatuses,
 } from "./list"
-import { type RepoItem, type Ticked, repoItems, toggled } from "./repos"
+import { type Ticked, toggled } from "./repos"
 import type { DropView } from "./drop-view"
-import { RepoSheet, sheetHeight, sheetKey } from "./sheet"
+import { RepoSheet, sheetHeight } from "./sheet"
+import { keyAt, selectedIndex } from "./selection"
+import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
 import { useDrop } from "./use-drop"
 import { type DoneTrek, type LandingRow, type Pick, doneRows, landingRows } from "./rows"
@@ -201,12 +203,6 @@ function addedNames(ticked: Ticked, checkouts: readonly NearbyCheckout[]): strin
   return rest > 0 ? `${names.slice(0, 2).join(", ")} +${String(rest)}` : names.join(", ")
 }
 
-// The key of the line at `at`, none past the list.
-function keyAt<T>(items: readonly T[], at: number, keyOf: (item: T) => string): string | undefined {
-  const item = items[at]
-  return item === undefined ? undefined : keyOf(item)
-}
-
 // How long the selection stays on a change before what it opens is worked out ahead.
 const REST_MS = 150
 
@@ -257,8 +253,6 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
   return repos.length === 0 ? change : { ...change, repos }
 }
 
-const DONE_HINT: KeyHint = { key: "esc", does: "done" }
-
 // The keys for the list's line selected, and a to add repos, naming those added.
 function listKeys(item: LandingItem | undefined, added: string | undefined): KeyHint[] {
   const add = { key: "a", does: "add repos", ...(added === undefined ? {} : { mark: added }) }
@@ -268,19 +262,6 @@ function listKeys(item: LandingItem | undefined, added: string | undefined): Key
     { key: "S", does: "settings" },
     HELP_HINT,
   ]
-}
-
-// The keys for the sheet's repo selected: space ticks it, → its branches.
-function sheetKeys(item: RepoItem | undefined): KeyHint[] {
-  const line =
-    item === undefined
-      ? []
-      : [
-          { key: "space", does: item.pick === undefined ? "add repo" : "remove repo" },
-          { key: "→", does: "branches" },
-        ]
-
-  return [...line, DONE_HINT, HELP_HINT]
 }
 
 // The footer: a repo's open branches' keys while they're open, else the selected line's.
@@ -301,7 +282,8 @@ const GROUPS: readonly KeyGroup[] = [
       { key: "a", does: "add repos to the change" },
       { key: "space", does: "add a repo, or remove it" },
       { key: "→", does: "a repo's branches" },
-      { key: "esc", does: "done" },
+      { key: "type", does: "to narrow the repos by name or path" },
+      { key: "esc", does: "clear what's typed, or done" },
     ],
   },
   { title: "screens", keys: [{ key: "S", does: "settings" }] },
@@ -322,16 +304,6 @@ function itemsOf(
       : [{ kind: "done-fold", count: done.length }]
 
   return [...rows.map(change), ...doneItems]
-}
-
-/** The selected line: the one with the key chosen, so it stays put as lines load around it. */
-function selectedIndex<T>(
-  items: readonly T[],
-  chosen: string | undefined,
-  keyOf: (item: T) => string,
-): number {
-  const at = items.findIndex((item) => keyOf(item) === chosen)
-  return at === -1 ? 0 : at
 }
 
 // At most half the room below the title bar goes to the sheet, so the changes stay in view.
@@ -370,8 +342,6 @@ export function Landing(props: Props) {
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const active = props.active !== false
   const checkouts = nearby
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [sheetChosen, setSheetChosen] = useState<string | undefined>(undefined)
   const help = useKeysHelp()
   // what branches' ages are measured from
   const now = useNow()
@@ -379,9 +349,6 @@ export function Landing(props: Props) {
   const items = itemsOf(rows, done, doneOpen)
   const selected = selectedIndex(items, chosen, itemKey)
   const item = items[selected]
-  const sheetItems = repoItems(checkouts, ticked)
-  const sheetAt = selectedIndex(sheetItems, sheetChosen, sheetKey)
-  const repo = sheetItems[sheetAt]
   const repos = picksOf(ticked, checkouts)
   // what enter opens from the selected line, when it's a change's
   const picked = item?.kind === "change" ? pickOf(item.row, repos) : undefined
@@ -389,13 +356,16 @@ export function Landing(props: Props) {
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
-  const openDrop = () => repo !== undefined && drop.open(repo.checkout.path)
+  const sheet = useSheet(
+    checkouts,
+    ticked,
+    (checkout) => setTicked(toggled(ticked, checkout)),
+    drop.open,
+  )
   const notice = useNotice(props.opening)
   const shownDrop = dropView(drop, ticked, now)
 
   const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length), itemKey))
-  const moveInSheet = (by: number) =>
-    setSheetChosen(keyAt(sheetItems, stepped(sheetAt, by, sheetItems.length), sheetKey))
   // an opened fold's line gives way to the first of what it held, which takes the selection
   const enter = () => {
     if (item?.kind === "done-fold") {
@@ -405,37 +375,25 @@ export function Landing(props: Props) {
       props.onPick(picked)
     }
   }
-  const common: Array<[string, () => void]> = [
+  const keyActions = new Map([
+    ["return", enter],
+    ["a", sheet.show],
+    ["S", props.onSettings],
     ["q", props.onQuit],
     ["?", help.show],
-  ]
-  const listActions = new Map([
-    ["return", enter],
-    ["a", () => setSheetOpen(true)],
-    ["S", props.onSettings],
-    ...common,
     ...moveKeys(move),
   ])
-  const sheetActions = new Map([
-    ["space", () => repo !== undefined && setTicked(toggled(ticked, repo.checkout))],
-    ["right", openDrop],
-    ["l", openDrop],
-    ["escape", () => setSheetOpen(false)],
-    ...common,
-    ...moveKeys(moveInSheet),
-  ])
-  // While a repo's branches are open, keys go there; while the sheet is, there.
+  // While a repo's branches are open, keys go there; else while the sheet is, there.
   useLandingKeys(
     active,
     help.guard((key) => {
       notice.seen()
-      const actions = sheetOpen ? sheetActions : listActions
-      return drop.key(key) || actions.get(shifted(key))?.()
+      return drop.key(key) || sheet.key(key) || keyActions.get(shifted(key))?.()
     }),
   )
 
   const room = height - chromeLines(notice.text)
-  const sheetLines = sheetOpen ? sheetHeight(sheetItems, shownDrop, sheetMost(room)) : 0
+  const sheetLines = sheet.open ? sheetHeight(sheet.items, shownDrop, sheetMost(room)) : 0
 
   return (
     <LandingView
@@ -447,7 +405,7 @@ export function Landing(props: Props) {
             chosen={selected}
             statuses={statuses}
             note={note}
-            muted={sheetOpen}
+            muted={sheet.open}
             tint={props.tint}
             opening={openingKey(props.opening)}
             height={room - sheetLines}
@@ -455,10 +413,12 @@ export function Landing(props: Props) {
         ) : undefined
       }
       sheet={
-        sheetOpen ? (
+        sheet.open ? (
           <RepoSheet
-            items={sheetItems}
-            chosen={sheetAt}
+            items={sheet.items}
+            chosen={sheet.at}
+            added={ticked.size}
+            query={sheet.query}
             drop={shownDrop}
             tint={props.tint}
             height={sheetLines}
@@ -469,7 +429,7 @@ export function Landing(props: Props) {
       notice={notice.text}
       footer={footerOf(
         drop.drop !== undefined,
-        help.footer(sheetOpen ? sheetKeys(repo) : listKeys(item, addedNames(ticked, checkouts))),
+        help.footer(sheet.open ? sheet.keys : listKeys(item, addedNames(ticked, checkouts))),
       )}
       help={help.open}
     />

@@ -244,8 +244,9 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
   row. DONE, folded under a count: treks whose work landed or whose branch is gone. `a` slides up
   ADD REPOS from the bottom, the changes dimmed above it with the selected one still marked: every
   repo beside this one, those with work first, ticked with `space` to go with the change, `→` for
-  a repo's branches, `esc` done; its heading counts those added, and the footer names them after
-  `a add repos`.
+  a repo's branches; typing narrows them by name or path, as it does a repo's branches, and `esc`
+  clears what's typed, then closes the sheet. Its heading counts those added, and the footer names
+  them after `a add repos`.
   The selection starts on the branch checked out, even with nothing on it yet, and is kept on its
   row as the lists load and follow the worktree. A change being opened says so on its row; one that
   couldn't be opened says why above the footer, until the next key.
@@ -308,7 +309,7 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 
 | Screen            | Keys                                                                                                                                                                                                   |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Landing page      | `enter` open the change, or what's folded · `a` add repos: `space` add a repo, `→` its branches, `esc` done · `S` settings · `?` keys · `q` quit                                                       |
+| Landing page      | `enter` open the change, or what's folded · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `S` settings · `?` keys · `q` quit                              |
 | A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `a` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back |
 | Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                       |
 | Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                              |

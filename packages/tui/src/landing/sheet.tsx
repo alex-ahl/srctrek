@@ -3,7 +3,7 @@ import { DropLines, type DropView, dropHeight } from "./drop-view"
 import { type RepoItem, repoBranch, repoNotes } from "./repos"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
-import { useTones } from "../ui/theme"
+import { COLOUR, useTones } from "../ui/theme"
 
 /** The sheet line's key, which keeps it selected as the repos are read again. */
 export const sheetKey = (item: RepoItem): string => item.checkout.path
@@ -46,15 +46,21 @@ function firstShown(
   return first
 }
 
-/** The lines the sheet takes: its rule and heading, and its lines up to `most` in all. */
+/**
+ * The lines the sheet takes: its rule and heading, and its lines, or the one saying none match,
+ * up to `most` in all.
+ */
 export function sheetHeight(
   items: readonly RepoItem[],
   drop: DropView | undefined,
   most: number,
 ): number {
   const lines = items.reduce((total, item) => total + linesOf(item, drop), 0)
-  return Math.min(SHEET_CHROME + lines, most)
+  return Math.min(SHEET_CHROME + Math.max(lines, 1), most)
 }
+
+// What's typed to narrow the repos, after a "/", as a repo's branches show it.
+const narrowing = (query: string) => (query === "" ? "" : `  / ${query}▏`)
 
 // A repo beside this one: ticked or not, its name and path, its branch, with → to open its
 // branches on the selected row (▾ while they're open), and what it holds.
@@ -88,17 +94,23 @@ function RepoView({
 
 /**
  * The repos beside this one, slid up from the bottom under the accent's rule: how many are added,
- * each ticked or not, a repo's branches open under it, the selected line on the tint.
+ * what they're narrowed to, each ticked or not, a repo's branches open under it, the selected
+ * line on the tint.
  */
 export function RepoSheet({
   items,
   chosen,
+  added,
+  query,
   drop,
   tint,
   height,
 }: {
   items: readonly RepoItem[]
   chosen: number
+  // how many repos are added, those narrowed out among them
+  added: number
+  query: string
   // a repo's branches open under its row
   drop: DropView | undefined
   tint: RGBA | undefined
@@ -107,7 +119,6 @@ export function RepoSheet({
 }) {
   const tones = useTones()
   const widths = widthsOf(items)
-  const added = items.filter((item) => item.pick !== undefined).length
   const start = firstShown(items, chosen, drop, height - SHEET_CHROME)
 
   return (
@@ -127,8 +138,10 @@ export function RepoSheet({
         <text>
           <span fg={tones.accent}>ADD REPOS</span>
           <span fg={tones.dim}>{added === 0 ? "" : ` · ${String(added)} added`}</span>
+          <span fg={COLOUR.text}>{narrowing(query)}</span>
         </text>
       </box>
+      {items.length === 0 && <text fg={tones.dim}>{"    no repo matches"}</text>}
       {items.slice(start).map((item, shown) => {
         const index = start + shown
         const open = isOpen(item, drop)
