@@ -35,12 +35,11 @@ const ListedSchema = z.array(
   }),
 )
 
-// Enough to find what's under review without paging through a busy repo's history.
+// Enough to find what's under review without paging through a busy repo's history, and, asked for
+// on their own, every review asked of the user and every pull request of theirs, however old. More
+// is refused: each pull request's commits and their authors count toward GitHub's 500,000 nodes a
+// query, which 100 pull requests pass.
 const LIMIT = "30"
-
-// Every review asked of the user, and every pull request of theirs, however old: more than anyone
-// has open at once.
-const WAITING_LIMIT = "100"
 
 // Never ask: a prompt would hang behind the screen. Logging in is the user's own `gh auth login`.
 const NO_PROMPT = { GH_PROMPT_DISABLED: "1" }
@@ -117,16 +116,8 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
   ]
   const [listed, waiting, own] = await Promise.all([
     runGh(cwd, gh, ["pr", "list", ...fields, "--limit", LIMIT]),
-    runGh(cwd, gh, [
-      "pr",
-      "list",
-      "--search",
-      "review-requested:@me",
-      ...fields,
-      "--limit",
-      WAITING_LIMIT,
-    ]),
-    runGh(cwd, gh, ["pr", "list", "--author", "@me", ...fields, "--limit", WAITING_LIMIT]),
+    runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", ...fields, "--limit", LIMIT]),
+    runGh(cwd, gh, ["pr", "list", "--author", "@me", ...fields, "--limit", LIMIT]),
   ])
   const requested = ListedSchema.parse(waiting).map(
     openPullRequest({ reviewRequested: true, mine: false }),
