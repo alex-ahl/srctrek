@@ -16,9 +16,9 @@ import { type Layer, LayerView, layerKeys, layerWhere, lookedOn, useLayer } from
 import type { RouteStop } from "./route"
 import { type Look, calledOn, definitionsOf, nearestFirst } from "./peek"
 import { openAtLine } from "../editors/editors"
-import { type PageActions, pageGroups, pageHints, pageKeys } from "./page"
 import { nextText } from "./next"
 import { type ReactNode, useRef, useState } from "react"
+import { shifted } from "../ui/move"
 
 type Props = {
   root: string
@@ -27,8 +27,6 @@ type Props = {
   // the trek's saved name, and its title for the title bar
   name: string
   title: string
-  // the overview is the trek's page: what it offers besides stepping here
-  page: PageActions
   onBack: () => void
   // the step's lines' background, when the terminal's colours are known
   tint: RGBA | undefined
@@ -224,7 +222,7 @@ const STEP_GROUPS: readonly KeyGroup[] = [
       { key: "e", does: "the cursor's line in your editor" },
     ],
   },
-  { title: "leave", keys: [{ key: "q", does: "home" }] },
+  { title: "leave", keys: [{ key: "q", does: "back" }] },
 ]
 
 type KeyMap = ReadonlyMap<string, () => void>
@@ -248,10 +246,6 @@ function asideKeys(
     ["left", on(-1)],
   ])
 }
-
-// A letter typed with shift as its capital, "O" for over, so maps name capitals as they're shown.
-const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
-  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
 
 // What a key does with `layer` open: details and the route map take their own keys, a look or
 // the change its keys; at a stop, a move, a layer, or the cursor.
@@ -385,18 +379,24 @@ function useActions(
   }
 }
 
-// What the footer offers: what's open's keys, the page's on the overview, else a stop's.
+// Before the first stop, n is all there is to do, and the route map.
+const OVERVIEW_HINTS: readonly KeyHint[] = [
+  { key: "n", does: "the first stop" },
+  { key: "r", does: "route" },
+  HELP_HINT,
+]
+
+// What the footer offers: what's open's keys, the overview's, else a stop's.
 function footerKeys(
   layer: Layer | undefined,
   view: SessionView | undefined,
-  page: PageActions,
   next: string,
 ): readonly KeyHint[] {
   if (layer !== undefined) {
     return layerKeys(layer)
   }
 
-  return view?.kind === "overview" ? pageHints(page) : stepHints(next)
+  return view?.kind === "overview" ? OVERVIEW_HINTS : stepHints(next)
 }
 
 // Where the trek is in its route; nowhere until it's open.
@@ -469,7 +469,7 @@ function Main({ stepping, children }: { stepping: Stepping; children: ReactNode 
  * values, and arrows, and the call stack beside it; before the first, the overview; after the
  * last, the outcome and the flags.
  */
-export function SteppingScreen({ root, name, title, editor, page, onBack, tint }: Props) {
+export function SteppingScreen({ root, name, title, editor, onBack, tint }: Props) {
   const { width, height } = useTerminalDimensions()
   const stepping = useStepping(root, name)
   const { place, cursorKeys, onLayout, toStop } = useCursor(height)
@@ -478,12 +478,10 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
 
   const [note, setNote] = useState("")
   const help = useKeysHelp()
-  const stopKeys = new Map([
+  const keys = new Map([
     ...stepKeys({ stepping, view, cursor, open, onBack, move, edit, say: setNote }),
     ["?", help.show],
   ])
-  const onPage = view?.kind === "overview"
-  const keys = onPage ? new Map([...stopKeys, ...pageKeys(page, () => move("next"))]) : stopKeys
   useKeyboard(
     help.guard((key) => {
       setNote("")
@@ -520,7 +518,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
         note={note}
       />
       <Main stepping={stepping}>
-        <OrKeysHelp open={help.open} groups={onPage ? pageGroups(page) : STEP_GROUPS}>
+        <OrKeysHelp open={help.open} groups={STEP_GROUPS}>
           {view !== undefined && (
             <Body
               view={view}
@@ -537,7 +535,7 @@ export function SteppingScreen({ root, name, title, editor, page, onBack, tint }
           )}
         </OrKeysHelp>
       </Main>
-      <Footer keys={help.footer(footerKeys(layer, view, page, nextWords(opened)))} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, view, nextWords(opened)))} />
     </box>
   )
 }

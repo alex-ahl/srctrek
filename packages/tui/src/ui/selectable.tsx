@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 import { COLOUR, useTones } from "./theme"
 
 /** The selection's marker, where no band shows it: "▶ " on the selected line, else room for it. */
-export function selectionMarker(selected: boolean, tint: RGBA | undefined): string {
+function selectionMarker(selected: boolean, tint: RGBA | undefined): string {
   return selected && tint === undefined ? "▶ " : "  "
 }
 

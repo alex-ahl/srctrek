@@ -6,7 +6,8 @@ The `trek` binary's entry point.
 
 ## What it does, and does not
 
-Does: read `trek`'s arguments, resolve the change through core, and start the home screen;
+Does: read `trek`'s arguments, resolve the change through core, and start the landing page, or the
+change's screen when the arguments name one;
 say what's wrong with arguments it can't use and exit 1.
 
 Does not: hold trek logic or draw anything. Core resolves, front-ends draw.

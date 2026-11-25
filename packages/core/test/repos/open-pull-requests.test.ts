@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { chmod, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { openPullRequests } from "../../src"
+import { openPullRequests, pullRequestOf } from "../../src"
 import { rejection } from "../support/rejection"
 import { tempDir } from "@srctrek/testing"
 
@@ -12,6 +12,10 @@ const LISTED = [
     author: { login: "bo" },
     url: "https://github.com/acme/api/pull/14",
     isDraft: true,
+    headRefOid: "b14",
+    baseRefName: "main",
+    updatedAt: "2026-11-20T10:00:00Z",
+    commits: [{ oid: "c1" }, { oid: "c2" }],
   },
   {
     number: 12,
@@ -19,6 +23,10 @@ const LISTED = [
     author: { login: "alice" },
     url: "https://github.com/acme/api/pull/12",
     isDraft: false,
+    headRefOid: "a12",
+    baseRefName: "release/2.1",
+    updatedAt: "2026-11-22T09:00:00Z",
+    commits: [{ oid: "c3" }, { oid: "c4" }, { oid: "c5" }],
   },
 ]
 
@@ -31,9 +39,10 @@ async function fakeGh(script: string): Promise<string> {
 }
 
 describe("openPullRequests", () => {
-  test("lists the open pull requests, those waiting on the user's review first", async () => {
+  test("lists the open pull requests with their heads, bases, commits, and last updates, those waiting on the user's review first", async () => {
     const gh = await fakeGh(`case "$*" in
-  *review-requested*) echo '[{"number":12}]' ;;
+  *review-requested*) echo '${JSON.stringify([LISTED[1]])}' ;;
+  *--author*) echo '[]' ;;
   *) echo '${JSON.stringify(LISTED)}' ;;
 esac`)
 
@@ -47,6 +56,11 @@ esac`)
         url: "https://github.com/acme/api/pull/12",
         draft: false,
         reviewRequested: true,
+        mine: false,
+        head: "a12",
+        base: "release/2.1",
+        updatedAt: "2026-11-22T09:00:00Z",
+        commits: 3,
       },
       {
         number: 14,
@@ -55,7 +69,46 @@ esac`)
         url: "https://github.com/acme/api/pull/14",
         draft: true,
         reviewRequested: false,
+        mine: false,
+        head: "b14",
+        base: "main",
+        updatedAt: "2026-11-20T10:00:00Z",
+        commits: 2,
       },
+    ])
+  })
+
+  test("lists a pull request waiting on the user's review that's older than the rest listed", async () => {
+    const older = { ...LISTED[0], number: 3, isDraft: false, updatedAt: "2026-09-01T10:00:00Z" }
+    const gh = await fakeGh(`case "$*" in
+  *review-requested*) echo '${JSON.stringify([older])}' ;;
+  *--author*) echo '[]' ;;
+  *) echo '${JSON.stringify(LISTED)}' ;;
+esac`)
+
+    const open = await openPullRequests(await tempDir("repo-"), gh)
+
+    expect(open.map((pr) => [pr.number, pr.reviewRequested])).toEqual([
+      [3, true],
+      [14, false],
+      [12, false],
+    ])
+  })
+
+  test("lists the user's own pull requests after those waiting on them, however old", async () => {
+    const own = { ...LISTED[0], number: 5, isDraft: false, updatedAt: "2026-08-01T10:00:00Z" }
+    const gh = await fakeGh(`case "$*" in
+  *review-requested*) echo '[]' ;;
+  *--author*) echo '${JSON.stringify([own])}' ;;
+  *) echo '${JSON.stringify(LISTED)}' ;;
+esac`)
+
+    const open = await openPullRequests(await tempDir("repo-"), gh)
+
+    expect(open.map((pr) => [pr.number, pr.mine])).toEqual([
+      [5, true],
+      [14, false],
+      [12, false],
     ])
   })
 
@@ -70,5 +123,21 @@ esac`)
     expect(String(error)).toContain(
       "gh: To get started with GitHub CLI, please run:  gh auth login",
     )
+  })
+})
+
+describe("pullRequestOf", () => {
+  test("is the pull request at a link: its title, who opened it, and whether it's a draft", async () => {
+    const gh = await fakeGh(
+      `echo '{"title":"Add partial refunds","author":{"login":"alice"},"isDraft":true}'`,
+    )
+
+    const pull = await pullRequestOf(
+      await tempDir("repo-"),
+      "https://github.com/acme/api/pull/12",
+      gh,
+    )
+
+    expect(pull).toEqual({ title: "Add partial refunds", author: "alice", draft: true })
   })
 })

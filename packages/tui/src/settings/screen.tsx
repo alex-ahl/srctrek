@@ -30,7 +30,7 @@ type Props = {
 // What the bottom of the screen is asking: which editor, or the agent's command.
 type Prompt = "editor" | "agent"
 
-// After srctrek in the title bar, as the change is on the home screen.
+// After srctrek in the title bar, as the change is on its screen.
 const SUBTITLE = "settings"
 // Help reads as a short paragraph, not one line across a wide terminal.
 const HELP_WIDTH = 76
@@ -82,7 +82,7 @@ function Bottom({
     )
   }
 
-  return <Footer keys={keys} shown="" />
+  return <Footer keys={keys} />
 }
 
 /**

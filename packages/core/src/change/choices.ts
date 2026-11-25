@@ -99,63 +99,52 @@ export function choiceOfArguments(args: readonly string[]): ChangeChoice {
     : { kind: "pull-request", url: only }
 }
 
-/** Which side of the home screen trek's arguments asked for: the change, or the code as it is. */
-export type HomeFocus = Readonly<{ kind: "change" } | { kind: "code"; trigger?: string }>
-
-/**
- * What the home screen opens with `args`: the change's arguments, the code as it is over the same
- * repos, and the side the arguments asked for. --code asks for the code, a trigger with it for
- * that way in, the change then being the user's own branch with the same repos.
- */
-export function homeSides(args: readonly string[]): {
-  change: string[]
-  code: string[]
-  focus: HomeFocus
-} {
-  const option = args.find((arg) => arg === CODE || arg.startsWith(`${CODE}=`))
-  if (option === undefined) {
-    return { change: [...args], code: codeOver(args), focus: { kind: "change" } }
-  }
-
-  const repos = args.filter((arg) => arg !== option && arg !== ".")
-  const trigger = option.slice(`${CODE}=`.length).trim()
-  const focus: HomeFocus = trigger === "" ? { kind: "code" } : { kind: "code", trigger }
-  return { change: repos.length === 0 ? [] : ["...HEAD", ...repos], code: codeOver(args), focus }
-}
-
-// The code as it is over the repos `args` name: each folder named, this one first when any are,
-// leaving out ranges, pull requests' links, and options.
-function codeOver(args: readonly string[]): string[] {
-  const isRepo = (arg: string) =>
-    arg !== "." &&
-    !arg.startsWith("-") &&
-    !arg.includes("...") &&
-    parsePullRequestUrl(arg) === undefined
-  const repos = args.filter(isRepo)
-  return [CODE, ...(repos.length === 0 ? [] : [".", ...repos])]
-}
-
 /** A branch to choose, and how many commits it has since it left the base. */
 export type BranchChoice = Readonly<{ name: string; commits: number }>
+
+/** A branch besides the one checked out, and whether a commit on it since the base is the user's. */
+export type OtherBranch = BranchChoice & Readonly<{ mine: boolean }>
 
 /**
  * The branches of the repo at `cwd` to choose from: the base they're counted from, the one checked
  * out, the files changed and not yet committed there, and the others most recently committed to
- * first, leaving out the base and branches with nothing since it.
+ * first, each marked when a commit on it is the user's, leaving out the base and branches with
+ * nothing since it.
  */
 export type BranchChoices = Readonly<{
   base: string
   own: BranchChoice | undefined
   uncommittedFiles: number
-  others: readonly BranchChoice[]
+  others: readonly OtherBranch[]
 }>
 
-// Enough to find recent work without a git call per branch in a repo that keeps hundreds.
-const OTHERS_LIMIT = 15
+// Enough to find recent work, the user's among it, without a git call per branch in a repo that
+// keeps hundreds.
+const OTHERS_LIMIT = 40
 
+// Counted as the snapshot of them is taken: trek's own folder is no work of the user's.
 async function uncommittedFiles(cwd: string): Promise<number> {
-  const status = await runGit(cwd, ["status", "--porcelain"])
+  const status = await runGit(cwd, ["status", "--porcelain", "--", ":/", ":(top,exclude).srctrek"])
   return status === "" ? 0 : status.split("\n").length
+}
+
+// The user's email, as their commits carry it; none when git has none set.
+async function userEmail(cwd: string): Promise<string> {
+  const email = await runGit(cwd, ["config", "user.email"]).catch(() => "")
+  return email.toLowerCase()
+}
+
+// A branch's commits since the base, by who made them: how many, and whether one is the user's.
+async function otherBranch(
+  cwd: string,
+  base: string,
+  name: string,
+  email: string,
+): Promise<OtherBranch> {
+  const out = await runGit(cwd, ["log", "--format=%ae", `${base}..${name}`])
+  const authors = out === "" ? [] : out.split("\n")
+  const mine = email !== "" && authors.some((author) => author.toLowerCase() === email)
+  return { name, commits: authors.length, mine }
 }
 
 // Local branches, most recently committed to first.
@@ -176,11 +165,9 @@ export async function branchChoices(cwd: string): Promise<BranchChoices> {
   const names = (await localBranches(cwd)).filter(
     (name) => name !== current && !isBaseBranch(base, name),
   )
+  const email = await userEmail(cwd)
   const counted = await Promise.all(
-    names.slice(0, OTHERS_LIMIT).map(async (name) => ({
-      name,
-      commits: await commitsBetween(cwd, base, name),
-    })),
+    names.slice(0, OTHERS_LIMIT).map((name) => otherBranch(cwd, base, name, email)),
   )
   const own =
     current === undefined

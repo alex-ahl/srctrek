@@ -3,9 +3,11 @@ import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import {
   type Trigger,
+  buildState,
   loadTriggers,
   resolveChange,
   saveTriggers,
+  startBuild,
   trekStatus,
   triggerProblems,
 } from "../../src"
@@ -64,6 +66,20 @@ describe("triggers", () => {
       name,
       triggers: [{ trigger, trek: { kind: "missing", name: "set-the-total" } }],
     })
+  })
+
+  test("give way to finding them again while that runs, and stay if it fails", async () => {
+    const dir = await makeBranchRepo()
+    const change = await codeOf(dir)
+    const name = `${change.repos[0]?.name ?? ""}-code`.toLowerCase()
+    await saveTriggers(dir, name, change, [triggerAt(change.repos[0]?.name ?? "", 1)])
+
+    await startBuild(dir, [], name, "sleep 0.3; false")
+    expect((await trekStatus(dir, change)).kind).toBe("building")
+    for (let tries = 0; tries < 100 && (await buildState(dir, name)) === "building"; tries++) {
+      await Bun.sleep(50)
+    }
+    expect((await trekStatus(dir, change)).kind).toBe("triggers")
   })
 
   test("are ignored when the saved file isn't a list of triggers", async () => {

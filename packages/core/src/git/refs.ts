@@ -64,3 +64,9 @@ export function upstreamOf(dir: string, branch: string): Promise<string | undefi
 export async function commitsBetween(dir: string, from: string, to: string): Promise<number> {
   return Number(await runGit(dir, ["rev-list", "--count", `${from}..${to}`]))
 }
+
+/** How many files differ between commits `from` and `to`. */
+export async function filesBetween(dir: string, from: string, to: string): Promise<number> {
+  const names = await runGit(dir, ["diff", "--name-only", from, to])
+  return names === "" ? 0 : names.split("\n").length
+}

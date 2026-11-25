@@ -7,7 +7,8 @@ import { stopIds } from "./stops"
 import { pathExists } from "../../files"
 import { PROMPT_HASH } from "../../prompts/texts"
 import { loadTrek, loadTrekOrProblem, trekPath } from "../../treks/store"
-import { trekNameFor } from "./name"
+import type { Trek } from "../../schema/trek"
+import { pullTrekName, trekNameFor } from "./name"
 import { type Trigger, loadTriggers } from "../triggers"
 import { trekState } from "./trek-state"
 
@@ -24,7 +25,8 @@ export type TrekStatus = Readonly<
   | { kind: "ready" | "older-guide" | "missing" | "empty"; name: string }
   | { kind: "unreadable"; name: string; problem: string }
   | { kind: "unreachable"; name: string; unreachable: UnreachableRepo }
-  | { kind: "stale"; name: string; staleStops: number; stops: number }
+  // how many stops changed isn't known for a pull request read from its listing alone
+  | { kind: "stale"; name: string; staleStops: number | undefined; stops: number }
   | { kind: "building" | "failed"; name: string; logTail: string[] }
   | { kind: "triggers"; name: string; triggers: TriggerTrek[] }
 >
@@ -68,9 +70,14 @@ async function buildStatus(root: string, name: string): Promise<TrekStatus> {
   return { kind: "failed", name, logTail: await buildLogTail(root, name, LOG_TAIL_LINES) }
 }
 
-// Plain --code finds the code's triggers: the list once found, else where finding them stands.
+// Plain --code finds the code's triggers: building while they're found again, else the list once
+// found, else where finding them stands. Finding them again that fails leaves the list.
 async function triggersStatus(root: string, change: ResolvedChange): Promise<TrekStatus> {
   const name = await trekNameFor(change)
+  if ((await buildState(root, name)) === "building") {
+    return buildStatus(root, name)
+  }
+
   const triggers = await loadTriggers(root, name, change)
   if (triggers !== undefined) {
     const trekOf = async (trigger: Trigger): Promise<TriggerTrek> => {
@@ -107,9 +114,9 @@ async function savedStatus(
 }
 
 // A trek of the change: unreachable when it names a repo that can't be opened here, as nothing
-// else matters until it can; else ready unless the prompts that built it differ from today's
-// guide, and then its rebuild, while one runs or after it failed, says more than the trek it
-// replaces.
+// else matters until it can; else building while it's built again. A rebuild that failed says
+// more than a trek built with an older guide, which it was to replace; a trek of today's guide
+// stays ready, as it still is.
 async function readyStatus(root: string, name: string): Promise<TrekStatus> {
   const trek = await loadTrek(trekPath(root, name))
   const unreachable = await unreachableRepo(root, trek)
@@ -117,16 +124,16 @@ async function readyStatus(root: string, name: string): Promise<TrekStatus> {
     return { kind: "unreachable", name, unreachable }
   }
 
+  const state = await buildState(root, name)
+  if (state === "building") {
+    return buildStatus(root, name)
+  }
+
   if (trek.prompt_hash === PROMPT_HASH) {
     return { kind: "ready", name }
   }
 
-  const state = await buildState(root, name)
-  if (state === "building" || state === "failed") {
-    return buildStatus(root, name)
-  }
-
-  return { kind: "older-guide", name }
+  return state === "failed" ? buildStatus(root, name) : { kind: "older-guide", name }
 }
 
 // With no trek of the change as it is: a build under way or failed comes first, as it's what
@@ -167,6 +174,43 @@ async function nameFor(root: string, change: ResolvedChange): Promise<string> {
   }
 
   return next
+}
+
+// The commit a pull request's trek was built at: its repo whose head is that pull request.
+const builtAt = (trek: Trek, number: number) =>
+  trek.repos.find((repo) => repo.head?.kind === "pull" && repo.head.number === number)?.revision
+
+/**
+ * Where a pull request's trek stands, from its head as listed, with nothing fetched: a build under
+ * way first; else ready when its trek was built at that head, as a change's own trek reads; else a
+ * failed build; else stale when the head has moved, how many stops changed not known; else missing.
+ */
+export async function pullRequestStatus(
+  root: string,
+  pr: Readonly<{ number: number; head: string }>,
+): Promise<TrekStatus> {
+  const name = pullTrekName(pr.number)
+  const state = await buildState(root, name)
+  const path = trekPath(root, name)
+  if (state === "building" || !(await pathExists(path))) {
+    return buildStatus(root, name)
+  }
+
+  const saved = await loadTrekOrProblem(path)
+  if ("problem" in saved) {
+    return { kind: "unreadable", name, problem: saved.problem }
+  }
+
+  // as a change's own trek reads: one built at the head stays ready when built again fails
+  if (builtAt(saved.trek, pr.number) === pr.head) {
+    return readyStatus(root, name)
+  }
+
+  if (state === "failed") {
+    return buildStatus(root, name)
+  }
+
+  return { kind: "stale", name, staleStops: undefined, stops: stopIds(saved.trek).size }
 }
 
 /** The status of the change's trek, by the name a new trek of it would get. */

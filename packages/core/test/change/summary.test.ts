@@ -16,11 +16,21 @@ describe("summarizeChange", () => {
           base: "main",
           head: { kind: "branch", name: "feature/refunds", uncommitted: false },
           commits: 2,
+          files: 1,
         },
       ],
       unchanged: [],
       code: false,
     })
+  })
+
+  test("counts the files the range changes, each once however many commits touch it", async () => {
+    const dir = await makeBranchRepo()
+    await commit(dir, "app.ts", "const total = 300\n")
+    await commit(dir, "refund.ts", "export const refund = 1\n")
+
+    const { changed } = await summarizeChange(await changeOf(dir))
+    expect(changed[0]?.files).toBe(2)
   })
 
   test("marks a snapshot of uncommitted work on the branch", async () => {

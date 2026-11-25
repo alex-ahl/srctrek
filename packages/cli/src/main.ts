@@ -6,7 +6,7 @@ import {
   type ChangeChoice,
   choiceOfArguments,
   errorText,
-  homeSides,
+  findsWaysIn,
   loadSettings,
   startBuild,
   summarizeChange,
@@ -15,7 +15,7 @@ import {
 } from "@srctrek/core"
 import { startMcpServer } from "@srctrek/mcp"
 import { startServe } from "@srctrek/serve"
-import { type HomeChange, startHome } from "@srctrek/tui"
+import { type OpenChange, startScreens } from "@srctrek/tui"
 
 // The same repos as trek's args, followed from one trigger: --code="<trigger>" for --code.
 function argsForTrigger(args: string[], trigger: string): string[] {
@@ -34,45 +34,23 @@ async function buildTriggerTrek(
   await startBuild(cwd, argsForTrigger(args, trigger), name, agent)
 }
 
-// What trek's args open, as it stands now, with the agent as the settings name it now: the change
-// and the code as it is over the same repos, and which the args asked for. A change with no trek
-// gets one started right away, when the user asked for that and there's an agent to build it.
-async function openChange(cwd: string, args: string[]): Promise<HomeChange> {
-  const sides = homeSides(args)
-  const [change, code] = await Promise.all([
-    changeFromArguments(cwd, sides.change),
-    changeFromArguments(cwd, sides.code),
-  ])
-  const settings = await loadSettings()
-  const agent = agentSetting(settings).command
+// What trek's args open, as it stands now, with the agent as the settings name it now.
+async function openChange(cwd: string, args: string[]): Promise<OpenChange> {
+  const change = await changeFromArguments(cwd, args)
+  const agent = agentSetting(await loadSettings()).command
 
   const status = () => trekStatus(cwd, change)
-  const build =
-    agent === undefined ? undefined : () => buildChangeTrek(cwd, sides.change, change, agent)
-  const startsBuild = settings.build_automatically === true && build !== undefined
-  if (startsBuild && (await status()).kind === "missing") {
-    await build()
-  }
+  const build = agent === undefined ? undefined : () => buildChangeTrek(cwd, args, change, agent)
 
-  const asking = sides.focus.kind === "code" ? sides.focus.trigger : undefined
-  const codeSide = {
-    status: () => trekStatus(cwd, code),
-    asked:
-      asking === undefined
-        ? undefined
-        : { name: asking, status: () => trekStatus(cwd, { ...code, code: { trigger: asking } }) },
-    find: agent === undefined ? undefined : () => buildChangeTrek(cwd, sides.code, code, agent),
-    buildTrigger:
-      agent === undefined
-        ? undefined
-        : (trigger: string) => buildTriggerTrek(cwd, sides.code, agent, code, trigger),
-  }
+  const summary = await summarizeChange(change)
   return {
-    summary: await summarizeChange(change),
+    summary,
     status,
     build,
-    code: codeSide,
-    focus: sides.focus,
+    buildTrigger:
+      agent === undefined || !findsWaysIn(summary)
+        ? undefined
+        : (trigger: string) => buildTriggerTrek(cwd, args, agent, change, trigger),
   }
 }
 
@@ -83,16 +61,27 @@ async function changeStamp(cwd: string, choice: ChangeChoice): Promise<string> {
   return `${await worktreeStamp(cwd, choice.repos)}\n${agent ?? ""}`
 }
 
+// With no args, the landing page; with any, the change they name, on its screen.
 async function trek(args: string[]): Promise<void> {
   const cwd = process.cwd()
-  const change = await openChange(cwd, args)
-  const follow = {
-    choice: choiceOfArguments(args),
-    stamp: (choice: ChangeChoice) => changeStamp(cwd, choice),
+  const ways = {
     open: (chosen: string[]) => openChange(cwd, chosen),
+    stamp: (choice: ChangeChoice) => changeStamp(cwd, choice),
+  }
+  const settings = await loadSettings()
+  if (args.length === 0) {
+    await startScreens(cwd, { kind: "landing" }, settings, ways)
+    return
   }
 
-  await startHome(cwd, change, await loadSettings(), follow)
+  const change = await ways.open(args)
+  const choice = choiceOfArguments(args)
+  await startScreens(
+    cwd,
+    { kind: "change", choice, change, status: await change.status() },
+    settings,
+    ways,
+  )
 }
 
 // "mcp" or "serve" as the first word is the command: a folder by that name is given as ./mcp,

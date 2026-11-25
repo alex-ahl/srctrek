@@ -2,7 +2,7 @@ import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import { useState } from "react"
 import { type Editor, type StepPlace, TERMINAL, isTerminal } from "./editors"
-import { keysText } from "../ui/footer"
+import { KeyHints } from "../ui/footer"
 import { moveKeys, stepped } from "../ui/move"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
@@ -73,7 +73,7 @@ export function EditorPicker({ editors, current, onPick, onCancel, tint }: Props
           <span fg={tones.dim}>{how(place)}</span>
         </Selectable>
       ))}
-      <text fg={tones.dim}>{keysText(KEYS)}</text>
+      <KeyHints keys={KEYS} />
     </box>
   )
 }

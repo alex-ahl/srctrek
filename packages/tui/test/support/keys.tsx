@@ -20,16 +20,6 @@ export async function pressOn(
   renderer.destroy()
 }
 
-/** Renders the node, presses enter, and waits for the screen to settle. */
-export function pressEnterOn(node: ReactNode): Promise<void> {
-  return pressOn(node, (input) => input.pressEnter())
-}
-
-/** Renders the node, presses `key`, and waits for the screen to settle. */
-export function pressKeyOn(node: ReactNode, key: string): Promise<void> {
-  return pressOn(node, (input) => input.pressKey(key))
-}
-
 /**
  * The screen under test, for waiting on it between keys: until it shows what a key should bring
  * up, as work a key starts (loading a trek, reading a file) takes as long as it takes; or one draw,
@@ -38,6 +28,8 @@ export function pressKeyOn(node: ReactNode, key: string): Promise<void> {
 export type Screen = Readonly<{
   shows: (what: string | RegExp) => Promise<void>
   drawn: () => Promise<void>
+  // the screen as it's drawn now, to compare with a later one
+  frame: () => Promise<string>
 }>
 
 // How often the screen is looked at while waiting, and how long to wait at most.
@@ -78,11 +70,16 @@ export async function frameAfter(
     }
   }
 
-  await press(mockInput, { shows, drawn })
+  const frame = async () => {
+    await drawn()
+    return captureCharFrame()
+  }
+
+  await press(mockInput, { shows, drawn, frame })
   await new Promise((resolve) => setTimeout(resolve, 0))
   await renderOnce()
-  const frame = captureCharFrame()
+  const last = captureCharFrame()
   renderer.destroy()
 
-  return frame
+  return last
 }

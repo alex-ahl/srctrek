@@ -15,9 +15,6 @@ export const STATE_LABELS = {
   stopped: { symbol: "■", state: "stopped", tone: "dim" },
   unreadable: { symbol: "✕", state: "can't read", tone: "bad" },
   unreachable: { symbol: "✕", state: "can't open", tone: "bad" },
-  invalid: { symbol: "✕", state: "invalid", tone: "bad" },
-  proposed: { symbol: "+", state: "proposed", tone: "warn" },
-  notFound: { symbol: "◇", state: "not found yet", tone: "dim" },
 } as const satisfies Record<string, StateLabel>
 
 const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], string>> = {
@@ -27,7 +24,10 @@ const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], st
   committed: "committed",
 }
 
+/** The symbol of a trek whose work has landed or gone. */
+export const DONE_SYMBOL = "✓"
+
 /** A trek whose work has landed or gone: "✓ merged", "✓ branch gone", "✓ committed". */
 export function doneLabel(why: Extract<TrekState, { kind: "done" }>["why"]): StateLabel {
-  return { symbol: "✓", state: DONE_WORD[why], tone: "dim" }
+  return { symbol: DONE_SYMBOL, state: DONE_WORD[why], tone: "dim" }
 }

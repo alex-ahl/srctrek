@@ -6,18 +6,16 @@ The terminal controller for a trek, built with OpenTUI and React.
 
 ## What it does, and does not
 
-Does: show a home screen of treks and PRs awaiting review, a live view while a trek is
-built, and a route map of the whole trek; and step through a trek with a code panel for
-editors without a plugin. Today: the home screen, in the terminal's own colours:
-the change and its repos, where the change's trek stands, repos the agent proposed (to add to
-the repos list or dismiss), and the treks in the .srctrek/treks folder, opening the chosen one in
-Neovim.
+Does: show a landing page of the changes to look at, each with its trek's state; a change's
+screen, where its trek is built, with the repos the agent proposed, and its overview once saved;
+the code as it is with its ways in; a route map of the whole trek; and step through a trek with a
+code panel for editors without a plugin, or open it in Neovim. All in the terminal's own colours.
 
 Does not: talk to git or the model, or define the trek format. That is all in core.
 
 ## Where it fits
 
-Depends on `@srctrek/core`. Exports `startHome`, which the cli (`packages/cli/`) calls.
+Depends on `@srctrek/core`. Exports `startScreens`, which the cli (`packages/cli/`) calls.
 The render smoke check used by CI: `packages/tui/src/smoke.tsx`. Every screen and state, drawn
 as text and pictures in a dark and a light terminal's colours:
 `bun packages/tui/test/capture-screens.tsx <out-dir> [screen]...`. The built `trek` in a real

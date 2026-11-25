@@ -98,24 +98,33 @@ export {
   type UnchangedRepo,
 } from "./repos/resolve"
 export { parsePullRequestUrl, type PullRequest } from "./repos/pull-request"
-export { openPullRequests, type OpenPullRequest } from "./repos/open-pull-requests"
+export {
+  openPullRequests,
+  pullRequestOf,
+  type OpenPullRequest,
+  type PullRequestDetails,
+} from "./repos/open-pull-requests"
 export { fetchRepo, repoBranches, type RepoBranch, type RepoBranches } from "./repos/branches"
 export { cachedRepo, defaultCacheDir, fetchRefs, fetchRevision } from "./repos/cache"
 export { editorCheckout } from "./repos/worktree"
 export { readChangeArguments, type ChangeArguments, type ChangeSource } from "./change/arguments"
 export type { CodeTrek } from "./change/options"
 export type { RangeHead } from "./change/head"
-export { summarizeChange, type ChangeSummary, type ChangedRepoSummary } from "./change/summary"
+export {
+  findsWaysIn,
+  summarizeChange,
+  type ChangeSummary,
+  type ChangedRepoSummary,
+} from "./change/summary"
 export { worktreeStamp } from "./change/stamp"
 export {
   branchChoices,
   choiceArguments,
   choiceOfArguments,
-  homeSides,
   type BranchChoice,
+  type OtherBranch,
   type BranchChoices,
   type ChangeChoice,
-  type HomeFocus,
   type RepoPick,
 } from "./change/choices"
 export {
@@ -183,7 +192,12 @@ export {
 export { buildProgress, buildTimes, type BuildProgress } from "./build/agent/progress"
 export { buildDraftSteps, writeBuildDraft, type DraftStep } from "./build/agent/draft-file"
 export { buildHistory, readBuild, type BuildRecord, type BuildRef } from "./build/agent/history"
-export { trekStatus, type TrekStatus, type TriggerTrek } from "./build/status/status"
+export {
+  pullRequestStatus,
+  trekStatus,
+  type TrekStatus,
+  type TriggerTrek,
+} from "./build/status/status"
 export { buildChangeTrek } from "./build/agent/start"
 export { checkAgent, type AgentCheck } from "./build/agent/check"
 export { loadTrekEntries, type TrekEntry } from "./treks/entries"

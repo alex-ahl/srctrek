@@ -1,25 +1,23 @@
 import { expect, mock, test } from "bun:test"
-import type { Settings, TrekEntry } from "@srctrek/core"
+import type { Settings } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import { App } from "../../src/home/screen"
 import type { Editor } from "../../src/editors/editors"
+import { SettingsScreen } from "../../src/settings/screen"
 import type { SettingChange } from "../../src/settings/rows"
-import { frameAfter, pressOn } from "../support/keys"
+import { frameAfter } from "../support/keys"
 
 const noop = () => undefined
 const neovim: Editor = { id: "nvim", label: "Neovim", command: "nvim", steps: true }
-const entries: TrekEntry[] = []
-
-function app(settings: Settings, onChangeSetting: SettingChange = noop) {
+// The settings screen, opened: S on the screens that open it does nothing here.
+function app(settings: Settings, onChange: SettingChange = noop, onBack: () => void = noop) {
   return (
-    <App
-      entries={entries}
-      onOpen={noop}
-      onQuit={noop}
+    <SettingsScreen
+      settings={settings}
       editors={[neovim]}
       editor={neovim}
-      settings={settings}
-      onChangeSetting={onChangeSetting}
+      onChange={onChange}
+      onBack={onBack}
+      tint={undefined}
     />
   )
 }
@@ -62,13 +60,13 @@ test("says beside the agent when SRCTREK_AGENT sets it", async () => {
 })
 
 test("keys pressed faster than the screen redraws each move the selection", async () => {
-  const frame = await frameAfter(app({ step_in: "nvim" }), async (input) => {
+  const frame = await frameAfter(app({ step_in: "nvim" }), async (input, on) => {
     input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
+    await on.drawn()
     input.pressKey("j")
     input.pressKey("j")
     input.pressKey("j")
-    await Bun.sleep(20)
+    await on.drawn()
   })
 
   expect(frame).toMatch(/▶ Colours/)
@@ -76,7 +74,7 @@ test("keys pressed faster than the screen redraws each move the selection", asyn
 
 test("enter on building automatically or colours turns it the other way", async () => {
   const change = mock<SettingChange>(() => undefined)
-  await pressOn(app({}, change), async (input) => {
+  await frameAfter(app({}, change), async (input, on) => {
     for (const press of ["S", "j", "j", "return", "j", "return"]) {
       if (press === "S") {
         input.pressKey("S", { shift: true })
@@ -86,7 +84,7 @@ test("enter on building automatically or colours turns it the other way", async 
         input.pressKey(press)
       }
       // each key lands on the screen the one before it left
-      await Bun.sleep(20)
+      await on.drawn()
     }
   })
 
@@ -94,33 +92,34 @@ test("enter on building automatically or colours turns it the other way", async 
   expect(change).toHaveBeenCalledWith("colours", "terminal")
 })
 
-test("esc goes back to the list", async () => {
-  const frame = await frameAfter(app({}), async (input) => {
-    input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
+test("esc goes back", async () => {
+  const back = mock(noop)
+  await frameAfter(app({}, noop, back), async (input) => {
     input.pressEscape()
-    await Bun.sleep(50)
+    // escape reaches the screen only once the terminal's wait for a longer sequence is over
+    while (back.mock.calls.length === 0) {
+      await Bun.sleep(10)
+    }
   })
 
-  expect(frame).not.toContain("srctrek › settings")
-  expect(frame).toContain("No treks in .srctrek/treks yet.")
+  expect(back).toHaveBeenCalled()
 })
 
 test("enter on the agent asks for its command, saves it, and says whether it works", async () => {
   const change = mock<SettingChange>(() => undefined)
   const frame = await frameAfter(
     app({}, change),
-    async (input) => {
+    async (input, on) => {
       input.pressKey("S", { shift: true })
-      await Bun.sleep(20)
+      await on.drawn()
       input.pressKey("j")
-      await Bun.sleep(20)
+      await on.drawn()
       input.pressEnter()
-      await Bun.sleep(20)
+      await on.drawn()
       await input.typeText("true")
       input.pressEnter()
       // the check runs the command, which takes a moment even for true
-      await Bun.sleep(300)
+      await on.shows("✓ the command starts and answers")
     },
     110,
     32,
@@ -131,13 +130,13 @@ test("enter on the agent asks for its command, saves it, and says whether it wor
 })
 
 test("the agent's prompt says what to type", async () => {
-  const frame = await frameAfter(app({}), async (input) => {
+  const frame = await frameAfter(app({}), async (input, on) => {
     input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
+    await on.drawn()
     input.pressKey("j")
-    await Bun.sleep(20)
+    await on.drawn()
     input.pressEnter()
-    await Bun.sleep(20)
+    await on.drawn()
   })
 
   expect(frame).toContain("Agent command:")
@@ -147,19 +146,19 @@ test("the agent's prompt says what to type", async () => {
 test("y on the agent copies what to paste into the agent's chat, or shows it when it can't", async () => {
   const frame = await frameAfter(
     app({}),
-    async (input) => {
+    async (input, on) => {
       input.pressKey("S", { shift: true })
-      await Bun.sleep(20)
+      await on.drawn()
       input.pressKey("j")
-      await Bun.sleep(20)
+      await on.drawn()
       input.pressKey("y")
-      await Bun.sleep(20)
+      await on.shows(/✓ Copied|select the text above/)
     },
     110,
     32,
   )
 
-  expect(frame).toContain("y copy for your agent")
+  expect(frame).toContain("y: copy for your agent")
   expect(frame).toContain("Press y to copy this, then paste it into your agent's chat:")
   expect(frame).toContain("▌ Set up srctrek so it can start you to build treks on your own.")
   const copied = frame.includes("✓ Copied. Send it in your agent's chat")
@@ -168,7 +167,7 @@ test("y on the agent copies what to paste into the agent's chat, or shows it whe
 })
 
 test("says when the agent saved its command from its chat", async () => {
-  // The settings as the home screen rereads them: the agent's command arrives after a moment.
+  // The settings as trek rereads them: the agent's command arrives after a moment.
   function Later() {
     const [settings, setSettings] = useState<Settings>({})
     useEffect(() => {
@@ -179,9 +178,9 @@ test("says when the agent saved its command from its chat", async () => {
     return app(settings)
   }
 
-  const frame = await frameAfter(<Later />, async (input) => {
+  const frame = await frameAfter(<Later />, async (input, on) => {
     input.pressKey("S", { shift: true })
-    await Bun.sleep(150)
+    await on.shows("✓ your agent saved its command")
   })
 
   expect(frame).toMatch(/Agent +agent run --headless/)
@@ -189,11 +188,11 @@ test("says when the agent saved its command from its chat", async () => {
 })
 
 test("the request to copy goes once an agent's command is set", async () => {
-  const frame = await frameAfter(app({ agent: "agent run --headless" }), async (input) => {
+  const frame = await frameAfter(app({ agent: "agent run --headless" }), async (input, on) => {
     input.pressKey("S", { shift: true })
-    await Bun.sleep(20)
+    await on.drawn()
     input.pressKey("j")
-    await Bun.sleep(20)
+    await on.drawn()
   })
 
   expect(frame).toMatch(/Agent +agent run --headless/)

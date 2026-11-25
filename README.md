@@ -40,43 +40,43 @@ trek                            # then, in the repo whose change you want to tre
 
 Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
 
-- `trek` treks the current branch's change; `trek main...HEAD ../gateway` names the ranges and
-  repos. A problem with the arguments stops `trek` with a message.
-- `--uncommitted` includes work not yet committed.
-- The home screen always shows the code as it is beside the change, to learn how it works: `b`
-  on its ways-in row has your agent find the code's triggers (routes, commands, handlers, jobs),
-  each listed there to build with `enter`. `trek --code` opens with that section selected, and
-  `trek --code="a refund request"` with that trigger's row, built with `b`.
-- `C` on the home screen picks another change instead: a branch, a pull request, or code as it
-  is, with repos beside this one ticked to go along. While `trek` is open, it follows new
-  commits and branch switches.
+- `trek` opens the landing page: your branch and its uncommitted work, your pull requests and
+  those waiting on your review, your branches, and the code as it is. Each shows its trek's
+  state. `p` and `B` show the other pull requests and branches, and `d` the treks whose work is
+  done; typing narrows them. `a` opens the repos beside this one, and
+  `space` adds one to go along with the change.
+- `trek main...HEAD ../gateway` names the ranges and repos, and opens that change's screen;
+  `--uncommitted` includes work not yet committed. A problem with the arguments stops `trek` with
+  a message.
+- `trek --code` opens the code as it is: `b` has your agent find its ways in (routes, commands,
+  handlers, jobs), each listed with its trek; `trek --code="a refund request"` opens that
+  trigger's trek.
 
-The title bar names the change. Below, it lists
-repos your agent proposed, then in sections: your changes (their trek, or a row for them until
-it's built), the code as it is (finding its ways in, then each way in with its trek), other treks
-of the code, other branches and pull requests, and, folded, treks
-whose work is done and files that aren't valid treks. Each trek shows its state against its branch now. With no trek of the
-change, `b` has your agent build one in the background; while it builds, the end of its log
-shows what the agent has done so far, and `l` opens the build view.
+`enter` on the landing page opens a change's screen: the change and how big it is, and its
+trek's state. With no trek yet, `b` has your agent build one in the background, and the screen
+shows its steps as they arrive; `l` opens the build view. Once there's a trek, the screen shows
+its overview. While `trek` is open, it follows new commits and branch switches.
 
-| Key       | Action                                                                                 |
-| --------- | -------------------------------------------------------------------------------------- |
-| `↑` / `↓` | Choose a row (also `k`/`j`)                                                            |
-| `enter`   | Open the trek's page, or a folded list                                                 |
-| `b`       | Build, update, or rebuild the selected row's trek; on its row, find the code's ways in |
-| `x`       | Stop a build, or dismiss a proposed repo                                               |
-| `l`       | The trek's builds, and each one's log                                                  |
-| `C`       | Pick another change                                                                    |
-| `E`       | Pick where treks are stepped                                                           |
-| `S`       | Settings                                                                               |
-| `?`       | Every key                                                                              |
-| `q`       | Quit                                                                                   |
+| Key       | Action                                                   |
+| --------- | -------------------------------------------------------- |
+| `↑` / `↓` | Choose a row (also `k`/`j`)                              |
+| `enter`   | Open the change; on a change, step it                    |
+| `b`       | Build, update, or build again the trek                   |
+| `B`       | Other branches; on code as it is, find its ways in again |
+| `a`       | Add repos, or a repo your agent proposed                 |
+| `p`       | Other pull requests, on the landing page                 |
+| `d`       | Treks whose work is done, on the landing page            |
+| `x`       | Stop a build, or dismiss a proposed repo                 |
+| `l`       | The trek's builds, and each one's log                    |
+| `S`       | Settings                                                 |
+| `?`       | Every key                                                |
+| `esc`     | Back                                                     |
+| `q`       | Quit, on the landing page                                |
 
 Each footer shows the keys for what's selected; `?` lists them all.
 
-A trek's page shows its overview. There, `enter` steps it in the terminal, or in the editor you
-picked with `E` or in settings; the other place is one key away (`e` for the editor, `n` for the
-terminal), with `b` to build, `x` to stop a build, and `l` for its builds.
+On a change's screen, `enter` steps its trek in the terminal, or in the editor you picked in
+settings; the other place is one key away (`e` for the editor, `n` for the terminal).
 
 To see a trek before building one of your own, `bun scripts/showcase-repo.ts` makes a small repo
 with a saved trek, "pay", that uses everything an editor shows, and prints its path to open.
@@ -97,24 +97,24 @@ Restart or reconnect your agent so it sees srctrek's tools. Then ask in plain wo
 Name a different change the way you'd give it to `trek`: `main...feature`,
 `../api main...feature`, a pull request URL, or `--uncommitted` for work not yet committed. The
 agent reads the change at its exact revisions, builds the trek, and saves it to the
-.srctrek/treks folder, where the home screen lists it.
+.srctrek/treks folder, where `trek` shows it on its change's screen.
 
 To have `trek` build treks itself, it needs the command that runs your agent without a chat.
-Open settings (`S` on the home screen), choose Agent, and press `y`: it copies a request to paste
+Open settings (`S` on the landing page), choose Agent, and press `y`: it copies a request to paste
 into your agent's chat, and your agent saves its own command. Or type the command there with
 `enter`, including whatever it needs to use srctrek's tools without asking; settings checks that
 it starts and answers and keeps it in `~/.config/srctrek/settings.json`. `SRCTREK_AGENT`, when
 set, overrides the file. The instruction is appended as the last argument, so an option that
 takes a list of values goes before the one that reads the prompt.
 
-`b` on the home screen builds; turn on Build automatically in settings to start a build whenever
-a change has none. A change with no commits gets no trek, and the home screen says so instead of
-building. Agents that show MCP prompts as commands also offer `build_trek`.
+`b` on a change's screen builds; turn on Build automatically in settings to start a build
+whenever a change has none. A change with no commits gets no trek, and its screen says so instead
+of building. Agents that show MCP prompts as commands also offer `build_trek`.
 
 ## Step through a trek
 
-- **Terminal:** `enter` on a trek's page, or `n` once you picked an editor.
-- **Neovim:** `enter` on a trek's page once you picked Neovim, else `e`; or `:Trek <name>` from
+- **Terminal:** `enter` on a change's screen, or `n` once you picked an editor.
+- **Neovim:** `enter` on a change's screen once you picked Neovim, else `e`; or `:Trek <name>` from
   your own Neovim. See [editors/nvim](editors/nvim/README.md).
 - **VS Code and its forks:** install the extension, then open a trek from the srctrek sidebar.
   See [editors/vscode](editors/vscode/README.md).
@@ -136,7 +136,7 @@ terminal:
 | `e`       | The cursor's line in your editor                                  |
 | `.`       | Back to the stop                                                  |
 | `?`       | Every key                                                         |
-| `q`       | Back to the home screen                                           |
+| `q`       | Back to the change's screen                                       |
 
 ## Where it's going
 

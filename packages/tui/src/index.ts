@@ -1,1 +1,2 @@
-export { startHome, type HomeChange } from "./home/start"
+export { startScreens } from "./start"
+export type { OpenChange } from "./change/open-change"
