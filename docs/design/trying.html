@@ -351,67 +351,6 @@
 
   <section>
     <span class="eyebrow">Decided · not built</span>
-    <h2>The landing page, only what's yours</h2>
-    <p class="note">Your work: the branch checked out and its uncommitted work, your own open pull requests, and those waiting on your review. Your branches: those with a commit of yours (by <code>user.email</code>) the base doesn't have, latest first, the first 8. Code as it is. Every other pull request and branch is a list of its own, opened by its key in the footer, <code>p</code> and <code>B</code>, and typed to narrow; done treks stay on <code>d</code>, and settings moves to <code>?</code>. Without <code>gh</code>, the pull requests say why, and the rest is read from git.</p>
-    <div class="stack">
-      <figure><figcaption>Only what's yours; the rest by its key in the footer</figcaption>
-        <div class="term screen">
-          <div class="tb"><span><b>srctrek</b><span class="dim">  ›  against </span>main</span><span></span></div>
-          <div class="pane">
-            <div class="ln dim">your work</div>
-            <div class="ln sel">    feature/refunds             <span class="dim">9 commits</span>                                      <span class="g">●</span> <span class="g">ready</span></div>
-            <div class="ln">      with uncommitted work     <span class="dim">2 files changed</span>                                <span class="dim">○</span> no trek yet</div>
-            <div class="ln">    #18 Export refund rows      <span class="dim">4 commits · yours</span>                              <span class="g">●</span> <span class="g">ready</span></div>
-            <div class="ln">    #12 Add partial refunds     <span class="dim">3 commits</span><span class="dim"> · </span><span class="a">review requested</span>                   <span class="g">●</span> <span class="g">ready</span></div>
-            <div class="ln">    #15 Retry failed payouts    <span class="dim">4 commits</span><span class="dim"> · </span><span class="a">review requested</span>                   <span class="dim">○</span> no trek yet</div>
-            <div class="ln"> </div>
-            <div class="ln dim">your branches</div>
-            <div class="ln">    fix/rounding                <span class="dim">1 commit</span>                                       <span class="y">≠</span> <span class="y">stale</span></div>
-            <div class="ln">    spike/ledger-v2             <span class="dim">13 commits</span>                                     <span class="r">✕</span> <span class="r">build failed</span></div>
-            <div class="ln"> </div>
-            <div class="ln dim">code as it is</div>
-            <div class="ln">    its ways in                                                                <span class="a">◇</span> <span class="a">found 7 ways in</span></div>
-          </div>
-          <div class="foot"><span class="k">↵</span>: open  <span class="dim">¦</span>  <span class="k">a</span>: add repos  <span class="dim">¦</span>  <span class="k">p</span>: 28 pull requests  <span class="dim">¦</span>  <span class="k">B</span>: 9 branches  <span class="dim">¦</span>  <span class="k">d</span>: 12 done treks  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
-        </div>
-      </figure>
-      <figure><figcaption>The others opened: every pull request, typing narrows them by number, title, or who opened it</figcaption>
-        <div class="term screen">
-          <div class="tb"><span><b>srctrek</b><span class="dim">  ›  against </span>main<span class="dim">  ›  </span>pull requests</span><span></span></div>
-          <div class="pane">
-            <div class="ln"><span class="a">pull requests</span><span class="dim"> · 3 of 28</span>  / cache▏</div>
-            <div class="ln sel">    #41 Cache the provider config      <span class="dim">2 commits</span>                                   <span class="dim">○</span> no trek yet</div>
-            <div class="ln">    #39 Cache composition revisions    <span class="dim">7 commits · draft</span>                           <span class="dim">○</span> no trek yet</div>
-            <div class="ln">    #33 Drop the cache on resync       <span class="dim">1 commit · into release-2.4</span>                 <span class="y">≠</span> <span class="y">stale</span></div>
-          </div>
-          <div class="foot"><span class="k">type</span>: narrow  <span class="dim">¦</span>  <span class="k">↵</span>: open  <span class="dim">¦</span>  <span class="k">esc</span>: clear, then back</div>
-        </div>
-      </figure>
-      <figure><figcaption>Without gh: your work and branches from git alone, and why there are no pull requests</figcaption>
-        <div class="term screen">
-          <div class="tb"><span><b>srctrek</b><span class="dim">  ›  against </span>main</span><span></span></div>
-          <div class="pane">
-            <div class="ln dim">your work</div>
-            <div class="ln sel">    feature/refunds            <span class="dim">9 commits</span>                                       <span class="g">●</span> <span class="g">ready</span></div>
-            <div class="ln">      with uncommitted work    <span class="dim">2 files changed</span>                                 <span class="dim">○</span> no trek yet</div>
-            <div class="ln"> </div>
-            <div class="ln"><span class="dim">pull requests  </span><span class="y">✕</span><span class="dim"> gh isn't signed in: gh auth login</span></div>
-            <div class="ln"> </div>
-            <div class="ln dim">your branches</div>
-            <div class="ln">    fix/rounding               <span class="dim">1 commit</span>                                        <span class="y">≠</span> <span class="y">stale</span></div>
-            <div class="ln">    spike/ledger-v2            <span class="dim">13 commits</span>                                      <span class="r">✕</span> <span class="r">build failed</span></div>
-            <div class="ln"> </div>
-            <div class="ln dim">code as it is</div>
-            <div class="ln">    its ways in                                                                <span class="a">◇</span> <span class="a">found 7 ways in</span></div>
-          </div>
-          <div class="foot"><span class="k">↵</span>: open  <span class="dim">¦</span>  <span class="k">a</span>: add repos  <span class="dim">¦</span>  <span class="k">B</span>: 9 branches  <span class="dim">¦</span>  <span class="k">d</span>: 12 done treks  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
-        </div>
-      </figure>
-    </div>
-  </section>
-
-  <section>
-    <span class="eyebrow">Decided · not built</span>
     <h2>A checked-out pull request</h2>
     <p class="note">A branch that's the head of an open pull request is that pull request: it's your work, left out of the pull requests below, and its trek is the pull request's.</p>
     <div class="grid2">

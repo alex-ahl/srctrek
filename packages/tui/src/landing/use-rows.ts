@@ -10,7 +10,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { LandingNote } from "./list"
 import { type StatusOf, statesKnown, useStatuses } from "./statuses"
-import { type DoneTrek, doneRows, landingRows } from "./rows"
+import { type DoneTrek, doneRows, landingRows, otherBranchRows, otherPullRows } from "./rows"
 
 /** What the landing page lists, and where each listed change's trek stands. */
 export type LandingSources = {
@@ -134,11 +134,21 @@ export function useRows(props: LandingSources) {
   const nearby = useLoaded(props.nearby)
   const entries = useLoaded(props.entries)
   const builtAt = useMemo(() => builtTimes(foundOr(entries, [])), [entries])
-  const rows = useMemo(
-    () => landingRows(foundOr(branches, undefined), foundOr(pulls, [])),
-    [branches, pulls],
-  )
-  const statuses = useStatuses(rows, { status: props.status, pullStatus: props.pullStatus })
+  const { rows, otherPulls, otherBranches, all } = useMemo(() => {
+    const choices = foundOr(branches, undefined)
+    const open = foundOr(pulls, [])
+    const listed = landingRows(choices, open)
+    const pullsBesides = otherPullRows(open, choices?.base ?? "")
+    const branchesBesides = otherBranchRows(choices)
+    return {
+      rows: listed,
+      otherPulls: pullsBesides,
+      otherBranches: branchesBesides,
+      all: [...listed, ...pullsBesides, ...branchesBesides],
+    }
+  }, [branches, pulls])
+  // the others' states are read too, for their views, though the page doesn't wait on them
+  const statuses = useStatuses(all, { status: props.status, pullStatus: props.pullStatus })
   const settled = useSettled([branches, done, nearby, pulls], statesKnown(rows, statuses))
 
   return {
@@ -147,6 +157,8 @@ export function useRows(props: LandingSources) {
     builtAt,
     branches,
     rows,
+    otherPulls,
+    otherBranches,
     done: doneRows(foundOr(done, [])),
     nearby: foundOr(nearby, []),
     note: pullsNote(pulls),

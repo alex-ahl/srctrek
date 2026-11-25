@@ -10,7 +10,13 @@ import type {
   TrekStatus,
 } from "@srctrek/core"
 import { dropRows, opened } from "../../src/landing/drop"
-import { type DoneTrek, type Pick, landingRows, pullRequestRows } from "../../src/landing/rows"
+import {
+  type DoneTrek,
+  type Pick,
+  landingRows,
+  otherPullRows,
+  yourPullRows,
+} from "../../src/landing/rows"
 import { Landing } from "../../src/landing/screen"
 import { deferred } from "../support/deferred"
 import { type Screen, frameAfter } from "../support/keys"
@@ -135,6 +141,7 @@ const entries = (): Promise<TrekEntry[]> =>
   ])
 
 type Setup = Partial<{
+  load: () => Promise<BranchChoices>
   onPick: (pick: Pick) => void
   onSettings: () => void
   onQuit: () => void
@@ -148,7 +155,7 @@ type Setup = Partial<{
 function landing(setup: Setup = {}) {
   return (
     <Landing
-      load={() => Promise.resolve(choices)}
+      load={setup.load ?? (() => Promise.resolve(choices))}
       pullRequests={setup.pullRequests ?? (() => Promise.resolve(open))}
       nearby={() => Promise.resolve(setup.nearby ?? nearby)}
       repoBranches={setup.repoBranches ?? (() => Promise.resolve(apiBranches))}
@@ -168,9 +175,9 @@ function landing(setup: Setup = {}) {
 
 type Input = Parameters<Parameters<typeof frameAfter>[1]>[0]
 
-// Everything listed: own work, the pull requests, the branches, code, and done.
+// Everything listed: own work, the user's branches, code, and what's besides them.
 const listed = async (_input: Input, on: Screen) => {
-  await on.shows("#14 Round refunds")
+  await on.shows("p: 1 pull request")
   await on.shows("d: 2 done treks")
 }
 
@@ -189,7 +196,7 @@ async function down(input: Input, on: Screen, times: number) {
   }
 }
 
-// Down `times` repos in the sheet, where letters are typed: by the arrow.
+// Down `times` lines where letters are typed, in the sheet or a view of its own: by the arrow.
 async function downSheet(input: Input, on: Screen, times: number) {
   for (const _ of Array.from({ length: times })) {
     input.pressArrow("down")
@@ -197,16 +204,15 @@ async function downSheet(input: Input, on: Screen, times: number) {
   }
 }
 
-test("offers the user's own work first, then the other branches, each saying what it opens", () => {
+test("offers the user's own work first, then their branches, each saying what it opens", () => {
   const rows = landingRows(choices, open)
 
   expect(rows.map((row) => [row.group, row.label, row.detail])).toEqual([
     ["your work", "feature/refunds", "3 commits"],
     ["your work", "with uncommitted work", "2 files changed"],
     ["your work", "#12 Add partial refunds", "3 commits"],
-    ["pull requests", "#14 Round refunds to cents", "3 commits · draft"],
-    ["branches", "fix/rounding", "1 commit"],
-    ["branches", "feature/partial-refunds", "5 commits"],
+    ["your branches", "fix/rounding", "1 commit"],
+    ["your branches", "feature/partial-refunds", "5 commits"],
     ["code as it is", "its ways in", ""],
   ])
 })
@@ -218,7 +224,7 @@ test("leaves out the uncommitted row when everything is committed", () => {
 })
 
 test("offers the open pull requests by number and title, with their commits and what waits", () => {
-  const rows = pullRequestRows(open, "main")
+  const rows = [...yourPullRows(open, "main"), ...otherPullRows(open, "main")]
 
   expect(rows.map((row) => [row.group, row.label, row.detail, row.mark])).toEqual([
     ["your work", "#12 Add partial refunds", "3 commits", "review requested"],
@@ -226,7 +232,7 @@ test("offers the open pull requests by number and title, with their commits and 
   ])
 })
 
-test("a pull request into another branch than the repo's says so; each group's latest first", () => {
+test("a pull request into another branch than the repo's says so; the latest first", () => {
   const older: OpenPullRequest = {
     number: 14,
     title: "Round refunds to cents",
@@ -241,7 +247,7 @@ test("a pull request into another branch than the repo's says so; each group's l
     commits: 3,
   }
   const into = { ...older, number: 16, base: "release/2.1", updatedAt: "2026-11-23T12:00:00Z" }
-  const rows = pullRequestRows([older, into], "origin/main")
+  const rows = otherPullRows([older, into], "origin/main")
 
   expect(rows.map((row) => [row.label, row.detail])).toEqual([
     ["#16 Round refunds to cents", "3 commits · into release/2.1 · draft"],
@@ -260,11 +266,10 @@ test("opens on the user's own branch, every change under its heading", async () 
   )
   // uncommitted work set in under its branch
   expect(frame).toMatch(/\n {8}with uncommitted work/)
-  // each group under a rule, a blank line before it
-  expect(frame).toMatch(
-    /● ready *\n *\n +pull requests *\s+#14 Round refunds to cents +3 commits · draft +○ no trek yet/,
-  )
-  expect(frame).toMatch(/\n  branches *\s+fix\/rounding +1 commit +○ no trek yet/)
+  // each group under its name, a blank line before it
+  expect(frame).toMatch(/● ready *\n *\n  your branches *\s+fix\/rounding +1 commit +○ no trek yet/)
+  // the other pull requests wait on a view of their own
+  expect(frame).not.toContain("#14 Round refunds")
   expect(frame).toMatch(/\n  code as it is *\s+its ways in +○ not found yet/)
   // the done treks wait on a view of their own
   expect(frame).not.toMatch(/\n  done/)
@@ -283,7 +288,7 @@ test("opens on the user's own branch, every change under its heading", async () 
   // the repos beside this one wait in the sheet a opens
   expect(frame).not.toContain("../api")
   expect(frame).toContain(
-    "↵: open  ¦  a: add repos  ¦  d: 2 done treks  ¦  S: settings  ¦  ?: keys",
+    "↵: open  ¦  a: add repos  ¦  p: 1 pull request  ¦  d: 2 done treks  ¦  ?: keys",
   )
 })
 
@@ -303,7 +308,7 @@ test("enter opens the selected change", async () => {
     landing({ onPick }),
     async (input, on) => {
       await listed(input, on)
-      await down(input, on, 4)
+      await down(input, on, 3)
       input.pressEnter()
     },
     110,
@@ -370,7 +375,7 @@ test("the selection stays on its row as rows are listed above it", async () => {
     // own, uncommitted, then fix/rounding, with no pull requests listed yet
     await down(input, on, 2)
     pulls.resolve(open)
-    await on.shows("#14 Round refunds")
+    await on.shows("#12 Add partial refunds")
     input.pressEnter()
   })
 
@@ -454,7 +459,7 @@ test("space adds a repo in the sheet; esc closes it, the title bar naming what g
   expect(frame).not.toContain("ADD REPOS")
   expect(frame).toMatch(/srctrek › against main +with api *\n/)
   expect(frame).toContain(
-    "↵: open  ¦  a: add repos  ¦  d: 2 done treks  ¦  S: settings  ¦  ?: keys",
+    "↵: open  ¦  a: add repos  ¦  p: 1 pull request  ¦  d: 2 done treks  ¦  ?: keys",
   )
   expect(onPick).toHaveBeenCalledWith({ ...own, repos: [{ path: "../api", changed: true }] })
 })
@@ -759,11 +764,12 @@ test("code as it is says where finding its ways in stands, not a trek's state", 
 
 // The done treks opened, and the last of the twelve selected.
 async function toLastDone(input: Input, on: Screen) {
-  // what's read here is in once the list is drawn; the pull requests once listed
-  await on.shows("#14 Round refunds")
+  // what's read here is in once the list is drawn; the pull requests once counted
+  await on.shows("p: 1 pull request")
   input.pressKey("d")
   await on.shows(/▶ Old trek 0 /)
-  await down(input, on, 11)
+  // on a view of its own, letters are typed: by the arrow
+  await downSheet(input, on, 11)
   await on.shows(/▶ Old trek 11 /)
 }
 
@@ -874,7 +880,7 @@ test("a long title takes the room what the rows hold doesn't need before it's cu
     url: "https://github.com/acme/web/pull/12",
     draft: false,
     reviewRequested: false,
-    mine: false,
+    mine: true,
     head: "c12",
     base: "main",
     updatedAt: "2026-11-23T10:00:00Z",
@@ -888,7 +894,7 @@ test("a long title takes the room what the rows hold doesn't need before it's cu
   )
 
   expect(frame).toMatch(
-    /#12 Split partial refunds across two payments when the first one fa… +3 commits +● ready/,
+    /#12 Split partial refunds across two payments when the first one … +3 commits · yours +● ready/,
   )
 })
 
@@ -927,7 +933,8 @@ test("appears whole once the pull requests are in too, never without them first"
   )
 
   expect(before).not.toMatch(/\n  your work/)
-  expect(frame).toContain("#14 Round refunds to cents")
+  expect(frame).toContain("#12 Add partial refunds")
+  expect(frame).toContain("p: 1 pull request")
   expect(frame).toMatch(/feature\/refunds +3 commits +● ready/)
 })
 
@@ -1005,4 +1012,120 @@ test("reads the pull requests again while open, their rows following", async () 
   )
 
   expect(frame).not.toContain("#14 Round refunds")
+})
+
+// Others' work beside the user's: a pull request of theirs, one of someone else's, and a branch
+// with no commit of the user's.
+const mixedPulls: OpenPullRequest[] = [
+  ...open,
+  {
+    number: 18,
+    title: "Export refund rows",
+    author: "test",
+    url: "https://github.com/acme/web/pull/18",
+    draft: false,
+    reviewRequested: false,
+    mine: true,
+    head: "c18",
+    base: "main",
+    updatedAt: "2026-11-24T10:00:00Z",
+    commits: 4,
+  },
+]
+const mixedChoices: BranchChoices = {
+  ...choices,
+  others: [...choices.others, { name: "bo/tax", commits: 2, mine: false }],
+}
+
+test("lists only what's the user's: their pull requests and branches, the rest behind p and B", async () => {
+  const frame = await frameAfter(
+    landing({
+      load: () => Promise.resolve(mixedChoices),
+      pullRequests: () => Promise.resolve(mixedPulls),
+    }),
+    (_input, on) => on.shows("#18 Export refund rows"),
+    120,
+    30,
+  )
+
+  expect(frame).toMatch(/your work[\s\S]*#18 Export refund rows +4 commits · yours/)
+  expect(frame).toMatch(/#12 Add partial refunds +3 commits · review requested/)
+  expect(frame).toMatch(/your branches\s+fix\/rounding/)
+  expect(frame).not.toContain("#14 Round refunds")
+  expect(frame).not.toContain("bo/tax")
+  expect(frame).toContain("p: 1 pull request  ¦  B: 1 branch  ¦  d: 2 done treks")
+  expect(frame).not.toContain("S: settings")
+})
+
+test("p lists the other pull requests on a view of their own", async () => {
+  const frame = await frameAfter(
+    landing({ pullRequests: () => Promise.resolve(mixedPulls) }),
+    async (input, on) => {
+      await on.shows("p: 1 pull request")
+      input.pressKey("p")
+      await on.shows("srctrek › pull requests")
+    },
+    120,
+    30,
+  )
+
+  expect(frame).toContain("#14 Round refunds to cents")
+  expect(frame).not.toContain("#12 Add partial refunds")
+})
+
+test("B lists the other branches on a view of their own: others', and the user's past the first 8", async () => {
+  const yours = Array.from({ length: 9 }, (_, at) => ({
+    name: `mine/${at}`,
+    commits: 1,
+    mine: true,
+  }))
+  const frame = await frameAfter(
+    landing({
+      load: () =>
+        Promise.resolve({
+          ...choices,
+          others: [...yours, { name: "bo/tax", commits: 2, mine: false }],
+        }),
+    }),
+    async (input, on) => {
+      await on.shows("B: 2 branches")
+      input.pressKey("B", { shift: true })
+      await on.shows("srctrek › branches")
+    },
+    120,
+    30,
+  )
+
+  expect(frame).toContain("mine/8")
+  expect(frame).toContain("bo/tax")
+  expect(frame).not.toContain("mine/7")
+})
+
+test("typing on a view of its own narrows it; esc clears what's typed, then goes back", async () => {
+  const cache = open.map((pr) => ({ ...pr, number: 21, title: "Cache the provider config" }))
+  const others: OpenPullRequest[] = [...open, ...cache.slice(1)]
+  let narrowed = ""
+  const frame = await frameAfter(
+    landing({ pullRequests: () => Promise.resolve(others) }),
+    async (input, on) => {
+      await on.shows("p: 2 pull requests")
+      input.pressKey("p")
+      await on.shows("#21 Cache the provider config")
+      await input.typeText("cache")
+      await on.shows("/ cache")
+      narrowed = await on.frame()
+      input.pressEscape()
+      await on.shows("#14 Round refunds")
+      input.pressEscape()
+      await on.shows("your work")
+    },
+    120,
+    30,
+  )
+
+  expect(narrowed).toContain("pull requests · 1 of 2  / cache▏")
+  expect(narrowed).toContain("#21 Cache the provider config")
+  expect(narrowed).not.toContain("#14 Round refunds")
+  expect(narrowed).toContain("type: narrow  ¦  ↵: open  ¦  esc: clear")
+  expect(frame).toContain("p: 2 pull requests")
 })

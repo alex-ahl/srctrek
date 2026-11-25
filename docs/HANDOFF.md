@@ -29,11 +29,14 @@
   that pull request.
 - The mocks are redrawn from the screen captures, which now include a ready and a stale trek's
   screen.
+- The landing page lists what's yours: your work, with your own pull requests (`· yours`) and those
+  waiting on your review; your branches, those with a commit of yours the base doesn't have, the
+  first 8; code as it is. Every other pull request and branch is on a view of its own, `p` and
+  `B`, as done treks are on `d`; typing narrows a view. Settings moves from the footer to `?`. A
+  footer gives up keys from its end where they don't fit.
 
 **Next**
 
-- Trim the landing page to what's yours: your own pull requests and those waiting on your review,
-  your branches from the last few weeks; the rest behind a key, typed to narrow.
 - The "Start on" setting: the landing page, or what's checked out, with what's waiting elsewhere
   said on the change's screen.
 - Plan B: a checked-out pull request is that pull request, listed once under your work, its trek
@@ -42,8 +45,6 @@
 - Later: a build started from an agent's own chat through `trek mcp` showing live on its change's
   screen.
 - The older-guide screen capture.
-- Split `packages/tui/src/landing/screen.tsx` and `packages/tui/src/landing/list.tsx` as the
-  trimming rewrites them.
 - Parked: whether a failed build of a ready trek says so, rather than staying ready.
 - Parked: the landing page drawn at once from how it was last, then read again in place.
 

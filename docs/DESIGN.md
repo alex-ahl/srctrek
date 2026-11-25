@@ -244,8 +244,8 @@ Every screen's footer lists its keys, each key bold in the text's colour, then a
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 `↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
 
-- **Landing page,** what `trek` opens on: every change there is to look at, as one table across
-  the row, up to 120 columns. The title bar names what the changes are measured against, once:
+- **Landing page,** what `trek` opens on: what's yours, as one table across the row, up to 120
+  columns. The title bar names what the changes are measured against, once:
   `srctrek › against main`. Each row is the change's name, taking
   the room what the rows hold doesn't need, its commits, dimmed (`9 commits`; a pull request's base
   where it isn't the repo's, `into release/2.1`, and `draft`), and its trek's state (`● ready`,
@@ -253,12 +253,16 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
   room: `● ready  built 2h ago`. On a narrow terminal names are cut first, past half the row, and
   what a change holds keeps at least 20 columns. The groups sit under their
   names, dim, at the page's left, their rows set in under them, a blank line before each but the
-  first: your work first, the branch checked out with its uncommitted work set in under it and
-  the pull requests waiting on your review, marked `review requested` in the accent; then the
-  other pull requests, latest changed first, branches, latest committed first, and code as it is,
-  one row. `d` opens the done treks on a view of their own, `esc` back: treks whose work landed
-  or whose branch is gone, each saying how its work ended as its state, `✓ merged`; the footer
-  counts them, `d: 12 done treks`. A pull request's trek state comes from its head as listed,
+  first: your work first, the branch checked out with its uncommitted work set in under it, your
+  own open pull requests (`· yours`), and those waiting on your review, marked `review requested`
+  in the accent; then your branches, those with a commit of yours (by `user.email`) the base
+  doesn't have, latest committed first, the first 8; and code as it is, one row. Every other pull
+  request and branch is on a view of its own, `p` and `B`, as the done treks are on `d`: treks
+  whose work landed or whose branch is gone, each saying how its work ended as its state,
+  `✓ merged`. The footer counts each, `p: 28 pull requests  ¦  B: 9 branches  ¦  d: 12 done
+treks`. On a view, typing narrows it by name, the title bar saying how many of how many and
+  what's typed, `↑`/`↓` move, and `esc` clears what's typed, then goes back. Without `gh`, the
+  pull requests' heading says why, `pull requests  ✕ gh: not logged in`. A pull request's trek state comes from its head as listed,
   with nothing fetched: `≠ stale` once the head has moved past the commit its trek was built at.
   The pull requests are read again each minute while the page is in front. `a` slides up
   ADD REPOS from the bottom, the changes dimmed above it with the selected one still marked: every
@@ -326,14 +330,15 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
   page and back elsewhere, `?` every key; `b` build, `a` add, `x` stop or dismiss, `l` builds, `e`
   your editor, `S` settings.
 
-| Screen            | Keys                                                                                                                                                                                                   |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Landing page      | `enter` open the change · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `d` done treks · `S` settings · `?` keys · `q` quit                               |
-| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `a` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back |
-| Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                       |
-| Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                              |
-| Build view        | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                                                                                                   |
-| Route map         | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close                                                                     |
-| Stepping          | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                                                                                                 |
-|                   | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                                                                                          |
-|                   | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` back                                                                                                                       |
+| Screen            | Keys                                                                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Landing page      | `enter` open the change · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `p` other pull requests · `B` other branches · `d` done treks · `S` settings · `?` keys · `q` quit |
+| Its views         | type to narrow · `↑`/`↓` move · `enter` open · `esc` clear, then back                                                                                                                                                   |
+| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `a` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back                  |
+| Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                                        |
+| Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                                               |
+| Build view        | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                                                                                                                    |
+| Route map         | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close                                                                                      |
+| Stepping          | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                                                                                                                  |
+|                   | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                                                                                                           |
+|                   | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` back                                                                                                                                        |

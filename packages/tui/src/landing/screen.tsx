@@ -10,14 +10,13 @@ import { RepoSheet, sheetHeight } from "./sheet"
 import { keyAt, selectedIndex } from "../ui/selection"
 import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
-import { useDrop } from "./use-drop"
+import { typed, useDrop } from "./use-drop"
 import { type LandingSources, useRows } from "./use-rows"
 import type { LandingRow, Pick } from "./rows"
 import { Footer, type KeyHint } from "../ui/footer"
 import { HELP_HINT, type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-help"
 import { PADDING } from "../ui/layout"
 import { useTones } from "../ui/theme"
-import { count } from "../ui/text"
 import { moveKeys, shifted, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
 import { TitleBar } from "../ui/title-bar"
@@ -135,36 +134,58 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
   return repos.length === 0 ? row.choice : { ...row.choice, repos }
 }
 
-// The keys for the list's line selected, and a to add repos.
-function listKeys(done: number): KeyHint[] {
-  const doneKey = done === 0 ? [] : [{ key: "d", does: count(done, "done trek") }]
+/**
+ * What the page shows: the changes, or, on a view of their own, the treks whose work is done, the
+ * other pull requests, or the other branches.
+ */
+type View = "changes" | "done" | "pulls" | "branches"
+
+/** What a view is narrowed to: what's typed, and how many of its rows hold it. */
+type Narrowed = Readonly<{ query: string; shown: number; of: number }>
+
+/** How many each view besides the changes lists, for the keys that open them. */
+type Besides = Readonly<{ done: number; pulls: number; branches: number }>
+
+// A key that opens a view, while it has something to list: "p: 28 pull requests".
+const viewKey = (key: string, n: number, one: string, many: string): KeyHint[] =>
+  n === 0 ? [] : [{ key, does: `${n} ${n === 1 ? one : many}` }]
+
+// The keys for the list's line selected, a to add repos, and the views besides it.
+function listKeys(besides: Besides): KeyHint[] {
   return [
     { key: "enter", does: "open" },
     { key: "a", does: "add repos" },
-    ...doneKey,
-    { key: "S", does: "settings" },
+    ...viewKey("p", besides.pulls, "pull request", "pull requests"),
+    ...viewKey("B", besides.branches, "branch", "branches"),
+    ...viewKey("d", besides.done, "done trek", "done treks"),
     HELP_HINT,
   ]
 }
 
-// The page's keys: the sheet's while it's open, else the done treks' or the changes'.
+// The page's keys: the sheet's while it's open, else a view's or the changes'.
 function pageKeys(
   sheet: readonly KeyHint[] | undefined,
-  showingDone: boolean,
-  done: number,
+  view: View,
+  besides: Besides,
+  query: string,
 ): readonly KeyHint[] {
   if (sheet !== undefined) {
     return sheet
   }
 
-  return showingDone ? DONE_KEYS : listKeys(done)
+  return view === "changes" ? listKeys(besides) : viewKeys(query)
 }
 
-const DONE_KEYS: readonly KeyHint[] = [
+// A view's keys: letters narrow it, so esc clears what's typed before it goes back.
+const viewKeys = (query: string): readonly KeyHint[] => [
+  { key: "type", does: "narrow" },
   { key: "enter", does: "open" },
-  { key: "esc", does: "back" },
-  HELP_HINT,
+  { key: "esc", does: query === "" ? "back" : "clear" },
 ]
+
+// A row whose name holds what's typed, whatever its case: a pull request by its number or title.
+const narrowedTo = (rows: readonly LandingRow[], query: string) =>
+  rows.filter((row) => row.label.toLowerCase().includes(query.toLowerCase()))
 
 // The footer: a repo's open branches' keys while they're open, else the selected line's.
 const footerOf = (dropOpen: boolean, line: readonly KeyHint[]): readonly KeyHint[] =>
@@ -191,6 +212,8 @@ const GROUPS: readonly KeyGroup[] = [
   {
     title: "screens",
     keys: [
+      { key: "p", does: "the other pull requests" },
+      { key: "B", does: "the other branches" },
       { key: "d", does: "the treks whose work is done" },
       { key: "S", does: "settings" },
     ],
@@ -223,10 +246,23 @@ function dropView(
  */
 export function Landing(props: Props) {
   const { height } = useTerminalDimensions()
-  const { settled, statuses, builtAt, branches, rows, done, nearby, note } = useRows(props)
+  const {
+    settled,
+    statuses,
+    builtAt,
+    branches,
+    rows,
+    otherPulls,
+    otherBranches,
+    done,
+    nearby,
+    note,
+  } = useRows(props)
   const [ticked, setTicked] = useState<Ticked>(new Map())
-  // the done treks shown on their own view, in the changes' place
-  const [showingDone, setShowingDone] = useState(false)
+  // a view of its own shown in the changes' place
+  const [view, setView] = useState<View>("changes")
+  // what's typed to narrow a view of its own
+  const [query, setQuery] = useState("")
   // the selected line by its key, so it stays put as rows load above it
   const [chosen, setChosen] = useState<string | undefined>(undefined)
   const active = props.active !== false
@@ -235,8 +271,14 @@ export function Landing(props: Props) {
   // what branches' ages are measured from
   const now = useNow()
 
-  // the changes, or, on their own view, the done treks
-  const items = showingDone ? done : rows
+  const lists: Readonly<Record<View, readonly LandingRow[]>> = {
+    changes: rows,
+    done,
+    pulls: otherPulls,
+    branches: otherBranches,
+  }
+  const items = view === "changes" ? rows : narrowedTo(lists[view], query)
+  const besides = { done: done.length, pulls: otherPulls.length, branches: otherBranches.length }
   const selected = selectedIndex(items, chosen, rowKey)
   const item = items[selected]
   const repos = picksOf(ticked, checkouts)
@@ -258,20 +300,32 @@ export function Landing(props: Props) {
   const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length), rowKey))
   const enter = () => picked !== undefined && props.onPick(picked)
   // switching views starts at the top of what's shown
-  const showDone = (shown: boolean) => {
-    setShowingDone(shown)
+  const show = (shown: View) => {
+    setView(shown)
     setChosen(undefined)
+    setQuery("")
   }
-  const doneActions = new Map([
+  const viewActions = new Map([
     ["return", enter],
-    ["escape", () => showDone(false)],
-    ["q", props.onQuit],
-    ["?", help.show],
-    ...moveKeys(move),
+    ["escape", () => (query === "" ? show("changes") : setQuery(""))],
+    ["backspace", () => setQuery((was) => was.slice(0, -1))],
+    ["down", () => move(1)],
+    ["up", () => move(-1)],
   ])
+  // On a view of its own, letters are typed, narrowing it, as in the sheet.
+  const typeOnView = (key: KeyEvent) => {
+    const action = viewActions.get(key.name)
+    if (action !== undefined) {
+      action()
+    } else if (typed(key)) {
+      setQuery((was) => was + key.sequence)
+    }
+  }
   const keyActions = new Map([
     ["return", enter],
-    ["d", () => done.length > 0 && showDone(true)],
+    ["p", () => otherPulls.length > 0 && show("pulls")],
+    ["B", () => otherBranches.length > 0 && show("branches")],
+    ["d", () => done.length > 0 && show("done")],
     ["a", sheet.show],
     ["S", props.onSettings],
     ["q", props.onQuit],
@@ -283,8 +337,15 @@ export function Landing(props: Props) {
     active,
     help.guard((key) => {
       notice.seen()
-      const actions = showingDone ? doneActions : keyActions
-      return drop.key(key) || sheet.key(key) || actions.get(shifted(key))?.()
+      if (drop.key(key) || sheet.key(key)) {
+        return
+      }
+
+      if (view === "changes") {
+        keyActions.get(shifted(key))?.()
+      } else {
+        typeOnView(key)
+      }
     }),
   )
 
@@ -301,7 +362,7 @@ export function Landing(props: Props) {
             chosen={selected}
             statuses={statuses}
             builtAt={builtAt}
-            note={showingDone ? undefined : note}
+            note={view === "changes" ? note : undefined}
             muted={sheet.open}
             tint={props.tint}
             opening={openingKey(props.opening)}
@@ -324,12 +385,13 @@ export function Landing(props: Props) {
       }
       added={addedNames(ticked, checkouts)}
       base={branches.kind === "ready" ? branches.found.base : undefined}
-      showingDone={showingDone}
+      view={view}
+      narrowed={{ query, shown: items.length, of: lists[view].length }}
       failed={branches.kind === "failed" ? branches.why : undefined}
       notice={notice.text}
       footer={footerOf(
         drop.drop !== undefined,
-        help.footer(pageKeys(sheet.open ? sheet.keys : undefined, showingDone, done.length)),
+        help.footer(pageKeys(sheet.open ? sheet.keys : undefined, view, besides, query)),
       )}
       help={help.open}
     />
@@ -352,11 +414,22 @@ function Reading() {
   return shown ? <text fg={tones.dim}>{`${turning} reading this repo…`}</text> : null
 }
 
-// What the title bar says the page shows: the done treks, or what the changes are measured
+// What the title bar says the page shows: a view of its own, or what the changes are measured
 // against.
-function titleOf(showingDone: boolean, base: string | undefined): ReactNode {
-  if (showingDone) {
-    return "done treks"
+const VIEW_TITLES: Readonly<Record<Exclude<View, "changes">, string>> = {
+  done: "done treks",
+  pulls: "pull requests",
+  branches: "branches",
+}
+
+// A view's title, and once something's typed, how many of its rows hold it and what it is:
+// "pull requests · 1 of 2  / cache▏".
+function titleOf(view: View, base: string | undefined, narrowed: Narrowed): ReactNode {
+  if (view !== "changes") {
+    const { query, shown, of } = narrowed
+    return query === ""
+      ? VIEW_TITLES[view]
+      : `${VIEW_TITLES[view]} · ${shown} of ${of}  / ${query}▏`
   }
 
   return base === undefined ? undefined : <Against base={base} />
@@ -395,8 +468,9 @@ function LandingView(props: {
   added: string | undefined
   // what the changes are measured against
   base: string | undefined
-  // the done treks shown in the changes' place
-  showingDone: boolean
+  // the view shown in the changes' place, or the changes, and what it's narrowed to
+  view: View
+  narrowed: Narrowed
   failed: string | undefined
   notice: string | undefined
   footer: readonly KeyHint[]
@@ -410,7 +484,7 @@ function LandingView(props: {
   return (
     <box flexDirection="column" style={{ width: "100%", height: "100%" }}>
       <TitleBar
-        left={titleOf(props.showingDone, props.base)}
+        left={titleOf(props.view, props.base, props.narrowed)}
         right={props.added === undefined ? undefined : <Added names={props.added} />}
       />
       <box

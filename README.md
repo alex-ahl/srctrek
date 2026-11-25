@@ -40,9 +40,10 @@ trek                            # then, in the repo whose change you want to tre
 
 Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
 
-- `trek` opens the landing page: your branch and its uncommitted work, pull requests waiting
-  on your review and the others, the repo's other branches, and the code as it is. Each shows its
-  trek's state. `d` shows the treks whose work is done. `a` opens the repos beside this one, and
+- `trek` opens the landing page: your branch and its uncommitted work, your pull requests and
+  those waiting on your review, your branches, and the code as it is. Each shows its trek's
+  state. `p` and `B` show the other pull requests and branches, and `d` the treks whose work is
+  done; typing narrows them. `a` opens the repos beside this one, and
   `space` adds one to go along with the change.
 - `trek main...HEAD ../gateway` names the ranges and repos, and opens that change's screen;
   `--uncommitted` includes work not yet committed. A problem with the arguments stops `trek` with
@@ -56,20 +57,21 @@ trek's state. With no trek yet, `b` has your agent build one in the background, 
 shows its steps as they arrive; `l` opens the build view. Once there's a trek, the screen shows
 its overview. While `trek` is open, it follows new commits and branch switches.
 
-| Key       | Action                                        |
-| --------- | --------------------------------------------- |
-| `↑` / `↓` | Choose a row (also `k`/`j`)                   |
-| `enter`   | Open the change; on a change, step it         |
-| `b`       | Build, update, or build again the trek        |
-| `B`       | Find the code's ways in again                 |
-| `a`       | Add repos, or a repo your agent proposed      |
-| `d`       | Treks whose work is done, on the landing page |
-| `x`       | Stop a build, or dismiss a proposed repo      |
-| `l`       | The trek's builds, and each one's log         |
-| `S`       | Settings                                      |
-| `?`       | Every key                                     |
-| `esc`     | Back                                          |
-| `q`       | Quit, on the landing page                     |
+| Key       | Action                                                   |
+| --------- | -------------------------------------------------------- |
+| `↑` / `↓` | Choose a row (also `k`/`j`)                              |
+| `enter`   | Open the change; on a change, step it                    |
+| `b`       | Build, update, or build again the trek                   |
+| `B`       | Other branches; on code as it is, find its ways in again |
+| `a`       | Add repos, or a repo your agent proposed                 |
+| `p`       | Other pull requests, on the landing page                 |
+| `d`       | Treks whose work is done, on the landing page            |
+| `x`       | Stop a build, or dismiss a proposed repo                 |
+| `l`       | The trek's builds, and each one's log                    |
+| `S`       | Settings                                                 |
+| `?`       | Every key                                                |
+| `esc`     | Back                                                     |
+| `q`       | Quit, on the landing page                                |
 
 Each footer shows the keys for what's selected; `?` lists them all.
 

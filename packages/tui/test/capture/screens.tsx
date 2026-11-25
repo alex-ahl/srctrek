@@ -167,6 +167,7 @@ const busyPulls: OpenPullRequest[] = [
     "bo",
     { reviewRequested: true },
   ),
+  busyPull(18, "Export refund rows", "you", { mine: true, commits: 4 }),
   busyPull(14, "Round refunds to cents", "bo", { draft: true }),
   busyPull(9, "Upgrade the HTTP client", "carol"),
 ]
@@ -183,10 +184,11 @@ const landingBusy = (
         base: "main",
         own: { name: "feature/refunds", commits: 9 },
         uncommittedFiles: 4,
-        others: Object.keys(busyStates).map((name, at) => ({
+        // the last is someone else's, on its view of its own
+        others: Object.keys(busyStates).map((name, at, names) => ({
           name,
           commits: at * 3 + 1,
-          mine: true,
+          mine: at < names.length - 1,
         })),
       })
     }
