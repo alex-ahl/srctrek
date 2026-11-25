@@ -64,7 +64,7 @@ export function PendingScreen({ pending, onBack }: { pending: Pending; onBack: (
           <text fg={tones.bad}>{`✕ couldn't open ${name}: ${pending.why}`}</text>
         )}
       </box>
-      <Footer keys={[{ key: "esc", does: "back" }]} shown="" />
+      <Footer keys={[{ key: "esc", does: "back" }]} />
     </box>
   )
 }

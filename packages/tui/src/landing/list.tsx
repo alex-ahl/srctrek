@@ -31,7 +31,8 @@ const MARKER = 2
 const GAP = "  "
 const COLUMN_GAP = "    "
 
-const rowKey = (row: LandingRow) => JSON.stringify(row.choice)
+/** A row's key, which keeps it selected while the lines around it come and go. */
+export const rowKey = (row: LandingRow): string => JSON.stringify(row.choice)
 
 /** How the landing page reads where each row's trek stands: a change's, and a pull request's. */
 export type StatusOf = Readonly<{
@@ -141,7 +142,7 @@ function stateCell(
     return { text: workedOut(row) ? turning : "", tone: "dim" }
   }
 
-  const { symbol, state, tone } = statusBlock(status, undefined, false, {
+  const { symbol, state, tone } = statusBlock(status, false, {
     code: row.choice.kind === "code",
   })
   const text = `${symbol} ${STATE_WORDS[state] ?? state}`
@@ -247,47 +248,21 @@ function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNot
   )
 }
 
-/** Something the landing page lists: a change to open, or a done trek. */
-export type LandingItem = Readonly<{ kind: "change"; row: LandingRow }>
-
-const groupOf = (item: LandingItem): LandingGroup => item.row.group
-
-/** The item's key, which keeps it selected while the lines around it come and go. */
-export const itemKey = (item: LandingItem): string => rowKey(item.row)
-
-function ItemView({
-  item,
-  cells,
-  widths,
-  muted,
-}: {
-  item: LandingItem
-  cells: ReadonlyMap<string, StateCell>
-  widths: Widths
-  muted: boolean
-}) {
-  const cell = cells.get(rowKey(item.row)) ?? { text: "", tone: "dim" }
-  return <ChangeView row={item.row} cell={cell} widths={widths} muted={muted} />
-}
-
 // Whether a row's state is turning: a change being opened, or one still being worked out.
 const busy = (
-  items: readonly LandingItem[],
+  items: readonly LandingRow[],
   statuses: ReadonlyMap<string, TrekStatus>,
   opening: string | undefined,
-) =>
-  opening !== undefined ||
-  items.some((item) => workedOut(item.row) && !statuses.has(rowKey(item.row)))
+) => opening !== undefined || items.some((item) => workedOut(item) && !statuses.has(rowKey(item)))
 
 // Each row's state cell, by its key.
 function cellsOf(
-  items: readonly LandingItem[],
+  rows: readonly LandingRow[],
   statuses: ReadonlyMap<string, TrekStatus>,
   opening: string | undefined,
   turning: string,
   built: (name: string) => string | undefined,
 ): ReadonlyMap<string, StateCell> {
-  const rows = items.map((item) => item.row)
   return new Map(
     rows.map((row) => {
       const key = rowKey(row)
@@ -301,13 +276,12 @@ function cellsOf(
 // rows hold gives up more than its least; the states as wide as theirs, opening one's room kept,
 // ending at the row's end.
 function widthsOf(
-  items: readonly LandingItem[],
+  rows: readonly LandingRow[],
   cells: ReadonlyMap<string, StateCell>,
   width: number,
 ): Widths {
   const room = Math.min(width - 2 * PADDING, TABLE_MOST) - ROW_INDENT.length - MARKER
   const gaps = 2 * COLUMN_GAP.length
-  const rows = items.map((item) => item.row)
   const longest = (texts: readonly string[]) => Math.max(0, ...texts.map((text) => text.length))
   const longestName = longest(rows.map(nameText))
   // what the rows hold, whole, and at the least on a narrow terminal
@@ -344,7 +318,7 @@ export function LandingList({
   tint,
   height,
 }: {
-  items: readonly LandingItem[]
+  items: readonly LandingRow[]
   chosen: number
   statuses: ReadonlyMap<string, TrekStatus>
   // when each saved trek was built, by its name
@@ -375,13 +349,18 @@ export function LandingList({
       {items.slice(start).map((item, shown) => {
         const index = start + shown
         return (
-          <box key={itemKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
+          <box key={rowKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
             {index === noteAt && <Note note={note} first={index === 0} />}
             {(startsGroup(items[index - 1], item) || shown === 0) && (
-              <Heading group={groupOf(item)} first={index === start && noteAt !== index} />
+              <Heading group={item.group} first={index === start && noteAt !== index} />
             )}
             <Selectable selected={index === chosen} tint={tint} indent={ROW_INDENT}>
-              <ItemView item={item} cells={cells} widths={widths} muted={muted} />
+              <ChangeView
+                row={item}
+                cell={cells.get(rowKey(item)) ?? { text: "", tone: "dim" }}
+                widths={widths}
+                muted={muted}
+              />
             </Selectable>
           </box>
         )
@@ -392,12 +371,12 @@ export function LandingList({
 }
 
 // An item under a different heading from the one before it, or the first.
-const startsGroup = (previous: LandingItem | undefined, item: LandingItem) =>
-  previous === undefined || groupOf(previous) !== groupOf(item)
+const startsGroup = (previous: LandingRow | undefined, item: LandingRow) =>
+  previous === undefined || previous.group !== item.group
 
 // The note on the pull requests, with none to list yet, goes where they would: after own work.
-function noteIndex(items: readonly LandingItem[]): number {
-  const after = items.findIndex((item) => groupOf(item) !== "your work")
+function noteIndex(items: readonly LandingRow[]): number {
+  const after = items.findIndex((item) => item.group !== "your work")
   return after === -1 ? items.length : after
 }
 
@@ -405,7 +384,7 @@ function noteIndex(items: readonly LandingItem[]): number {
  * Where each item's lines start, its heading and the note above it among them, and where its own
  * line is.
  */
-function linesOf(items: readonly LandingItem[], noteAt: number, hasNote: boolean) {
+function linesOf(items: readonly LandingRow[], noteAt: number, hasNote: boolean) {
   const tops: number[] = []
   const own: number[] = []
   let line = 0
@@ -428,7 +407,7 @@ function linesOf(items: readonly LandingItem[], noteAt: number, hasNote: boolean
 
 /** The first item drawn, so the selected one sits mid-list where the list runs past `height`. */
 function firstShown(
-  items: readonly LandingItem[],
+  items: readonly LandingRow[],
   chosen: number,
   noteAt: number,
   hasNote: boolean,
@@ -453,7 +432,7 @@ function firstShown(
 }
 
 // Whether the line at `at` comes with its heading.
-const headed = (items: readonly LandingItem[], at: number) => {
+const headed = (items: readonly LandingRow[], at: number) => {
   const item = items[at]
   return item === undefined || startsGroup(items[at - 1], item)
 }

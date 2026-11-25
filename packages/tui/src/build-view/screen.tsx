@@ -288,7 +288,7 @@ export function BuildScreen(props: Props) {
           </scrollbox>
         )}
       </box>
-      <Footer keys={keysFor(onLog, builds, actions)} shown="" />
+      <Footer keys={keysFor(onLog, builds, actions)} />
     </box>
   )
 }

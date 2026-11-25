@@ -538,7 +538,7 @@ export function SteppingScreen({ root, name, title, editor, onBack, tint }: Prop
           )}
         </OrKeysHelp>
       </Main>
-      <Footer keys={help.footer(footerKeys(layer, view, nextWords(opened)))} shown="" />
+      <Footer keys={help.footer(footerKeys(layer, view, nextWords(opened)))} />
     </box>
   )
 }

@@ -1,19 +1,12 @@
-import { type TrekEntry, type TrekStatus, buildProgress } from "@srctrek/core"
+import { type TrekStatus, buildProgress } from "@srctrek/core"
 import { STATE_LABELS, type StateLabel } from "../ui/state-labels"
 import { count } from "../ui/text"
 
 /**
- * Where the change's trek stands, as the home screen shows it: a symbol and the state in the
- * state's tone, the trek's name and what it holds, then dim lines saying why.
+ * Where the change's trek stands, as its screen shows it: a symbol and the state in the state's
+ * tone, then dim lines saying why.
  */
-export type StatusBlock = StateLabel &
-  Readonly<{
-    name?: string
-    holds?: string
-    // a likely-wrong count, drawn in the bad colour
-    flag?: string
-    details: readonly string[]
-  }>
+export type StatusBlock = StateLabel & Readonly<{ details: readonly string[] }>
 
 // Enough of a build's log to see what it's doing or why it ended; l shows the rest.
 const LOG_LINES = 3
@@ -37,31 +30,9 @@ function agentDoes(open: Opened): string {
     : "b builds one: your agent picks an example and follows it from its trigger to its outcome"
 }
 
-// A saved trek by its title; its file's name only when it can't be read.
-const titleOf = (name: string, entry: TrekEntry | undefined) =>
-  entry?.valid === true ? entry.title : name
-
 type Of<K extends TrekStatus["kind"]> = Extract<TrekStatus, { kind: K }>
 
-// The trek's title, "15 steps · 3 repos", and the flag, for a trek that's saved.
-function readyBlock(name: string, entry: TrekEntry | undefined): StatusBlock {
-  if (entry === undefined || !entry.valid) {
-    return { ...STATE_LABELS.ready, name, details: [] }
-  }
-
-  return {
-    ...STATE_LABELS.ready,
-    name: entry.title,
-    holds: `${count(entry.steps, "step")} · ${count(entry.repos, "repo")}`,
-    ...(entry.highFlags > 0 ? { flag: `⚠ ${entry.highFlags} likely wrong` } : {}),
-    details: [],
-  }
-}
-
-function staleBlock(
-  { name, staleStops, stops }: Of<"stale">,
-  entry: TrekEntry | undefined,
-): StatusBlock {
+function staleBlock({ staleStops, stops }: Of<"stale">): StatusBlock {
   const changed =
     staleStops === undefined
       ? "built at an older head of the pull request"
@@ -69,11 +40,7 @@ function staleBlock(
         ? "built at older commits, though none of its steps' files changed"
         : `${staleStops} of ${count(stops, "step")}' files changed since it was built`
 
-  return {
-    ...STATE_LABELS.stale,
-    name: titleOf(name, entry),
-    details: [changed],
-  }
+  return { ...STATE_LABELS.stale, details: [changed] }
 }
 
 const NOT_FOUND: StateLabel = { symbol: "○", state: "ways in not found yet", tone: "dim" }
@@ -123,7 +90,7 @@ function buildBlock(
 }
 
 // What can't be opened and where it was looked for; fixing it is the user's, so no key acts on it.
-function unreachableBlock({ name, unreachable }: Of<"unreachable">): StatusBlock {
+function unreachableBlock({ unreachable }: Of<"unreachable">): StatusBlock {
   const { repo, source, revision, reason } = unreachable
   const details =
     reason === "missing"
@@ -133,29 +100,19 @@ function unreachableBlock({ name, unreachable }: Of<"unreachable">): StatusBlock
           "fetch it there to open this trek",
         ]
 
-  return { ...STATE_LABELS.unreachable, name, details }
+  return { ...STATE_LABELS.unreachable, details }
 }
 
 type NameOnly = "ready" | "older-guide" | "missing" | "empty"
 
 // The states that are a name and nothing more.
-function nameOnlyBlock(
-  kind: NameOnly,
-  name: string,
-  entry: TrekEntry | undefined,
-  canBuild: boolean,
-  open: Opened,
-): StatusBlock {
+function nameOnlyBlock(kind: NameOnly, canBuild: boolean, open: Opened): StatusBlock {
   if (kind === "ready") {
-    return readyBlock(name, entry)
+    return { ...STATE_LABELS.ready, details: [] }
   }
 
   if (kind === "older-guide") {
-    return {
-      ...STATE_LABELS["older-guide"],
-      name: titleOf(name, entry),
-      details: ["built before the guide last changed"],
-    }
+    return { ...STATE_LABELS["older-guide"], details: ["built before the guide last changed"] }
   }
 
   if (kind === "empty") {
@@ -168,13 +125,9 @@ function nameOnlyBlock(
   return missingBlock(canBuild, open)
 }
 
-/**
- * The block for each state of the change's trek; `entry` is its saved trek, when listed, and
- * `open` what kind of thing it's a trek of.
- */
+/** The block for each state of the change's trek; `open` is what kind of thing it's a trek of. */
 export function statusBlock(
   status: TrekStatus,
-  entry: TrekEntry | undefined,
   canBuild: boolean,
   open: Opened = A_CHANGE,
 ): StatusBlock {
@@ -183,15 +136,11 @@ export function statusBlock(
   }
 
   if (status.kind === "stale") {
-    return staleBlock(status, entry)
+    return staleBlock(status)
   }
 
   if (status.kind === "unreadable") {
-    return {
-      ...STATE_LABELS.unreadable,
-      name: status.name,
-      details: [status.problem],
-    }
+    return { ...STATE_LABELS.unreadable, details: [status.problem] }
   }
 
   if (status.kind === "unreachable") {
@@ -207,5 +156,5 @@ export function statusBlock(
     }
   }
 
-  return nameOnlyBlock(status.kind, status.name, entry, canBuild, open)
+  return nameOnlyBlock(status.kind, canBuild, open)
 }

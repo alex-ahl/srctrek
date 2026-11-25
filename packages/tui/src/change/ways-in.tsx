@@ -46,7 +46,7 @@ function WayLine({ row, selected, width }: { row: WayRow; selected: boolean; wid
   }
 
   const { trigger, trek } = row.way
-  const { symbol, tone } = statusBlock(trek, undefined, false)
+  const { symbol, tone } = statusBlock(trek, false)
   const where = `${trigger.evidence.file}:${String(trigger.evidence.line)}`
   return (
     <text fg={COLOUR.text}>

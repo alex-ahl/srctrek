@@ -20,16 +20,6 @@ export async function pressOn(
   renderer.destroy()
 }
 
-/** Renders the node, presses enter, and waits for the screen to settle. */
-export function pressEnterOn(node: ReactNode): Promise<void> {
-  return pressOn(node, (input) => input.pressEnter())
-}
-
-/** Renders the node, presses `key`, and waits for the screen to settle. */
-export function pressKeyOn(node: ReactNode, key: string): Promise<void> {
-  return pressOn(node, (input) => input.pressKey(key))
-}
-
 /**
  * The screen under test, for waiting on it between keys: until it shows what a key should bring
  * up, as work a key starts (loading a trek, reading a file) takes as long as it takes; or one draw,

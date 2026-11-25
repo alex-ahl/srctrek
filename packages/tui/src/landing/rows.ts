@@ -62,7 +62,7 @@ const otherBranchRows = (choices: BranchChoices): LandingRow[] =>
   }))
 
 /** Code as it is, with no change: opens on its ways in, where a trigger can be followed too. */
-export const CODE_ROW: LandingRow = {
+const CODE_ROW: LandingRow = {
   group: "code as it is",
   label: "its ways in",
   detail: "",
@@ -121,19 +121,4 @@ export function landingRows(
   const others = choices === undefined ? [] : otherBranchRows(choices)
 
   return [...own, ...pullRequestRows(pulls, choices?.base ?? ""), ...others, CODE_ROW]
-}
-
-// A pick without the repos ticked to go with it.
-function changeOnly(pick: Pick) {
-  if (pick.kind === "trek") {
-    return pick
-  }
-
-  const { repos: _repos, ...change } = pick
-  return change
-}
-
-/** Whether two picks open the same thing in this repo, whatever repos go with it. */
-export function samePick(a: Pick, b: Pick): boolean {
-  return JSON.stringify(changeOnly(a)) === JSON.stringify(changeOnly(b))
 }

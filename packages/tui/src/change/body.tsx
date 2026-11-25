@@ -26,7 +26,7 @@ function StateBlock(props: {
   const tones = useTones()
   const block =
     props.done === undefined
-      ? statusBlock(props.status, undefined, props.canBuild, props.open)
+      ? statusBlock(props.status, props.canBuild, props.open)
       : { ...doneBlock(props.done), details: [] }
   const text = useStateText(block)
 

@@ -15,9 +15,6 @@ export const STATE_LABELS = {
   stopped: { symbol: "■", state: "stopped", tone: "dim" },
   unreadable: { symbol: "✕", state: "can't read", tone: "bad" },
   unreachable: { symbol: "✕", state: "can't open", tone: "bad" },
-  invalid: { symbol: "✕", state: "invalid", tone: "bad" },
-  proposed: { symbol: "+", state: "proposed", tone: "warn" },
-  notFound: { symbol: "◇", state: "not found yet", tone: "dim" },
 } as const satisfies Record<string, StateLabel>
 
 const DONE_WORD: Readonly<Record<Extract<TrekState, { kind: "done" }>["why"], string>> = {

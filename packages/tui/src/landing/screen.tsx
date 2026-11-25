@@ -13,11 +13,10 @@ import type {
 } from "@srctrek/core"
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import {
-  type LandingItem,
   type LandingNote,
   LandingList,
   choiceKey,
-  itemKey,
+  rowKey,
   statesKnown,
   type StatusOf,
   useStatuses,
@@ -290,8 +289,7 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
     return row.choice
   }
 
-  const { repos: _ticked, ...change } = row.choice
-  return repos.length === 0 ? change : { ...change, repos }
+  return repos.length === 0 ? row.choice : { ...row.choice, repos }
 }
 
 // The keys for the list's line selected, and a to add repos.
@@ -351,10 +349,6 @@ const GROUPS: readonly KeyGroup[] = [
   { title: "leave", keys: [{ key: "q", does: "quit" }] },
 ]
 
-// The lines listed: the changes, or, on their own view, the done treks.
-const itemsOf = (rows: readonly LandingRow[]): LandingItem[] =>
-  rows.map((row) => ({ kind: "change", row }))
-
 // At most half the room below the title bar goes to the sheet, so the changes stay in view.
 const sheetMost = (room: number) => Math.floor(room / 2)
 
@@ -396,12 +390,13 @@ export function Landing(props: Props) {
   // what branches' ages are measured from
   const now = useNow()
 
-  const items = itemsOf(showingDone ? done : rows)
-  const selected = selectedIndex(items, chosen, itemKey)
+  // the changes, or, on their own view, the done treks
+  const items = showingDone ? done : rows
+  const selected = selectedIndex(items, chosen, rowKey)
   const item = items[selected]
   const repos = picksOf(ticked, checkouts)
   // what enter opens from the selected line, when it's a change's
-  const picked = item === undefined ? undefined : pickOf(item.row, repos)
+  const picked = item === undefined ? undefined : pickOf(item, repos)
   useResting(active, picked, props.onRest)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
@@ -415,7 +410,7 @@ export function Landing(props: Props) {
   const notice = useNotice(props.opening)
   const shownDrop = dropView(drop, ticked, now)
 
-  const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length), itemKey))
+  const move = (by: number) => setChosen(keyAt(items, stepped(selected, by, items.length), rowKey))
   const enter = () => picked !== undefined && props.onPick(picked)
   // switching views starts at the top of what's shown
   const showDone = (shown: boolean) => {
@@ -600,7 +595,7 @@ function LandingView(props: {
           <text fg={tones.bad}>{props.notice}</text>
         </box>
       )}
-      <Footer keys={props.footer} shown="" />
+      <Footer keys={props.footer} />
     </box>
   )
 }

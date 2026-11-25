@@ -82,7 +82,7 @@ function Bottom({
     )
   }
 
-  return <Footer keys={keys} shown="" />
+  return <Footer keys={keys} />
 }
 
 /**

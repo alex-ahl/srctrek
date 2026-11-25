@@ -429,7 +429,6 @@ test("a slides up every repo beside this one under the changes, those with work 
   expect(frame).toMatch(
     /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
   )
-  expect(frame).not.toContain("more repos")
   expect(frame).toContain("type: narrow  ¦  space: add repo  ¦  →: branches  ¦  esc: done")
 })
 

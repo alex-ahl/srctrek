@@ -60,7 +60,7 @@ export function ChangeFrame({ summary, keys, hints, groups, ask, children }: Pro
         </OrKeysHelp>
       </box>
       {asking === undefined ? (
-        <Footer keys={help.footer(hints)} shown="" />
+        <Footer keys={help.footer(hints)} />
       ) : (
         <TextPrompt
           question={asking.question}

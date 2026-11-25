@@ -4,17 +4,12 @@ import { count } from "../ui/text"
 /** The repos ticked to go with the change, by path. */
 export type Ticked = ReadonlyMap<string, RepoPick>
 
-/** A repo beside this one in the picker's list, ticked or not. */
-export type RepoItem = Readonly<{
-  kind: "repo"
-  checkout: NearbyCheckout
-  pick: RepoPick | undefined
-}>
+/** A repo beside this one in the sheet, ticked or not. */
+export type RepoItem = Readonly<{ checkout: NearbyCheckout; pick: RepoPick | undefined }>
 
 /** The repos to list in the sheet: those with work on them, then the rest, each ticked or not. */
 export function repoItems(checkouts: readonly NearbyCheckout[], ticked: Ticked): RepoItem[] {
   const item = (checkout: NearbyCheckout): RepoItem => ({
-    kind: "repo",
     checkout,
     pick: ticked.get(checkout.path),
   })
