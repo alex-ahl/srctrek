@@ -83,6 +83,7 @@ type Loaded<T> =
  */
 function useLoaded<T>(load: () => Promise<T>, every?: number): Loaded<T> {
   const [loaded, setLoaded] = useState<Loaded<T>>({ kind: "loading" })
+  const reading = useRef<() => void>(undefined)
   useEffect(() => {
     let current = true
     const read = () =>
@@ -94,14 +95,23 @@ function useLoaded<T>(load: () => Promise<T>, every?: number): Loaded<T> {
             was.kind === "ready" ? was : { kind: "failed", why: errorText(error) },
           ),
       )
+    reading.current = read
     read()
-    const timer = every === undefined ? undefined : setInterval(read, every)
 
     return () => {
       current = false
-      clearInterval(timer)
     }
-  }, [load, every])
+  }, [load])
+
+  // its own effect, so `every` coming and going starts and stops the asking, not a read
+  useEffect(() => {
+    if (every === undefined) {
+      return undefined
+    }
+
+    const timer = setInterval(() => reading.current?.(), every)
+    return () => clearInterval(timer)
+  }, [every])
 
   return loaded
 }

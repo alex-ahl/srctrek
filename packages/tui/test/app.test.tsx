@@ -118,6 +118,18 @@ test("enter on a change opens its screen, and esc goes back to the landing page"
   expect(frame).toContain("your work")
 })
 
+test("going to a change and back doesn't ask for the pull requests again", async () => {
+  const pullRequests = mock(() => Promise.resolve([]))
+  await frameAfter(app(".", LANDING, sources({ pullRequests })), async (input, on) => {
+    await on.shows("your work")
+    input.pressEnter()
+    await on.shows("no trek yet")
+    await escape(input, on, "your work")
+  })
+
+  expect(pullRequests).toHaveBeenCalledTimes(1)
+})
+
 test("a change asked for opens on its screen, and esc goes to the landing page", async () => {
   const change = changeWith(() => Promise.resolve(missing))
   const opening: Opening = { kind: "change", choice: own, change, status: missing }
