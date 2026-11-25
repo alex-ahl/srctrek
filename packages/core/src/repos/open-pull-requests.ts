@@ -12,8 +12,9 @@ export type OpenPullRequest = Readonly<{
   draft: boolean
   reviewRequested: boolean
   mine: boolean
-  // the commit its branch is at now
+  // the commit its branch is at now, and the branch, unless it's a fork's
   head: string
+  branch?: string
   // the branch it would merge into
   base: string
   // when it last changed, and how many commits it holds
@@ -29,6 +30,8 @@ const ListedSchema = z.array(
     url: z.string(),
     isDraft: z.boolean(),
     headRefOid: z.string(),
+    headRefName: z.string(),
+    isCrossRepository: z.boolean(),
     baseRefName: z.string(),
     updatedAt: z.string(),
     commits: z.array(z.unknown()),
@@ -97,6 +100,7 @@ const openPullRequest =
     reviewRequested,
     mine,
     head: pr.headRefOid,
+    ...(pr.isCrossRepository ? {} : { branch: pr.headRefName }),
     base: pr.baseRefName,
     updatedAt: pr.updatedAt,
     commits: pr.commits.length,
@@ -112,7 +116,7 @@ const openPullRequest =
 export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPullRequest[]> {
   const fields = [
     "--json",
-    "number,title,author,url,isDraft,headRefOid,baseRefName,updatedAt,commits",
+    "number,title,author,url,isDraft,headRefOid,headRefName,isCrossRepository,baseRefName,updatedAt,commits",
   ]
   const [listed, waiting, own] = await Promise.all([
     runGh(cwd, gh, ["pr", "list", ...fields, "--limit", LIMIT]),

@@ -256,7 +256,8 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
   first: your work first, the branch checked out with its uncommitted work set in under it, your
   own open pull requests (`· yours`), and those waiting on your review, marked `review requested`
   in the accent; then your branches, those with a commit of yours (by `user.email`) the base
-  doesn't have, latest committed first, the first 8; and code as it is, one row. Every other pull
+  doesn't have, latest committed first, the first 8; and code as it is, one row. A branch an open
+  pull request was opened from is listed as that pull request alone, here and on `B`. Every other pull
   request and branch is on a view of its own, `p` and `B`, as the done treks are on `d`: treks
   whose work landed or whose branch is gone, each saying how its work ended as its state,
   `✓ merged`. The footer counts each, `p: 28 pull requests  ¦  B: 9 branches  ¦  d: 12 done

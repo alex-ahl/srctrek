@@ -69,18 +69,37 @@ const branchRow =
     choice: { kind: "branch", name: branch.name },
   })
 
+// The names a pull request's branch goes by: checked out, and as only the remote has it.
+const pullBranchNames = (pulls: readonly OpenPullRequest[]): ReadonlySet<string> =>
+  new Set(
+    pulls.flatMap((pr) => (pr.branch === undefined ? [] : [pr.branch, `origin/${pr.branch}`])),
+  )
+
+// The branches that aren't an open pull request's: a pull request's row stands for its branch.
+function branchesBeside(
+  choices: BranchChoices,
+  pulls: readonly OpenPullRequest[],
+): readonly OtherBranch[] {
+  const pullBranches = pullBranchNames(pulls)
+  return choices.others.filter((branch) => !pullBranches.has(branch.name))
+}
+
 // The user's own branches listed with their work: the latest first, the first few.
-const yourBranches = (choices: BranchChoices) =>
-  choices.others.filter((branch) => branch.mine).slice(0, BRANCHES_SHOWN)
+const yourBranches = (branches: readonly OtherBranch[]) =>
+  branches.filter((branch) => branch.mine).slice(0, BRANCHES_SHOWN)
 
 /** The other branches, on a view of their own: others', and the user's past the first few. */
-export function otherBranchRows(choices: BranchChoices | undefined): LandingRow[] {
+export function otherBranchRows(
+  choices: BranchChoices | undefined,
+  pulls: readonly OpenPullRequest[],
+): LandingRow[] {
   if (choices === undefined) {
     return []
   }
 
-  const shown = new Set(yourBranches(choices).map((branch) => branch.name))
-  return choices.others.filter((branch) => !shown.has(branch.name)).map(branchRow("branches"))
+  const branches = branchesBeside(choices, pulls)
+  const shown = new Set(yourBranches(branches).map((branch) => branch.name))
+  return branches.filter((branch) => !shown.has(branch.name)).map(branchRow("branches"))
 }
 
 /** Code as it is, with no change: opens on its ways in, where a trigger can be followed too. */
@@ -152,7 +171,9 @@ export function landingRows(
 ): LandingRow[] {
   const own = choices === undefined ? [] : ownRows(choices)
   const branches =
-    choices === undefined ? [] : yourBranches(choices).map(branchRow("your branches"))
+    choices === undefined
+      ? []
+      : yourBranches(branchesBeside(choices, pulls)).map(branchRow("your branches"))
 
   return [...own, ...yourPullRows(pulls, choices?.base ?? ""), ...branches, CODE_ROW]
 }

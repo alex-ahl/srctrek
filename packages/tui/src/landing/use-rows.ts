@@ -139,7 +139,7 @@ export function useRows(props: LandingSources) {
     const open = foundOr(pulls, [])
     const listed = landingRows(choices, open)
     const pullsBesides = otherPullRows(open, choices?.base ?? "")
-    const branchesBesides = otherBranchRows(choices)
+    const branchesBesides = otherBranchRows(choices, open)
     return {
       rows: listed,
       otherPulls: pullsBesides,

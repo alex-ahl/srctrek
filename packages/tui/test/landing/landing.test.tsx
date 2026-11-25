@@ -14,6 +14,7 @@ import {
   type DoneTrek,
   type Pick,
   landingRows,
+  otherBranchRows,
   otherPullRows,
   yourPullRows,
 } from "../../src/landing/rows"
@@ -215,6 +216,44 @@ test("offers the user's own work first, then their branches, each saying what it
     ["your branches", "feature/partial-refunds", "5 commits"],
     ["code as it is", "its ways in", ""],
   ])
+})
+
+// bo's #14, opened from bo/tax
+const fromTax: OpenPullRequest = {
+  number: 14,
+  title: "Round refunds to cents",
+  author: "bo",
+  url: "https://github.com/acme/web/pull/14",
+  draft: false,
+  reviewRequested: false,
+  mine: false,
+  head: "b14",
+  branch: "bo/tax",
+  base: "main",
+  updatedAt: "2026-11-23T10:00:00Z",
+  commits: 3,
+}
+
+test("a branch an open pull request was opened from is listed as that pull request alone", () => {
+  const fromRounding = { ...fromTax, mine: true, branch: "fix/rounding" }
+  const rows = landingRows(choices, [fromRounding])
+
+  expect(rows.map((row) => row.label)).toEqual([
+    "feature/refunds",
+    "with uncommitted work",
+    "#14 Round refunds to cents",
+    "feature/partial-refunds",
+    "its ways in",
+  ])
+})
+
+test("the other branches leave out those an open pull request was opened from", () => {
+  const withRemote: BranchChoices = {
+    ...choices,
+    others: [{ name: "origin/bo/tax", commits: 2, mine: false }],
+  }
+
+  expect(otherBranchRows(withRemote, [fromTax])).toEqual([])
 })
 
 test("leaves out the uncommitted row when everything is committed", () => {

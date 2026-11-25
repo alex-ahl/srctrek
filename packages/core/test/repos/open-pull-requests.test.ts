@@ -13,6 +13,8 @@ const LISTED = [
     url: "https://github.com/acme/api/pull/14",
     isDraft: true,
     headRefOid: "b14",
+    headRefName: "fix/rounding",
+    isCrossRepository: false,
     baseRefName: "main",
     updatedAt: "2026-11-20T10:00:00Z",
     commits: [{ oid: "c1" }, { oid: "c2" }],
@@ -24,6 +26,8 @@ const LISTED = [
     url: "https://github.com/acme/api/pull/12",
     isDraft: false,
     headRefOid: "a12",
+    headRefName: "partial-refunds",
+    isCrossRepository: false,
     baseRefName: "release/2.1",
     updatedAt: "2026-11-22T09:00:00Z",
     commits: [{ oid: "c3" }, { oid: "c4" }, { oid: "c5" }],
@@ -58,6 +62,7 @@ esac`)
         reviewRequested: true,
         mine: false,
         head: "a12",
+        branch: "partial-refunds",
         base: "release/2.1",
         updatedAt: "2026-11-22T09:00:00Z",
         commits: 3,
@@ -71,6 +76,7 @@ esac`)
         reviewRequested: false,
         mine: false,
         head: "b14",
+        branch: "fix/rounding",
         base: "main",
         updatedAt: "2026-11-20T10:00:00Z",
         commits: 2,
@@ -110,6 +116,19 @@ esac`)
       [14, false],
       [12, false],
     ])
+  })
+
+  test("a fork's pull request names no branch: the repo has none of that name", async () => {
+    const fork = { ...LISTED[0], isCrossRepository: true }
+    const gh = await fakeGh(`case "$*" in
+  *review-requested*) echo '[]' ;;
+  *--author*) echo '[]' ;;
+  *) echo '${JSON.stringify([fork])}' ;;
+esac`)
+
+    const [pull] = await openPullRequests(await tempDir("repo-"), gh)
+
+    expect(pull?.branch).toBeUndefined()
   })
 
   test("says what gh said when it can't list them", async () => {
