@@ -34,6 +34,9 @@ const ListedSchema = z.array(
 // Enough to find what's under review without paging through a busy repo's history.
 const LIMIT = "30"
 
+// Every review asked of the user, however old: more than anyone has waiting at once.
+const WAITING_LIMIT = "100"
+
 // Never ask: a prompt would hang behind the screen. Logging in is the user's own `gh auth login`.
 const NO_PROMPT = { GH_PROMPT_DISABLED: "1" }
 
@@ -104,12 +107,18 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
   const fields = [
     "--json",
     "number,title,author,url,isDraft,headRefOid,baseRefName,updatedAt,commits",
-    "--limit",
-    LIMIT,
   ]
   const [listed, waiting] = await Promise.all([
-    runGh(cwd, gh, ["pr", "list", ...fields]),
-    runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", ...fields]),
+    runGh(cwd, gh, ["pr", "list", ...fields, "--limit", LIMIT]),
+    runGh(cwd, gh, [
+      "pr",
+      "list",
+      "--search",
+      "review-requested:@me",
+      ...fields,
+      "--limit",
+      WAITING_LIMIT,
+    ]),
   ])
   const requested = ListedSchema.parse(waiting).map(openPullRequest(true))
   const numbers = new Set(requested.map((pr) => pr.number))
