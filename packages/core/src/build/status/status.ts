@@ -182,8 +182,8 @@ const builtAt = (trek: Trek, number: number) =>
 
 /**
  * Where a pull request's trek stands, from its head as listed, with nothing fetched: a build under
- * way or failed first; else ready when its trek was built at that head, stale when the head has
- * moved, how many stops changed not known; else missing.
+ * way first; else ready when its trek was built at that head, as a change's own trek reads; else a
+ * failed build; else stale when the head has moved, how many stops changed not known; else missing.
  */
 export async function pullRequestStatus(
   root: string,
@@ -192,7 +192,7 @@ export async function pullRequestStatus(
   const name = pullTrekName(pr.number)
   const state = await buildState(root, name)
   const path = trekPath(root, name)
-  if (state === "building" || state === "failed" || !(await pathExists(path))) {
+  if (state === "building" || !(await pathExists(path))) {
     return buildStatus(root, name)
   }
 
@@ -201,8 +201,13 @@ export async function pullRequestStatus(
     return { kind: "unreadable", name, problem: saved.problem }
   }
 
+  // as a change's own trek reads: one built at the head stays ready when built again fails
   if (builtAt(saved.trek, pr.number) === pr.head) {
     return readyStatus(root, name)
+  }
+
+  if (state === "failed") {
+    return buildStatus(root, name)
   }
 
   return { kind: "stale", name, staleStops: undefined, stops: stopIds(saved.trek).size }

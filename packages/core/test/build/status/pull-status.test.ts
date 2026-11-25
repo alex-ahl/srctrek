@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { TREKS_DIR, loadTrek, pullRequestStatus } from "../../../src/index"
+import { TREKS_DIR, buildState, loadTrek, pullRequestStatus, startBuild } from "../../../src/index"
 import { changeOf, makeBranchRepo, saveTrekOf } from "@srctrek/testing"
 
 // A trek saved as pr-12's, its changed repo's head that pull request: the commit it was built at.
@@ -15,6 +15,12 @@ async function savePullTrek(dir: string): Promise<string> {
   await writeFile(path, JSON.stringify({ ...trek, repos }))
 
   return trek.repos.find((repo) => repo.range !== undefined)?.revision ?? ""
+}
+
+async function untilEnded(root: string, name: string): Promise<void> {
+  for (let tries = 0; tries < 100 && (await buildState(root, name)) === "building"; tries++) {
+    await Bun.sleep(50)
+  }
 }
 
 describe("pullRequestStatus", () => {
@@ -45,6 +51,18 @@ describe("pullRequestStatus", () => {
       kind: "stale",
       name: "pr-12",
       staleStops: undefined,
+    })
+  })
+
+  test("is ready still when its trek, built at the head, fails to build again, as its screen says", async () => {
+    const dir = await makeBranchRepo()
+    const built = await savePullTrek(dir)
+    await startBuild(dir, [], "pr-12", "echo 'cannot reach the server'; false")
+    await untilEnded(dir, "pr-12")
+
+    expect(await pullRequestStatus(dir, { number: 12, head: built })).toEqual({
+      kind: "ready",
+      name: "pr-12",
     })
   })
 })
