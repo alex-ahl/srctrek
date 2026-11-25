@@ -7,7 +7,7 @@ local repos / PR URLs ──► core (trek process) ◄──► mcp ◄──�
                            │        ▲
                            ▼        │ JSON-RPC over stdio (trek serve)
         trek (.srctrek/treks/<name>.json)   ├── Neovim plugin (stepping, in the editor)
-                                              └── tui (home, build view, route map, fallback)
+                                              └── tui (landing page, change screens, builds, stepping)
 ```
 
 - **`packages/core/`** — everything that is not presentation: resolving repos and ranges,

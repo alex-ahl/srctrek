@@ -16,7 +16,8 @@ terminal. Status: Milestone 5, in progress.
 
 ### 1. Review a pull request
 
-1. In a repo of the change, run `trek <pull request URL>…`, or `trek` on the branch.
+1. In a repo of the change, run `trek <pull request URL>…`, or `trek` and choose the pull request
+   or branch on the landing page.
 2. `trek` resolves the change, fetching what's remote, and opens its screen. `b` builds its trek,
    and the screen follows the build: its steps as they arrive.
 3. A repo the agent proposes shows under the build: `a` adds it to the repos list, `x` dismisses
@@ -63,8 +64,9 @@ editor at its line.
 
 ### 8. When it doesn't work
 
-- No agent configured: the change's screen says how to set `SRCTREK_AGENT`.
-- A build failed: the end of its log, `b` to build again, `l` for the whole log.
+- No agent configured: the change's screen says to set one in settings, or to ask the agent for a
+  trek in its chat.
+- A build failed: the end of its log, `b` to build again, `l` for its builds and their logs.
 - A repo isn't reachable: its name and where it was expected.
 - A trek from another format version: says so, with a rebuild.
 - A change with no commits: nothing to trek.
@@ -236,7 +238,8 @@ the states (good, stale, failed, building) and the accent are srctrek's, a brigh
 background and deeper ones on a light one, and secondary text is mixed 60% of the way from the
 terminal's background to its text; until then, or if it never reports them, the terminal's own
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
-`≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `✓` done, `○` none yet.
+`≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `■` stopped, `✓` done, `○` none yet, `◇` the ways in
+found.
 Every screen's footer lists its keys, each key bold in the text's colour, then a colon and what it
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 `↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
@@ -272,8 +275,8 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 - **A change's screen,** opened with enter: the change in the title bar, and over its first two
   lines what it is (a pull request by its title) and, under it, who opened a pull request and
   whether it's a draft, its commits, and its files, each repo's where there are several; then its
-  trek's state: no trek yet (what `b` does, or how to set
-  `SRCTREK_AGENT`), building (the steps as they arrive and what the agent read last, a repo it
+  trek's state: no trek yet (what `b` does, or to set an agent in
+  settings), building (the steps as they arrive and what the agent read last, a repo it
   proposes with `a` to add and `x` to dismiss), ready (the trek's overview and its likely-wrong
   steps; enter steps it), stale (how many steps' files changed; `b` updates it, enter steps it as
   it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
@@ -325,7 +328,7 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 
 | Screen            | Keys                                                                                                                                                                                                   |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Landing page      | `enter` open the change, or what's folded · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `S` settings · `?` keys · `q` quit                              |
+| Landing page      | `enter` open the change · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `d` done treks · `S` settings · `?` keys · `q` quit                               |
 | A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `a` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back |
 | Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                       |
 | Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                              |
