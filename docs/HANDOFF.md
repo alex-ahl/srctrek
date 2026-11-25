@@ -1,5 +1,52 @@
 # Handoff
 
+## 2026-11-25 — The landing page as one table, and the branch cleaned up
+
+**Done**
+
+- The landing page is one table, up to 120 columns: each row's name, what it holds, dimmed, and
+  its trek's state at the right, with when it was built where there's room. The title bar says
+  what the changes are measured against (`srctrek › against main`). Lowercase dim headings: your
+  work, with the pull requests waiting on your review marked `review requested`; pull requests,
+  `into <base>` and `draft` where they apply, or `none`; branches; code as it is. A pull
+  request's trek state comes from its head as listed, read again each minute. Done treks open on
+  a view of their own with `d`, counted in the footer.
+- Repos are added from a sheet `a` slides up, headed `ADD REPOS · N added`: every repo beside this
+  one, those with work first; `space` adds or removes one, `→` opens its branches, typing narrows
+  by name or path, `esc` clears what's typed, then closes. The title bar names the repos going
+  along (`with api, docs +1`).
+- Footers draw each key bold, then `: what it does` dimmed, split by a dim `¦`, enter as `↵`.
+- A change being opened says so on its row; one that can't open says why above the footer until
+  the next key.
+- Every pull request waiting on your review is listed, however old. `.srctrek` doesn't count as
+  uncommitted work. A pull request's trek that's ready stays ready when built again fails, on its
+  row as on its screen.
+- A build started automatically that can't start leaves the screen as it stands. The landing page
+  doesn't read again as it hides and shows. A pick still being worked out opens only while the
+  landing page is in front.
+- DECISIONS 2026-11-25: `trek` starts on the landing page, or on what's checked out, by a setting;
+  the landing page shows what's yours and what's waiting on you; a checked-out pull request is
+  that pull request.
+- The mocks are redrawn from the screen captures, which now include a ready and a stale trek's
+  screen.
+
+**Next**
+
+- Trim the landing page to what's yours: your own pull requests and those waiting on your review,
+  your branches from the last few weeks; the rest behind a key, typed to narrow.
+- The "Start on" setting: the landing page, or what's checked out, with what's waiting elsewhere
+  said on the change's screen.
+- Plan B: a checked-out pull request is that pull request, listed once under your work, its trek
+  named for the pull request (`docs/design/trying.html`).
+- Plan C: several treks of one change, listed on its screen (`docs/design/trying.html`).
+- Later: a build started from an agent's own chat through `trek mcp` showing live on its change's
+  screen.
+- The older-guide screen capture.
+- Split `packages/tui/src/landing/screen.tsx` and `packages/tui/src/landing/list.tsx` as the
+  trimming rewrites them.
+- Parked: whether a failed build of a ready trek says so, rather than staying ready.
+- Parked: the landing page drawn at once from how it was last, then read again in place.
+
 ## 2026-11-22 — The landing page, and a screen per change
 
 **Done**
