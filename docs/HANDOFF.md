@@ -132,6 +132,26 @@
   (`~/handoffs/home-select.html`), and adding a repo by path or URL in the picker
   (`~/handoffs/picker-add-repo.patch`).
 
+## 2026-11-18 — The release workflow
+
+**Done**
+
+- `.github/workflows/release.yml`: pushing a `v<major>.<minor>.<patch>` tag runs the checks,
+  builds `trek-darwin-arm64`, `trek-linux-x64` and `trek-linux-arm64` on their own runners, and
+  publishes them with SHA256SUMS as the tag's GitHub release; a tag such as `v0.1.0-rc.1`
+  publishes as a pre-release. A test release installed through `site/public/install` on macOS,
+  and the installed `trek` runs.
+- CI runs on pushes to `development` and `master` and on pull requests; a newer push cancels the
+  run it replaces.
+
+**Next**
+
+- Try a release first as a pre-release: `git tag v0.1.0-rc.1 && git push origin v0.1.0-rc.1`,
+  then `SRCTREK_VERSION=0.1.0-rc.1` with the install script. Then cut `v0.1.0`, and
+  `RELEASED` in `site/src/launch.ts` turns true.
+- The Linux binaries are built but not yet run from a release.
+- `SRCTREK_VERSION` in `packages/core/src/protocol/messages.ts` stays `0.0.0` until versioning.
+
 ## 2026-11-17 — Milestone 7: the picker finished, the home screen, the build view
 
 **Done**
@@ -188,8 +208,8 @@
 
 **Next**
 
-- A release workflow that publishes the binaries and SHA256SUMS the script expects. Until then
-  `RELEASED` in `site/src/launch.ts` stays false, and the hero says the install is coming.
+- `RELEASED` in `site/src/launch.ts` stays false until the first release is published, and the
+  hero says the install is coming.
 - `INDEXED` in `site/src/launch.ts` stays false, keeping the site out of search results, until
   the site is finished.
 - The hero's clip: a trek stepped in the editor and the terminal, in place of the home screen's

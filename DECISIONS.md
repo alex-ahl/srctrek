@@ -22,6 +22,19 @@ repo out of the way. Some work one change at a time and come for that change alo
 list is a step in the way. Both read the same screens, so the setting changes only which comes
 first.
 
+## 2026-11-18 — Releases are cut by pushing a tag
+
+Pushing a `v<major>.<minor>.<patch>` tag runs `.github/workflows/release.yml`: the checks run,
+each binary is built on a runner of its own platform, and one job publishes them with SHA256SUMS
+as the tag's GitHub release. A tag with a pre-release part (`v0.1.0-rc.1`) publishes as a
+pre-release. The version trek reports (`SRCTREK_VERSION`) isn't stamped from the tag yet and
+stays `0.0.0`; versioning comes with release-please, on the roadmap.
+
+The terminal's renderer is a native library per platform, so a binary can't be cross-compiled.
+The install script follows `releases/latest`, which skips pre-releases, so a release can be tried
+with `SRCTREK_VERSION` before users get it. Checking first keeps a tag on a failing commit from
+shipping. Stamping the version waits until releases are regular enough to need it.
+
 ## 2026-11-18 — Stepping in the terminal is as good as in the editor
 
 A trek can be stepped in the terminal or in an editor, and which is the user's choice. Stepping in
