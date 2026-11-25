@@ -38,7 +38,7 @@ async function localBranchName(dir: string, head: string): Promise<string | unde
 // The branch a pull request was opened from: the host's branch whose head is its head
 // commit. None when it came from a fork, or the branch has moved on since.
 async function pullRequestBranch(dir: string, headCommit: string): Promise<string | undefined> {
-  const listed = await runGit(dir, ["ls-remote", "--heads", "origin"], { env: NO_PROMPT })
+  const listed = await runGit(dir, ["ls-remote", "--heads", "origin"], NO_PROMPT)
   const atHead = listed.split("\n").find((line) => line.startsWith(`${headCommit}\t`))
 
   return atHead?.split("\trefs/heads/")[1]

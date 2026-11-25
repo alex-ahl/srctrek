@@ -9,25 +9,28 @@ export class GitError extends Error {
   }
 }
 
-// Fail instead of asking for a password: a prompt would hang behind the TUI. Logins come from
-// the user's own git setup (credential helper, SSH agent). SSH is left alone: forcing its
-// batch mode would override the user's core.sshCommand.
-export const NO_PROMPT = { GIT_TERMINAL_PROMPT: "0" }
-
 type RunOptions = {
   trim?: boolean // false keeps file contents' exact text
   env?: Record<string, string> // added to the inherited environment
+  detached?: boolean // in a session of its own, without the terminal trek runs in
 }
+
+// Fail instead of asking for a password: a prompt would hang behind the TUI, or draw over it.
+// Logins come from the user's own git setup (credential helper, SSH agent). ssh and its helpers
+// ask on the terminal itself, past GIT_TERMINAL_PROMPT, so git runs without one. Forcing ssh's
+// batch mode instead would override the user's core.sshCommand.
+export const NO_PROMPT: RunOptions = { env: { GIT_TERMINAL_PROMPT: "0" }, detached: true }
 
 /** Runs git in `cwd` and returns its stdout, trimmed by default; throws GitError on failure. */
 export async function runGit(
   cwd: string,
   args: string[],
-  { trim = true, env = {} }: RunOptions = {},
+  { trim = true, env = {}, detached = false }: RunOptions = {},
 ): Promise<string> {
   const proc = Bun.spawn(["git", ...args], {
     cwd,
     env: { ...process.env, ...env },
+    detached,
     stdout: "pipe",
     stderr: "pipe",
   })

@@ -40,7 +40,7 @@ async function cloneInto(dir: string, cloneUrl: string): Promise<void> {
   await rm(partial, { recursive: true, force: true })
 
   const args = ["clone", "--quiet", "--bare", "--filter=blob:none", cloneUrl, partial]
-  await runGit(dirname(dir), args, { env: NO_PROMPT })
+  await runGit(dirname(dir), args, NO_PROMPT)
 
   await rename(partial, dir)
 }
@@ -70,12 +70,12 @@ async function defaultBranch(dir: string): Promise<string> {
 export async function fetchRefs(dir: string, refs: string[] = []): Promise<void> {
   const wanted = [`refs/heads/${await defaultBranch(dir)}`, ...refs]
   const refspecs = wanted.map((ref) => `+${ref}:${ref}`)
-  await runGit(dir, ["fetch", "--quiet", "origin", ...refspecs], { env: NO_PROMPT })
+  await runGit(dir, ["fetch", "--quiet", "origin", ...refspecs], NO_PROMPT)
 }
 
 /** Fetches one revision by name (a branch, a tag, a commit the host serves); its commit. */
 export async function fetchRevision(dir: string, revision: string): Promise<string> {
-  await runGit(dir, ["fetch", "--quiet", "origin", revision], { env: NO_PROMPT })
+  await runGit(dir, ["fetch", "--quiet", "origin", revision], NO_PROMPT)
 
   return runGit(dir, ["rev-parse", "--verify", "FETCH_HEAD^{commit}"])
 }

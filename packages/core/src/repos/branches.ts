@@ -103,5 +103,5 @@ export async function repoBranches(dir: string): Promise<RepoBranches> {
 
 /** Fetches the repo at `dir` from its remotes, never asking for a password. */
 export async function fetchRepo(dir: string): Promise<void> {
-  await runGit(dir, ["fetch", "--quiet", "--all", "--prune"], { env: NO_PROMPT })
+  await runGit(dir, ["fetch", "--quiet", "--all", "--prune"], NO_PROMPT)
 }

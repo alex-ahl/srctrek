@@ -38,7 +38,7 @@ async function addWorktree(dir: string, path: string, commit: string): Promise<v
   await runGit(dir, ["worktree", "prune"])
 
   const args = ["worktree", "add", "--quiet", "--detach", partial, commit]
-  await runGit(dir, args, { env: NO_PROMPT })
+  await runGit(dir, args, NO_PROMPT)
 
   await runGit(dir, ["worktree", "move", partial, path])
 }
