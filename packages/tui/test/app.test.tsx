@@ -354,7 +354,7 @@ test("a repo the agent proposes, once added, leaves the change's screen", async 
     app(".", opening, sources({ proposals, addRepo })),
     async (input, on) => {
       await on.shows("the agent went into billing")
-      input.pressKey("a")
+      input.pressKey("y")
       await on.shows(/^(?![\s\S]*went into billing)/)
     },
   )
