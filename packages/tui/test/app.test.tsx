@@ -496,6 +496,26 @@ test("building automatically starts a change's build as it's opened, never ahead
   expect(build).toHaveBeenCalledTimes(1)
 })
 
+test("a build started automatically that can't start leaves the change's screen as it stands", async () => {
+  const change: OpenChange = {
+    summary,
+    status: () => Promise.resolve(missing),
+    build: () => Promise.reject(new Error("EROFS: read-only file system")),
+  }
+  const frame = await frameAfter(
+    app(".", LANDING, sources({ open: () => Promise.resolve(change) }), {
+      build_automatically: true,
+    }),
+    async (input, on) => {
+      await on.shows("your work")
+      input.pressEnter()
+      await on.shows("no trek yet")
+    },
+  )
+
+  expect(frame).toContain("b: build")
+})
+
 test("a ready trek's screen comes up with its overview, not without it first", async () => {
   const root = await repoWithTrek()
   const open = () => Promise.resolve(changeWith(() => Promise.resolve(ready)))

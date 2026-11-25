@@ -56,8 +56,13 @@ export async function startedIfAutomatic(
     return shown
   }
 
-  await change.build()
-  return { ...shown, status: await change.status() }
+  // A build that can't start leaves the screen as it stands, as b's does, for b to try again.
+  try {
+    await change.build()
+    return { ...shown, status: await change.status() }
+  } catch {
+    return shown
+  }
 }
 
 type Ways = Readonly<{
