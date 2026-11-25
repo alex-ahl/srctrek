@@ -6,7 +6,7 @@ import {
   findsWaysIn,
 } from "@srctrek/core"
 import { useAsk } from "./frame"
-import { type ChangeActions, canStep, changeGroups, changeHints, changeKeys } from "./keys"
+import { type ChangeActions, canStep, changeGroup, changeHints, changeKeys } from "./keys"
 import { useOverview } from "./use-overview"
 
 /** What a change's view is drawn and driven from, wherever it's shown. */
@@ -25,11 +25,13 @@ export type ChangeViewProps = Readonly<{
   run: (work: Promise<void>) => void
   // moves on when the worktree has, for the trek's overview to be read again
   generation: number
+  // beside the landing page's list, enter builds a change with no trek to step
+  enterBuilds?: boolean | undefined
 }>
 
 /**
  * A change's view as it stands: its trek's overview once there's one to step, its keys, the
- * footer's hints and every key's place on `?`, and a question asked in the footer's place.
+ * footer's hints and their place on `?`, and a question asked in the footer's place.
  */
 export function useChangeView(props: ChangeViewProps) {
   const { summary, status, proposal, actions, run } = props
@@ -48,6 +50,7 @@ export function useChangeView(props: ChangeViewProps) {
     proposal,
     run,
     ask: ask.ask,
+    enterBuilds: props.enterBuilds,
   }
 
   return {
@@ -55,6 +58,6 @@ export function useChangeView(props: ChangeViewProps) {
     ask,
     keys: changeKeys(context, actions),
     hints: changeHints(context, actions),
-    groups: changeGroups(context, actions),
+    group: changeGroup(context, actions),
   }
 }

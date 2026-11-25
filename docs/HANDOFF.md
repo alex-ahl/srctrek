@@ -34,9 +34,15 @@
   first 8; code as it is. Every other pull request and branch is on a view of its own, `p` and
   `B`, as done treks are on `d`; typing narrows a view. Settings moves from the footer to `?`. A
   footer gives up keys from its end where they don't fit.
+- From 110 columns, the landing page's list sits beside the selected change's own screen: the list
+  keeps to names and state symbols, `⚑` marking a review requested; the change's keys work from
+  the list, `enter` stepping its trek or building one. A proposed repo is added with `y`, leaving
+  `a` to add repos. Narrower, the list is the page and `enter` opens the change. DECISIONS
+  2026-11-25. The screen captures include the split.
 
 **Next**
 
+- The `p`, `B`, and `d` views beside the selected change's screen, as the changes are.
 - The "Start on" setting: the landing page, or what's checked out, with what's waiting elsewhere
   said on the change's screen.
 - Plan B: a checked-out pull request is that pull request, listed once under your work, its trek

@@ -4,6 +4,7 @@ import type { BuildRead } from "../build-view/read"
 import { PADDING } from "../ui/layout"
 import { ChangeBody } from "./body"
 import { ChangeFrame } from "./frame"
+import { LEAVE_GROUP } from "./keys"
 import { type ChangeViewProps, useChangeView } from "./use-change-view"
 
 type Props = ChangeViewProps & {
@@ -29,7 +30,7 @@ export function ChangeScreen(props: Props) {
       summary={summary}
       keys={view.keys}
       hints={view.hints}
-      groups={view.groups}
+      groups={[view.group, LEAVE_GROUP]}
       ask={view.ask}
     >
       <ChangeBody

@@ -10,6 +10,7 @@ import { RepoSheet, sheetHeight } from "./sheet"
 import { keyAt, selectedIndex } from "../ui/selection"
 import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
+import { type Beside, LIST_WIDTH, splitFor } from "./beside"
 import { typed, useDrop } from "./use-drop"
 import { type LandingSources, useRows } from "./use-rows"
 import type { LandingRow, Pick } from "./rows"
@@ -19,6 +20,7 @@ import { PADDING } from "../ui/layout"
 import { useTones } from "../ui/theme"
 import { moveKeys, shifted, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
+import { TextPrompt } from "../ui/text-prompt"
 import { TitleBar } from "../ui/title-bar"
 import { useTurning } from "../ui/turning"
 
@@ -35,6 +37,9 @@ type Props = LandingSources & {
   onQuit: () => void
   // the chosen row's background, when the terminal's colours are known
   tint: RGBA | undefined
+  // where there's room, the list is split from the change the selection rests on, shown beside
+  // it once it's worked out
+  split?: Readonly<{ beside: Beside | undefined }> | undefined
 }
 
 // The title bar, the line above the list, and the footer, each with its rule; and a notice, with
@@ -116,10 +121,10 @@ function useResting(
   }, [key])
 }
 
-// The page's keys, taken only while it's in front.
-function useLandingKeys(active: boolean, handle: (key: KeyEvent) => void) {
+// The page's keys, taken only while it's in front and nothing it shows is asking a question.
+function useLandingKeys(active: boolean, asking: boolean, handle: (key: KeyEvent) => void) {
   useKeyboard((key) => {
-    if (active) {
+    if (active && !asking) {
       handle(key)
     }
   })
@@ -150,16 +155,22 @@ type Besides = Readonly<{ done: number; pulls: number; branches: number }>
 const viewKey = (key: string, n: number, one: string, many: string): KeyHint[] =>
   n === 0 ? [] : [{ key, does: `${n} ${n === 1 ? one : many}` }]
 
-// The keys for the list's line selected, a to add repos, and the views besides it.
-function listKeys(besides: Besides): KeyHint[] {
-  return [
-    { key: "enter", does: "open" },
-    { key: "a", does: "add repos" },
-    ...viewKey("p", besides.pulls, "pull request", "pull requests"),
-    ...viewKey("B", besides.branches, "branch", "branches"),
-    ...viewKey("d", besides.done, "done trek", "done treks"),
-    HELP_HINT,
-  ]
+// a to add repos, and the views besides the changes.
+const pageHints = (besides: Besides): KeyHint[] => [
+  { key: "a", does: "add repos" },
+  ...viewKey("p", besides.pulls, "pull request", "pull requests"),
+  ...viewKey("B", besides.branches, "branch", "branches"),
+  ...viewKey("d", besides.done, "done trek", "done treks"),
+  HELP_HINT,
+]
+
+// The keys for the list's line selected: enter opens it; beside it, the change's own keys.
+function listKeys(besides: Besides, beside: readonly KeyHint[] | undefined): KeyHint[] {
+  const line =
+    beside === undefined
+      ? [{ key: "enter", does: "open" }]
+      : beside.filter((hint) => hint.key !== HELP_HINT.key)
+  return [...line, ...pageHints(besides)]
 }
 
 // The page's keys: the sheet's while it's open, else a view's or the changes'.
@@ -168,12 +179,13 @@ function pageKeys(
   view: View,
   besides: Besides,
   query: string,
+  beside: readonly KeyHint[] | undefined,
 ): readonly KeyHint[] {
   if (sheet !== undefined) {
     return sheet
   }
 
-  return view === "changes" ? listKeys(besides) : viewKeys(query)
+  return view === "changes" ? listKeys(besides, beside) : viewKeys(query)
 }
 
 // A view's keys: letters narrow it, so esc clears what's typed before it goes back.
@@ -191,14 +203,14 @@ const narrowedTo = (rows: readonly LandingRow[], query: string) =>
 const footerOf = (dropOpen: boolean, line: readonly KeyHint[]): readonly KeyHint[] =>
   dropOpen ? DROP_KEYS : line
 
-const GROUPS: readonly KeyGroup[] = [
-  {
-    title: "the selected line",
-    keys: [
-      { key: "enter", does: "open the change" },
-      { key: "↑/↓", does: "choose a line (also j/k)" },
-    ],
-  },
+const CHOOSE: KeyHint = { key: "↑/↓", does: "choose a line (also j/k)" }
+
+const SELECTED_LINE: KeyGroup = {
+  title: "the selected line",
+  keys: [{ key: "enter", does: "open the change" }, CHOOSE],
+}
+
+const PAGE_GROUPS: readonly KeyGroup[] = [
   {
     title: "repos to go along",
     keys: [
@@ -220,6 +232,12 @@ const GROUPS: readonly KeyGroup[] = [
   },
   { title: "leave", keys: [{ key: "q", does: "quit" }] },
 ]
+
+// Every key, for the panel ? opens; beside the list, the change's own in enter's place.
+const groupsOf = (beside: KeyGroup | undefined): readonly KeyGroup[] =>
+  beside === undefined
+    ? [SELECTED_LINE, ...PAGE_GROUPS]
+    : [{ title: "the selected line", keys: [CHOOSE] }, beside, ...PAGE_GROUPS]
 
 // At most half the room below the title bar goes to the sheet, so the changes stay in view.
 const sheetMost = (room: number) => Math.floor(room / 2)
@@ -285,6 +303,8 @@ export function Landing(props: Props) {
   // what enter opens from the selected line, when it's a change's
   const picked = item === undefined ? undefined : pickOf(item, repos)
   useResting(active, picked, props.onRest)
+  // where there's room, the selected change's screen beside the list, once it's worked out
+  const split = splitFor(props.split, view === "changes", picked)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
@@ -321,7 +341,7 @@ export function Landing(props: Props) {
       setQuery((was) => was + key.sequence)
     }
   }
-  const keyActions = new Map([
+  const pageActions = new Map([
     ["return", enter],
     ["p", () => otherPulls.length > 0 && show("pulls")],
     ["B", () => otherBranches.length > 0 && show("branches")],
@@ -332,9 +352,11 @@ export function Landing(props: Props) {
     ["?", help.show],
     ...moveKeys(move),
   ])
+  const keyActions = split.keysWith(pageActions)
   // While a repo's branches are open, keys go there; else while the sheet is, there.
   useLandingKeys(
     active,
+    split.asker !== undefined,
     help.guard((key) => {
       notice.seen()
       if (drop.key(key) || sheet.key(key)) {
@@ -351,25 +373,27 @@ export function Landing(props: Props) {
 
   const room = height - chromeLines(notice.text)
   const sheetLines = sheet.open ? sheetHeight(sheet.items, shownDrop, sheetMost(room)) : 0
+  const list = (
+    <LandingList
+      items={items}
+      chosen={selected}
+      statuses={statuses}
+      builtAt={builtAt}
+      note={view === "changes" ? note : undefined}
+      muted={sheet.open}
+      tint={props.tint}
+      opening={openingKey(props.opening)}
+      height={room - sheetLines}
+      namesOnly={split.split}
+      width={split.listWidth}
+    />
+  )
 
   return (
     <LandingView
       active={active}
-      list={
-        settled ? (
-          <LandingList
-            items={items}
-            chosen={selected}
-            statuses={statuses}
-            builtAt={builtAt}
-            note={view === "changes" ? note : undefined}
-            muted={sheet.open}
-            tint={props.tint}
-            opening={openingKey(props.opening)}
-            height={room - sheetLines}
-          />
-        ) : undefined
-      }
+      list={settled ? list : undefined}
+      beside={split.pane}
       sheet={
         sheet.open ? (
           <RepoSheet
@@ -391,9 +415,13 @@ export function Landing(props: Props) {
       notice={notice.text}
       footer={footerOf(
         drop.drop !== undefined,
-        help.footer(pageKeys(sheet.open ? sheet.keys : undefined, view, besides, query)),
+        help.footer(
+          pageKeys(sheet.open ? sheet.keys : undefined, view, besides, query, split.hints),
+        ),
       )}
+      asker={split.asker}
       help={help.open}
+      groups={groupsOf(split.group)}
     />
   )
 }
@@ -457,12 +485,35 @@ function Added({ names }: { names: string }) {
   )
 }
 
+// The footer, or in its place a question the change beside the list asks, which takes the keys.
+function FooterOrQuestion(props: { footer: readonly KeyHint[]; asker: Beside | undefined }) {
+  const asking = props.asker?.asking
+  if (asking === undefined) {
+    return <Footer keys={props.footer} />
+  }
+
+  const close = props.asker?.closeAsk ?? (() => undefined)
+  return (
+    <TextPrompt
+      question={asking.question}
+      hint={asking.hint}
+      onSubmit={(text) => {
+        close()
+        asking.answer(text)
+      }}
+      onCancel={close}
+    />
+  )
+}
+
 // The page around its list: why the branches couldn't be read, the list once it's drawn, the
 // sheet under it while it's open, why a change couldn't be opened, and the footer.
 function LandingView(props: {
   // behind another screen, the page draws nothing
   active: boolean
   list: ReactNode
+  // the selected change's screen, beside the list where there's room
+  beside: ReactNode
   sheet: ReactNode
   // the repos added to go along, by name
   added: string | undefined
@@ -474,7 +525,10 @@ function LandingView(props: {
   failed: string | undefined
   notice: string | undefined
   footer: readonly KeyHint[]
+  // the change beside the list, for a question it asks in the footer's place
+  asker: Beside | undefined
   help: boolean
+  groups: readonly KeyGroup[]
 }) {
   const tones = useTones()
   if (!props.active) {
@@ -488,7 +542,7 @@ function LandingView(props: {
         right={props.added === undefined ? undefined : <Added names={props.added} />}
       />
       <box
-        flexDirection="column"
+        flexDirection="row"
         style={{
           flexGrow: 1,
           paddingTop: 1,
@@ -497,11 +551,19 @@ function LandingView(props: {
           overflow: "hidden",
         }}
       >
-        <OrKeysHelp open={props.help} groups={GROUPS}>
-          <box flexDirection="column">
+        <OrKeysHelp open={props.help} groups={props.groups}>
+          <box
+            flexDirection="column"
+            style={
+              props.beside === undefined
+                ? { flexGrow: 1 }
+                : { width: LIST_WIDTH - PADDING, flexShrink: 0, overflow: "hidden" }
+            }
+          >
             {props.failed !== undefined && <text fg={tones.bad}>{`✕ ${props.failed}`}</text>}
             {props.list ?? <Reading />}
           </box>
+          {props.beside}
         </OrKeysHelp>
       </box>
       {props.sheet}
@@ -514,7 +576,7 @@ function LandingView(props: {
           <text fg={tones.bad}>{props.notice}</text>
         </box>
       )}
-      <Footer keys={props.footer} />
+      <FooterOrQuestion footer={props.footer} asker={props.asker} />
     </box>
   )
 }

@@ -75,6 +75,15 @@ function sources(more: Partial<Sources> = {}): Sources {
   }
 }
 
+// Narrower than the split, a change opens on a screen of its own.
+const NARROW = 100
+
+const narrow = (
+  node: Parameters<typeof frameAfter>[0],
+  press: Parameters<typeof frameAfter>[1],
+  height?: number,
+) => frameAfter(node, press, NARROW, height)
+
 const LANDING: Opening = { kind: "landing" }
 const own: ChangeChoice = { kind: "own", uncommitted: false }
 
@@ -104,7 +113,7 @@ async function escape(input: Input, on: Screen, then: string) {
 }
 
 test("with nothing asked for, opens on the landing page", async () => {
-  const frame = await frameAfter(app(".", LANDING), (_input, on) => on.shows("your work"))
+  const frame = await narrow(app(".", LANDING), (_input, on) => on.shows("your work"))
 
   expect(frame).toContain("feature/refunds")
 })
@@ -113,7 +122,7 @@ test("enter on a change opens its screen, and esc goes back to the landing page"
   const open = mock((_args: string[]) =>
     Promise.resolve(changeWith(() => Promise.resolve(missing))),
   )
-  const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  const frame = await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     await on.shows("no trek yet")
@@ -126,7 +135,7 @@ test("enter on a change opens its screen, and esc goes back to the landing page"
 
 test("going to a change and back doesn't ask for the pull requests again", async () => {
   const pullRequests = mock(() => Promise.resolve([]))
-  await frameAfter(app(".", LANDING, sources({ pullRequests })), async (input, on) => {
+  await narrow(app(".", LANDING, sources({ pullRequests })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     await on.shows("no trek yet")
@@ -143,7 +152,7 @@ test("a pick still being worked out doesn't open over a screen opened meanwhile"
     asked.resolve(undefined)
     return opened.promise
   }
-  const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  const frame = await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     await asked.promise
@@ -161,7 +170,7 @@ test("a pick still being worked out doesn't open over a screen opened meanwhile"
 test("a change asked for opens on its screen, and esc goes to the landing page", async () => {
   const change = changeWith(() => Promise.resolve(missing))
   const opening: Opening = { kind: "change", choice: own, change, status: missing }
-  const frame = await frameAfter(app(".", opening), async (input, on) => {
+  const frame = await narrow(app(".", opening), async (input, on) => {
     await on.shows("no trek yet")
     await escape(input, on, "your work")
   })
@@ -173,7 +182,7 @@ test("enter steps a ready trek from its first stop, and q comes back to the chan
   const root = await repoWithTrek()
   const change = changeWith(() => Promise.resolve(ready))
   const opening: Opening = { kind: "change", choice: own, change, status: ready }
-  const frame = await frameAfter(
+  const frame = await narrow(
     app(root, opening),
     async (input, on) => {
       await on.shows("3 stops")
@@ -182,7 +191,6 @@ test("enter steps a ready trek from its first stop, and q comes back to the chan
       input.pressKey("q")
       await on.shows("3 stops")
     },
-    110,
     30,
   )
 
@@ -192,7 +200,7 @@ test("enter steps a ready trek from its first stop, and q comes back to the chan
 test("a done trek opens on a screen of its own", async () => {
   const root = await repoWithTrek()
   const done = () => Promise.resolve([{ name: "pay", title: "Pay", why: "merged" }])
-  const frame = await frameAfter(
+  const frame = await narrow(
     app(root, LANDING, sources({ done, overview: (name) => overviewOf(root, name) })),
     async (input, on) => {
       await on.shows("d: 1 done trek")
@@ -201,7 +209,6 @@ test("a done trek opens on a screen of its own", async () => {
       input.pressEnter()
       await on.shows("3 stops")
     },
-    110,
     30,
   )
 
@@ -209,7 +216,7 @@ test("a done trek opens on a screen of its own", async () => {
 })
 
 test("S opens settings from the landing page, and esc comes back", async () => {
-  const frame = await frameAfter(app(".", LANDING), async (input, on) => {
+  const frame = await narrow(app(".", LANDING), async (input, on) => {
     await on.shows("your work")
     input.pressKey("S", { shift: true })
     await on.shows("srctrek › settings")
@@ -221,7 +228,7 @@ test("S opens settings from the landing page, and esc comes back", async () => {
 
 test("a change that can't be opened says why on the landing page, which stays", async () => {
   const open = () => Promise.reject(new Error("no such branch"))
-  const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  const frame = await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     await on.shows("no such branch")
@@ -234,7 +241,7 @@ test("a change that can't be opened says why on the landing page, which stays", 
 test("a change that takes a while to open says so on the landing page, then comes up whole", async () => {
   const opened = deferred<OpenChange>()
   const open = () => opened.promise
-  await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     await on.shows(/feature\/refunds .*[◐◓◑◒] opening…/)
@@ -256,14 +263,13 @@ test("the worktree moving on reopens the change, and its trek shows as it now st
     change: changeWith(status),
     status: missing,
   }
-  const frame = await frameAfter(
+  const frame = await narrow(
     app(root, opening, sources({ open, stamp, overview: (name) => overviewOf(root, name) })),
     async (_input, on) => {
       await on.shows("no trek yet")
       saved = true
       await on.shows("3 stops")
     },
-    110,
     30,
   )
 
@@ -282,7 +288,7 @@ test("back on a change's screen, its trek shows as it last stood, not as it firs
     change: changeWith(status),
     status: missing,
   }
-  const frame = await frameAfter(
+  const frame = await narrow(
     app(root, opening),
     async (input, on) => {
       await on.shows("3 stops")
@@ -291,7 +297,6 @@ test("back on a change's screen, its trek shows as it last stood, not as it firs
       input.pressKey("q")
       await on.shows("3 stops")
     },
-    110,
     30,
   )
 
@@ -312,7 +317,7 @@ test("b on a change shows its build as soon as it starts", async () => {
     build,
   }
   const opening: Opening = { kind: "change", choice: own, change, status: missing }
-  const frame = await frameAfter(app(".", opening), async (input, on) => {
+  const frame = await narrow(app(".", opening), async (input, on) => {
     await on.shows("no trek yet")
     input.pressKey("b")
     await on.shows("◐ building")
@@ -330,7 +335,7 @@ test("a build that ends with a trek shows it ready, without a key", async () => 
     change,
     status: { ...building, name: "pay" },
   }
-  const frame = await frameAfter(app(root, opening), (_input, on) => on.shows("3 stops"), 110, 30)
+  const frame = await narrow(app(root, opening), (_input, on) => on.shows("3 stops"), 30)
 
   expect(frame).toContain("● ready")
 })
@@ -350,7 +355,7 @@ test("a repo the agent proposes, once added, leaves the change's screen", async 
   }
   const change = changeWith(() => Promise.resolve(building))
   const opening: Opening = { kind: "change", choice: own, change, status: building }
-  const frame = await frameAfter(
+  const frame = await narrow(
     app(".", opening, sources({ proposals, addRepo })),
     async (input, on) => {
       await on.shows("the agent went into billing")
@@ -380,7 +385,7 @@ test("code as it is, its ways in found, lists them; esc goes to the landing page
   }
   const change: OpenChange = { summary: code, status: () => Promise.resolve(found) }
   const opening: Opening = { kind: "change", choice: { kind: "code" }, change, status: found }
-  const frame = await frameAfter(app(".", opening), async (input, on) => {
+  const frame = await narrow(app(".", opening), async (input, on) => {
     await on.shows("POST /refunds")
     await escape(input, on, "your work")
   })
@@ -406,7 +411,7 @@ test("a pull request's screen names it by its title, and who opened it", async (
     change,
     status: missing,
   }
-  const frame = await frameAfter(app(".", opening, sources({ pullRequest })), (_input, on) =>
+  const frame = await narrow(app(".", opening, sources({ pullRequest })), (_input, on) =>
     on.shows("#12 Add partial refunds"),
   )
 
@@ -416,7 +421,7 @@ test("a pull request's screen names it by its title, and who opened it", async (
 test("a change that opens quickly comes up without an opening screen first", async () => {
   const opened = deferred<OpenChange>()
   const open = () => opened.promise
-  const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  const frame = await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     // the change is being worked out, and quickly, so far
@@ -456,7 +461,7 @@ test("a pull request opens on its title, never on its number first", async () =>
   const open = () => Promise.resolve({ summary: pull, status: () => Promise.resolve(missing) })
   const details = deferred<PullRequestDetails>()
   const pullRequest = () => details.promise
-  await frameAfter(
+  await narrow(
     app(".", LANDING, sources({ pullRequests, open, pullRequest })),
     async (input, on) => {
       await on.shows("#12 Add partial refunds")
@@ -475,7 +480,7 @@ test("a pull request opens on its title, never on its number first", async () =>
 test("enter pressed again while a change opens opens it once", async () => {
   const opened = deferred<OpenChange>()
   const open = mock((_args: string[]) => opened.promise)
-  await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     input.pressEnter()
     input.pressEnter()
@@ -495,7 +500,7 @@ test("the change the selection rests on is worked out ahead, so enter opens it a
     asked.resolve(undefined)
     return Promise.resolve(changeWith(() => Promise.resolve(missing)))
   })
-  await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+  await narrow(app(".", LANDING, sources({ open })), async (input, on) => {
     await on.shows("your work")
     // nothing pressed yet: the branch selected is being worked out
     await asked.promise
@@ -523,7 +528,7 @@ test("building automatically starts a change's build as it's opened, never ahead
     asked.resolve(undefined)
     return Promise.resolve(change)
   }
-  await frameAfter(
+  await narrow(
     app(".", LANDING, sources({ open }), { build_automatically: true }),
     async (input, on) => {
       await on.shows("your work")
@@ -543,7 +548,7 @@ test("a build started automatically that can't start leaves the change's screen 
     status: () => Promise.resolve(missing),
     build: () => Promise.reject(new Error("EROFS: read-only file system")),
   }
-  const frame = await frameAfter(
+  const frame = await narrow(
     app(".", LANDING, sources({ open: () => Promise.resolve(change) }), {
       build_automatically: true,
     }),
@@ -561,7 +566,7 @@ test("a ready trek's screen comes up with its overview, not without it first", a
   const root = await repoWithTrek()
   const open = () => Promise.resolve(changeWith(() => Promise.resolve(ready)))
   const overview = (name: string) => overviewOf(root, name)
-  await frameAfter(
+  await narrow(
     app(root, LANDING, sources({ open, overview })),
     async (input, on) => {
       await on.shows("your work")
@@ -569,7 +574,6 @@ test("a ready trek's screen comes up with its overview, not without it first", a
       await on.shows("● ready")
       expect(await on.frame()).toContain("3 stops")
     },
-    110,
     30,
   )
 })
@@ -579,7 +583,7 @@ test("back on the landing page, it's there at once as it was left, its change st
   let loads = 0
   const load = () =>
     loads++ === 0 ? Promise.resolve(choices) : new Promise<BranchChoices>(() => undefined)
-  const frame = await frameAfter(app(".", LANDING, sources({ load })), async (input, on) => {
+  const frame = await narrow(app(".", LANDING, sources({ load })), async (input, on) => {
     await on.shows("your work")
     input.pressKey("j")
     await on.shows(/▶ fix\/rounding/)
@@ -589,4 +593,109 @@ test("back on the landing page, it's there at once as it was left, its change st
   })
 
   expect(frame).toMatch(/▶ fix\/rounding/)
+})
+
+// Wide enough for the split: the selected change's screen beside the list.
+const WIDE = 130
+
+const done = () => Promise.resolve()
+
+// Whether the args name fix/rounding, as its range or on its own.
+const roundingIn = (args: string[]) => args.some((arg) => arg.includes("fix/rounding"))
+
+// The change the args open: fix/rounding's trek ready, the user's own branch's not built.
+const openByArgs = (args: string[]) =>
+  Promise.resolve(changeWith(() => Promise.resolve(roundingIn(args) ? ready : missing)))
+
+test("wide, the selected change's screen is beside the list, its keys in the footer", async () => {
+  const open = () => Promise.resolve({ ...changeWith(() => Promise.resolve(missing)), build: done })
+  const frame = await frameAfter(
+    app(".", LANDING, sources({ open })),
+    (_input, on) => on.shows("no trek yet"),
+    WIDE,
+  )
+
+  expect(frame).toMatch(/your work +│ +feature\/refunds/)
+  expect(frame).toMatch(/▶ feature\/refunds +○ +│ +3 commits since main/)
+  expect(frame).toContain("↵: build  ¦  a: add repos")
+})
+
+test("moving the selection shows the next change beside the list", async () => {
+  const root = await repoWithTrek()
+  const from = sources({ open: openByArgs, overview: (name) => overviewOf(root, name) })
+  const frame = await frameAfter(
+    app(root, LANDING, from),
+    async (input, on) => {
+      await on.shows("no trek yet")
+      input.pressKey("j")
+      await on.shows("3 stops")
+    },
+    WIDE,
+    30,
+  )
+
+  expect(frame).toContain("↵: step here")
+  expect(frame).not.toContain("no trek yet")
+})
+
+test("enter beside the list builds a change with no trek, the list staying", async () => {
+  let started = false
+  const build = mock(() => {
+    started = true
+    return Promise.resolve()
+  })
+  const change: OpenChange = {
+    summary,
+    status: () => Promise.resolve(started ? building : missing),
+    build,
+  }
+  const frame = await frameAfter(
+    app(".", LANDING, sources({ open: () => Promise.resolve(change) })),
+    async (input, on) => {
+      await on.shows("↵: build")
+      input.pressEnter()
+      await on.shows("◐ building")
+    },
+    WIDE,
+  )
+
+  expect(build).toHaveBeenCalledTimes(1)
+  expect(frame).toContain("your work")
+})
+
+test("enter beside the list steps a ready trek, and q comes back to the list", async () => {
+  const root = await repoWithTrek()
+  const open = () => Promise.resolve(changeWith(() => Promise.resolve(ready)))
+  const frame = await frameAfter(
+    app(root, LANDING, sources({ open, overview: (name) => overviewOf(root, name) })),
+    async (input, on) => {
+      await on.shows("3 stops")
+      input.pressEnter()
+      await on.shows("1 / 3")
+      input.pressKey("q")
+      await on.shows("your work")
+    },
+    WIDE,
+    30,
+  )
+
+  expect(frame).toContain("3 stops")
+})
+
+test("while the next change is worked out, the last stays beside the list, then says it's opening", async () => {
+  const later = deferred<OpenChange>()
+  const open = (args: string[]) =>
+    roundingIn(args) ? later.promise : Promise.resolve(changeWith(() => Promise.resolve(missing)))
+  const frame = await frameAfter(
+    app(".", LANDING, sources({ open })),
+    async (input, on) => {
+      await on.shows("no trek yet")
+      input.pressKey("j")
+      await on.shows("opening…")
+    },
+    WIDE,
+  )
+
+  expect(frame).not.toContain("no trek yet")
+  expect(frame).not.toContain("↵")
 })

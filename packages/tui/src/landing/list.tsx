@@ -164,6 +164,41 @@ function ChangeView({
   )
 }
 
+// Beside a change's screen, a mark is drawn as a flag after the name: what it says is there.
+const FLAG = " ⚑"
+
+// A state's symbol alone: "●" of "● ready".
+const symbolOf = (cell: StateCell) => cell.text.split(" ")[0] ?? ""
+
+// One change beside a change's screen: its name, flagged when it's marked, and its trek's state
+// as a symbol, lined up at the list's right.
+function NameView({
+  row,
+  cell,
+  width,
+  muted,
+}: {
+  row: LandingRow
+  cell: StateCell
+  width: number
+  muted: boolean
+}) {
+  const tones = useTones()
+  const flag = row.mark === undefined ? "" : FLAG
+  const { indent, label, after } = nameCells(row, width - flag.length)
+
+  return (
+    <span>
+      {indent}
+      <span {...(muted ? { fg: tones.dim } : {})}>{label}</span>
+      <span fg={muted ? tones.dim : tones.accent}>{flag}</span>
+      {after}
+      {GAP}
+      <span fg={tones[muted ? "dim" : cell.tone]}>{symbolOf(cell)}</span>
+    </span>
+  )
+}
+
 // A group's name, dim, at the page's left, its rows set in under it, and what it says of a group
 // with nothing in it: "pull requests  none"; a blank line before it but the first.
 function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNote | undefined }) {
@@ -236,6 +271,13 @@ function widthsOf(
   return { name, detail: Math.max(beside - name, 0), state, ages }
 }
 
+const NO_CELL: StateCell = { text: "", tone: "dim" }
+
+// The names' room beside a change's screen: the list's, less the rows' indent, the marker, and a
+// state's symbol after its gap.
+const namesWidth = (width: number) =>
+  width - 2 * PADDING - ROW_INDENT.length - MARKER - GAP.length - 1
+
 /**
  * Everything to open under its heading, the selected line on the tint; the note on the pull
  * requests, for when there are none to open yet, sits where they would.
@@ -250,6 +292,8 @@ export function LandingList({
   muted,
   tint,
   height,
+  namesOnly = false,
+  width: shownWidth,
 }: {
   items: readonly LandingRow[]
   chosen: number
@@ -264,8 +308,13 @@ export function LandingList({
   tint: RGBA | undefined
   // the lines there's room for
   height: number
+  // beside a change's screen: each change's name and its state's symbol, what it holds there
+  namesOnly?: boolean
+  // the columns the list has, the terminal's unless given
+  width?: number | undefined
 }) {
-  const { width } = useTerminalDimensions()
+  const terminal = useTerminalDimensions()
+  const width = shownWidth ?? terminal.width
   const turning = useTurning(busy(items, statuses, opening))
   const now = useNow()
   const built = (name: string) => {
@@ -288,12 +337,21 @@ export function LandingList({
               <Heading group={item.group} first={index === start && noteAt !== index} />
             )}
             <Selectable selected={index === chosen} tint={tint} indent={ROW_INDENT}>
-              <ChangeView
-                row={item}
-                cell={cells.get(rowKey(item)) ?? { text: "", tone: "dim" }}
-                widths={widths}
-                muted={muted}
-              />
+              {namesOnly ? (
+                <NameView
+                  row={item}
+                  cell={cells.get(rowKey(item)) ?? NO_CELL}
+                  width={namesWidth(width)}
+                  muted={muted}
+                />
+              ) : (
+                <ChangeView
+                  row={item}
+                  cell={cells.get(rowKey(item)) ?? NO_CELL}
+                  widths={widths}
+                  muted={muted}
+                />
+              )}
             </Selectable>
           </box>
         )

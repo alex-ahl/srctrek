@@ -1,4 +1,4 @@
-import { useRenderer } from "@opentui/react"
+import { useRenderer, useTerminalDimensions } from "@opentui/react"
 import {
   type ChangeChoice,
   type Settings,
@@ -9,19 +9,21 @@ import {
 } from "@srctrek/core"
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BuildScreen } from "./build-view/screen"
+import { useChangeBeside } from "./change/beside"
 import type { ChangeActions } from "./change/keys"
 import type { OpenChange } from "./change/open-change"
 import { ChangeScreen } from "./change/screen"
 import { WaysInScreen } from "./change/ways-in-screen"
 import { type Editor, openInEditor } from "./editors/editors"
 import type { Pick } from "./landing/rows"
+import { SPLIT_FROM, besideWidth } from "./landing/beside"
 import { Landing } from "./landing/screen"
 import { PendingScreen } from "./opening"
-import { detailsOf, startedIfAutomatic, usePreparing } from "./preparing"
+import { type Rested, detailsOf, startedIfAutomatic, usePreparing } from "./preparing"
 import { SettingsScreen } from "./settings/screen"
 import type { Sources } from "./sources"
 import { type ChangeOpen, type Screen, useStack } from "./stack"
-import { changeInFront, useStanding } from "./standing"
+import { type Shown, changeInFront, useStanding } from "./standing"
 import { SteppingScreen } from "./stepping/screen"
 import { TonesContext } from "./ui/theme"
 import { useFollow } from "./watch/follow"
@@ -58,14 +60,12 @@ function titleOf(entries: readonly TrekEntry[], name: string): string {
 export function App(props: Props) {
   const { root, sources, editors } = props
   const renderer = useRenderer()
+  const { width } = useTerminalDimensions()
   const { stack, open, back, replace, update } = useStack(props.opening)
   const front = stack.at(-1)
-  const setStatus = (id: number, status: TrekStatus) => update(id, (was) => ({ ...was, status }))
-  const { proposal, run, readProposals } = useStanding(
-    changeInFront(front),
-    sources,
-    (status) => front !== undefined && setStatus(front.id, status),
-  )
+  const onLanding = front === undefined || front.kind === "landing"
+  // where there's room, the change the selection rests on is shown beside the landing page's list
+  const split = onLanding && width >= SPLIT_FROM
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
   const [entries, setEntries] = useState<readonly TrekEntry[]>([])
@@ -76,6 +76,13 @@ export function App(props: Props) {
   inFront.current = front
   const landingInFront = () => inFront.current?.kind === "landing"
   const preparing = usePreparing({ sources, settings, open, replace, landingInFront })
+  const setStatus = (id: number, status: TrekStatus) => update(id, (was) => ({ ...was, status }))
+  const { proposal, run, readProposals } = useStanding(
+    split ? restedShown(preparing.rested) : changeInFront(front),
+    sources,
+    (status) =>
+      split ? preparing.restedStatus(status) : front !== undefined && setStatus(front.id, status),
+  )
 
   useEffect(() => {
     void sources.entries().then(setEntries, () => undefined)
@@ -144,6 +151,17 @@ export function App(props: Props) {
     back,
   })
   const readLatest = useCallback((name: string) => sources.readBuild(name, 0), [sources])
+  const beside = useChangeBeside({
+    rested: preparing.rested,
+    readOverview: sources.overview,
+    readBuild: readLatest,
+    proposal,
+    actionsFor: changeActions,
+    run,
+    generation,
+    width: besideWidth(width),
+    openWaysIn: (change) => open(change),
+  })
 
   // the landing page's lists, asked again as the worktree moves on
   const landing = useMemo(
@@ -265,7 +283,6 @@ export function App(props: Props) {
   // The landing page stays under the screens opened over it, drawn only in front, so going back
   // finds it at once as it was left. The screen in front is keyed by itself, so one opened in
   // another's place starts afresh.
-  const onLanding = front === undefined || front.kind === "landing"
   return (
     <TonesContext.Provider value={tones}>
       <Landing
@@ -281,6 +298,7 @@ export function App(props: Props) {
         onSettings={() => open({ kind: "settings" })}
         onQuit={props.onQuit}
         tint={tint}
+        split={split ? { beside } : undefined}
       />
       {!onLanding && (
         <box key={front.id} style={{ width: "100%", height: "100%" }}>
@@ -289,6 +307,13 @@ export function App(props: Props) {
       )}
     </TonesContext.Provider>
   )
+}
+
+// The change the landing page's selection rests on, as the change shown, once it's worked out.
+function restedShown(rested: Rested | undefined): Shown {
+  return rested?.screen.kind === "change"
+    ? { key: `rested ${rested.key}`, change: rested.screen.change, status: rested.screen.status }
+    : undefined
 }
 
 // A trek's builds: stopped while one runs, and, for a change's trek, built again.

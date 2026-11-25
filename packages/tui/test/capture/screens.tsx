@@ -8,10 +8,12 @@ import type {
   TriggerTrek,
 } from "@srctrek/core"
 import type { ReactNode } from "react"
+import { App } from "../../src/app"
 import type { BuildRead } from "../../src/build-view/read"
 import { ChangeScreen } from "../../src/change/screen"
 import { WaysInScreen } from "../../src/change/ways-in-screen"
 import { Landing } from "../../src/landing/screen"
+import type { Sources } from "../../src/sources"
 
 const noop = () => undefined
 const done = () => Promise.resolve()
@@ -223,6 +225,58 @@ const landingBusy = (
   />
 )
 
+// The busy repo's changes, opened from the landing page beside the list: the user's own branch,
+// its trek where `own` says, with a repo the agent proposes when given.
+function landingSplit(own: TrekStatus, proposal?: ProposedRepo) {
+  const sources: Sources = {
+    load: () =>
+      Promise.resolve({
+        base: "main",
+        own: { name: "feature/refunds", commits: 9 },
+        uncommittedFiles: 4,
+        others: Object.keys(busyStates)
+          .slice(0, -1)
+          .map((name, at) => ({ name, commits: at * 3 + 1, mine: true })),
+      }),
+    pullRequests: () => Promise.resolve(busyPulls),
+    overview: () => Promise.resolve(overview),
+    pullRequest: () => Promise.reject(new Error("unread")),
+    nearby: () => Promise.resolve([]),
+    repoBranches: () => Promise.reject(new Error("unread")),
+    fetchRepo: done,
+    status: (choice) =>
+      Promise.resolve(
+        choice.kind === "branch"
+          ? (busyStates[choice.name] ?? { kind: "missing", name: "branch" })
+          : choice.kind === "own" && !choice.uncommitted
+            ? own
+            : { kind: "missing", name: "feature-refunds-uncommitted" },
+      ),
+    pullStatus: ({ number }) =>
+      Promise.resolve(busyPullStates[number] ?? { kind: "missing", name: `pr-${number}` }),
+    done: () => Promise.resolve([]),
+    open: () => Promise.resolve({ summary, status: () => Promise.resolve(own), build: done }),
+    stamp: () => Promise.resolve("still"),
+    entries: () => Promise.resolve([]),
+    proposals: () => Promise.resolve(proposal === undefined ? [] : [proposal]),
+    addRepo: done,
+    dismissRepo: done,
+    stopBuild: done,
+    readBuild: () => Promise.resolve({ ...NO_BUILD, log: buildLog, state: "building" }),
+  }
+
+  return (
+    <App
+      root="."
+      opening={{ kind: "landing" }}
+      sources={sources}
+      firstSettings={{}}
+      editors={[]}
+      onQuit={noop}
+    />
+  )
+}
+
 // The refund trek's overview, for a change whose trek is saved.
 const overview: OverviewView = {
   kind: "overview",
@@ -280,6 +334,12 @@ const waysIn = (
 export const SCREENS: Readonly<Record<string, ReactNode>> = {
   landing,
   "landing-busy": landingBusy,
+  "landing-split": landingSplit({ kind: "ready", name: "feature-refunds" }),
+  "landing-split-missing": landingSplit({ kind: "missing", name: "feature-refunds" }),
+  "landing-split-building": landingSplit(
+    { kind: "building", name: "feature-refunds", logTail: buildLog },
+    payments,
+  ),
   "change-proposal": change(
     { kind: "building", name: "feature-refunds", logTail: buildLog },
     { proposal: payments },

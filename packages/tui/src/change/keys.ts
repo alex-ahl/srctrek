@@ -35,6 +35,8 @@ export type KeyContext = Readonly<{
   proposal: ProposedRepo | undefined
   run: (work: Promise<void>) => void
   ask: (ask: Ask) => void
+  // beside the landing page's list, enter builds a change with no trek to step
+  enterBuilds?: boolean | undefined
 }>
 
 const STEPPABLE: ReadonlySet<TrekStatus["kind"]> = new Set(["ready", "older-guide", "stale"])
@@ -98,12 +100,18 @@ function xHint({ status, proposal }: KeyContext): KeyHint[] {
   return status.kind === "building" ? [{ key: "x", does: "stop" }] : []
 }
 
+// The key that builds: enter where it builds a trek there's none of to step, else b.
+const buildKey = ({ status, enterBuilds }: KeyContext) =>
+  enterBuilds === true && !canStep(status) ? "enter" : "b"
+
 // What acts on the trek besides stepping it, and on a repo the agent proposed.
 function trekHints(context: KeyContext, actions: ChangeActions): KeyHint[] {
   const verb = verbOf(context)
   const { proposal } = context
   return [
-    ...(verb === undefined || actions.build === undefined ? [] : [{ key: "b", does: verb }]),
+    ...(verb === undefined || actions.build === undefined
+      ? []
+      : [{ key: buildKey(context), does: verb }]),
     ...(proposal === undefined ? [] : [{ key: "y", does: `add ${proposal.name}` }]),
     ...xHint(context),
     ...(offersBuilds(context.status, actions) ? [{ key: "l", does: "builds" }] : []),
@@ -115,14 +123,16 @@ export function changeHints(context: KeyContext, actions: ChangeActions): KeyHin
   return [...placeHints(context.status, actions), ...trekHints(context, actions), HELP_HINT]
 }
 
-/** Every key on the screen, for the panel ? opens. */
-export function changeGroups(context: KeyContext, actions: ChangeActions): KeyGroup[] {
-  const keys = [...placeHints(context.status, actions), ...trekHints(context, actions)]
-  return [
-    { title: "this change", keys },
-    { title: "leave", keys: [{ key: "esc", does: "back" }] },
-  ]
+/** The keys that act on the change, for the panel ? opens. */
+export function changeGroup(context: KeyContext, actions: ChangeActions): KeyGroup {
+  return {
+    title: "this change",
+    keys: [...placeHints(context.status, actions), ...trekHints(context, actions)],
+  }
 }
+
+/** How a change's own screen is left, for the panel ? opens. */
+export const LEAVE_GROUP: KeyGroup = { title: "leave", keys: [{ key: "esc", does: "back" }] }
 
 // y adds the repo proposed, first asking where it lives when the agent didn't find out.
 function addKey({ proposal, run, ask }: KeyContext, actions: ChangeActions) {
@@ -162,12 +172,13 @@ export function changeKeys(
   const stepping = canStep(context.status)
   const enter = editorFirst && editor !== undefined ? editor.open : step
   const builds = verbOf(context) !== undefined
+  const buildNow = () => builds && build !== undefined && context.run(build())
 
   return new Map([
-    ["return", () => stepping && enter(name)],
+    ["return", () => (stepping ? enter(name) : context.enterBuilds === true && buildNow())],
     ["e", () => stepping && editor?.open(name)],
     ["n", () => stepping && editorFirst && step(name)],
-    ["b", () => builds && build !== undefined && context.run(build())],
+    ["b", buildNow],
     ["y", () => addKey(context, actions)],
     ["x", () => xKey(context, actions)],
     ["l", () => offersBuilds(context.status, actions) && actions.builds?.(name)],

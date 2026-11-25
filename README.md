@@ -52,15 +52,16 @@ Run it in a git repo with a `main` or `master` branch (or `origin/HEAD` set):
   handlers, jobs), each listed with its trek; `trek --code="a refund request"` opens that
   trigger's trek.
 
-`enter` on the landing page opens a change's screen: the change and how big it is, and its
-trek's state. With no trek yet, `b` has your agent build one in the background, and the screen
-shows its steps as they arrive; `l` opens the build view. Once there's a trek, the screen shows
-its overview. While `trek` is open, it follows new commits and branch switches.
+A change's screen shows the change and how big it is, and its trek's state. From 110 columns, it
+sits beside the landing page's list, showing the selected change; narrower, `enter` opens it. With
+no trek yet, `b` has your agent build one in the background, and the screen shows its steps as
+they arrive; `l` opens the build view. Once there's a trek, the screen shows its overview, and
+`enter` steps it. While `trek` is open, it follows new commits and branch switches.
 
 | Key       | Action                                                   |
 | --------- | -------------------------------------------------------- |
 | `↑` / `↓` | Choose a row (also `k`/`j`)                              |
-| `enter`   | Open the change; on a change, step it                    |
+| `enter`   | Open the change, or step or build its trek               |
 | `b`       | Build, update, or build again the trek                   |
 | `B`       | Other branches; on code as it is, find its ways in again |
 | `a`       | Add repos                                                |

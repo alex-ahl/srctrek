@@ -2,6 +2,7 @@ import {
   type ChangeChoice,
   type PullRequestDetails,
   type Settings,
+  type TrekStatus,
   choiceArguments,
 } from "@srctrek/core"
 import { useRef, useState } from "react"
@@ -65,6 +66,12 @@ export async function startedIfAutomatic(
   }
 }
 
+/** The change the landing page's selection rests on, worked out, by the key of its choice. */
+export type Rested = Readonly<{ key: string; choice: ChangeChoice; screen: Screen }>
+
+/** The key a choice is worked out by, the same for the same change. */
+export const preparedKey = (choice: ChangeChoice) => JSON.stringify(choice)
+
 type Ways = Readonly<{
   sources: Sources
   settings: Settings
@@ -86,9 +93,13 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
   const busy = useRef(false)
   // a change picked from the landing page being worked out, or why it couldn't be
   const [opening, setOpening] = useState<Pending | undefined>(undefined)
+  // the change the selection rests on, once worked out, for the landing page to show beside it
+  const [rested, setRested] = useState<Rested | undefined>(undefined)
+  // the choice last rested on, for forget, called from callbacks that outlive a render
+  const restedOn = useRef<ChangeChoice | undefined>(undefined)
 
   const prepared = (choice: ChangeChoice) => {
-    const key = JSON.stringify(choice)
+    const key = preparedKey(choice)
     if (ahead.current?.key !== key) {
       ahead.current = { key, screen: prepare(choice, sources) }
     }
@@ -131,13 +142,33 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
     replace(id, await show(await screen))
   }
 
+  // worked out ahead, and kept as what the selection rests on unless it has moved on meanwhile
+  const rest = (choice: ChangeChoice) => {
+    const key = preparedKey(choice)
+    restedOn.current = choice
+    void prepared(choice).then(
+      (screen) => ahead.current?.key === key && setRested({ key, choice, screen }),
+    )
+  }
+
   return {
     opening,
-    // the landing page's selection resting on a change, to work it out ahead
-    rest: (choice: ChangeChoice) => void prepared(choice),
-    // what's worked out ahead is out of date once the worktree moves on
+    rested,
+    rest,
+    // where the trek of the change rested on stands now
+    restedStatus: (status: TrekStatus) =>
+      setRested(
+        (was) =>
+          was &&
+          (was.screen.kind === "change" ? { ...was, screen: { ...was.screen, status } } : was),
+      ),
+    // what's worked out ahead is out of date once the worktree moves on: the change rested on is
+    // worked out again
     forget: () => {
       ahead.current = undefined
+      if (restedOn.current !== undefined) {
+        rest(restedOn.current)
+      }
     },
     openChoice: (choice: ChangeChoice, fromLanding: boolean) => {
       if (busy.current) {

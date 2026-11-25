@@ -244,8 +244,14 @@ Every screen's footer lists its keys, each key bold in the text's colour, then a
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 `↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
 
-- **Landing page,** what `trek` opens on: what's yours, as one table across the row, up to 120
-  columns. The title bar names what the changes are measured against, once:
+- **Landing page,** what `trek` opens on: what's yours. From 110 columns, the list sits beside
+  the selected change's own screen, the same as it shows on its own: each row the change's name,
+  `⚑` after a pull request waiting on your review, and its trek's state as a symbol; what the
+  change holds and its trek's overview are on the right, read once the selection has rested on
+  it, the change last shown staying meanwhile, then `◐ opening…` when that takes a while. The
+  change's keys work from the list, `enter` stepping its trek or building one where there's none,
+  and the footer leads with them, then the page's. Narrower, the list is the page, as one table
+  across the row, up to 120 columns. The title bar names what the changes are measured against, once:
   `srctrek › against main`. Each row is the change's name, taking
   the room what the rows hold doesn't need, its commits, dimmed (`9 commits`; a pull request's base
   where it isn't the repo's, `into release/2.1`, and `draft`), and its trek's state (`● ready`,
@@ -331,15 +337,15 @@ treks`. On a view, typing narrows it by name, the title bar saying how many of h
   page and back elsewhere, `?` every key; `b` build, `y` add, `x` stop or dismiss, `l` builds, `e`
   your editor, `S` settings.
 
-| Screen            | Keys                                                                                                                                                                                                                    |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Landing page      | `enter` open the change · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `p` other pull requests · `B` other branches · `d` done treks · `S` settings · `?` keys · `q` quit |
-| Its views         | type to narrow · `↑`/`↓` move · `enter` open · `esc` clear, then back                                                                                                                                                   |
-| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `y` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back                  |
-| Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                                        |
-| Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                                               |
-| Build view        | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                                                                                                                    |
-| Route map         | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close                                                                                      |
-| Stepping          | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                                                                                                                  |
-|                   | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                                                                                                           |
-|                   | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` back                                                                                                                                        |
+| Screen            | Keys                                                                                                                                                                                                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Landing page      | `enter` open the change; beside it, step its trek or build one, and the change's own keys · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `p` other pull requests · `B` other branches · `d` done treks · `S` settings · `?` keys · `q` quit |
+| Its views         | type to narrow · `↑`/`↓` move · `enter` open · `esc` clear, then back                                                                                                                                                                                                                     |
+| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `y` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back                                                                                    |
+| Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                                                                                                          |
+| Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                                                                                                                 |
+| Build view        | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                                                                                                                                                                                      |
+| Route map         | `↑`/`↓` move · `enter` go to the stop · `←`/`→` fold · `c`/`f` changed, flagged · `/` find · `tab` calls, repos, files · `r` close                                                                                                                                                        |
+| Stepping          | `n`/`p` next, previous · `i` into the call on the cursor's line · `o` out · `O` over ·                                                                                                                                                                                                    |
+|                   | `↑`/`↓` the cursor · `.` back to the stop · `enter` look at the cursor's call, `←`/`→` its other places · `d`                                                                                                                                                                             |
+|                   | details · `D` the change · `r` route map · `e` your editor · `?` keys · `q` back                                                                                                                                                                                                          |
