@@ -2,13 +2,13 @@ import { useTerminalDimensions } from "@opentui/react"
 import type { ChangeSummary, TriggerTrek } from "@srctrek/core"
 import { useState } from "react"
 import { PADDING } from "../ui/layout"
-import { moveKeys } from "../ui/move"
+import { moveKeys, stepped } from "../ui/move"
+import { keyAt, selectedIndex } from "../ui/selection"
 import { ChangeFrame, useAsk } from "./frame"
 import {
   type WaysInActions,
   WaysIn,
-  movedKey,
-  selectedRow,
+  wayKey,
   wayRows,
   waysGroups,
   waysHints,
@@ -37,9 +37,9 @@ export function WaysInScreen({ summary, ways, actions, find, run, back }: Props)
   const ask = useAsk()
 
   const rows = wayRows(ways)
-  const selected = selectedRow(rows, chosen)
+  const selected = selectedIndex(rows, chosen, wayKey)
   const context = { row: rows[selected], actions, find, run, ask: ask.ask }
-  const move = (by: number) => setChosen(movedKey(rows, selected, by))
+  const move = (by: number) => setChosen(keyAt(rows, stepped(selected, by, rows.length), wayKey))
   const keys = new Map([...waysKeys(context), ...moveKeys(move), ["escape", back], ["q", back]])
 
   return (

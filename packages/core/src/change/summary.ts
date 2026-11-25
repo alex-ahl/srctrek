@@ -26,6 +26,10 @@ export type ChangeSummary = Readonly<{
   trigger?: string
 }>
 
+/** Code as it is with no trigger named: building it finds its ways in rather than a trek. */
+export const findsWaysIn = (summary: Readonly<{ code: boolean; trigger?: string | undefined }>) =>
+  summary.code && summary.trigger === undefined
+
 async function summarizeRepo(repo: RepoWithRange): Promise<ChangedRepoSummary> {
   const { base, baseCommit, headCommit } = repo.range
   const [commits, files] = await Promise.all([

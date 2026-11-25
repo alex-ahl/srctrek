@@ -221,7 +221,7 @@ function change(
 ) {
   return (
     <ChangeScreen
-      root="."
+      readOverview={() => Promise.resolve(undefined)}
       summary={extra.summary ?? summary}
       status={status}
       proposal={extra.proposal}

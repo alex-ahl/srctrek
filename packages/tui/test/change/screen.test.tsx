@@ -5,6 +5,7 @@ import type { ChangeSummary, ProposedRepo, TrekStatus } from "@srctrek/core"
 import { repoWithTrek } from "@srctrek/testing"
 import type { BuildRead } from "../../src/build-view/read"
 import type { ChangeActions } from "../../src/change/keys"
+import { overviewOf } from "../../src/change/overview"
 import { ChangeScreen } from "../../src/change/screen"
 import { frameAfter } from "../support/keys"
 
@@ -59,7 +60,7 @@ const run = (work: Promise<void>) => void work.catch(() => undefined)
 function screen(root: string, status: TrekStatus, setup: Setup = {}) {
   return (
     <ChangeScreen
-      root={root}
+      readOverview={(name) => overviewOf(root, name)}
       summary={summary}
       status={status}
       proposal={setup.proposal}
@@ -90,7 +91,7 @@ test("a pull request leads with its number and title, then who opened it and how
   }
   const frame = await frameAfter(
     <ChangeScreen
-      root="."
+      readOverview={() => Promise.resolve(undefined)}
       summary={pull}
       details={{ title: "Add partial refunds", author: "alice", draft: true }}
       status={missing}
@@ -131,7 +132,7 @@ test("a change across repos says how many files each changes", async () => {
   }
   const frame = await frameAfter(
     <ChangeScreen
-      root="."
+      readOverview={() => Promise.resolve(undefined)}
       summary={across}
       status={missing}
       proposal={undefined}
@@ -385,7 +386,7 @@ test("a trek saved again under its name shows its new overview once the worktree
 
     return (
       <ChangeScreen
-        root={root}
+        readOverview={(name) => overviewOf(root, name)}
         summary={summary}
         status={ready}
         proposal={undefined}
@@ -425,7 +426,7 @@ test("a trek whose work is done says how it ended, the trek first", async () => 
   const root = await repoWithTrek()
   const frame = await frameAfter(
     <ChangeScreen
-      root={root}
+      readOverview={(name) => overviewOf(root, name)}
       summary={undefined}
       status={ready}
       done="merged"

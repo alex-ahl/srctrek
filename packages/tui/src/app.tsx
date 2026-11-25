@@ -5,6 +5,7 @@ import {
   type TrekEntry,
   type TrekStatus,
   choiceArguments,
+  findsWaysIn,
 } from "@srctrek/core"
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BuildScreen } from "./build-view/screen"
@@ -47,10 +48,6 @@ function titleOf(entries: readonly TrekEntry[], name: string): string {
   const entry = entries.find((each) => each.name === name)
   return entry?.valid === true ? entry.title : name
 }
-
-// Code as it is with no trigger: its ways in, once found, are its screen.
-const findsWaysIn = (change: OpenChange) =>
-  change.summary.code && change.summary.trigger === undefined
 
 /**
  * trek's screens: the landing page, a change's screen, stepping a trek, its builds, and the
@@ -160,7 +157,7 @@ export function App(props: Props) {
 
   // A change's screen, or, for code as it is once its ways in are found, those.
   const changeScreen = ({ change, choice, status, ...shown }: ChangeOpen): ReactNode => {
-    if (findsWaysIn(change) && status.kind === "triggers") {
+    if (status.kind === "triggers") {
       const repos = choice.repos && { repos: choice.repos }
       return (
         <WaysInScreen
@@ -180,7 +177,7 @@ export function App(props: Props) {
 
     return (
       <ChangeScreen
-        root={root}
+        readOverview={sources.overview}
         summary={change.summary}
         details={shown.details}
         overview={shown.overview}
@@ -211,7 +208,7 @@ export function App(props: Props) {
     if (shown.kind === "done") {
       return (
         <ChangeScreen
-          root={root}
+          readOverview={sources.overview}
           summary={undefined}
           status={{ kind: "ready", name: shown.name }}
           done={shown.why}
@@ -307,7 +304,7 @@ function Builds(props: {
     <BuildScreen
       summary={summary}
       name={props.title}
-      findsWaysIn={summary?.code === true && summary.trigger === undefined}
+      findsWaysIn={summary !== undefined && findsWaysIn(summary)}
       read={read}
       onStop={() => void sources.stopBuild(name)}
       onBuildAgain={build === undefined ? undefined : () => void build()}

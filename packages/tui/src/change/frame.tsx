@@ -7,10 +7,7 @@ import { PADDING } from "../ui/layout"
 import { TextPrompt } from "../ui/text-prompt"
 import type { Ask } from "./keys"
 import { ChangeTitleBar } from "./title"
-
-// A letter typed with shift as its capital, "B", so maps name capitals as they're shown.
-const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
-  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
+import { shifted } from "../ui/move"
 
 /** A question in the footer's place, while one is asked, and how a screen asks one. */
 export function useAsk() {

@@ -12,3 +12,7 @@ export function moveKeys(move: (by: number) => void): Array<[string, () => void]
     ["k", () => move(-1)],
   ]
 }
+
+/** A key as key maps name it: a letter typed with shift as its capital, "B", as it's shown. */
+export const shifted = (key: Readonly<{ name: string; shift: boolean }>): string =>
+  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name

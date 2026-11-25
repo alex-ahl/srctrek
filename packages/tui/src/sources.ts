@@ -31,12 +31,9 @@ import { resolve } from "node:path"
 import type { BuildRead } from "./build-view/read"
 import type { OpenChange } from "./change/open-change"
 import { overviewOf } from "./change/overview"
-import type { DoneTrek } from "./landing/rows"
+import type { DoneTrek, PullHead } from "./landing/rows"
 import { doneLabel } from "./ui/state-labels"
 import type { Stamp } from "./watch/follow"
-
-/** A pull request as its trek's state is read: its number, and the commit its branch is at. */
-export type PullHead = Pick<OpenPullRequest, "number" | "head">
 
 /**
  * Everything the screens read and change, apart from the screens: the changes to list, where

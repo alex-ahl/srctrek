@@ -18,6 +18,7 @@ import { type Look, calledOn, definitionsOf, nearestFirst } from "./peek"
 import { openAtLine } from "../editors/editors"
 import { nextText } from "./next"
 import { type ReactNode, useRef, useState } from "react"
+import { shifted } from "../ui/move"
 
 type Props = {
   root: string
@@ -245,10 +246,6 @@ function asideKeys(
     ["left", on(-1)],
   ])
 }
-
-// A letter typed with shift as its capital, "O" for over, so maps name capitals as they're shown.
-const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
-  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
 
 // What a key does with `layer` open: details and the route map take their own keys, a look or
 // the change its keys; at a stop, a move, a layer, or the cursor.

@@ -24,7 +24,7 @@ import {
 import { type Ticked, toggled } from "./repos"
 import type { DropView } from "./drop-view"
 import { RepoSheet, sheetHeight } from "./sheet"
-import { keyAt, selectedIndex } from "./selection"
+import { keyAt, selectedIndex } from "../ui/selection"
 import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
 import { useDrop } from "./use-drop"
@@ -34,7 +34,7 @@ import { HELP_HINT, type KeyGroup, OrKeysHelp, useKeysHelp } from "../ui/keys-he
 import { PADDING } from "../ui/layout"
 import { useTones } from "../ui/theme"
 import { count } from "../ui/text"
-import { moveKeys, stepped } from "../ui/move"
+import { moveKeys, shifted, stepped } from "../ui/move"
 import { useNow } from "../ui/clock"
 import { TitleBar } from "../ui/title-bar"
 import { useTurning } from "../ui/turning"
@@ -351,10 +351,6 @@ const GROUPS: readonly KeyGroup[] = [
 
 // At most half the room below the title bar goes to the sheet, so the changes stay in view.
 const sheetMost = (room: number) => Math.floor(room / 2)
-
-// A letter typed with shift as its capital, "S", so maps name capitals as they're shown.
-const shifted = (key: Readonly<{ name: string; shift: boolean }>) =>
-  key.shift && key.name.length === 1 ? key.name.toUpperCase() : key.name
 
 // A repo's branches as they're drawn under its row, while they're open.
 function dropView(

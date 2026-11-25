@@ -1,5 +1,4 @@
 import type { TriggerTrek } from "@srctrek/core"
-import { stepped } from "../ui/move"
 import type { KeyHint } from "../ui/footer"
 import { HELP_HINT, type KeyGroup } from "../ui/keys-help"
 import { fit } from "../ui/text"
@@ -23,17 +22,8 @@ export const wayRows = (ways: readonly TriggerTrek[]): WayRow[] => [
   { kind: "follow" },
 ]
 
-const keyOf = (row: WayRow) => (row.kind === "way" ? row.way.trigger.name : "")
-
-/** The selected row: the one with the key chosen, so it stays put as the list is read again. */
-export function selectedRow(rows: readonly WayRow[], chosen: string | undefined): number {
-  const at = rows.findIndex((row) => keyOf(row) === chosen)
-  return at === -1 ? 0 : at
-}
-
-/** The key of the row `by` from the one selected, kept within the list. */
-export const movedKey = (rows: readonly WayRow[], selected: number, by: number) =>
-  keyOf(rows[stepped(selected, by, rows.length)] ?? { kind: "follow" })
+/** A row's key, its trigger's name, which keeps it selected as the list is read again. */
+export const wayKey = (row: WayRow) => (row.kind === "way" ? row.way.trigger.name : "")
 
 // The name column, so where each is found lines up.
 const NAME_WIDTH = 24
@@ -64,7 +54,7 @@ export function WaysIn(props: { rows: readonly WayRow[]; selected: number; width
   return (
     <box flexDirection="column">
       {rows.map((row, i) => (
-        <WayLine key={keyOf(row)} row={row} selected={i === selected} width={width} />
+        <WayLine key={wayKey(row)} row={row} selected={i === selected} width={width} />
       ))}
     </box>
   )

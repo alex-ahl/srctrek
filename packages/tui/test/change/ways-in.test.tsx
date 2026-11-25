@@ -67,7 +67,7 @@ function screen(
   if (status.kind !== "triggers") {
     return (
       <ChangeScreen
-        root="."
+        readOverview={() => Promise.resolve(undefined)}
         summary={code}
         status={status}
         proposal={undefined}

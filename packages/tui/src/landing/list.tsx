@@ -2,7 +2,7 @@ import type { RGBA } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/react"
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
-import type { LandingGroup, LandingRow } from "./rows"
+import type { LandingGroup, LandingRow, PullHead } from "./rows"
 import { statusBlock } from "../change/status-block"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
@@ -37,7 +37,7 @@ export const rowKey = (row: LandingRow): string => JSON.stringify(row.choice)
 /** How the landing page reads where each row's trek stands: a change's, and a pull request's. */
 export type StatusOf = Readonly<{
   status: (choice: ChangeChoice) => Promise<TrekStatus>
-  pullStatus: (pr: NonNullable<LandingRow["pull"]>) => Promise<TrekStatus>
+  pullStatus: (pr: PullHead) => Promise<TrekStatus>
 }>
 
 // Reading where a row's trek stands: a pull request's from its head as listed, as working out

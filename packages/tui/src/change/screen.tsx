@@ -1,10 +1,11 @@
 import { useTerminalDimensions } from "@opentui/react"
-import type {
-  ChangeSummary,
-  OverviewView,
-  ProposedRepo,
-  PullRequestDetails,
-  TrekStatus,
+import {
+  type ChangeSummary,
+  type OverviewView,
+  type ProposedRepo,
+  type PullRequestDetails,
+  type TrekStatus,
+  findsWaysIn,
 } from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
 import { PADDING } from "../ui/layout"
@@ -14,8 +15,8 @@ import { type ChangeActions, canStep, changeGroups, changeHints, changeKeys } fr
 import { useOverview } from "./use-overview"
 
 type Props = {
-  // the folder trek runs in, where the change's trek is saved
-  root: string
+  // reads a saved trek's overview, by its name
+  readOverview: (name: string) => Promise<OverviewView | undefined>
   // what the change is; absent for a trek whose change is gone
   summary: ChangeSummary | undefined
   // a pull request's title, who opened it, and whether it's a draft, once known
@@ -41,13 +42,24 @@ type Props = {
  * repo the agent proposed, and, once there's a trek, its overview, stepped from here.
  */
 export function ChangeScreen(props: Props) {
-  const { root, summary, status, proposal, actions, run } = props
+  const { readOverview, summary, status, proposal, actions, run } = props
   const { width } = useTerminalDimensions()
-  const overview = useOverview(root, status.name, canStep(status), props.generation, props.overview)
+  const overview = useOverview(
+    readOverview,
+    status.name,
+    canStep(status),
+    props.generation,
+    props.overview,
+  )
   const ask = useAsk()
 
-  const findsWaysIn = summary?.code === true && summary.trigger === undefined
-  const context = { status, findsWaysIn, proposal, run, ask: ask.ask }
+  const context = {
+    status,
+    findsWaysIn: summary !== undefined && findsWaysIn(summary),
+    proposal,
+    run,
+    ask: ask.ask,
+  }
 
   return (
     <ChangeFrame

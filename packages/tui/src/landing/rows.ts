@@ -7,6 +7,9 @@ export type LandingGroup = "your work" | "pull requests" | "branches" | "code as
 /** A trek whose work has landed or gone, by its name and title, and how its work ended. */
 export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
 
+/** A pull request as its trek's state is read: its number, and the commit its branch is at. */
+export type PullHead = Readonly<{ number: number; head: string }>
+
 /** What a row opens: a change, or a trek whose change is gone, by its name. */
 export type Pick = ChangeChoice | Readonly<{ kind: "trek"; name: string; why: string }>
 
@@ -21,7 +24,7 @@ export type LandingRow = Readonly<{
   choice: Pick
   // what sets it apart, drawn in the accent after what it holds: "review requested"
   mark?: string
-  pull?: Readonly<{ number: number; head: string }>
+  pull?: PullHead
 }>
 
 // What a branch holds, its base named once, in the title bar.

@@ -1,4 +1,4 @@
-import { type TrekStatus, buildProgress } from "@srctrek/core"
+import { type TrekStatus, buildProgress, findsWaysIn } from "@srctrek/core"
 import { STATE_LABELS, type StateLabel } from "../ui/state-labels"
 import { count } from "../ui/text"
 
@@ -15,9 +15,6 @@ const LOG_LINES = 3
 export type Opened = Readonly<{ code: boolean; trigger?: string | undefined }>
 
 const A_CHANGE: Opened = { code: false }
-
-// Code as it is with no trigger named: the agent finds its ways in rather than building a trek.
-const findsWaysIn = (open: Opened) => open.code && open.trigger === undefined
 
 // What the agent does when b is pressed, in a reader's words.
 function agentDoes(open: Opened): string {

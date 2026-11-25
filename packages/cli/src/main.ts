@@ -6,6 +6,7 @@ import {
   type ChangeChoice,
   choiceOfArguments,
   errorText,
+  findsWaysIn,
   loadSettings,
   startBuild,
   summarizeChange,
@@ -41,13 +42,13 @@ async function openChange(cwd: string, args: string[]): Promise<OpenChange> {
   const status = () => trekStatus(cwd, change)
   const build = agent === undefined ? undefined : () => buildChangeTrek(cwd, args, change, agent)
 
-  const findsWaysIn = change.code !== undefined && change.code.trigger === undefined
+  const summary = await summarizeChange(change)
   return {
-    summary: await summarizeChange(change),
+    summary,
     status,
     build,
     buildTrigger:
-      agent === undefined || !findsWaysIn
+      agent === undefined || !findsWaysIn(summary)
         ? undefined
         : (trigger: string) => buildTriggerTrek(cwd, args, agent, change, trigger),
   }

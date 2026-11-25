@@ -78,7 +78,13 @@ function sources(more: Partial<Sources> = {}): Sources {
 const LANDING: Opening = { kind: "landing" }
 const own: ChangeChoice = { kind: "own", uncommitted: false }
 
-function app(root: string, opening: Opening, from: Sources = sources(), settings: Settings = {}) {
+// The landing page and screens over the repo at `root`, its saved treks' overviews read there.
+function app(
+  root: string,
+  opening: Opening,
+  from: Sources = sources({ overview: (name) => overviewOf(root, name) }),
+  settings: Settings = {},
+) {
   return (
     <App
       root={root}
@@ -187,7 +193,7 @@ test("a done trek opens on a screen of its own", async () => {
   const root = await repoWithTrek()
   const done = () => Promise.resolve([{ name: "pay", title: "Pay", why: "merged" }])
   const frame = await frameAfter(
-    app(root, LANDING, sources({ done })),
+    app(root, LANDING, sources({ done, overview: (name) => overviewOf(root, name) })),
     async (input, on) => {
       await on.shows("d: 1 done trek")
       input.pressKey("d")
@@ -251,7 +257,7 @@ test("the worktree moving on reopens the change, and its trek shows as it now st
     status: missing,
   }
   const frame = await frameAfter(
-    app(root, opening, sources({ open, stamp })),
+    app(root, opening, sources({ open, stamp, overview: (name) => overviewOf(root, name) })),
     async (_input, on) => {
       await on.shows("no trek yet")
       saved = true

@@ -1,7 +1,7 @@
 import type { NearbyCheckout } from "@srctrek/core"
 import { useState } from "react"
 import { type RepoItem, type Ticked, repoItems } from "./repos"
-import { keyAt, selectedIndex } from "./selection"
+import { keyAt, selectedIndex } from "../ui/selection"
 import { sheetKey } from "./sheet"
 import { type DropKey, typed } from "./use-drop"
 import type { KeyHint } from "../ui/footer"
