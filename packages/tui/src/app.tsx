@@ -6,7 +6,7 @@ import {
   type TrekStatus,
   choiceArguments,
 } from "@srctrek/core"
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react"
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BuildScreen } from "./build-view/screen"
 import type { ChangeActions } from "./change/keys"
 import type { OpenChange } from "./change/open-change"
@@ -71,7 +71,10 @@ export function App(props: Props) {
   const { settings, changeSetting } = useSettings(props.firstSettings)
   const { tint, tones } = useTerminalTones(settings.colours)
   const chosenEditor = editors.find((each) => each.id === settings.step_in)
-  const preparing = usePreparing({ sources, settings, open, replace })
+  const inFront = useRef(front)
+  inFront.current = front
+  const landingInFront = () => inFront.current?.kind === "landing"
+  const preparing = usePreparing({ sources, settings, open, replace, landingInFront })
 
   useEffect(() => {
     void sources.entries().then(setEntries, () => undefined)

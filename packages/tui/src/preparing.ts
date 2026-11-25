@@ -70,15 +70,18 @@ type Ways = Readonly<{
   settings: Settings
   open: (screen: Screen) => number
   replace: (id: number, screen: Screen) => void
+  // whether the landing page is in front, for a pick to open over it only
+  landingInFront: () => boolean
 }>
 
 /**
  * Opening changes: the one the landing page's selection rests on worked out ahead, the latest
  * only, so enter opens it at once; a pick worked out while the landing page stays, which says so
- * when it takes a while, or why it couldn't open; a change followed from another screen behind an
- * opening screen when it takes a while. One at a time: a pick meanwhile waits for it.
+ * when it takes a while, or why it couldn't open, and opens only over the landing page; a change
+ * followed from another screen behind an opening screen when it takes a while. One at a time: a
+ * pick meanwhile waits for it.
  */
-export function usePreparing({ sources, settings, open, replace }: Ways) {
+export function usePreparing({ sources, settings, open, replace, landingInFront }: Ways) {
   const ahead = useRef<{ key: string; screen: Promise<Screen> } | undefined>(undefined)
   const busy = useRef(false)
   // a change picked from the landing page being worked out, or why it couldn't be
@@ -110,7 +113,10 @@ export function usePreparing({ sources, settings, open, replace }: Ways) {
     }
 
     setOpening(undefined)
-    open(await show(screen))
+    // a screen opened meanwhile is where the user went instead
+    if (landingInFront()) {
+      open(await show(screen))
+    }
   }
 
   const openFollowed = async (choice: ChangeChoice) => {

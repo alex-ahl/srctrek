@@ -130,6 +130,28 @@ test("going to a change and back doesn't ask for the pull requests again", async
   expect(pullRequests).toHaveBeenCalledTimes(1)
 })
 
+test("a pick still being worked out doesn't open over a screen opened meanwhile", async () => {
+  const opened = deferred<OpenChange>()
+  const asked = deferred<undefined>()
+  const open = () => {
+    asked.resolve(undefined)
+    return opened.promise
+  }
+  const frame = await frameAfter(app(".", LANDING, sources({ open })), async (input, on) => {
+    await on.shows("your work")
+    input.pressEnter()
+    await asked.promise
+    input.pressKey("S", { shift: true })
+    await on.shows("srctrek › settings")
+    opened.resolve(changeWith(() => Promise.resolve(missing)))
+    await opened.promise
+    await on.drawn()
+  })
+
+  expect(frame).toContain("srctrek › settings")
+  expect(frame).not.toContain("no trek yet")
+})
+
 test("a change asked for opens on its screen, and esc goes to the landing page", async () => {
   const change = changeWith(() => Promise.resolve(missing))
   const opening: Opening = { kind: "change", choice: own, change, status: missing }
