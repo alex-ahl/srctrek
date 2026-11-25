@@ -41,7 +41,7 @@ async function fakeGh(script: string): Promise<string> {
 describe("openPullRequests", () => {
   test("lists the open pull requests with their heads, bases, commits, and last updates, those waiting on the user's review first", async () => {
     const gh = await fakeGh(`case "$*" in
-  *review-requested*) echo '[{"number":12}]' ;;
+  *review-requested*) echo '${JSON.stringify([LISTED[1]])}' ;;
   *) echo '${JSON.stringify(LISTED)}' ;;
 esac`)
 
@@ -72,6 +72,22 @@ esac`)
         updatedAt: "2026-11-20T10:00:00Z",
         commits: 2,
       },
+    ])
+  })
+
+  test("lists a pull request waiting on the user's review that's older than the rest listed", async () => {
+    const older = { ...LISTED[0], number: 3, isDraft: false, updatedAt: "2026-09-01T10:00:00Z" }
+    const gh = await fakeGh(`case "$*" in
+  *review-requested*) echo '${JSON.stringify([older])}' ;;
+  *) echo '${JSON.stringify(LISTED)}' ;;
+esac`)
+
+    const open = await openPullRequests(await tempDir("repo-"), gh)
+
+    expect(open.map((pr) => [pr.number, pr.reviewRequested])).toEqual([
+      [3, true],
+      [14, false],
+      [12, false],
     ])
   })
 

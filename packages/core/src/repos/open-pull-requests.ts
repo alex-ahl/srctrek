@@ -31,8 +31,6 @@ const ListedSchema = z.array(
   }),
 )
 
-const NumbersSchema = z.array(z.object({ number: z.number() }))
-
 // Enough to find what's under review without paging through a busy repo's history.
 const LIMIT = "30"
 
@@ -80,10 +78,27 @@ export async function pullRequestOf(
   return { title: viewed.title, author: viewed.author.login, draft: viewed.isDraft }
 }
 
+// A pull request as gh lists it, as trek names it.
+const openPullRequest =
+  (reviewRequested: boolean) =>
+  (pr: z.infer<typeof ListedSchema>[number]): OpenPullRequest => ({
+    number: pr.number,
+    title: pr.title,
+    author: pr.author.login,
+    url: pr.url,
+    draft: pr.isDraft,
+    reviewRequested,
+    head: pr.headRefOid,
+    base: pr.baseRefName,
+    updatedAt: pr.updatedAt,
+    commits: pr.commits.length,
+  })
+
 /**
- * The open pull requests of the repo at `cwd`, through the user's own gh: those waiting on their
- * review first, then the rest newest first, as gh lists them. Throws with gh's own words when it
- * can't list them (not installed, not logged in, not a GitHub repo).
+ * The open pull requests of the repo at `cwd`, through the user's own gh: every one waiting on
+ * their review, however old, then the most recent of the rest, newest first, as gh lists them.
+ * Throws with gh's own words when it can't list them (not installed, not logged in, not a GitHub
+ * repo).
  */
 export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPullRequest[]> {
   const fields = [
@@ -94,22 +109,13 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
   ]
   const [listed, waiting] = await Promise.all([
     runGh(cwd, gh, ["pr", "list", ...fields]),
-    runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", "--json", "number"]),
+    runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", ...fields]),
   ])
-  const requested = new Set(NumbersSchema.parse(waiting).map((each) => each.number))
+  const requested = ListedSchema.parse(waiting).map(openPullRequest(true))
+  const numbers = new Set(requested.map((pr) => pr.number))
+  const rest = ListedSchema.parse(listed)
+    .filter((pr) => !numbers.has(pr.number))
+    .map(openPullRequest(false))
 
-  const open = ListedSchema.parse(listed).map((pr): OpenPullRequest => ({
-    number: pr.number,
-    title: pr.title,
-    author: pr.author.login,
-    url: pr.url,
-    draft: pr.isDraft,
-    reviewRequested: requested.has(pr.number),
-    head: pr.headRefOid,
-    base: pr.baseRefName,
-    updatedAt: pr.updatedAt,
-    commits: pr.commits.length,
-  }))
-
-  return open.toSorted((a, b) => Number(b.reviewRequested) - Number(a.reviewRequested))
+  return [...requested, ...rest]
 }
