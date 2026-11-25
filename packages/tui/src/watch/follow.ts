@@ -11,11 +11,17 @@ export type Stamp = (choice: ChangeChoice) => Promise<string>
 const FOLLOW_MS = 2000
 
 /**
- * Checks the choice's stamp every couple of seconds and, when it's moved, tells `onMoved`. A move
- * `onMoved` can't take in now is left until the stamp moves again, rather than retried on every
- * check. A new choice was opened as it was picked, so its first stamp is only taken, not compared.
+ * Checks the choice's stamp every `every` ms, a couple of seconds unless given, and, when it's
+ * moved, tells `onMoved`. A move `onMoved` can't take in now is left until the stamp moves again,
+ * rather than retried on every check. A new choice was opened as it was picked, so its first stamp
+ * is only taken, not compared.
  */
-export function useFollow(stamp: Stamp, choice: ChangeChoice, onMoved: () => Promise<void>) {
+export function useFollow(
+  stamp: Stamp,
+  choice: ChangeChoice,
+  onMoved: () => Promise<void>,
+  every = FOLLOW_MS,
+) {
   // the choice, and what a move does, when the check runs, not when it was set up
   const chosen = useRef(choice)
   const moves = useRef(onMoved)
@@ -49,8 +55,8 @@ export function useFollow(stamp: Stamp, choice: ChangeChoice, onMoved: () => Pro
     }
 
     void check()
-    const timer = setInterval(() => void check(), FOLLOW_MS)
+    const timer = setInterval(() => void check(), every)
 
     return () => clearInterval(timer)
-  }, [stamp])
+  }, [stamp, every])
 }

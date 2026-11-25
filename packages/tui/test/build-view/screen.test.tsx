@@ -51,10 +51,8 @@ function screen(read: BuildRead, onStop = () => undefined) {
   )
 }
 
-const settle = () => Bun.sleep(30)
-
 test("shows the build as it stands: its title, steps, what was read, and a round rejected", async () => {
-  const frame = await frameAfter(screen(building), settle, 100, 30)
+  const frame = await frameAfter(screen(building), (_input, on) => on.shows("◐ building"), 100, 30)
 
   expect(frame).toContain("srctrek › build")
   expect(frame).toContain("feature/refunds · 3 commits since main")
@@ -72,7 +70,12 @@ test("says why a build ended without a trek, and offers to build again", async (
     state: "failed",
     ended: new Date(started.getTime() + 72_000),
   }
-  const frame = await frameAfter(screen(failed), settle, 100, 30)
+  const frame = await frameAfter(
+    screen(failed),
+    (_input, on) => on.shows("✕ build failed"),
+    100,
+    30,
+  )
 
   expect(frame).toContain("✕ build failed  Refunding an order  after 1m 12s")
   expect(frame).toMatch(/WHY\s+Error: rate limit reached/)
@@ -87,7 +90,7 @@ test("says a build the user stopped is stopped, not failed, with no reason to gi
     state: "failed",
     ended: new Date(started.getTime() + 72_000),
   }
-  const frame = await frameAfter(screen(stopped), settle, 100, 30)
+  const frame = await frameAfter(screen(stopped), (_input, on) => on.shows("■ stopped"), 100, 30)
 
   expect(frame).toContain("■ stopped  Refunding an order  after 1m 12s")
   expect(frame).not.toContain("WHY")
@@ -102,7 +105,12 @@ test("lists each step's repo and summary once trek mcp keeps the draft, a hop an
       { id: "s2", repo: "api", kind: "hop", summary: "POST /refunds is handled", flag: "high" },
     ],
   }
-  const frame = await frameAfter(screen(withDraft), settle, 100, 30)
+  const frame = await frameAfter(
+    screen(withDraft),
+    (_input, on) => on.shows("⚠ likely wrong"),
+    100,
+    30,
+  )
 
   expect(frame).toMatch(/s1 +web +The refund button posts/)
   expect(frame).toMatch(/s2 +api +↯ POST \/refunds is handled +⚠ likely wrong/)
@@ -125,10 +133,10 @@ test("← steps to an older build, saying which, with nothing to stop or build t
       onBuildAgain={() => undefined}
       onBack={() => undefined}
     />,
-    async (input) => {
-      await settle()
+    async (input, on) => {
+      await on.shows("◐ building")
       input.pressArrow("left")
-      await settle()
+      await on.shows("build 1 of 2")
     },
     100,
     30,
@@ -144,10 +152,10 @@ test("← steps to an older build, saying which, with nothing to stop or build t
 test("tab shows the log itself, following its end", async () => {
   const frame = await frameAfter(
     screen(building),
-    async (input) => {
-      await settle()
+    async (input, on) => {
+      await on.shows("◐ building")
       input.pressTab()
-      await settle()
+      await on.shows("srctrek › build › log")
     },
     100,
     30,
@@ -163,10 +171,10 @@ test("x stops a build while it runs", async () => {
     screen(building, () => {
       stopped = true
     }),
-    async (input) => {
-      await settle()
+    async (input, on) => {
+      await on.shows("x: stop")
       input.pressKey("x")
-      await settle()
+      await on.drawn()
     },
   )
 
