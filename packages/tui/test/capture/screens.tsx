@@ -1,4 +1,5 @@
 import type {
+  OverviewView,
   BranchChoices,
   ChangeSummary,
   OpenPullRequest,
@@ -214,6 +215,18 @@ const landingBusy = (
   />
 )
 
+// The refund trek's overview, for a change whose trek is saved.
+const overview: OverviewView = {
+  kind: "overview",
+  title: "Partial refund of order o_1002",
+  overview: "A partial refund posted from the order page reaches the ledger and the queue.",
+  trigger: { kind: "request", input: "POST /refunds with { order: o_1002, amount: 40 }" },
+  outcome: "a ledger row, and refund.created on the queue",
+  count: 14,
+  repos: ["web", "api", "worker"],
+  flags: { high: 1, medium: 0, low: 0 },
+}
+
 // A change's screen with its trek where `status` says, and an agent to build it.
 function change(
   status: TrekStatus,
@@ -221,7 +234,7 @@ function change(
 ) {
   return (
     <ChangeScreen
-      readOverview={() => Promise.resolve(undefined)}
+      readOverview={() => Promise.resolve(overview)}
       summary={extra.summary ?? summary}
       status={status}
       proposal={extra.proposal}
@@ -263,6 +276,8 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
     { kind: "building", name: "feature-refunds", logTail: buildLog },
     { proposal: payments },
   ),
+  "change-ready": change({ kind: "ready", name: "feature-refunds" }),
+  "change-stale": change({ kind: "stale", name: "feature-refunds", staleStops: 4, stops: 14 }),
   "change-building": change({ kind: "building", name: "feature-refunds", logTail: buildLog }),
   "change-failed": change({
     kind: "failed",
