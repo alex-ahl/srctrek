@@ -1,6 +1,9 @@
 import { z } from "zod"
 
-/** An open pull request to choose: its number, title, author, link, and whether it waits on you. */
+/**
+ * An open pull request to choose: its number, title, author, link, whether it waits on your
+ * review, and whether it's yours.
+ */
 export type OpenPullRequest = Readonly<{
   number: number
   title: string
@@ -8,6 +11,7 @@ export type OpenPullRequest = Readonly<{
   url: string
   draft: boolean
   reviewRequested: boolean
+  mine: boolean
   // the commit its branch is at now
   head: string
   // the branch it would merge into
@@ -34,7 +38,8 @@ const ListedSchema = z.array(
 // Enough to find what's under review without paging through a busy repo's history.
 const LIMIT = "30"
 
-// Every review asked of the user, however old: more than anyone has waiting at once.
+// Every review asked of the user, and every pull request of theirs, however old: more than anyone
+// has open at once.
 const WAITING_LIMIT = "100"
 
 // Never ask: a prompt would hang behind the screen. Logging in is the user's own `gh auth login`.
@@ -83,7 +88,7 @@ export async function pullRequestOf(
 
 // A pull request as gh lists it, as trek names it.
 const openPullRequest =
-  (reviewRequested: boolean) =>
+  ({ reviewRequested, mine }: Readonly<{ reviewRequested: boolean; mine: boolean }>) =>
   (pr: z.infer<typeof ListedSchema>[number]): OpenPullRequest => ({
     number: pr.number,
     title: pr.title,
@@ -91,6 +96,7 @@ const openPullRequest =
     url: pr.url,
     draft: pr.isDraft,
     reviewRequested,
+    mine,
     head: pr.headRefOid,
     base: pr.baseRefName,
     updatedAt: pr.updatedAt,
@@ -99,7 +105,8 @@ const openPullRequest =
 
 /**
  * The open pull requests of the repo at `cwd`, through the user's own gh: every one waiting on
- * their review, however old, then the most recent of the rest, newest first, as gh lists them.
+ * their review, however old, then their own, then the most recent of the rest, newest first, as gh
+ * lists them.
  * Throws with gh's own words when it can't list them (not installed, not logged in, not a GitHub
  * repo).
  */
@@ -108,7 +115,7 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
     "--json",
     "number,title,author,url,isDraft,headRefOid,baseRefName,updatedAt,commits",
   ]
-  const [listed, waiting] = await Promise.all([
+  const [listed, waiting, own] = await Promise.all([
     runGh(cwd, gh, ["pr", "list", ...fields, "--limit", LIMIT]),
     runGh(cwd, gh, [
       "pr",
@@ -119,12 +126,19 @@ export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPull
       "--limit",
       WAITING_LIMIT,
     ]),
+    runGh(cwd, gh, ["pr", "list", "--author", "@me", ...fields, "--limit", WAITING_LIMIT]),
   ])
-  const requested = ListedSchema.parse(waiting).map(openPullRequest(true))
+  const requested = ListedSchema.parse(waiting).map(
+    openPullRequest({ reviewRequested: true, mine: false }),
+  )
   const numbers = new Set(requested.map((pr) => pr.number))
-  const rest = ListedSchema.parse(listed)
+  const mine = ListedSchema.parse(own)
     .filter((pr) => !numbers.has(pr.number))
-    .map(openPullRequest(false))
+    .map(openPullRequest({ reviewRequested: false, mine: true }))
+  const listedAbove = new Set([...numbers, ...mine.map((pr) => pr.number)])
+  const rest = ListedSchema.parse(listed)
+    .filter((pr) => !listedAbove.has(pr.number))
+    .map(openPullRequest({ reviewRequested: false, mine: false }))
 
-  return [...requested, ...rest]
+  return [...requested, ...mine, ...rest]
 }

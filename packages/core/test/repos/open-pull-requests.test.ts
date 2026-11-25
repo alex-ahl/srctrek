@@ -42,6 +42,7 @@ describe("openPullRequests", () => {
   test("lists the open pull requests with their heads, bases, commits, and last updates, those waiting on the user's review first", async () => {
     const gh = await fakeGh(`case "$*" in
   *review-requested*) echo '${JSON.stringify([LISTED[1]])}' ;;
+  *--author*) echo '[]' ;;
   *) echo '${JSON.stringify(LISTED)}' ;;
 esac`)
 
@@ -55,6 +56,7 @@ esac`)
         url: "https://github.com/acme/api/pull/12",
         draft: false,
         reviewRequested: true,
+        mine: false,
         head: "a12",
         base: "release/2.1",
         updatedAt: "2026-11-22T09:00:00Z",
@@ -67,6 +69,7 @@ esac`)
         url: "https://github.com/acme/api/pull/14",
         draft: true,
         reviewRequested: false,
+        mine: false,
         head: "b14",
         base: "main",
         updatedAt: "2026-11-20T10:00:00Z",
@@ -79,6 +82,7 @@ esac`)
     const older = { ...LISTED[0], number: 3, isDraft: false, updatedAt: "2026-09-01T10:00:00Z" }
     const gh = await fakeGh(`case "$*" in
   *review-requested*) echo '${JSON.stringify([older])}' ;;
+  *--author*) echo '[]' ;;
   *) echo '${JSON.stringify(LISTED)}' ;;
 esac`)
 
@@ -86,6 +90,23 @@ esac`)
 
     expect(open.map((pr) => [pr.number, pr.reviewRequested])).toEqual([
       [3, true],
+      [14, false],
+      [12, false],
+    ])
+  })
+
+  test("lists the user's own pull requests after those waiting on them, however old", async () => {
+    const own = { ...LISTED[0], number: 5, isDraft: false, updatedAt: "2026-08-01T10:00:00Z" }
+    const gh = await fakeGh(`case "$*" in
+  *review-requested*) echo '[]' ;;
+  *--author*) echo '${JSON.stringify([own])}' ;;
+  *) echo '${JSON.stringify(LISTED)}' ;;
+esac`)
+
+    const open = await openPullRequests(await tempDir("repo-"), gh)
+
+    expect(open.map((pr) => [pr.number, pr.mine])).toEqual([
+      [5, true],
       [14, false],
       [12, false],
     ])

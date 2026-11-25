@@ -439,6 +439,7 @@ test("a pull request opens on its title, never on its number first", async () =>
         url,
         draft: false,
         reviewRequested: true,
+        mine: false,
         head: "a12",
         base: "main",
         updatedAt: "2026-11-23T10:00:00Z",
