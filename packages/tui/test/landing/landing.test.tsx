@@ -20,8 +20,8 @@ const choices: BranchChoices = {
   own: { name: "feature/refunds", commits: 3 },
   uncommittedFiles: 2,
   others: [
-    { name: "fix/rounding", commits: 1 },
-    { name: "feature/partial-refunds", commits: 5 },
+    { name: "fix/rounding", commits: 1, mine: true },
+    { name: "feature/partial-refunds", commits: 5, mine: true },
   ],
 }
 

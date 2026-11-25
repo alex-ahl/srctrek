@@ -21,7 +21,7 @@ const choices: BranchChoices = {
   base: "main",
   own: { name: "feature/refunds", commits: 3 },
   uncommittedFiles: 0,
-  others: [{ name: "fix/rounding", commits: 1 }],
+  others: [{ name: "fix/rounding", commits: 1, mine: true }],
 }
 
 const summary: ChangeSummary = {

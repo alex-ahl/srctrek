@@ -122,6 +122,7 @@ export {
   choiceArguments,
   choiceOfArguments,
   type BranchChoice,
+  type OtherBranch,
   type BranchChoices,
   type ChangeChoice,
   type RepoPick,

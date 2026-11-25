@@ -121,7 +121,34 @@ describe("branchChoices", () => {
     expect(choices.base).toBe("main")
     expect(choices.own).toEqual({ name: "feature/refunds", commits: 1 })
     expect(choices.uncommittedFiles).toBe(1)
-    expect(choices.others).toEqual([{ name: "fix/rounding", commits: 1 }])
+    expect(choices.others).toEqual([{ name: "fix/rounding", commits: 1, mine: false }])
+  })
+
+  test("marks the other branches holding a commit of the user's, as their email names them", async () => {
+    const dir = await makeBranchRepo()
+    await runGit(dir, ["config", "user.email", "test@example.test"])
+    await runGit(dir, ["switch", "--quiet", "-c", "fix/rounding", "main"])
+    await commit(dir, "round.ts", "export const round = Math.round\n")
+    await runGit(dir, ["switch", "--quiet", "-c", "bo/tax", "main"])
+    await writeFile(join(dir, "tax.ts"), "export const tax = 0.25\n")
+    await runGit(dir, ["add", "tax.ts"])
+    await runGit(dir, [
+      "-c",
+      "user.name=bo",
+      "-c",
+      "user.email=bo@example.test",
+      "commit",
+      "-qm",
+      "tax",
+    ])
+    await runGit(dir, ["switch", "--quiet", "feature/refunds"])
+
+    const choices = await branchChoices(dir)
+
+    expect(choices.others).toEqual([
+      { name: "bo/tax", commits: 1, mine: false },
+      { name: "fix/rounding", commits: 1, mine: true },
+    ])
   })
 
   test("trek's own folder isn't work of the user's to trek", async () => {

@@ -20,7 +20,7 @@ const choices: BranchChoices = {
   base: "main",
   own: { name: "feature/refunds", commits: 9 },
   uncommittedFiles: 2,
-  others: [{ name: "fix/rounding", commits: 1 }],
+  others: [{ name: "fix/rounding", commits: 1, mine: true }],
 }
 
 const pulls: OpenPullRequest[] = [
@@ -183,7 +183,11 @@ const landingBusy = (
         base: "main",
         own: { name: "feature/refunds", commits: 9 },
         uncommittedFiles: 4,
-        others: Object.keys(busyStates).map((name, at) => ({ name, commits: at * 3 + 1 })),
+        others: Object.keys(busyStates).map((name, at) => ({
+          name,
+          commits: at * 3 + 1,
+          mine: true,
+        })),
       })
     }
     pullRequests={() => Promise.resolve(busyPulls)}

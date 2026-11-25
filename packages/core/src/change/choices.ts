@@ -102,25 +102,49 @@ export function choiceOfArguments(args: readonly string[]): ChangeChoice {
 /** A branch to choose, and how many commits it has since it left the base. */
 export type BranchChoice = Readonly<{ name: string; commits: number }>
 
+/** A branch besides the one checked out, and whether a commit on it since the base is the user's. */
+export type OtherBranch = BranchChoice & Readonly<{ mine: boolean }>
+
 /**
  * The branches of the repo at `cwd` to choose from: the base they're counted from, the one checked
  * out, the files changed and not yet committed there, and the others most recently committed to
- * first, leaving out the base and branches with nothing since it.
+ * first, each marked when a commit on it is the user's, leaving out the base and branches with
+ * nothing since it.
  */
 export type BranchChoices = Readonly<{
   base: string
   own: BranchChoice | undefined
   uncommittedFiles: number
-  others: readonly BranchChoice[]
+  others: readonly OtherBranch[]
 }>
 
-// Enough to find recent work without a git call per branch in a repo that keeps hundreds.
-const OTHERS_LIMIT = 15
+// Enough to find recent work, the user's among it, without a git call per branch in a repo that
+// keeps hundreds.
+const OTHERS_LIMIT = 40
 
 // Counted as the snapshot of them is taken: trek's own folder is no work of the user's.
 async function uncommittedFiles(cwd: string): Promise<number> {
   const status = await runGit(cwd, ["status", "--porcelain", "--", ":/", ":(top,exclude).srctrek"])
   return status === "" ? 0 : status.split("\n").length
+}
+
+// The user's email, as their commits carry it; none when git has none set.
+async function userEmail(cwd: string): Promise<string> {
+  const email = await runGit(cwd, ["config", "user.email"]).catch(() => "")
+  return email.toLowerCase()
+}
+
+// A branch's commits since the base, by who made them: how many, and whether one is the user's.
+async function otherBranch(
+  cwd: string,
+  base: string,
+  name: string,
+  email: string,
+): Promise<OtherBranch> {
+  const out = await runGit(cwd, ["log", "--format=%ae", `${base}..${name}`])
+  const authors = out === "" ? [] : out.split("\n")
+  const mine = email !== "" && authors.some((author) => author.toLowerCase() === email)
+  return { name, commits: authors.length, mine }
 }
 
 // Local branches, most recently committed to first.
@@ -141,11 +165,9 @@ export async function branchChoices(cwd: string): Promise<BranchChoices> {
   const names = (await localBranches(cwd)).filter(
     (name) => name !== current && !isBaseBranch(base, name),
   )
+  const email = await userEmail(cwd)
   const counted = await Promise.all(
-    names.slice(0, OTHERS_LIMIT).map(async (name) => ({
-      name,
-      commits: await commitsBetween(cwd, base, name),
-    })),
+    names.slice(0, OTHERS_LIMIT).map((name) => otherBranch(cwd, base, name, email)),
   )
   const own =
     current === undefined
