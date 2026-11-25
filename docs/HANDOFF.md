@@ -60,7 +60,7 @@
   opens settings.
 - With any arguments, `trek` opens the change they name on its screen; esc goes to the landing
   page. A change's screen: the change and its size, its trek's state, the build as it runs with a
-  repo the agent proposes (`a` add, `x` dismiss), and the trek's overview once saved. `b` builds,
+  repo the agent proposes (`y` add, `x` dismiss), and the trek's overview once saved. `b` builds,
   updates, or builds again; enter steps the trek here or in the chosen editor; `l` opens its
   builds. A ready trek built again reads as building until the build ends.
 - Code as it is: its ways in, each with its trek; enter steps a way in's trek, `b` builds it, `B`

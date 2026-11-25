@@ -63,9 +63,10 @@ its overview. While `trek` is open, it follows new commits and branch switches.
 | `enter`   | Open the change; on a change, step it                    |
 | `b`       | Build, update, or build again the trek                   |
 | `B`       | Other branches; on code as it is, find its ways in again |
-| `a`       | Add repos, or a repo your agent proposed                 |
+| `a`       | Add repos                                                |
 | `p`       | Other pull requests, on the landing page                 |
 | `d`       | Treks whose work is done, on the landing page            |
+| `y`       | Add a repo your agent proposed                           |
 | `x`       | Stop a build, or dismiss a proposed repo                 |
 | `l`       | The trek's builds, and each one's log                    |
 | `S`       | Settings                                                 |

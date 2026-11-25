@@ -104,7 +104,7 @@ function trekHints(context: KeyContext, actions: ChangeActions): KeyHint[] {
   const { proposal } = context
   return [
     ...(verb === undefined || actions.build === undefined ? [] : [{ key: "b", does: verb }]),
-    ...(proposal === undefined ? [] : [{ key: "a", does: `add ${proposal.name}` }]),
+    ...(proposal === undefined ? [] : [{ key: "y", does: `add ${proposal.name}` }]),
     ...xHint(context),
     ...(offersBuilds(context.status, actions) ? [{ key: "l", does: "builds" }] : []),
   ]
@@ -124,7 +124,7 @@ export function changeGroups(context: KeyContext, actions: ChangeActions): KeyGr
   ]
 }
 
-// a adds the repo proposed, first asking where it lives when the agent didn't find out.
+// y adds the repo proposed, first asking where it lives when the agent didn't find out.
 function addKey({ proposal, run, ask }: KeyContext, actions: ChangeActions) {
   if (proposal === undefined) {
     return
@@ -168,7 +168,7 @@ export function changeKeys(
     ["e", () => stepping && editor?.open(name)],
     ["n", () => stepping && editorFirst && step(name)],
     ["b", () => builds && build !== undefined && context.run(build())],
-    ["a", () => addKey(context, actions)],
+    ["y", () => addKey(context, actions)],
     ["x", () => xKey(context, actions)],
     ["l", () => offersBuilds(context.status, actions) && actions.builds?.(name)],
     ["escape", actions.back],

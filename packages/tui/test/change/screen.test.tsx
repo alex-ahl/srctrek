@@ -319,13 +319,13 @@ const billing: ProposedRepo = {
   evidence: [{ repo: "web", file: "ledger.ts", line: 3 }],
 }
 
-test("a repo the agent proposes: a adds it where the agent found it", async () => {
+test("a repo the agent proposes: y adds it where the agent found it", async () => {
   const addRepo = mock((_name: string, _location?: string) => Promise.resolve())
   await frameAfter(
     screen(".", building, { actions: { addRepo }, proposal: billing }),
     async (input, on) => {
       await on.shows("the agent went into billing")
-      input.pressKey("a")
+      input.pressKey("y")
       await on.drawn()
     },
   )
@@ -333,14 +333,14 @@ test("a repo the agent proposes: a adds it where the agent found it", async () =
   expect(addRepo).toHaveBeenCalledWith("billing")
 })
 
-test("a proposed repo with no location: a asks where it lives", async () => {
+test("a proposed repo with no location: y asks where it lives", async () => {
   const addRepo = mock((_name: string, _location?: string) => Promise.resolve())
   const unknown = { ...billing, source: undefined }
   await frameAfter(
     screen(".", building, { actions: { addRepo }, proposal: unknown }),
     async (input, on) => {
-      await on.shows("a: add billing  ¦  x: dismiss")
-      input.pressKey("a")
+      await on.shows("y: add billing  ¦  x: dismiss")
+      input.pressKey("y")
       await on.shows("Where does billing live?")
       await input.typeText("../billing")
       input.pressEnter()

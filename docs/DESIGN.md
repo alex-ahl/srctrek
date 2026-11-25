@@ -20,7 +20,7 @@ terminal. Status: Milestone 5, in progress.
    or branch on the landing page.
 2. `trek` resolves the change, fetching what's remote, and opens its screen. `b` builds its trek,
    and the screen follows the build: its steps as they arrive.
-3. A repo the agent proposes shows under the build: `a` adds it to the repos list, `x` dismisses
+3. A repo the agent proposes shows under the build: `y` adds it to the repos list, `x` dismisses
    it. The trek goes on into it either way.
 4. Once saved, the screen shows the trek's overview, and enter steps it, in the terminal or the
    chosen editor.
@@ -282,7 +282,7 @@ treks`. On a view, typing narrows it by name, the title bar saying how many of h
   whether it's a draft, its commits, and its files, each repo's where there are several; then its
   trek's state: no trek yet (what `b` does, or to set an agent in
   settings), building (the steps as they arrive and what the agent read last, a repo it
-  proposes with `a` to add and `x` to dismiss), ready (the trek's overview and its likely-wrong
+  proposes with `y` to add and `x` to dismiss), ready (the trek's overview and its likely-wrong
   steps; enter steps it), stale (how many steps' files changed; `b` updates it, enter steps it as
   it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
   with an older guide, nothing to trek. `b` always builds the trek: builds, updates, or builds
@@ -328,14 +328,14 @@ treks`. On a view, typing narrows it by name, the title bar saying how many of h
 - **Footers** show the keys that act on what's selected; `?` lists every key of the screen,
   grouped, and any key closes the list. Arrows and `q` are left to `?`.
 - **Shared:** `↑`/`↓` or `j`/`k` move, `enter` the main action, `esc` back, `q` quit on the landing
-  page and back elsewhere, `?` every key; `b` build, `a` add, `x` stop or dismiss, `l` builds, `e`
+  page and back elsewhere, `?` every key; `b` build, `y` add, `x` stop or dismiss, `l` builds, `e`
   your editor, `S` settings.
 
 | Screen            | Keys                                                                                                                                                                                                                    |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Landing page      | `enter` open the change · `a` add repos: type to narrow, `space` add a repo, `→` its branches, `esc` clear or done · `p` other pull requests · `B` other branches · `d` done treks · `S` settings · `?` keys · `q` quit |
 | Its views         | type to narrow · `↑`/`↓` move · `enter` open · `esc` clear, then back                                                                                                                                                   |
-| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `a` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back                  |
+| A change's screen | `enter` step it where Step in says · `e` your editor, or `n` here · `b` build, update, or build again · `y` add a proposed repo · `x` stop, or dismiss a proposal · `l` builds · `?` keys · `esc` back                  |
 | Code as it is     | `enter` step a way in's trek · `b` build it · `B` find the ways in again · `?` keys · `esc` back                                                                                                                        |
 | Settings          | `j`/`k` choose · `enter` change · `y` copy the agent request · `esc` back                                                                                                                                               |
 | Build view        | `tab` the log · `←`/`→` older, newer build · `x` stop · `b` build again · `esc` back                                                                                                                                    |
