@@ -61,7 +61,11 @@ export function App(props: Props) {
   const { stack, open, back, replace, update } = useStack(props.opening)
   const front = stack.at(-1)
   const setStatus = (id: number, status: TrekStatus) => update(id, (was) => ({ ...was, status }))
-  const { proposal, run, readProposals } = useStanding(changeInFront(front), sources, setStatus)
+  const { proposal, run, readProposals } = useStanding(
+    changeInFront(front),
+    sources,
+    (status) => front !== undefined && setStatus(front.id, status),
+  )
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
   const [entries, setEntries] = useState<readonly TrekEntry[]>([])

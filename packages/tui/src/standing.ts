@@ -1,29 +1,30 @@
 import type { ProposedRepo, TrekStatus } from "@srctrek/core"
 import { useEffect, useState } from "react"
+import type { OpenChange } from "./change/open-change"
 import type { Sources } from "./sources"
-import type { ChangeOpen, Stacked } from "./stack"
+import type { Stacked } from "./stack"
 import { useBuildWatch } from "./watch/use-build-watch"
 
-type Front = (ChangeOpen & Readonly<{ id: number }>) | undefined
+/** The change on screen, by a key it keeps while it's shown, and where its trek last stood. */
+export type Shown = Readonly<{ key: string; change: OpenChange; status: TrekStatus }> | undefined
 
 /**
- * Where the change in front stands, kept in its place on the stack by `setStatus`, and the repos
- * proposed: read as it comes to the front, again once work a key started is under way, and while
- * a build runs.
+ * Where the change shown stands, kept where it's held by `setStatus`, and the repos proposed:
+ * read as it's shown, again once work a key started is under way, and while a build runs.
  */
 export function useStanding(
-  front: Front,
+  shown: Shown,
   sources: Sources,
-  setStatus: (id: number, status: TrekStatus) => void,
+  setStatus: (status: TrekStatus) => void,
 ) {
   const [proposals, setProposals] = useState<readonly ProposedRepo[]>([])
-  const id = front?.id
-  const readStatus = front?.change.status
+  const key = shown?.key
+  const readStatus = shown?.change.status
 
   const readProposals = async () => setProposals(await sources.proposals())
   const readAll = async () => {
-    if (id !== undefined && readStatus !== undefined) {
-      setStatus(id, await readStatus())
+    if (readStatus !== undefined) {
+      setStatus(await readStatus())
     }
 
     await readProposals()
@@ -32,17 +33,19 @@ export function useStanding(
 
   useEffect(() => {
     void readAll().catch(() => undefined)
-    // what's read is the front change's; only another coming to the front asks again
+    // what's read is the shown change's; only another being shown asks again
     // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
-  useBuildWatch(front?.status, readStatus, {
-    status: (status) => id !== undefined && setStatus(id, status),
+  }, [key])
+  useBuildWatch(shown?.status, readStatus, {
+    status: setStatus,
     ended: readProposals,
   })
 
   return { proposal: proposals[0], run, readProposals }
 }
 
-/** The change in front, when a change's screen is. */
-export const changeInFront = (front: Stacked | undefined): Front =>
-  front?.kind === "change" ? front : undefined
+/** The change in front, when a change's screen is, by its place on the stack. */
+export const changeInFront = (front: Stacked | undefined): Shown =>
+  front?.kind === "change"
+    ? { key: String(front.id), change: front.change, status: front.status }
+    : undefined
