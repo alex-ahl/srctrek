@@ -2,6 +2,26 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-25 — trek starts on the landing page, or on what's checked out
+
+`trek` with no arguments starts on one of two screens, chosen by the "Start on" setting:
+
+- **The landing page** (the default): the user's own work first, then the pull requests waiting on
+  their review and their own pull requests, then their recent branches and code as it is. Every
+  other pull request and branch, and done treks, sit behind a key.
+- **What's checked out:** the screen of the checked-out branch with its uncommitted work, or of its
+  pull request when it is one. On a base branch with nothing of the user's own, it opens the
+  landing page. The screen says what's waiting on the user elsewhere.
+
+`esc` goes from a change to the landing page in either case. A checked-out branch that is a pull
+request is that pull request wherever it's opened from: its title, its base, and one trek.
+
+People run `trek` in the repo they work in, and find reviews there rather than by pasting a link,
+so the landing page must show what's theirs and what waits on them, and leave the rest of a busy
+repo out of the way. Some work one change at a time and come for that change alone; for them the
+list is a step in the way. Both read the same screens, so the setting changes only which comes
+first.
+
 ## 2026-11-18 — Stepping in the terminal is as good as in the editor
 
 A trek can be stepped in the terminal or in an editor, and which is the user's choice. Stepping in
