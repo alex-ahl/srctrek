@@ -10,11 +10,11 @@ function slug(text: string): string {
     .slice(0, 60)
 }
 
-// What the range's head is called: "pr-12", "mr-4", the branch, or the branch with
-// "-uncommitted" for a snapshot of the work on it.
 /** The name a pull request's trek is saved under: "pr-12". */
 export const pullTrekName = (number: number): string => `pr-${number}`
 
+// What the range's head is called: "pr-12", "mr-4", the branch, or the branch with
+// "-uncommitted" for a snapshot of the work on it.
 async function headName(repo: RepoWithRange): Promise<string> {
   const head = await rangeHead(repo)
   if (head.kind !== "branch") {

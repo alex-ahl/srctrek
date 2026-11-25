@@ -13,8 +13,8 @@ function hereOf(summary: ChangeSummary): string {
 const GAP = 2
 
 /**
- * The home screen's title bar: the repo on the left, and on the right the change, its branch or
- * pull request and how much is on it, which the list's first section is the trek of; cut to fit.
+ * A change's title bar: the repo on the left, and on the right the change, its branch or pull
+ * request and how much is on it; cut to fit.
  */
 export function ChangeTitleBar({ summary }: { summary: ChangeSummary | undefined }) {
   const { width } = useTerminalDimensions()

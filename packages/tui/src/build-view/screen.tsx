@@ -234,7 +234,7 @@ function Overview({
 }
 
 /**
- * A build as it happens, opened from the home screen: what's open and how the build stands, with
+ * A build as it happens, opened from a change's screen: what's open and how the build stands, with
  * its clock, then what the agent read, the steps added, rounds rejected, and why it ended. Tab
  * shows the log itself, following its end.
  */

@@ -3,7 +3,7 @@ import { useRef, useState } from "react"
 import { stepped } from "../ui/move"
 import { type Drop, type DropRow, dropRows, opened } from "./drop"
 
-/** A key as the picker hands it on: its name, and the text it types, if any. */
+/** A key as the sheet hands it on: its name, and the text it types, if any. */
 export type DropKey = Readonly<{ name: string; sequence?: string; ctrl?: boolean; meta?: boolean }>
 
 /** A letter, digit, or sign typed to narrow a list, not a key that does something. */

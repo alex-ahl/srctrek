@@ -331,7 +331,7 @@ const GROUPS: readonly KeyGroup[] = [
   {
     title: "the selected line",
     keys: [
-      { key: "enter", does: "open the change, or show what's folded" },
+      { key: "enter", does: "open the change" },
       { key: "↑/↓", does: "choose a line (also j/k)" },
     ],
   },
@@ -345,7 +345,13 @@ const GROUPS: readonly KeyGroup[] = [
       { key: "esc", does: "clear what's typed, or done" },
     ],
   },
-  { title: "screens", keys: [{ key: "S", does: "settings" }] },
+  {
+    title: "screens",
+    keys: [
+      { key: "d", does: "the treks whose work is done" },
+      { key: "S", does: "settings" },
+    ],
+  },
   { title: "leave", keys: [{ key: "q", does: "quit" }] },
 ]
 
@@ -368,9 +374,9 @@ function dropView(
 
 /**
  * Every change there is to look at, each with its trek's state: the user's own work, the pull
- * requests, the repo's other branches, code as it is, and, folded, the treks whose work is done;
- * the repos beside it to tick and take along in a sheet slid up over the list. Opens on the
- * user's own branch.
+ * requests, the repo's other branches, and code as it is, with the treks whose work is done on a
+ * view of their own; the repos beside it to tick and take along in a sheet slid up over the list.
+ * Opens on the user's own branch.
  */
 export function Landing(props: Props) {
   const { height } = useTerminalDimensions()

@@ -166,8 +166,6 @@ function fitBeside(detail: string, room: number): string {
 // The table's columns: the names', what they hold, the states'.
 type Widths = Readonly<{ name: number; detail: number; state: number; ages: boolean }>
 
-// One change to open, a row of the table: its name, what it holds, dimmed, with a mark in the
-// accent, and its trek's state; all of it dimmed while the sheet over the list has the keys.
 // A row's name, as wide as it's drawn.
 const nameText = (row: LandingRow) => indentOf(row) + row.label
 
@@ -195,6 +193,8 @@ function detailCells(row: LandingRow, width: number) {
   return { detail, between, mark, rest }
 }
 
+// One change to open, a row of the table: its name, what it holds, dimmed, with a mark in the
+// accent, and its trek's state; all of it dimmed while the sheet over the list has the keys.
 function ChangeView({
   row,
   cell,

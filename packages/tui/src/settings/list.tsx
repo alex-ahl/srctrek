@@ -7,7 +7,7 @@ import { COLOUR, type Tone, useTones } from "../ui/theme"
 const NAME_WIDTH = 24
 const GAP = "  "
 
-// The states as the home screen shows them, in the colours chosen, so the choice shows itself.
+// The states as the screens show them, in the colours chosen, so the choice shows itself.
 const SAMPLE: ReadonlyArray<Readonly<{ text: string; tone: Tone }>> = [
   { text: "● ready", tone: "good" },
   { text: "≠ stale", tone: "warn" },
