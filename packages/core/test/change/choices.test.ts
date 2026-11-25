@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { writeFile } from "node:fs/promises"
+import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import {
   branchChoices,
@@ -122,5 +122,15 @@ describe("branchChoices", () => {
     expect(choices.own).toEqual({ name: "feature/refunds", commits: 1 })
     expect(choices.uncommittedFiles).toBe(1)
     expect(choices.others).toEqual([{ name: "fix/rounding", commits: 1 }])
+  })
+
+  test("trek's own folder isn't work of the user's to trek", async () => {
+    const dir = await makeBranchRepo()
+    await mkdir(join(dir, ".srctrek", "treks"), { recursive: true })
+    await writeFile(join(dir, ".srctrek", "treks", "refunds.json"), "{}\n")
+
+    const choices = await branchChoices(dir)
+
+    expect(choices.uncommittedFiles).toBe(0)
   })
 })

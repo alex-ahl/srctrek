@@ -117,8 +117,9 @@ export type BranchChoices = Readonly<{
 // Enough to find recent work without a git call per branch in a repo that keeps hundreds.
 const OTHERS_LIMIT = 15
 
+// Counted as the snapshot of them is taken: trek's own folder is no work of the user's.
 async function uncommittedFiles(cwd: string): Promise<number> {
-  const status = await runGit(cwd, ["status", "--porcelain"])
+  const status = await runGit(cwd, ["status", "--porcelain", "--", ":/", ":(top,exclude).srctrek"])
   return status === "" ? 0 : status.split("\n").length
 }
 
