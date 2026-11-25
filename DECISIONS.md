@@ -2,6 +2,23 @@
 
 Newest first. Each entry: the decision, then why.
 
+## 2026-11-25 — The landing page and a change's screen side by side
+
+Where the terminal is 110 columns or wider, the landing page lists the changes on the left, each
+by its name and its trek's state, and shows the selected change's own screen on the right. Moving
+the selection changes the right side; the change's keys work from the list: `↵` steps its trek, or
+builds it when it has none, `e` steps it in the editor, `b` builds, `l` opens its builds. A repo
+the agent proposes is added with `y` and dismissed with `x`, leaving `a` to add repos. The `p`, `B`,
+and `d` views split the same way. Narrower, the landing page is the list alone and `↵` opens the
+change's screen. A change named on the command line opens on its own screen; `esc` goes to the
+landing page. "Build automatically" applies where a change opens on its own screen; in the split
+view, `↵` on a change with no trek builds it.
+
+The list alone said little: every row's state the same, most of the screen empty, and what a
+change holds one screen away. Its screen beside the list shows the change and its trek without
+leaving the list, and nothing is drawn twice: what a change holds and its trek's overview are only
+on the right. Moving the selection only reads; nothing starts until a key says so.
+
 ## 2026-11-25 — trek starts on the landing page, or on what's checked out
 
 `trek` with no arguments starts on one of two screens, chosen by the "Start on" setting:
