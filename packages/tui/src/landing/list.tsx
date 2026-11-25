@@ -1,8 +1,9 @@
 import type { RGBA } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/react"
-import type { ChangeChoice, TrekStatus } from "@srctrek/core"
-import { useEffect, useState } from "react"
-import type { LandingGroup, LandingRow, PullHead } from "./rows"
+import type { TrekStatus } from "@srctrek/core"
+import type { LandingGroup, LandingRow } from "./rows"
+import { rowKey, workedOut } from "./statuses"
+import { firstShown, noteIndex, startsGroup } from "./window"
 import { statusBlock } from "../change/status-block"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
@@ -30,74 +31,6 @@ const ROW_INDENT = "  "
 const MARKER = 2
 const GAP = "  "
 const COLUMN_GAP = "    "
-
-/** A row's key, which keeps it selected while the lines around it come and go. */
-export const rowKey = (row: LandingRow): string => JSON.stringify(row.choice)
-
-/** How the landing page reads where each row's trek stands: a change's, and a pull request's. */
-export type StatusOf = Readonly<{
-  status: (choice: ChangeChoice) => Promise<TrekStatus>
-  pullStatus: (pr: PullHead) => Promise<TrekStatus>
-}>
-
-// Reading where a row's trek stands: a pull request's from its head as listed, as working out
-// the change would fetch it first; none for a done trek's row, which says how its work ended.
-function askOf(row: LandingRow, read: StatusOf): (() => Promise<TrekStatus>) | undefined {
-  const { choice, pull } = row
-  if (choice.kind === "trek") {
-    return undefined
-  }
-
-  if (choice.kind === "pull-request") {
-    return pull === undefined ? undefined : () => read.pullStatus(pull)
-  }
-
-  return () => read.status(choice)
-}
-
-// Whether a row's trek state is read on the landing page.
-const workedOut = (row: LandingRow) =>
-  row.choice.kind !== "trek" && (row.choice.kind !== "pull-request" || row.pull !== undefined)
-
-/** The key of the row a change is listed on, whatever repos are ticked to go with it. */
-export function choiceKey(choice: ChangeChoice): string {
-  const { repos: _repos, ...change } = choice
-  return JSON.stringify(change)
-}
-
-/** Whether every row whose trek's state is worked out here has its state yet. */
-export const statesKnown = (
-  rows: readonly LandingRow[],
-  statuses: ReadonlyMap<string, TrekStatus>,
-): boolean => rows.every((row) => !workedOut(row) || statuses.has(rowKey(row)))
-
-/** Each row's trek status as it's worked out; one that can't be worked out is left blank. */
-export function useStatuses(
-  rows: readonly LandingRow[],
-  { status, pullStatus }: StatusOf,
-): ReadonlyMap<string, TrekStatus> {
-  const [found, setFound] = useState<ReadonlyMap<string, TrekStatus>>(new Map())
-  useEffect(() => {
-    let current = true
-    for (const row of rows) {
-      const ask = askOf(row, { status, pullStatus })
-      if (ask === undefined) {
-        continue
-      }
-
-      void ask().then(
-        (each) => current && setFound((known) => new Map(known).set(rowKey(row), each)),
-        () => undefined,
-      )
-    }
-
-    return () => {
-      current = false
-    }
-  }, [rows, status, pullStatus])
-
-  return found
-}
 
 // Code as it is's, "ways in" being in its name.
 const STATE_WORDS: Readonly<Record<string, string>> = {
@@ -368,73 +301,6 @@ export function LandingList({
       {noteAt === items.length && <Note note={note} first={items.length === 0} />}
     </box>
   )
-}
-
-// An item under a different heading from the one before it, or the first.
-const startsGroup = (previous: LandingRow | undefined, item: LandingRow) =>
-  previous === undefined || previous.group !== item.group
-
-// The note on the pull requests, with none to list yet, goes where they would: after own work.
-function noteIndex(items: readonly LandingRow[]): number {
-  const after = items.findIndex((item) => item.group !== "your work")
-  return after === -1 ? items.length : after
-}
-
-/**
- * Where each item's lines start, its heading and the note above it among them, and where its own
- * line is.
- */
-function linesOf(items: readonly LandingRow[], noteAt: number, hasNote: boolean) {
-  const tops: number[] = []
-  const own: number[] = []
-  let line = 0
-  for (const [index, item] of items.entries()) {
-    tops.push(line)
-    if (index === noteAt && hasNote) {
-      line += index === 0 ? 1 : 2
-    }
-
-    if (startsGroup(items[index - 1], item)) {
-      line += index === 0 && noteAt !== 0 ? 1 : 2
-    }
-
-    own.push(line)
-    line += 1
-  }
-
-  return { tops, own, total: line }
-}
-
-/** The first item drawn, so the selected one sits mid-list where the list runs past `height`. */
-function firstShown(
-  items: readonly LandingRow[],
-  chosen: number,
-  noteAt: number,
-  hasNote: boolean,
-  height: number,
-): number {
-  const { tops, own, total } = linesOf(items, noteAt, hasNote)
-  if (total <= height) {
-    return 0
-  }
-
-  const top = Math.min(Math.max((own[chosen] ?? 0) - Math.floor(height / 2), 0), total - height)
-  const found = tops.findIndex((line) => line >= top)
-  let first = found === -1 ? 0 : Math.min(found, chosen)
-  // a first line mid-group has its group's heading drawn over it, a line the count above leaves
-  // out: on, while it would push the selected line past the bottom
-  const below = (at: number) => (own[chosen] ?? 0) - (tops[at] ?? 0) + (headed(items, at) ? 0 : 1)
-  while (first < chosen && below(first) >= height) {
-    first += 1
-  }
-
-  return first
-}
-
-// Whether the line at `at` comes with its heading.
-const headed = (items: readonly LandingRow[], at: number) => {
-  const item = items[at]
-  return item === undefined || startsGroup(items[at - 1], item)
 }
 
 function Note({ note, first }: { note: LandingNote | undefined; first: boolean }) {
