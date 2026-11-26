@@ -12,6 +12,7 @@ import { useTurning } from "../ui/turning"
 import { fit, shortAge } from "../ui/text"
 import { useNow } from "../ui/clock"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
+import { SEPARATOR } from "../ui/separator"
 
 /** What a heading says of a group with nothing to open in it: still loading, none, or why not. */
 export type LandingNote = Readonly<{ group: LandingGroup; text: string; tone: Tone }>
@@ -87,12 +88,10 @@ function stateCell(
 const indentOf = (row: LandingRow) =>
   row.choice.kind === "own" && row.choice.uncommitted ? "  " : ""
 
-const MARK_SEPARATOR = " · "
-
 // What a row holds in the room a mark leaves it, the separator's room among it; given up whole
 // where less than a character would show.
 function fitBeside(detail: string, room: number): string {
-  const left = detail === "" ? 0 : room - MARK_SEPARATOR.length
+  const left = detail === "" ? 0 : room - SEPARATOR.length
   return left < 2 ? "" : fit(detail, left)
 }
 
@@ -103,8 +102,7 @@ type Widths = Readonly<{ name: number; detail: number; state: number; ages: bool
 const nameText = (row: LandingRow) => indentOf(row) + row.label
 
 // What a row holds and its mark, as wide as they're drawn.
-const detailText = (row: LandingRow) =>
-  [row.detail, row.mark ?? ""].filter(Boolean).join(MARK_SEPARATOR)
+const detailText = (row: LandingRow) => [row.detail, row.mark ?? ""].filter(Boolean).join(SEPARATOR)
 
 // A row's name column: set in for uncommitted work, its name cut to fit, and the room after it.
 function nameCells(row: LandingRow, width: number) {
@@ -120,7 +118,7 @@ function nameCells(row: LandingRow, width: number) {
 function detailCells(row: LandingRow, width: number) {
   const mark = row.mark === undefined ? "" : fit(row.mark, width)
   const detail = mark === "" ? fit(row.detail, width) : fitBeside(row.detail, width - mark.length)
-  const between = detail !== "" && mark !== "" ? MARK_SEPARATOR : ""
+  const between = detail !== "" && mark !== "" ? SEPARATOR : ""
   const rest = " ".repeat(Math.max(width - detail.length - between.length - mark.length, 0))
 
   return { detail, between, mark, rest }

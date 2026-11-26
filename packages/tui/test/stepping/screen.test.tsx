@@ -185,7 +185,7 @@ test("r opens the route: the call tree, what runs at ▶, and the chosen stop be
     24,
   )
 
-  expect(frame).toContain("the route · r back")
+  expect(frame).toContain("the route  ¦  r back")
   expect(frame).toMatch(/running at ▶  main\.ts:1 › pay\.ts:1/)
   expect(frame).toMatch(/▶  2  │ pay\.ts:1/)
   expect(frame).toMatch(/n  3  │ send\.ts:1/)
@@ -323,7 +323,7 @@ test("enter on a call found by name in several places opens the nearest, and ←
     24,
   )
 
-  expect(first).toContain("format · format.ts:1 · found by name · 1 of 2")
+  expect(first).toContain("format  ¦  format.ts:1  ¦  found by name  ¦  1 of 2")
   expect(first).toContain("←/→: other places")
-  expect(second).toContain("format · vendor/format.ts:1 · found by name · 2 of 2")
+  expect(second).toContain("format  ¦  vendor/format.ts:1  ¦  found by name  ¦  2 of 2")
 })

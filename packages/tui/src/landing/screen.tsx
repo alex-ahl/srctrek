@@ -24,6 +24,7 @@ import { useNow } from "../ui/clock"
 import { TextPrompt } from "../ui/text-prompt"
 import { TitleBar } from "../ui/title-bar"
 import { useTurning } from "../ui/turning"
+import { SEPARATOR } from "../ui/separator"
 
 type Props = LandingSources & {
   // the branches of a repo beside this one, by its path, and fetching it on the user's word
@@ -474,13 +475,13 @@ const VIEW_TITLES: Readonly<Record<Exclude<View, "changes">, string>> = {
 }
 
 // A view's title, and once something's typed, how many of its rows hold it and what it is:
-// "pull requests · 1 of 2  / cache▏".
+// "pull requests  ¦  1 of 2  / cache▏".
 function titleOf(view: View, base: string | undefined, narrowed: Narrowed): ReactNode {
   if (view !== "changes") {
     const { query, shown, of } = narrowed
     return query === ""
       ? VIEW_TITLES[view]
-      : `${VIEW_TITLES[view]} · ${shown} of ${of}  / ${query}▏`
+      : `${VIEW_TITLES[view]}${SEPARATOR}${shown} of ${of}  / ${query}▏`
   }
 
   return base === undefined ? undefined : <Against base={base} />

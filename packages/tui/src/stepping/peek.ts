@@ -1,4 +1,5 @@
 import { runGit } from "@srctrek/core"
+import { SEPARATOR } from "../ui/separator"
 
 /** A place to look at beside the trek: a file at a line, saying what it is. */
 export type Look = Readonly<{ path: string; line: number; label: string }>
@@ -58,6 +59,6 @@ export async function definitionsOf(dir: string, name: string): Promise<Look[]> 
     .filter((line) => line !== "")
     .map((line) => {
       const [file = "", at = "1"] = line.split(":")
-      return { path: `${dir}/${file}`, line: Number(at), label: `${name} · ${file}:${at}` }
+      return { path: `${dir}/${file}`, line: Number(at), label: `${name}${SEPARATOR}${file}:${at}` }
     })
 }

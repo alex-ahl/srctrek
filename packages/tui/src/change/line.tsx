@@ -7,6 +7,7 @@ import type {
 } from "@srctrek/core"
 import { count, fit } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
+import { SEPARATOR } from "../ui/separator"
 
 /** A piece of the line in its look: what was picked in bold, the rest plain or dim. */
 export type Part = Readonly<{ text: string; look: "bold" | "plain" | "dim" }>
@@ -46,17 +47,19 @@ function withOthers(first: ChangedRepoSummary, others: readonly ChangedRepoSumma
     return [...(i === 0 ? [] : [dim(", ")]), plain(repo.repo), ...on]
   })
 
-  return [dim(" · with "), ...each]
+  return [dim(`${SEPARATOR}with `), ...each]
 }
 
 function passedThrough(unchanged: readonly string[]): Part[] {
-  return unchanged.length === 0 ? [] : [dim(" · "), plain(names(unchanged)), dim(" passed through")]
+  return unchanged.length === 0
+    ? []
+    : [dim(SEPARATOR), plain(names(unchanged)), dim(" passed through")]
 }
 
 // Code as it is in the repo trek runs in, with the others, from the trigger the user named.
 function codeParts(summary: ChangeSummary): Part[] {
   const [here = "", ...others] = summary.unchanged
-  const along = others.length === 0 ? [] : [dim(" · with "), plain(names(others))]
+  const along = others.length === 0 ? [] : [dim(`${SEPARATOR}with `), plain(names(others))]
   const from = summary.trigger === undefined ? [] : [dim(", from "), plain(`"${summary.trigger}"`)]
 
   return [bold("Code as it is"), dim(` in ${here}`), ...along, ...from]
@@ -78,7 +81,7 @@ export function changeParts(summary: ChangeSummary): Part[] {
 
   return [
     bold(headLabel(first.head)),
-    dim(` · ${sizeOf(first)}`),
+    dim(`${SEPARATOR}${sizeOf(first)}`),
     ...withOthers(first, others),
     ...passedThrough(summary.unchanged),
   ]
@@ -183,7 +186,7 @@ export function sizeText(
   )
   const each =
     changed.length > 1 ? [changed.map((repo) => `${repo.repo} ${repo.files}`).join(", ")] : []
-  return [...who, commitsText(changed), files, ...each].join(" · ")
+  return [...who, commitsText(changed), files, ...each].join(SEPARATOR)
 }
 
 /** The top of a change's screen: what the change is, then who opened it and how big it is. */

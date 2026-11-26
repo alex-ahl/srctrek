@@ -3,6 +3,7 @@ import { changeParts } from "./line"
 import { useTerminalDimensions } from "@opentui/react"
 import { fit } from "../ui/text"
 import { TitleBar, titleRoom } from "../ui/title-bar"
+import { SEPARATOR } from "../ui/separator"
 
 // The repo trek runs in, as the change names it first.
 function hereOf(summary: ChangeSummary): string {
@@ -26,7 +27,7 @@ export function ChangeTitleBar({ summary }: { summary: ChangeSummary | undefined
   const change = changeParts(summary)
     .map((part) => part.text)
     .join("")
-    .replace(/^ · /, "")
+    .replace(new RegExp(`^${SEPARATOR}`), "")
   return (
     <TitleBar
       left={<span>{here}</span>}

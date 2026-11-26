@@ -5,6 +5,7 @@ import { FLAGS, flagWords } from "./flags"
 import { howNext } from "./next"
 import type { RouteStop } from "./route"
 import type { Near } from "./use-stepping"
+import { SEPARATOR } from "../ui/separator"
 
 // The column's width, beside the code on a terminal wide enough to spare it.
 export const SIDE_WIDTH = 40
@@ -49,15 +50,15 @@ function Heading({ title, letter }: { title: string; letter: string }) {
   )
 }
 
-// Where a neighbouring stop is: "this file · line 40" in the stop's own file, else its repo and
+// Where a neighbouring stop is: "this file  ¦  line 40" in the stop's own file, else its repo and
 // path, cut from the left so the folder and file show.
 function PlaceLine({ stop, from }: { stop: RouteStop; from: RouteStop }) {
   const tones = useTones()
   if (stop.repo === from.repo && stop.file === from.file) {
-    return <text fg={tones.dim}>{`this file · line ${String(stop.line)}`}</text>
+    return <text fg={tones.dim}>{`this file${SEPARATOR}line ${String(stop.line)}`}</text>
   }
 
-  const repo = `${stop.repo} · `
+  const repo = `${stop.repo}${SEPARATOR}`
   return (
     <text>
       <span fg={tones.dim}>{repo}</span>

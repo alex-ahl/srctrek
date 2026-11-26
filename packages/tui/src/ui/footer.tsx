@@ -1,12 +1,11 @@
 import { TextAttributes } from "@opentui/core"
 import { useTerminalDimensions } from "@opentui/react"
 import { PADDING } from "./layout"
+import { SEPARATOR } from "./separator"
 import { COLOUR, useTones } from "./theme"
 
 /** A key and what it does, as the footer lists them. */
 export type KeyHint = Readonly<{ key: string; does: string }>
-
-const SEPARATOR = "  ¦  "
 
 const keyLabel = (key: string) => (key === "enter" ? "↵" : key)
 

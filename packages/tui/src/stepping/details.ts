@@ -3,6 +3,7 @@ import { wrap } from "../ui/text"
 import type { Tone } from "../ui/theme"
 import { flagWords } from "./flags"
 import type { Look } from "./peek"
+import { SEPARATOR } from "../ui/separator"
 
 /**
  * A line of a step's details: its text and look, and, for a line that leads somewhere, the step
@@ -48,7 +49,7 @@ function cameFromLines(view: StepView, codeAt: CodeAt): DetailLine[] {
     return []
   }
 
-  const name = link.name === null ? "" : ` · ${link.name}`
+  const name = link.name === null ? "" : `${SEPARATOR}${link.name}`
   const guessed = link.guessed ? "   guessed: matched by name" : ""
   const cites = link.cites.flatMap((cite): DetailLine[] => [
     {
@@ -57,7 +58,7 @@ function cameFromLines(view: StepView, codeAt: CodeAt): DetailLine[] {
       opens: {
         path: cite.path,
         line: cite.line,
-        label: `evidence · ${cite.file}:${String(cite.line)}`,
+        label: `evidence${SEPARATOR}${cite.file}:${String(cite.line)}`,
       },
     },
     { text: `      ${codeAt(cite.path, cite.line)}` },
@@ -82,7 +83,7 @@ function flagLines(view: StepView, width: number): DetailLine[] {
   }
 
   const tone: Tone = flag.severity === "high" ? "bad" : "warn"
-  const note = wrap(`${flagWords(flag.severity)} · ${flag.note}`, width - 2)
+  const note = wrap(`${flagWords(flag.severity)}${SEPARATOR}${flag.note}`, width - 2)
   return [blank, heading("FLAG"), ...note.map((text) => ({ text: `  ${text}`, tone }))]
 }
 

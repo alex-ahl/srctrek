@@ -1,4 +1,5 @@
 import { type RouteStop, hiddenBy } from "./route"
+import { SEPARATOR } from "../ui/separator"
 
 /**
  * How the route map is narrowed: to changed or flagged stops, to stops whose name has `find` in
@@ -36,7 +37,7 @@ export function shownOf(
 }
 
 /**
- * "showing changed · find "read" · 3 found", what the map is narrowed to, a cursor in the find
+ * "showing changed  ¦  find "read"  ¦  3 found", what the map is narrowed to, a cursor in the find
  * while it's typed; empty when it isn't narrowed.
  */
 export function narrowText(narrow: Narrow, count: number): string {
@@ -44,5 +45,5 @@ export function narrowText(narrow: Narrow, count: number): string {
   const cursor = narrow.finding ? "▏" : ""
   const find = narrow.find === "" && !narrow.finding ? [] : [`find "${narrow.find}${cursor}"`]
   const parts = [...only, ...find]
-  return parts.length === 0 ? "" : `${parts.join(" · ")} · ${String(count)} found`
+  return parts.length === 0 ? "" : `${parts.join(SEPARATOR)}${SEPARATOR}${String(count)} found`
 }

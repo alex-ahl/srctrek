@@ -19,6 +19,7 @@ import { openAtLine } from "../editors/editors"
 import { nextText } from "./next"
 import { type ReactNode, useRef, useState } from "react"
 import { shifted } from "../ui/move"
+import { SEPARATOR } from "../ui/separator"
 
 type Props = {
   root: string
@@ -122,7 +123,7 @@ function callAt(view: SessionView | undefined, cursor: number | undefined): stri
   return view.calls.find((call) => call.call_line === cursor)?.id
 }
 
-// "  6 / 15 · api 2 of 5 · ⚠ 1 ahead": the stop among them all, its place in its repo's run of
+// "  6 / 15  ¦  api 2 of 5  ¦  ⚠ 1 ahead": the stop among them all, its place in its repo's run of
 // stops, and the likely-wrong flags still to come.
 function stopText(view: SessionView, route: readonly RouteStop[]): string {
   if (view.kind !== "step") {
@@ -132,7 +133,7 @@ function stopText(view: SessionView, route: readonly RouteStop[]): string {
   return `  ${String(view.number)} / ${String(view.count)}${inRepo(route, view.id)}${flagsAhead(route, view.id)}`
 }
 
-// " · api 2 of 5": the stop's place among the stops of its repo, between hops.
+// "  ¦  api 2 of 5": the stop's place among the stops of its repo, between hops.
 function inRepo(route: readonly RouteStop[], here: string): string {
   const at = route.findIndex((stop) => stop.id === here)
   const stop = route[at]
@@ -144,13 +145,13 @@ function inRepo(route: readonly RouteStop[], here: string): string {
   const start = route.slice(0, at + 1).findLastIndex(startsRun)
   const after = route.slice(at + 1).findIndex(startsRun)
   const end = after === -1 ? route.length : at + 1 + after
-  return ` · ${stop.repo} ${String(at - start + 1)} of ${String(end - start)}`
+  return `${SEPARATOR}${stop.repo} ${String(at - start + 1)} of ${String(end - start)}`
 }
 
 function flagsAhead(route: readonly RouteStop[], here: string): string {
   const at = route.findIndex((stop) => stop.id === here)
   const ahead = route.slice(at + 1).filter((stop) => stop.flag?.severity === "high").length
-  return ahead === 0 ? "" : ` · ⚠ ${String(ahead)} ahead`
+  return ahead === 0 ? "" : `${SEPARATOR}⚠ ${String(ahead)} ahead`
 }
 
 /**
@@ -316,7 +317,11 @@ async function placesFor({ stepping, view }: AtStep, cursor: number): Promise<Lo
   const call = view.calls.find((each) => each.call_line === cursor)
   if (call !== undefined) {
     return [
-      { path: call.path, line: call.start_line, label: `${call.name ?? call.file} · i steps in` },
+      {
+        path: call.path,
+        line: call.start_line,
+        label: `${call.name ?? call.file}${SEPARATOR}i steps in`,
+      },
     ]
   }
 
@@ -330,7 +335,7 @@ async function placesFor({ stepping, view }: AtStep, cursor: number): Promise<Lo
   }
 
   const found = nearestFirst(await definitionsOf(dir, name), view.path)
-  return found.map((look) => ({ ...look, label: `${look.label} · found by name` }))
+  return found.map((look) => ({ ...look, label: `${look.label}${SEPARATOR}found by name` }))
 }
 
 const KEYS: readonly [string, Move][] = [

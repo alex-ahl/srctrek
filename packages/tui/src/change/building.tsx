@@ -8,6 +8,7 @@ import { STATE_LABELS } from "../ui/state-labels"
 import { count, fit } from "../ui/text"
 import { useTones } from "../ui/theme"
 import { useStateText } from "../ui/turning"
+import { SEPARATOR } from "../ui/separator"
 
 // The latest steps the agent added; the build view has them all.
 const STEPS_SHOWN = 8
@@ -32,7 +33,7 @@ export function Building(props: {
     <box flexDirection="column">
       <text fg={tones.busy}>
         {state}
-        <span fg={tones.dim}>{`  ${so.filter((each) => each !== "").join(" · ")}`}</span>
+        <span fg={tones.dim}>{`  ${so.filter((each) => each !== "").join(SEPARATOR)}`}</span>
       </text>
       {steps.slice(-STEPS_SHOWN).map((step) => (
         <StepLine key={step.id} step={step} width={width} />

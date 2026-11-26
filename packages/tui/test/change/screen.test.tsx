@@ -78,7 +78,7 @@ const ready: TrekStatus = { kind: "ready", name: "pay" }
 test("leads with the change: its branch, then how big it is", async () => {
   const frame = await frameAfter(screen(".", missing), (_input, on) => on.shows("no trek yet"))
 
-  expect(frame).toMatch(/\n {2}feature\/refunds *\n {2}9 commits since main · 14 files *\n/)
+  expect(frame).toMatch(/\n {2}feature\/refunds *\n {2}9 commits since main  ¦  14 files *\n/)
 })
 
 test("a pull request leads with its number and title, then who opened it and how big it is", async () => {
@@ -105,7 +105,7 @@ test("a pull request leads with its number and title, then who opened it and how
   )
 
   expect(frame).toMatch(
-    /\n {2}#12 Add partial refunds *\n {2}alice · draft · 3 commits · 5 files *\n/,
+    /\n {2}#12 Add partial refunds *\n {2}alice  ¦  draft  ¦  3 commits  ¦  5 files *\n/,
   )
 })
 
@@ -145,8 +145,8 @@ test("a change across repos says how many files each changes", async () => {
     120,
   )
 
-  expect(frame).toContain("feature/refunds · with api on refunds-api")
-  expect(frame).toContain("11 commits · 14 files · web 6, api 8")
+  expect(frame).toContain("feature/refunds  ¦  with api on refunds-api")
+  expect(frame).toContain("11 commits  ¦  14 files  ¦  web 6, api 8")
 })
 
 test("with no trek yet, says what b does, and b builds", async () => {

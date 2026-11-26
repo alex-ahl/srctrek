@@ -267,7 +267,7 @@ test("offers the open pull requests by number and title, with their commits and 
 
   expect(rows.map((row) => [row.group, row.label, row.detail, row.mark])).toEqual([
     ["your work", "#12 Add partial refunds", "3 commits", "review requested"],
-    ["pull requests", "#14 Round refunds to cents", "3 commits · draft", undefined],
+    ["pull requests", "#14 Round refunds to cents", "3 commits  ¦  draft", undefined],
   ])
 })
 
@@ -289,8 +289,8 @@ test("a pull request into another branch than the repo's says so; the latest fir
   const rows = otherPullRows([older, into], "origin/main")
 
   expect(rows.map((row) => [row.label, row.detail])).toEqual([
-    ["#16 Round refunds to cents", "3 commits · into release/2.1 · draft"],
-    ["#14 Round refunds to cents", "3 commits · draft"],
+    ["#16 Round refunds to cents", "3 commits  ¦  into release/2.1  ¦  draft"],
+    ["#14 Round refunds to cents", "3 commits  ¦  draft"],
   ])
 })
 
@@ -301,7 +301,7 @@ test("opens on the user's own branch, every change under its heading", async () 
   expect(frame).toMatch(/srctrek › against main/)
   // what needs the user first: their own work, then the pull requests waiting on their review
   expect(frame).toMatch(
-    /\n  your work *\s+▶ feature\/refunds +3 commits +● ready  built 2h ago\s+with uncommitted work +2 files changed +○ no trek yet\s+#12 Add partial refunds +3 commits · review requested +● ready/,
+    /\n  your work *\s+▶ feature\/refunds +3 commits +● ready  built 2h ago\s+with uncommitted work +2 files changed +○ no trek yet\s+#12 Add partial refunds +3 commits  ¦  review requested +● ready/,
   )
   // uncommitted work set in under its branch
   expect(frame).toMatch(/\n {8}with uncommitted work/)
@@ -486,7 +486,7 @@ test("space adds a repo in the sheet; esc closes it, the title bar naming what g
     async (input, on) => {
       await sheetOpen(input, on)
       input.pressKey(" ")
-      await on.shows("ADD REPOS · 1 added")
+      await on.shows("ADD REPOS  ¦  1 added")
       input.pressEscape()
       await on.shows("a: add repos")
       input.pressEnter()
@@ -529,7 +529,7 @@ test("typing narrows the sheet's repos by name or path, space still adding", asy
     34,
   )
 
-  expect(frame).toMatch(/ADD REPOS · 1 added +\/ wo▏ *\n/)
+  expect(frame).toMatch(/ADD REPOS  ¦  1 added +\/ wo▏ *\n/)
   expect(frame).not.toContain("../api")
   expect(frame).not.toContain("../docs")
   expect(frame).toContain("type: narrow  ¦  space: remove repo  ¦  →: branches  ¦  esc: clear")
@@ -566,7 +566,7 @@ test("the count of repos added includes those the narrowing hides", async () => 
     34,
   )
 
-  expect(frame).toContain("ADD REPOS · 1 added")
+  expect(frame).toContain("ADD REPOS  ¦  1 added")
   expect(frame).not.toContain("../api")
 })
 
@@ -621,7 +621,7 @@ test("with more than two repos added, the title bar names two and counts the res
         input.pressKey(" ")
         await downSheet(input, on, 1)
       }
-      await on.shows("ADD REPOS · 3 added")
+      await on.shows("ADD REPOS  ¦  3 added")
       input.pressEscape()
       await on.shows("a: add repos")
     },
@@ -697,7 +697,7 @@ test("→ on a repo opens its branches under it, with when, who, and what", asyn
   expect(frame).toMatch(/┌ refunds-v2 +2h ago +alice +Split partial refunds into their own handler/)
   expect(frame).toMatch(/│ refunds-api +3d ago +you +Work on refunds-api +checked out/)
   expect(frame).toContain("▸ 1 more branches")
-  expect(frame).toMatch(/│ main +its default branch · passes it through/)
+  expect(frame).toMatch(/│ main +its default branch  ¦  passes it through/)
   expect(frame).toContain("└ ↻ look for new branches on the remote")
   expect(frame).toContain("type: narrow  ¦  ↵: take  ¦  ←/esc: close")
 })
@@ -733,7 +733,7 @@ test("typed letters narrow the open branches; the default branch passes the repo
     40,
   )
 
-  expect(frame).toMatch(/\[x\] api +\.\.\/api +main ▸ +passed through · you have refunds-api out/)
+  expect(frame).toMatch(/\[x\] api +\.\.\/api +main ▸ +passed through  ¦  you have refunds-api out/)
 })
 
 test("the fetch line fetches the repo, then lists its branches again", async () => {
@@ -933,7 +933,7 @@ test("a long title takes the room what the rows hold doesn't need before it's cu
   )
 
   expect(frame).toMatch(
-    /#12 Split partial refunds across two payments when the first one … +3 commits · yours +● ready/,
+    /#12 Split partial refunds across two payments when the first on… +3 commits  ¦  yours +● ready/,
   )
 })
 
@@ -1087,8 +1087,8 @@ test("lists only what's the user's: their pull requests and branches, the rest b
     30,
   )
 
-  expect(frame).toMatch(/your work[\s\S]*#18 Export refund rows +4 commits · yours/)
-  expect(frame).toMatch(/#12 Add partial refunds +3 commits · review requested/)
+  expect(frame).toMatch(/your work[\s\S]*#18 Export refund rows +4 commits  ¦  yours/)
+  expect(frame).toMatch(/#12 Add partial refunds +3 commits  ¦  review requested/)
   expect(frame).toMatch(/your branches\s+fix\/rounding/)
   expect(frame).not.toContain("#14 Round refunds")
   expect(frame).not.toContain("bo/tax")
@@ -1162,7 +1162,7 @@ test("typing on a view of its own narrows it; esc clears what's typed, then goes
     30,
   )
 
-  expect(narrowed).toContain("pull requests · 1 of 2  / cache▏")
+  expect(narrowed).toContain("pull requests  ¦  1 of 2  / cache▏")
   expect(narrowed).toContain("#21 Cache the provider config")
   expect(narrowed).not.toContain("#14 Round refunds")
   expect(narrowed).toContain("type: narrow  ¦  ↵: open  ¦  esc: clear")

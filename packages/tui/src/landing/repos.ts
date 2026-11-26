@@ -1,5 +1,6 @@
 import type { NearbyCheckout, RepoPick } from "@srctrek/core"
 import { count } from "../ui/text"
+import { SEPARATOR } from "../ui/separator"
 
 /** The repos ticked to go with the change, by path. */
 export type Ticked = ReadonlyMap<string, RepoPick>
@@ -37,11 +38,11 @@ export function repoBranch({ checkout, pick }: RepoItem): string {
 }
 
 /**
- * What a repo row says after its branch: "4 commits", "passed through", "passed through · you
+ * What a repo row says after its branch: "4 commits", "passed through", "passed through  ¦  you
  * have spike/ledger out".
  */
 export function repoNotes(item: RepoItem): string {
-  return [workNote(item), passedNote(item), elsewhereNote(item)].filter(Boolean).join(" · ")
+  return [workNote(item), passedNote(item), elsewhereNote(item)].filter(Boolean).join(SEPARATOR)
 }
 
 // Its commits, while it's read on what it has checked out.

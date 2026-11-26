@@ -8,6 +8,7 @@ import { DetailsPanel } from "./details-panel"
 import type { Look } from "./peek"
 import { RouteMap } from "./route-map"
 import type { Stepping } from "./use-stepping"
+import { SEPARATOR } from "../ui/separator"
 
 /**
  * What's open over the code: details, the route map, a look beside the trek, one of `looks` when
@@ -65,15 +66,15 @@ export function layerKeys(layer: Layer): readonly KeyHint[] {
 export function layerWhere(layer: Layer): string | undefined {
   if (layer.kind === "look") {
     const count = layer.looks.length
-    const which = count > 1 ? ` · ${String(layer.at + 1)} of ${String(count)}` : ""
-    return `${layer.looks[layer.at]?.label ?? ""}${which} · . back to the stop`
+    const which = count > 1 ? `${SEPARATOR}${String(layer.at + 1)} of ${String(count)}` : ""
+    return `${layer.looks[layer.at]?.label ?? ""}${which}${SEPARATOR}. back to the stop`
   }
 
   if (layer.kind === "route") {
-    return "the route · r back"
+    return `the route${SEPARATOR}r back`
   }
 
-  return layer.kind === "change" ? "the change · D back" : undefined
+  return layer.kind === "change" ? `the change${SEPARATOR}D back` : undefined
 }
 
 /** The layer open over the code, if any; opening one closes another. */

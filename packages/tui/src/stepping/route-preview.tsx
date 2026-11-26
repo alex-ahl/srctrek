@@ -3,6 +3,7 @@ import { fit, fitPath, wrap } from "../ui/text"
 import { COLOUR, type Tone, useTones } from "../ui/theme"
 import { FLAGS, flagWords } from "./flags"
 import { type RouteStop, insideOf, runningAt } from "./route"
+import { SEPARATOR } from "../ui/separator"
 
 /** A line of the preview: its text and look. */
 type PreviewLine = Readonly<{ text: string; tone?: Tone; bold?: boolean; italic?: boolean }>
@@ -21,7 +22,7 @@ function headLines(stop: RouteStop, here: boolean, width: number): PreviewLine[]
       ? [{ text: fit(`↯ ${stop.through}`, width), tone: "busy" as const }]
       : []),
     {
-      text: `${stop.repo} · ${fitPath(`${stop.file}:${String(stop.line)}`, room)}${changed}`,
+      text: `${stop.repo}${SEPARATOR}${fitPath(`${stop.file}:${String(stop.line)}`, room)}${changed}`,
       tone: "dim",
     },
   ]

@@ -242,7 +242,8 @@ bright ANSI colours and its dim grey. Each state also has its own symbol: `●` 
 found.
 Every screen's footer lists its keys, each key bold in the text's colour, then a colon and what it
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
-`↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`.
+`↵: open  ¦  a: add repos  ¦  S: settings  ¦  ?: keys`. Every screen splits the parts of a line
+the same way, with a dim `¦` and room around it: `3 commits  ¦  yours`.
 
 - **Landing page,** what `trek` opens on: what's yours. From 110 columns, the list sits beside
   the selected change's own screen, the same as it shows on its own: each row the change's name,
@@ -263,7 +264,7 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
   what a change holds keeps at least 20 columns. The groups sit under their
   names, dim, at the page's left, their rows set in under them, a blank line before each but the
   first: your work first, the branch checked out with its uncommitted work set in under it, your
-  own open pull requests (`· yours`), and those waiting on your review, marked `review requested`
+  own open pull requests (`¦  yours`), and those waiting on your review, marked `review requested`
   in the accent; then your branches, those with a commit of yours (by `user.email`) the base
   doesn't have, latest committed first, the first 8; and code as it is, one row. A branch an open
   pull request was opened from is listed as that pull request alone, here and on `B`. Every other pull

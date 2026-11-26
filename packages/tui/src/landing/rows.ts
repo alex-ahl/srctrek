@@ -1,5 +1,6 @@
 import type { BranchChoices, ChangeChoice, OpenPullRequest, OtherBranch } from "@srctrek/core"
 import { count } from "../ui/text"
+import { SEPARATOR } from "../ui/separator"
 
 /** The groups the landing page's rows sit in, by the names on their rules, in their order. */
 export type LandingGroup =
@@ -111,14 +112,14 @@ const CODE_ROW: LandingRow = {
 }
 
 // What a pull request holds: its commits, the branch it would merge into where that isn't the
-// repo's own, whether it's a draft, and whether it's the user's: "3 commits · into release/2.1 ·
-// draft · yours".
+// repo's own, whether it's a draft, and whether it's the user's: "3 commits  ¦  into release/2.1
+//  ¦  draft  ¦  yours".
 function pullDetail(pr: OpenPullRequest, base: string): string {
   const same = base === "" || pr.base === base.replace(/^origin\//, "")
   const into = same ? "" : `into ${pr.base}`
   return [count(pr.commits, "commit"), into, pr.draft ? "draft" : "", pr.mine ? "yours" : ""]
     .filter(Boolean)
-    .join(" · ")
+    .join(SEPARATOR)
 }
 
 // The latest changed first.

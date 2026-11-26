@@ -6,6 +6,7 @@ import { COLOUR, useTones } from "../ui/theme"
 import { type CodeLine, type Layout, type Place, codeLines, windowOf } from "./lines"
 import { type Span, fittedSpans, useHighlighted } from "./highlight"
 import { FLAGS } from "./flags"
+import { SEPARATOR } from "../ui/separator"
 
 // The line number and sign before each line's code.
 export const GUTTER = 7
@@ -213,7 +214,7 @@ function AwayNote({ view, first, last }: { view: StepView; first: number; last: 
   }
 
   const arrow = away === "above" ? "↑" : "↓"
-  return <text fg={tones.dim}>{`       ${arrow} the stop is ${away} · . back to it`}</text>
+  return <text fg={tones.dim}>{`       ${arrow} the stop is ${away}${SEPARATOR}. back to it`}</text>
 }
 
 // The step's file around it, the narration's band over its first line, the cursor marked.

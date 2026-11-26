@@ -4,6 +4,7 @@ import type { Drop, DropRow } from "./drop"
 import { fit, shortAge } from "../ui/text"
 import { Selectable } from "../ui/selectable"
 import { COLOUR, useTones } from "../ui/theme"
+import { SEPARATOR } from "../ui/separator"
 
 /**
  * What the drop under a repo's row shows: its lines, if loaded, or why they couldn't be, and the
@@ -60,7 +61,7 @@ function RowText({ row, taken, now }: { row: DropRow; taken: boolean; now: Date 
     return (
       <span>
         {name}
-        <span fg={tones.dim}>its default branch · passes it through</span>
+        <span fg={tones.dim}>{`its default branch${SEPARATOR}passes it through`}</span>
       </span>
     )
   }

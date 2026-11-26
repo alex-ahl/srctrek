@@ -15,6 +15,7 @@ import { TextPrompt } from "../ui/text-prompt"
 import { TitleBar, titleRoom } from "../ui/title-bar"
 import { wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
+import { SEPARATOR } from "../ui/separator"
 
 type Props = {
   settings: Settings
@@ -70,7 +71,7 @@ function Bottom({
   if (prompt === "agent") {
     const { source } = agentSetting(props.settings)
     const overridden =
-      source === "environment" ? " · SRCTREK_AGENT overrides this while it's set" : ""
+      source === "environment" ? `${SEPARATOR}SRCTREK_AGENT overrides this while it's set` : ""
     return (
       <TextPrompt
         question="Agent command:"

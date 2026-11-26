@@ -2,6 +2,7 @@ import { TextAttributes } from "@opentui/core"
 import type { EndView, OverviewView } from "@srctrek/core"
 import { fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
+import { SEPARATOR } from "../ui/separator"
 
 // "Outcome   …" with the text wrapped under itself, past the label.
 function Labelled({ label, text, width }: { label: string; text: string; width: number }) {
@@ -31,7 +32,7 @@ export function Overview({ view, width }: { view: OverviewView; width: number })
       <text> </text>
       <Labelled
         label="Trigger"
-        text={`${view.trigger.kind} · ${view.trigger.input}`}
+        text={`${view.trigger.kind}${SEPARATOR}${view.trigger.input}`}
         width={width}
       />
       <Labelled label="Outcome" text={view.outcome} width={width} />
@@ -57,7 +58,10 @@ export function End({ view, width }: { view: EndView; width: number }) {
       {view.flags.length === 0 && <text fg={tones.dim}>No flags.</text>}
       {view.flags.map((flag) => (
         <text key={flag.id} fg={flag.severity === "high" ? tones.bad : tones.warn}>
-          {fit(`${String(flag.number)} · ${flag.name ?? flag.file} · ${flag.note}`, width)}
+          {fit(
+            `${String(flag.number)}${SEPARATOR}${flag.name ?? flag.file}${SEPARATOR}${flag.note}`,
+            width,
+          )}
         </text>
       ))}
     </box>

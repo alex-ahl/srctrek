@@ -55,7 +55,7 @@ test("shows the build as it stands: its title, steps, what was read, and a round
   const frame = await frameAfter(screen(building), (_input, on) => on.shows("◐ building"), 100, 30)
 
   expect(frame).toContain("srctrek › build")
-  expect(frame).toContain("feature/refunds · 3 commits since main")
+  expect(frame).toContain("feature/refunds  ¦  3 commits since main")
   expect(frame).toContain("◐ building  Refunding an order")
   expect(frame).toMatch(/STEPS {2}2 steps added\s+s1 {2}s2/)
   expect(frame).toMatch(/READING {2}2 reads/)
@@ -143,7 +143,7 @@ test("← steps to an older build, saying which, with nothing to stop or build t
   )
 
   expect(asked).toContain(1)
-  expect(frame).toMatch(/build 1 of 2 · started/)
+  expect(frame).toMatch(/build 1 of 2  ¦  started/)
   expect(frame).toContain("←/→: older, newer")
   expect(frame).not.toContain("x stop")
   expect(frame).not.toContain("b build again")

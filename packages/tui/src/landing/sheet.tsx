@@ -4,6 +4,7 @@ import { type RepoItem, repoBranch, repoNotes } from "./repos"
 import { PADDING } from "../ui/layout"
 import { Selectable } from "../ui/selectable"
 import { COLOUR, useTones } from "../ui/theme"
+import { SEPARATOR } from "../ui/separator"
 
 /** The sheet line's key, which keeps it selected as the repos are read again. */
 export const sheetKey = (item: RepoItem): string => item.checkout.path
@@ -137,7 +138,7 @@ export function RepoSheet({
       <box style={{ flexShrink: 0 }}>
         <text>
           <span fg={tones.accent}>ADD REPOS</span>
-          <span fg={tones.dim}>{added === 0 ? "" : ` · ${String(added)} added`}</span>
+          <span fg={tones.dim}>{added === 0 ? "" : `${SEPARATOR}${String(added)} added`}</span>
           <span fg={COLOUR.text}>{narrowing(query)}</span>
         </text>
       </box>

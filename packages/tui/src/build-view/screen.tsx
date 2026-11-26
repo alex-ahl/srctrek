@@ -12,6 +12,7 @@ import { type BuildRead, buildLabel, clockText, whyEnded } from "./read"
 import { useBuild } from "./use-build"
 import { useStateText } from "../ui/turning"
 import { StepLine } from "./step-line"
+import { SEPARATOR } from "../ui/separator"
 
 type Props = {
   // what's open, for the change's own trek; for any other, the trek by its title or name
@@ -165,7 +166,7 @@ function keysFor(onLog: boolean, builds: number, actions: ReturnType<typeof acti
   ]
 }
 
-// Which of the trek's builds is shown, when it has kept more than one: "build 2 of 4 · started
+// Which of the trek's builds is shown, when it has kept more than one: "build 2 of 4  ¦  started
 // yesterday"; or that it has none to show.
 function whichBuild(build: BuildRead, back: number, now: Date): string {
   if (build.count <= 1) {
@@ -173,7 +174,9 @@ function whichBuild(build: BuildRead, back: number, now: Date): string {
   }
 
   const started =
-    build.started === undefined ? "" : ` · started ${builtWhen(build.started.toISOString(), now)}`
+    build.started === undefined
+      ? ""
+      : `${SEPARATOR}started ${builtWhen(build.started.toISOString(), now)}`
   return `build ${build.count - back} of ${build.count}${started}`
 }
 

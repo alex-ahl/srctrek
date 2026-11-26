@@ -421,7 +421,7 @@ test("a pull request's screen names it by its title, and who opened it", async (
     on.shows("#12 Add partial refunds"),
   )
 
-  expect(frame).toContain("alice · 3 commits · 5 files")
+  expect(frame).toContain("alice  ¦  3 commits  ¦  5 files")
 })
 
 test("a change that opens quickly comes up without an opening screen first", async () => {
@@ -477,8 +477,8 @@ test("a pull request opens on its title, never on its number first", async () =>
       // opened, but gh hasn't said what the pull request is yet: the landing page stays
       expect(await on.frame()).toContain("your work")
       details.resolve({ title: "Add partial refunds", author: "alice", draft: false })
-      await on.shows("alice · 3 commits · 5 files")
-      expect(await on.frame()).toMatch(/ {2}#12 Add partial refunds\s+alice · 3 commits/)
+      await on.shows("alice  ¦  3 commits  ¦  5 files")
+      expect(await on.frame()).toMatch(/ {2}#12 Add partial refunds\s+alice  ¦  3 commits/)
     },
   )
 })
@@ -786,11 +786,11 @@ test("a kept change shown again is worked out again behind it, as files are edit
   const frame = await frameAfter(
     app(".", LANDING, sources({ open })),
     async (input, on) => {
-      await on.shows("· 1 file")
+      await on.shows("¦  1 file")
       input.pressKey("j")
       await on.shows("● ready")
       input.pressKey("k")
-      await on.shows("· 2 files")
+      await on.shows("¦  2 files")
     },
     WIDE,
   )

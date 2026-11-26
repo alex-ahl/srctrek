@@ -46,6 +46,6 @@ test("narrows to changed or flagged stops, or by name, folds and all", () => {
 test("says what the map is narrowed to, with the find's cursor while it's typed", () => {
   expect(narrowText(WHOLE, 4)).toBe("")
   expect(narrowText({ only: "changed", find: "re", finding: true }, 1)).toBe(
-    'showing changed · find "re▏" · 1 found',
+    'showing changed  ¦  find "re▏"  ¦  1 found',
   )
 })
