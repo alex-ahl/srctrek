@@ -11,39 +11,38 @@ export const preparedKey = (choice: ChangeChoice) => JSON.stringify(choice)
  * at a time, so moving to one finds it ready.
  */
 export function useWorkedOut(prepare: (choice: ChangeChoice) => Promise<Screen>) {
-  const working = useRef(new Map<string, Promise<Screen>>())
-  const done = useRef(new Map<string, Screen>())
+  const worked = useRef(new Map<string, Promise<Screen>>())
   // the changes listed, and those of them still to work out
   const listed = useRef<readonly ChangeChoice[]>([])
   const queue = useRef<readonly ChangeChoice[]>([])
   const draining = useRef(false)
 
-  const drop = (key: string) => {
-    working.current.delete(key)
-    done.current.delete(key)
-  }
+  const drop = (key: string) => worked.current.delete(key)
 
   const prepared = (choice: ChangeChoice): Promise<Screen> => {
     const key = preparedKey(choice)
-    const known = working.current.get(key)
+    const known = worked.current.get(key)
     if (known !== undefined) {
       return known
     }
 
-    const screen = prepare(choice).then((worked) => {
-      // forgotten meanwhile, it's out of date
-      if (working.current.get(key) === screen) {
-        if (worked.kind === "pending") {
-          drop(key)
-        } else {
-          done.current.set(key, worked)
-        }
+    const screen = prepare(choice).then((found) => {
+      // one that couldn't open is tried again next time, unless it's been forgotten meanwhile
+      if (found.kind === "pending" && worked.current.get(key) === screen) {
+        drop(key)
       }
 
-      return worked
+      return found
     })
-    working.current.set(key, screen)
+    worked.current.set(key, screen)
     return screen
+  }
+
+  // the next change in line, taken off the queue; none once it's empty
+  const takeNext = () => {
+    const [next, ...rest] = queue.current
+    queue.current = rest
+    return next
   }
 
   const drain = async () => {
@@ -52,8 +51,7 @@ export function useWorkedOut(prepare: (choice: ChangeChoice) => Promise<Screen>)
     }
 
     draining.current = true
-    for (let next = queue.current[0]; next !== undefined; next = queue.current[0]) {
-      queue.current = queue.current.slice(1)
+    for (let next = takeNext(); next !== undefined; next = takeNext()) {
       await prepared(next)
     }
 
@@ -62,14 +60,11 @@ export function useWorkedOut(prepare: (choice: ChangeChoice) => Promise<Screen>)
 
   return {
     prepared,
-    // the change by this key, once it's worked out
-    ready: (key: string) => done.current.get(key),
     drop,
     // the change by this key as it now stands, where it's kept
     update: (key: string, screen: Screen) => {
-      if (done.current.has(key)) {
-        done.current.set(key, screen)
-        working.current.set(key, Promise.resolve(screen))
+      if (worked.current.has(key)) {
+        worked.current.set(key, Promise.resolve(screen))
       }
     },
     // the changes listed, to work out in the background, in their order
@@ -80,8 +75,7 @@ export function useWorkedOut(prepare: (choice: ChangeChoice) => Promise<Screen>)
     },
     // out of date: the changes listed are worked out again
     forget: () => {
-      working.current = new Map()
-      done.current = new Map()
+      worked.current = new Map()
       queue.current = listed.current
       void drain()
     },

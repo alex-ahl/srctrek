@@ -131,17 +131,11 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
     replace(id, await show(choice, await screen))
   }
 
-  // what the selection rests on: at once when it's worked out, else once it is, unless the
-  // selection has moved on meanwhile
+  // what the selection rests on, once it's worked out, unless the selection has moved on
+  // meanwhile: one worked out ahead answers before the next frame
   const rest = (choice: ChangeChoice) => {
     const key = preparedKey(choice)
     restedOn.current = choice
-    const ready = worked.ready(key)
-    if (ready !== undefined) {
-      setRested({ key, choice, screen: ready })
-      return
-    }
-
     void worked
       .prepared(choice)
       .then((screen) => restedOn.current === choice && setRested({ key, choice, screen }))
