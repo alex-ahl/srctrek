@@ -43,6 +43,9 @@
 **Next**
 
 - The `p`, `B`, and `d` views beside the selected change's screen, as the changes are.
+- The editors split the parts of a line with `¦`, as the terminal does: the Neovim plugin's
+  details, narration, and context, and the VS Code extension's pages, sidebar, and step text still
+  use `·`.
 - The "Start on" setting: the landing page, or what's checked out, with what's waiting elsewhere
   said on the change's screen.
 - Plan B: a checked-out pull request is that pull request, listed once under your work, its trek
