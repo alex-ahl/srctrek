@@ -294,6 +294,9 @@ export function App(props: Props) {
         pullStatus={sources.pullStatus}
         opening={preparing.opening}
         onRest={(choice) => choice.kind !== "trek" && preparing.rest(choice)}
+        onListed={(picks) =>
+          preparing.ahead(picks.flatMap((listed) => (listed.kind === "trek" ? [] : [listed])))
+        }
         onPick={pick}
         onSettings={() => open({ kind: "settings" })}
         onQuit={props.onQuit}

@@ -85,6 +85,11 @@ const narrow = (
 ) => frameAfter(node, press, NARROW, height)
 
 const LANDING: Opening = { kind: "landing" }
+
+// How often the user's own branch was opened, whose args are none: the other changes listed are
+// worked out ahead too.
+const ownOpened = (open: { mock: { calls: string[][][] } }) =>
+  open.mock.calls.filter(([args]) => args?.length === 0).length
 const own: ChangeChoice = { kind: "own", uncommitted: false }
 
 // The landing page and screens over the repo at `root`, its saved treks' overviews read there.
@@ -487,11 +492,11 @@ test("enter pressed again while a change opens opens it once", async () => {
     await on.drawn()
     opened.resolve(changeWith(() => Promise.resolve(missing)))
     await on.shows("no trek yet")
+    // coming back, the change is worked out again, its screen having moved on
+    expect(ownOpened(open)).toBe(1)
     input.pressEscape()
     await on.shows("your work")
   })
-
-  expect(open).toHaveBeenCalledTimes(1)
 })
 
 test("the change the selection rests on is worked out ahead, so enter opens it at once", async () => {
@@ -509,7 +514,7 @@ test("the change the selection rests on is worked out ahead, so enter opens it a
     expect(await on.frame()).toContain("no trek yet")
   })
 
-  expect(open).toHaveBeenCalledTimes(1)
+  expect(ownOpened(open)).toBe(1)
 })
 
 test("building automatically starts a change's build as it's opened, never ahead of it", async () => {
@@ -698,4 +703,70 @@ test("while the next change is worked out, the last stays beside the list, then 
 
   expect(frame).not.toContain("no trek yet")
   expect(frame).not.toContain("↵")
+})
+
+test("beside the list, each change is worked out once, coming back to it shown at once", async () => {
+  const open = mock(openByArgs)
+  await frameAfter(
+    app(".", LANDING, sources({ open })),
+    async (input, on) => {
+      await on.shows("no trek yet")
+      input.pressKey("j")
+      await on.shows("● ready")
+      input.pressKey("k")
+      await on.drawn()
+      expect(await on.frame()).toContain("no trek yet")
+    },
+    WIDE,
+  )
+
+  const rounding = open.mock.calls.filter(([args]) => roundingIn(args))
+  expect(rounding).toHaveLength(1)
+})
+
+test("the changes listed are worked out ahead, so moving to one shows it at once", async () => {
+  const roundingAsked = deferred<undefined>()
+  const open = (args: string[]) => {
+    if (roundingIn(args)) {
+      roundingAsked.resolve(undefined)
+    }
+
+    return openByArgs(args)
+  }
+  await frameAfter(
+    app(".", LANDING, sources({ open })),
+    async (input, on) => {
+      await on.shows("no trek yet")
+      // nothing pressed: fix/rounding is worked out ahead of being selected
+      await roundingAsked.promise
+      await Bun.sleep(20)
+      input.pressKey("j")
+      await on.drawn()
+      expect(await on.frame()).toContain("● ready")
+    },
+    WIDE,
+  )
+})
+
+test("the worktree moving on, the changes listed are worked out again", async () => {
+  let moved = false
+  const open = mock(openByArgs)
+  const stamp = () => Promise.resolve(moved ? "moved" : "before")
+  await frameAfter(
+    app(".", LANDING, sources({ open, stamp })),
+    async (_input, on) => {
+      await on.shows("no trek yet")
+      while (open.mock.calls.filter(([args]) => roundingIn(args)).length < 1) {
+        await Bun.sleep(10)
+      }
+
+      moved = true
+      while (open.mock.calls.filter(([args]) => roundingIn(args)).length < 2) {
+        await Bun.sleep(10)
+      }
+    },
+    WIDE,
+  )
+
+  expect(open.mock.calls.filter(([args]) => roundingIn(args))).toHaveLength(2)
 })

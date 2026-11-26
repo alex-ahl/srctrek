@@ -10,6 +10,7 @@ import { canStep } from "./change/keys"
 import { type Pending, failureReason } from "./opening"
 import type { Sources } from "./sources"
 import type { ChangeOpen, Screen } from "./stack"
+import { preparedKey, useWorkedOut } from "./worked-out"
 
 // A change that opens within this comes up at once; one that takes longer says so meanwhile.
 const OPENING_SHOWN_MS = 300
@@ -69,9 +70,6 @@ export async function startedIfAutomatic(
 /** The change the landing page's selection rests on, worked out, by the key of its choice. */
 export type Rested = Readonly<{ key: string; choice: ChangeChoice; screen: Screen }>
 
-/** The key a choice is worked out by, the same for the same change. */
-export const preparedKey = (choice: ChangeChoice) => JSON.stringify(choice)
-
 type Ways = Readonly<{
   sources: Sources
   settings: Settings
@@ -82,14 +80,14 @@ type Ways = Readonly<{
 }>
 
 /**
- * Opening changes: the one the landing page's selection rests on worked out ahead, the latest
- * only, so enter opens it at once; a pick worked out while the landing page stays, which says so
- * when it takes a while, or why it couldn't open, and opens only over the landing page; a change
- * followed from another screen behind an opening screen when it takes a while. One at a time: a
- * pick meanwhile waits for it.
+ * Opening changes: those the landing page lists and the one its selection rests on worked out
+ * ahead and kept, so the selection shows it, and enter opens it, at once; a pick worked out while
+ * the landing page stays, which says so when it takes a while, or why it couldn't open, and opens
+ * only over the landing page; a change followed from another screen behind an opening screen when
+ * it takes a while. One at a time: a pick meanwhile waits for it.
  */
 export function usePreparing({ sources, settings, open, replace, landingInFront }: Ways) {
-  const ahead = useRef<{ key: string; screen: Promise<Screen> } | undefined>(undefined)
+  const worked = useWorkedOut((choice) => prepare(choice, sources))
   const busy = useRef(false)
   // a change picked from the landing page being worked out, or why it couldn't be
   const [opening, setOpening] = useState<Pending | undefined>(undefined)
@@ -98,27 +96,18 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
   // the choice last rested on, for forget, called from callbacks that outlive a render
   const restedOn = useRef<ChangeChoice | undefined>(undefined)
 
-  const prepared = (choice: ChangeChoice) => {
-    const key = preparedKey(choice)
-    if (ahead.current?.key !== key) {
-      ahead.current = { key, screen: prepare(choice, sources) }
-    }
-
-    return ahead.current.screen
-  }
-
-  // shown in front, built first where the settings say; worked out afresh next time
-  const show = async (screen: Screen): Promise<Screen> => {
-    ahead.current = undefined
+  // shown in front, built first where the settings say; worked out afresh next time, as its
+  // screen moves on from here
+  const show = async (choice: ChangeChoice, screen: Screen): Promise<Screen> => {
+    worked.drop(preparedKey(choice))
     return screen.kind === "change" ? startedIfAutomatic(screen, settings) : screen
   }
 
   const openPicked = async (choice: ChangeChoice) => {
     const timer = setTimeout(() => setOpening({ kind: "opening", choice }), OPENING_SHOWN_MS)
-    const screen = await prepared(choice)
+    const screen = await worked.prepared(choice)
     clearTimeout(timer)
     if (screen.kind === "pending") {
-      ahead.current = undefined
       setOpening(screen.pending)
       return
     }
@@ -126,46 +115,61 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
     setOpening(undefined)
     // a screen opened meanwhile is where the user went instead
     if (landingInFront()) {
-      open(await show(screen))
+      open(await show(choice, screen))
     }
   }
 
   const openFollowed = async (choice: ChangeChoice) => {
-    const screen = prepared(choice)
+    const screen = worked.prepared(choice)
     const quick = await Promise.race([screen, after(OPENING_SHOWN_MS)])
     if (quick !== undefined) {
-      open(await show(quick))
+      open(await show(choice, quick))
       return
     }
 
     const id = open({ kind: "pending", pending: { kind: "opening", choice } })
-    replace(id, await show(await screen))
+    replace(id, await show(choice, await screen))
   }
 
-  // worked out ahead, and kept as what the selection rests on unless it has moved on meanwhile
+  // what the selection rests on: at once when it's worked out, else once it is, unless the
+  // selection has moved on meanwhile
   const rest = (choice: ChangeChoice) => {
     const key = preparedKey(choice)
     restedOn.current = choice
-    void prepared(choice).then(
-      (screen) => ahead.current?.key === key && setRested({ key, choice, screen }),
-    )
+    const ready = worked.ready(key)
+    if (ready !== undefined) {
+      setRested({ key, choice, screen: ready })
+      return
+    }
+
+    void worked
+      .prepared(choice)
+      .then((screen) => restedOn.current === choice && setRested({ key, choice, screen }))
   }
+
+  // where the trek of the change rested on stands now, kept with it
+  const restedStatus = (status: TrekStatus) =>
+    setRested((was) => {
+      if (was?.screen.kind !== "change") {
+        return was
+      }
+
+      const now = { ...was, screen: { ...was.screen, status } }
+      worked.update(was.key, now.screen)
+      return now
+    })
 
   return {
     opening,
     rested,
     rest,
-    // where the trek of the change rested on stands now
-    restedStatus: (status: TrekStatus) =>
-      setRested(
-        (was) =>
-          was &&
-          (was.screen.kind === "change" ? { ...was, screen: { ...was.screen, status } } : was),
-      ),
+    restedStatus,
+    // the changes the landing page lists, worked out in the background
+    ahead: worked.ahead,
     // what's worked out ahead is out of date once the worktree moves on: the change rested on is
     // worked out again
     forget: () => {
-      ahead.current = undefined
+      worked.forget()
       if (restedOn.current !== undefined) {
         rest(restedOn.current)
       }
@@ -176,8 +180,8 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
       }
 
       busy.current = true
-      const worked = fromLanding ? openPicked(choice) : openFollowed(choice)
-      void worked.finally(() => {
+      const opened = fromLanding ? openPicked(choice) : openFollowed(choice)
+      void opened.finally(() => {
         busy.current = false
       })
     },

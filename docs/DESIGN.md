@@ -247,8 +247,10 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 - **Landing page,** what `trek` opens on: what's yours. From 110 columns, the list sits beside
   the selected change's own screen, the same as it shows on its own: each row the change's name,
   `⚑` after a pull request waiting on your review, and its trek's state as a symbol; what the
-  change holds and its trek's overview are on the right, read once the selection has rested on
-  it, the change last shown staying meanwhile, then `◐ opening…` when that takes a while. The
+  change holds and its trek's overview are on the right. Every change listed is worked out in
+  the background, one at a time, and kept until the worktree moves on, so moving to one shows it
+  at once; one not worked out yet keeps the change last shown, then says `◐ opening…` when that
+  takes a while. The
   change's keys work from the list, `enter` stepping its trek or building one where there's none,
   and the footer leads with them, then the page's. Narrower, the list is the page, as one table
   across the row, up to 120 columns. The title bar names what the changes are measured against, once:

@@ -33,6 +33,8 @@ type Props = LandingSources & {
   onPick: (pick: Pick) => void
   // the selection resting on a change, what it would open, for it to be worked out ahead
   onRest?: ((pick: Pick) => void) | undefined
+  // what the changes listed open, for them to be worked out ahead
+  onListed?: ((picks: readonly Pick[]) => void) | undefined
   onSettings: () => void
   onQuit: () => void
   // the chosen row's background, when the terminal's colours are known
@@ -90,10 +92,7 @@ function addedNames(ticked: Ticked, checkouts: readonly NearbyCheckout[]): strin
   return rest > 0 ? `${names.slice(0, 2).join(", ")} +${String(rest)}` : names.join(", ")
 }
 
-// How long the selection stays on a change before what it opens is worked out ahead.
-const REST_MS = 150
-
-/** Tells `onRest` what the selection would open once it has stayed on it a moment. */
+/** Tells `onRest` what the selection would open, as it moves onto it. */
 function useResting(
   active: boolean,
   pick: Pick | undefined,
@@ -107,17 +106,28 @@ function useResting(
   })
 
   useEffect(() => {
-    if (key === undefined) {
-      return undefined
+    const { pick: resting, onRest: tell } = latest.current
+    if (key !== undefined && resting !== undefined) {
+      tell?.(resting)
     }
+  }, [key])
+}
 
-    const timer = setTimeout(() => {
-      const { pick: resting, onRest: tell } = latest.current
-      if (resting !== undefined) {
-        tell?.(resting)
-      }
-    }, REST_MS)
-    return () => clearTimeout(timer)
+/** Tells `onListed` what the changes listed open, in their order, as the list changes. */
+function useListed(
+  picks: readonly Pick[],
+  onListed: ((picks: readonly Pick[]) => void) | undefined,
+) {
+  const key = JSON.stringify(picks)
+  const latest = useRef({ picks, onListed })
+  useEffect(() => {
+    latest.current = { picks, onListed }
+  })
+
+  useEffect(() => {
+    latest.current.onListed?.(latest.current.picks)
+    // the picks are told again only when they're other picks, which their key says
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies
   }, [key])
 }
 
@@ -303,6 +313,10 @@ export function Landing(props: Props) {
   // what enter opens from the selected line, when it's a change's
   const picked = item === undefined ? undefined : pickOf(item, repos)
   useResting(active, picked, props.onRest)
+  useListed(
+    rows.map((row) => pickOf(row, repos)),
+    props.onListed,
+  )
   // where there's room, the selected change's screen beside the list, once it's worked out
   const split = splitFor(props.split, view === "changes", picked)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
