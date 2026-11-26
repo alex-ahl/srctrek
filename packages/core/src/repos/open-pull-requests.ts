@@ -22,27 +22,53 @@ export type OpenPullRequest = Readonly<{
   commits: number
 }>
 
-const ListedSchema = z.array(
-  z.object({
-    number: z.number(),
-    title: z.string(),
-    author: z.object({ login: z.string() }),
-    url: z.string(),
-    isDraft: z.boolean(),
-    headRefOid: z.string(),
-    headRefName: z.string(),
-    isCrossRepository: z.boolean(),
-    baseRefName: z.string(),
-    updatedAt: z.string(),
-    commits: z.array(z.unknown()),
+const ListedSchema = z.object({
+  number: z.number(),
+  title: z.string(),
+  // none for a deleted account
+  author: z.object({ login: z.string() }).nullable(),
+  url: z.string(),
+  isDraft: z.boolean(),
+  headRefOid: z.string(),
+  headRefName: z.string(),
+  isCrossRepository: z.boolean(),
+  baseRefName: z.string(),
+  updatedAt: z.string(),
+  commits: z.object({ totalCount: z.number() }),
+})
+
+const NodesSchema = z.object({ nodes: z.array(ListedSchema) })
+
+const AnswerSchema = z.object({
+  data: z.object({
+    repository: z.object({ pullRequests: NodesSchema }),
+    requested: NodesSchema,
+    own: NodesSchema,
   }),
-)
+})
 
 // Enough to find what's under review without paging through a busy repo's history, and, asked for
-// on their own, every review asked of the user and every pull request of theirs, however old. More
-// is refused: each pull request's commits and their authors count toward GitHub's 500,000 nodes a
-// query, which 100 pull requests pass.
+// on their own, every review asked of the user and every pull request of theirs, however old.
 const LIMIT = "30"
+
+// The three lists in one query, read again each minute while the landing page is open. GitHub
+// prices a query by the lists it may have to fetch, so commits are asked for by their count: the
+// commits themselves, each with its authors, as `gh pr list --json commits` asks, cost a hundred
+// times more, and three such lists a minute spent a user's hourly allowance within the hour.
+const QUERY = `query ($owner: String!, $name: String!, $requested: String!, $own: String!, $limit: Int!) {
+  repository(owner: $owner, name: $name) {
+    pullRequests(states: OPEN, first: $limit, orderBy: { field: CREATED_AT, direction: DESC }) {
+      nodes { ...pr }
+    }
+  }
+  requested: search(query: $requested, type: ISSUE, first: $limit) { nodes { ...pr } }
+  own: search(query: $own, type: ISSUE, first: $limit) { nodes { ...pr } }
+}
+fragment pr on PullRequest {
+  number title url isDraft headRefOid headRefName isCrossRepository baseRefName updatedAt
+  author { login }
+  commits { totalCount }
+}`
 
 // Never ask: a prompt would hang behind the screen. Logging in is the user's own `gh auth login`.
 const NO_PROMPT = { GH_PROMPT_DISABLED: "1" }
@@ -61,7 +87,9 @@ async function runGh(cwd: string, gh: string, args: string[]): Promise<unknown> 
     proc.exited,
   ])
   if (code !== 0) {
-    throw new Error(`gh: ${stderr.trim().split("\n")[0] ?? `exited with ${code}`}`)
+    // gh api's own errors start "gh: " already
+    const said = stderr.trim().split("\n")[0]?.replace(/^gh: /, "")
+    throw new Error(`gh: ${said || `exited with ${code}`}`)
   }
 
   return JSON.parse(stdout) as unknown
@@ -88,13 +116,13 @@ export async function pullRequestOf(
   return { title: viewed.title, author: viewed.author.login, draft: viewed.isDraft }
 }
 
-// A pull request as gh lists it, as trek names it.
+// A pull request as GitHub lists it, as trek names it.
 const openPullRequest =
   ({ reviewRequested, mine }: Readonly<{ reviewRequested: boolean; mine: boolean }>) =>
-  (pr: z.infer<typeof ListedSchema>[number]): OpenPullRequest => ({
+  (pr: z.infer<typeof ListedSchema>): OpenPullRequest => ({
     number: pr.number,
     title: pr.title,
-    author: pr.author.login,
+    author: pr.author?.login ?? "ghost",
     url: pr.url,
     draft: pr.isDraft,
     reviewRequested,
@@ -103,8 +131,44 @@ const openPullRequest =
     ...(pr.isCrossRepository ? {} : { branch: pr.headRefName }),
     base: pr.baseRefName,
     updatedAt: pr.updatedAt,
-    commits: pr.commits.length,
+    commits: pr.commits.totalCount,
   })
+
+// The repo gh reads from each folder, "acme/api": asked once, as it doesn't change while trek
+// runs; asked again after a failure, which may pass.
+const repoNames = new Map<string, Promise<string>>()
+
+function repoName(cwd: string, gh: string): Promise<string> {
+  const known = repoNames.get(cwd)
+  if (known !== undefined) {
+    return known
+  }
+
+  const named = runGh(cwd, gh, ["repo", "view", "--json", "nameWithOwner"]).then(
+    (answer) => z.object({ nameWithOwner: z.string() }).parse(answer).nameWithOwner,
+  )
+  named.catch(() => repoNames.delete(cwd))
+  repoNames.set(cwd, named)
+  return named
+}
+
+// The open pull requests, those waiting on the user's review, and the user's own, in one query.
+async function listed(cwd: string, gh: string) {
+  const repo = await repoName(cwd, gh)
+  const [owner = "", name = ""] = repo.split("/")
+  const open = `repo:${repo} is:pr is:open`
+  const answer = await runGh(cwd, gh, [
+    ...["api", "graphql", "-f", `query=${QUERY}`, "-f", `owner=${owner}`, "-f", `name=${name}`],
+    ...["-f", `requested=${open} review-requested:@me`, "-f", `own=${open} author:@me`],
+    ...["-F", `limit=${LIMIT}`],
+  ])
+  const { data } = AnswerSchema.parse(answer)
+  return {
+    all: data.repository.pullRequests.nodes,
+    waiting: data.requested.nodes,
+    own: data.own.nodes,
+  }
+}
 
 /**
  * The open pull requests of the repo at `cwd`, through the user's own gh: every one waiting on
@@ -114,24 +178,14 @@ const openPullRequest =
  * repo).
  */
 export async function openPullRequests(cwd: string, gh = "gh"): Promise<OpenPullRequest[]> {
-  const fields = [
-    "--json",
-    "number,title,author,url,isDraft,headRefOid,headRefName,isCrossRepository,baseRefName,updatedAt,commits",
-  ]
-  const [listed, waiting, own] = await Promise.all([
-    runGh(cwd, gh, ["pr", "list", ...fields, "--limit", LIMIT]),
-    runGh(cwd, gh, ["pr", "list", "--search", "review-requested:@me", ...fields, "--limit", LIMIT]),
-    runGh(cwd, gh, ["pr", "list", "--author", "@me", ...fields, "--limit", LIMIT]),
-  ])
-  const requested = ListedSchema.parse(waiting).map(
-    openPullRequest({ reviewRequested: true, mine: false }),
-  )
+  const { all, waiting, own } = await listed(cwd, gh)
+  const requested = waiting.map(openPullRequest({ reviewRequested: true, mine: false }))
   const numbers = new Set(requested.map((pr) => pr.number))
-  const mine = ListedSchema.parse(own)
+  const mine = own
     .filter((pr) => !numbers.has(pr.number))
     .map(openPullRequest({ reviewRequested: false, mine: true }))
   const listedAbove = new Set([...numbers, ...mine.map((pr) => pr.number)])
-  const rest = ListedSchema.parse(listed)
+  const rest = all
     .filter((pr) => !listedAbove.has(pr.number))
     .map(openPullRequest({ reviewRequested: false, mine: false }))
 
