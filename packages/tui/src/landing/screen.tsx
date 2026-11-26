@@ -10,6 +10,7 @@ import { RepoSheet, sheetHeight } from "./sheet"
 import { keyAt, selectedIndex } from "../ui/selection"
 import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
+import type { Listed } from "../worked-out"
 import { type Beside, LIST_WIDTH, splitFor } from "./beside"
 import { typed, useDrop } from "./use-drop"
 import { type LandingSources, useRows } from "./use-rows"
@@ -34,7 +35,7 @@ type Props = LandingSources & {
   // the selection resting on a change, what it would open, for it to be worked out ahead
   onRest?: ((pick: Pick) => void) | undefined
   // what the changes listed open, for them to be worked out ahead
-  onListed?: ((picks: readonly Pick[]) => void) | undefined
+  onListed?: ((picks: readonly Listed[]) => void) | undefined
   onSettings: () => void
   onQuit: () => void
   // the chosen row's background, when the terminal's colours are known
@@ -113,10 +114,13 @@ function useResting(
   }, [key])
 }
 
-/** Tells `onListed` what the changes listed open, in their order, as the list changes. */
+/**
+ * Tells `onListed` what the changes listed open, in their order, as the list changes or a pull
+ * request's head moves.
+ */
 function useListed(
-  picks: readonly Pick[],
-  onListed: ((picks: readonly Pick[]) => void) | undefined,
+  picks: readonly Listed[],
+  onListed: ((picks: readonly Listed[]) => void) | undefined,
 ) {
   const key = JSON.stringify(picks)
   const latest = useRef({ picks, onListed })
@@ -148,6 +152,14 @@ function pickOf(row: LandingRow, repos: RepoPick[]): Pick {
 
   return repos.length === 0 ? row.choice : { ...row.choice, repos }
 }
+
+// The changes the rows open, with the ticked repos, and for a pull request the commit its head
+// is at; a done trek's row has no change.
+const listedOf = (rows: readonly LandingRow[], repos: RepoPick[]): Listed[] =>
+  rows.flatMap((row) => {
+    const pick = pickOf(row, repos)
+    return pick.kind === "trek" ? [] : [{ choice: pick, head: row.pull?.head }]
+  })
 
 /**
  * What the page shows: the changes, or, on a view of their own, the treks whose work is done, the
@@ -313,10 +325,7 @@ export function Landing(props: Props) {
   // what enter opens from the selected line, when it's a change's
   const picked = item === undefined ? undefined : pickOf(item, repos)
   useResting(active, picked, props.onRest)
-  useListed(
-    rows.map((row) => pickOf(row, repos)),
-    props.onListed,
-  )
+  useListed(listedOf(rows, repos), props.onListed)
   // where there's room, the selected change's screen beside the list, once it's worked out
   const split = splitFor(props.split, view === "changes", picked)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>

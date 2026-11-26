@@ -1,6 +1,7 @@
 import { expect, mock, test } from "bun:test"
 import type {
   BranchChoices,
+  OpenPullRequest,
   ChangeChoice,
   ChangeSummary,
   PullRequestDetails,
@@ -795,4 +796,61 @@ test("a kept change shown again is worked out again behind it, as files are edit
   )
 
   expect(frame).toContain("no trek yet")
+})
+
+// The user's own pull request, its head where `head` says.
+const ownPull = (head: string): OpenPullRequest => ({
+  number: 7,
+  title: "Retry refunds",
+  author: "you",
+  url: "https://github.com/acme/web/pull/7",
+  draft: false,
+  reviewRequested: false,
+  mine: true,
+  head,
+  branch: "retry-refunds",
+  base: "main",
+  updatedAt: "2026-11-25T10:00:00Z",
+  commits: 2,
+})
+
+const pullIn = (args: string[]) => args.some((arg) => arg.includes("/pull/7"))
+
+// Opens the user's pull request and their branch, the worktree moving on once both are worked
+// out; how often each was opened by then, once the branch is opened again.
+async function openedAfterMoving(heads: readonly string[]) {
+  let moved = false
+  const open = mock(openByArgs)
+  const opened = (which: (args: string[]) => boolean) =>
+    open.mock.calls.filter(([args]) => which(args)).length
+  const pullRequests = () => Promise.resolve([ownPull(heads[moved ? 1 : 0] ?? "")])
+  const stamp = () => Promise.resolve(moved ? "moved" : "before")
+  await frameAfter(
+    app(".", LANDING, sources({ open, stamp, pullRequests })),
+    async (_input, on) => {
+      await on.shows("#7 Retry refunds")
+      while (opened(pullIn) < 1 || opened((args) => args.length === 0) < 1) {
+        await Bun.sleep(10)
+      }
+
+      moved = true
+      while (opened((args) => args.length === 0) < 2) {
+        await Bun.sleep(10)
+      }
+
+      // the list read again, and anything it starts, has had its turn
+      await Bun.sleep(200)
+    },
+    WIDE,
+  )
+
+  return opened(pullIn)
+}
+
+test("the worktree moving on, a pull request whose head hasn't moved isn't fetched again", async () => {
+  expect(await openedAfterMoving(["h1", "h1"])).toBe(1)
+})
+
+test("a pull request whose head has moved is worked out again", async () => {
+  expect(await openedAfterMoving(["h1", "h2"])).toBe(2)
 })
