@@ -49,6 +49,8 @@ const summary: ChangeSummary = {
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 9,
       files: 14,
+      added: 126,
+      removed: 28,
     },
   ],
   unchanged: ["api", "worker"],
@@ -293,7 +295,27 @@ const overview: OverviewView = {
   count: 14,
   repos: ["web", "api", "worker"],
   flags: { high: 1, medium: 0, low: 0 },
+  likely_wrong: [
+    {
+      id: "s11",
+      repo: "api",
+      file: "src/handlers/refunds.ts",
+      path: "src/handlers/refunds.ts",
+      trek_copy: false,
+      own_path: "src/handlers/refunds.ts",
+      start_line: 8,
+      end_line: 14,
+      name: "createRefund",
+      summary: "createRefund checks the amount against the order total.",
+      number: 9,
+      severity: "high",
+      note: "The amount arrives in cents and is compared with the order total in units, so a 40 refund of a 50 order is refused.",
+    },
+  ],
 }
+
+// When a saved trek was built: two hours before the screen is drawn.
+const BUILT_AT = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
 
 // A change's screen with its trek where `status` says, and an agent to build it.
 function change(
@@ -320,6 +342,7 @@ function change(
       }}
       run={noop}
       generation={0}
+      builtAt={BUILT_AT}
     />
   )
 }

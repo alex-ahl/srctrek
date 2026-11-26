@@ -14,6 +14,8 @@ type Props = ChangeViewProps & {
   done?: string | undefined
   // the latest build of the trek by this name
   readBuild: (name: string) => Promise<BuildRead>
+  // when its trek was built, once it's saved
+  builtAt?: string | undefined
 }
 
 /**
@@ -42,6 +44,7 @@ export function ChangeScreen(props: Props) {
         done={props.done}
         readBuild={props.readBuild}
         canBuild={actions.build !== undefined}
+        builtAt={props.builtAt}
         width={width - 2 * PADDING}
       />
     </ChangeFrame>

@@ -64,6 +64,23 @@ describe("sessionView", () => {
     expect(end).toMatchObject({ kind: "end", outcome: trek.outcome, count: 17 })
   })
 
+  test("names the steps likely wrong in the overview, in trek order, each with its stop and note", () => {
+    const overview = sessionView(opened, context)
+    if (overview.kind !== "overview") {
+      throw new Error("no overview")
+    }
+
+    expect(overview.likely_wrong.map((flag) => `${flag.id}:${String(flag.number)}`)).toEqual([
+      "s3:3",
+      "s11:9",
+      "s16:13",
+      "s17:14",
+    ])
+    expect(
+      overview.likely_wrong.every((flag) => flag.severity === "high" && flag.note !== ""),
+    ).toBe(true)
+  })
+
   test("lists every flag at the end, most severe first, then in trek order", () => {
     const end = sessionView(stepNext(stepTo(opened, "s20")), context)
     if (end.kind !== "end") {

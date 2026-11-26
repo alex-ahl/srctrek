@@ -17,6 +17,8 @@ describe("summarizeChange", () => {
           head: { kind: "branch", name: "feature/refunds", uncommitted: false },
           commits: 2,
           files: 1,
+          added: 1,
+          removed: 0,
         },
       ],
       unchanged: [],
@@ -31,6 +33,15 @@ describe("summarizeChange", () => {
 
     const { changed } = await summarizeChange(await changeOf(dir))
     expect(changed[0]?.files).toBe(2)
+  })
+
+  test("counts the lines the range adds and removes", async () => {
+    const dir = await makeBranchRepo()
+    await commit(dir, "app.ts", "const total = 300\nconst fee = 5\n")
+    await commit(dir, "README.md", "refunds\n")
+
+    const { changed } = await summarizeChange(await changeOf(dir))
+    expect([changed[0]?.added, changed[0]?.removed]).toEqual([3, 1])
   })
 
   test("marks a snapshot of uncommitted work on the branch", async () => {

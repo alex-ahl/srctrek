@@ -53,6 +53,12 @@ function titleOf(entries: readonly TrekEntry[], name: string): string {
   return entry?.valid === true ? entry.title : name
 }
 
+// When a saved trek was built, once the saved treks are read.
+function builtAtOf(entries: readonly TrekEntry[], name: string): string | undefined {
+  const entry = entries.find((each) => each.name === name)
+  return entry?.valid === true ? entry.createdAt : undefined
+}
+
 /**
  * trek's screens: the landing page, a change's screen, stepping a trek, its builds, and the
  * settings; each opened in front of the last and gone back from with esc or q. Where the change in
@@ -163,6 +169,7 @@ export function App(props: Props) {
     readBuild: readLatest,
     proposal,
     detailsFor,
+    builtAtOf: (name) => builtAtOf(entries, name),
     actionsFor: changeActions,
     run,
     generation,
@@ -214,6 +221,7 @@ export function App(props: Props) {
         readOverview={sources.overview}
         summary={change.summary}
         details={shown.details ?? detailsFor(choice)}
+        builtAt={builtAtOf(entries, status.name)}
         overview={shown.overview}
         status={status}
         proposal={proposal}

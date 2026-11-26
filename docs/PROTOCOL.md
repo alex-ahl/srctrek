@@ -54,7 +54,7 @@ branch's):
 
 One of:
 
-- `overview`: title, overview, trigger, outcome, step count.
+- `overview`: title, overview, trigger, outcome, step count, and the steps flagged likely wrong.
 - `step`: number and count, the absolute path (the user's own file when it's the trek's version,
   else the trek's copy, marked `trek_copy`), the file's path in the user's checkout (`own_path`, null
   without one), lines, kind, name, summary,

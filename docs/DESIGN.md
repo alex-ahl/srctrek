@@ -291,12 +291,15 @@ treks`. On a view, typing narrows it by name, the title bar saying how many of h
   symbol turning.
 - **A change's screen,** opened with enter: the change in the title bar, and over its first two
   lines what it is (a pull request by its title) and, under it, who opened a pull request and
-  whether it's a draft, its commits, and its files, each repo's where there are several; then its
-  trek's state: no trek yet (what `b` does, or to set an agent in
-  settings), building (the steps as they arrive and what the agent read last, a repo it
-  proposes with `y` to add and `x` to dismiss), ready (the trek's overview and its likely-wrong
-  steps; enter steps it), stale (how many steps' files changed; `b` updates it, enter steps it as
-  it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
+  whether it's a draft, its commits, its files, each repo's where there are several, and the
+  lines it adds and removes, `+126` in green and `−28` in red; then its trek's state, a saved
+  trek's on one line with when it was built and its stops (`● ready  ¦  built 2h ago  ¦  14
+stops`): no trek yet (what `b` does, or to set an agent in settings), building (the steps as
+  they arrive and what the agent read last, a repo it proposes with `y` to add and `x` to
+  dismiss), ready (the trek's title and story, then where its scenario starts and ends, `▶ Trigger`
+  and `■ Outcome, predicted`, each a line, and each step the agent marked likely wrong by its
+  stop and name with why under it, the first two, then how many more; enter steps it), stale (how
+  many steps' files changed, then as ready; `b` updates it, enter steps it as it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
   with an older guide, nothing to trek. `b` always builds the trek: builds, updates, or builds
   again. A trek saved meanwhile, by `b` or an agent's chat, shows once it's saved. A done trek
   opens on a screen of its own, with just the trek.

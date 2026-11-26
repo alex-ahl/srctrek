@@ -33,6 +33,8 @@ const summary: ChangeSummary = {
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 3,
       files: 5,
+      added: 45,
+      removed: 10,
     },
   ],
   unchanged: [],
@@ -403,7 +405,15 @@ test("a pull request's screen names it by its title, and who opened it", async (
   const url = "https://github.com/acme/web/pull/12"
   const pull: ChangeSummary = {
     changed: [
-      { repo: "web", base: "main", head: { kind: "pull", number: 12 }, commits: 3, files: 5 },
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "pull", number: 12 },
+        commits: 3,
+        files: 5,
+        added: 45,
+        removed: 10,
+      },
     ],
     unchanged: [],
     code: false,
@@ -459,7 +469,15 @@ test("a pull request opens on its title, never on its number first", async () =>
     ])
   const pull: ChangeSummary = {
     changed: [
-      { repo: "web", base: "main", head: { kind: "pull", number: 12 }, commits: 3, files: 5 },
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "pull", number: 12 },
+        commits: 3,
+        files: 5,
+        added: 45,
+        removed: 10,
+      },
     ],
     unchanged: [],
     code: false,

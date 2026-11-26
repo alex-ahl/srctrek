@@ -124,6 +124,8 @@ export type OverviewView = Pick<Trek, "title" | "overview" | "trigger" | "outcom
   repos: string[]
   // how many steps carry a flag of each severity
   flags: Record<Severity, number>
+  // the steps flagged likely wrong, in trek order, for the trek to say before it's stepped
+  likely_wrong: FlaggedStep[]
 }
 
 /** A flagged step, for the end of a trek: its stop number and what its flag says. */
@@ -358,6 +360,7 @@ export function sessionView(session: SteppingSession, context: ViewContext): Ses
   const { title, overview, trigger, outcome } = trek
   const repos = trek.repos.map((repo) => repo.name)
   const flags = flagCounts(trek.steps)
+  const likely_wrong = flagsOf(session, context).filter((flag) => flag.severity === "high")
 
-  return { kind: "overview", title, overview, trigger, outcome, count, repos, flags }
+  return { kind: "overview", title, overview, trigger, outcome, count, repos, flags, likely_wrong }
 }

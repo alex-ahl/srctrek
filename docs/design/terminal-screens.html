@@ -372,22 +372,22 @@
           <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › against </span>main</span><span></span></div>
           <div class="pane">
             <div class="ln">  <span class="a">checked out</span><span class="dim"> 2</span>                         <span class="dim">│</span>  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
-            <div class="ln"><span class="sel">  <span class="g">  ▌ </span>feature/refunds              <span class="g">●</span><span class="r"> ⚠</span>  </span><span class="dim">│</span>  <span class="dim">9 commits since main  ¦  14 files</span></div>
+            <div class="ln"><span class="sel">  <span class="g">  ▌ </span>feature/refunds              <span class="g">●</span><span class="r"> ⚠</span>  </span><span class="dim">│</span>  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln">        uncommitted                <span class="dim">○  </span>  <span class="dim">│</span></div>
-            <div class="ln">                                        <span class="dim">│</span>  <span class="g">● ready</span></div>
+            <div class="ln">                                        <span class="dim">│</span>  <span class="g">● ready</span><span class="dim">  ¦  14 stops</span></div>
             <div class="ln">  <span class="a">pull requests</span><span class="dim"> 3</span>                       <span class="dim">│</span></div>
             <div class="ln">      #18 Export refund rows       <span class="dim">○  </span>  <span class="dim">│</span>  <span class="bold">Partial refund of order o_1002</span></div>
-            <div class="ln">      #12 Add partial refunds      <span class="g">●</span><span class="a"> ⚑</span>  <span class="dim">│</span></div>
-            <div class="ln">      #15 Retry failed payouts w…  <span class="dim">○</span><span class="a"> ⚑</span>  <span class="dim">│</span>  A partial refund posted from the order page reaches the ledger</div>
-            <div class="ln">                                        <span class="dim">│</span>  and the queue.</div>
-            <div class="ln">  <span class="a">your branches</span><span class="dim"> 4</span>                       <span class="dim">│</span></div>
-            <div class="ln">      fix/rounding                 <span class="y">≠</span>    <span class="dim">│</span>  <span class="dim">Trigger   request  ¦  POST /refunds with { order: o_1002, amount:</span></div>
-            <div class="ln">      feature/partial-refunds      <span class="g">●</span>    <span class="dim">│</span>  <span class="dim">          40 }</span></div>
-            <div class="ln">      chore/upgrade-bun            <span class="dim">○  </span>  <span class="dim">│</span>  <span class="dim">Outcome   a ledger row, and refund.created on the queue</span></div>
-            <div class="ln">      feature/payout-retries       <span class="b">◐</span>    <span class="dim">│</span>  <span class="dim">Repos     web, api, worker</span></div>
+            <div class="ln">      #12 Add partial refunds      <span class="g">●</span><span class="a"> ⚑</span>  <span class="dim">│</span>  A partial refund posted from the order page reaches the ledger</div>
+            <div class="ln">      #15 Retry failed payouts w…  <span class="dim">○</span><span class="a"> ⚑</span>  <span class="dim">│</span>  and the queue.</div>
             <div class="ln">                                        <span class="dim">│</span></div>
-            <div class="ln">  <span class="a">code as it is</span><span class="dim"> 1</span>                       <span class="dim">│</span>  <span class="dim">14 stops</span></div>
-            <div class="ln">      its ways in                  <span class="dim">○  </span>  <span class="dim">│</span>  <span class="r">⚠ 1 step likely wrong</span></div>
+            <div class="ln">  <span class="a">your branches</span><span class="dim"> 4</span>                       <span class="dim">│</span>  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order:</div>
+            <div class="ln">      fix/rounding                 <span class="y">≠</span>    <span class="dim">│</span>                         o_1002, amount: 40 }</div>
+            <div class="ln">      feature/partial-refunds      <span class="g">●</span>    <span class="dim">│</span>  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the</div>
+            <div class="ln">      chore/upgrade-bun            <span class="dim">○  </span>  <span class="dim">│</span>                         queue</div>
+            <div class="ln">      feature/payout-retries       <span class="b">◐</span>    <span class="dim">│</span></div>
+            <div class="ln">                                        <span class="dim">│</span>  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
+            <div class="ln">  <span class="a">code as it is</span><span class="dim"> 1</span>                       <span class="dim">│</span>  <span class="dim">  The amount arrives in cents and is compared with the order</span></div>
+            <div class="ln">      its ways in                  <span class="dim">○  </span>  <span class="dim">│</span>  <span class="dim">  total in units, so a 40 refund of a 50 order is refused.</span></div>
           </div>
           <div class="foot"><span class="bold">↵</span><span class="dim">: step here  ¦  </span><span class="bold">b</span><span class="dim">: build again  ¦  </span><span class="bold">l</span><span class="dim">: builds  ¦  </span><span class="bold">a</span><span class="dim">: add repos  ¦  </span><span class="bold">p</span><span class="dim">: 2 pull requests  ¦  </span><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
@@ -397,7 +397,7 @@
           <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › against </span>main</span><span></span></div>
           <div class="pane">
             <div class="ln">  <span class="a">checked out</span><span class="dim"> 2</span>                         <span class="dim">│</span>  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
-            <div class="ln"><span class="sel">  <span class="dim">  ▌ </span>feature/refunds              <span class="dim">○  </span>  </span><span class="dim">│</span>  <span class="dim">9 commits since main  ¦  14 files</span></div>
+            <div class="ln"><span class="sel">  <span class="dim">  ▌ </span>feature/refunds              <span class="dim">○  </span>  </span><span class="dim">│</span>  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln">        uncommitted                <span class="dim">○  </span>  <span class="dim">│</span></div>
             <div class="ln">                                        <span class="dim">│</span>  <span class="dim">○ no trek yet</span></div>
             <div class="ln">  <span class="a">pull requests</span><span class="dim"> 3</span>                       <span class="dim">│</span>  <span class="dim">  b builds one: your agent picks an example and follows it from</span></div>
@@ -422,7 +422,7 @@
           <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › against </span>main</span><span></span></div>
           <div class="pane">
             <div class="ln">  <span class="a">checked out</span><span class="dim"> 2</span>                         <span class="dim">│</span>  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
-            <div class="ln"><span class="sel">  <span class="b">  ▌ </span>feature/refunds              <span class="b">◐</span>    </span><span class="dim">│</span>  <span class="dim">9 commits since main  ¦  14 files</span></div>
+            <div class="ln"><span class="sel">  <span class="b">  ▌ </span>feature/refunds              <span class="b">◐</span>    </span><span class="dim">│</span>  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln">        uncommitted                <span class="dim">○  </span>  <span class="dim">│</span></div>
             <div class="ln">                                        <span class="dim">│</span>  <span class="b">◓ building</span></div>
             <div class="ln">  <span class="a">pull requests</span><span class="dim"> 3</span>                       <span class="dim">│</span>  <span class="dim">     read_file worker worker/main.py 1–80 → 2630 chars …</span></div>
@@ -598,104 +598,106 @@
 
   <section>
     <h2>3. A change's screen, by state</h2>
-    <p class="note">The change on top, the same in every state: what it is, and how big. Under it, its trek. Once there's a trek, its overview shows here and enter steps it, where the Step in setting says; the other place is one key away. A build started with <code>b</code> shows here, its steps as they arrive and a repo the agent proposes, to add with <code>y</code> or dismiss with <code>x</code>; <code>l</code> opens its builds. A trek an agent saves from its own chat shows once it's saved. <code>b</code> always builds the trek: builds it, updates it, or builds it again. Beside the landing page's list, the screen is the same, its keys working from the list.</p>
+    <p class="note">The change on top, the same in every state: what it is, and how big, the lines it adds and removes in green and red. A saved trek's state is one line with when it was built and its stops; under it, the trek's title and story, ▶ Trigger and ■ Outcome, predicted, and each step the agent marked likely wrong, by its stop and name, with why. Under it, its trek. Once there's a trek, its overview shows here and enter steps it, where the Step in setting says; the other place is one key away. A build started with <code>b</code> shows here, its steps as they arrive and a repo the agent proposes, to add with <code>y</code> or dismiss with <code>x</code>; <code>l</code> opens its builds. A trek an agent saves from its own chat shows once it's saved. <code>b</code> always builds the trek: builds it, updates it, or builds it again. Beside the landing page's list, the screen is the same, its keys working from the list.</p>
     <div class="stack">
       <figure><figcaption>No trek yet</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web</span></span><span>feature/refunds<span class="dim">  ¦  9 commits since main  ¦  with </span>api</span></div>
+          <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › </span>web</span><span><span class="dim">feature/refunds  ¦  9 commits since main  ¦  api and worker passed through</span></span></div>
           <div class="pane">
-            <div class="ln"><span class="bold">feature/refunds</span><span class="dim">  ¦  with </span>api</div>
-            <div class="ln dim">9 commits  ¦  14 files  ¦  web 6, api 8</div>
+            <div class="ln">  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
+            <div class="ln">  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="dim">○</span> no trek yet</div>
-            <div class="ln dim">  b builds one: your agent picks an example and follows it from its trigger to its outcome</div>
+            <div class="ln">  <span class="dim">○ no trek yet</span></div>
+            <div class="ln">  <span class="dim">  b builds one: your agent picks an example and follows it from its trigger to its outcome</span></div>
           </div>
-          <div class="foot"><span class="k">b</span>: build  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
+          <div class="foot"><span class="bold">b</span><span class="dim">: build  ¦  </span><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
       </figure>
       <figure><figcaption>Building, with a repo the agent proposes</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web</span></span><span>feature/refunds<span class="dim">  ¦  9 commits since main  ¦  with </span>api</span></div>
+          <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › </span>web</span><span><span class="dim">feature/refunds  ¦  9 commits since main  ¦  api and worker passed through</span></span></div>
           <div class="pane">
-            <div class="ln"><span class="bold">feature/refunds</span><span class="dim">  ¦  with </span>api</div>
-            <div class="ln dim">9 commits  ¦  14 files  ¦  web 6, api 8</div>
+            <div class="ln">  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
+            <div class="ln">  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="b">◐</span> <span class="b">building</span></div>
-            <div class="ln dim">     read_file api handlers/refunds.ts 1–80 → 2630 chars …</div>
+            <div class="ln">  <span class="b">◓ building</span></div>
+            <div class="ln">  <span class="dim">     read_file worker worker/main.py 1–80 → 2630 chars …</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="a">?</span> the agent went into <span class="bold">billing</span>   <span class="dim">the api calls it at /v2/refunds</span></div>
+            <div class="ln">  <span class="a">? </span><span class="dim">the agent went into </span><span class="a">payments</span><span class="dim">   the worker calls it at /v2/refunds</span></div>
           </div>
-          <div class="foot"><span class="k">y</span>: add billing  <span class="dim">¦</span>  <span class="k">x</span>: dismiss  <span class="dim">¦</span>  <span class="k">l</span>: builds  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
+          <div class="foot"><span class="bold">y</span><span class="dim">: add payments  ¦  </span><span class="bold">x</span><span class="dim">: dismiss  ¦  </span><span class="bold">l</span><span class="dim">: builds  ¦  </span><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
       </figure>
       <figure><figcaption>Ready — the trek's overview, and enter steps it</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web</span></span><span>feature/refunds<span class="dim">  ¦  9 commits since main  ¦  with </span>api</span></div>
+          <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › </span>web</span><span><span class="dim">feature/refunds  ¦  9 commits since main  ¦  api and worker passed through</span></span></div>
           <div class="pane">
-            <div class="ln"><span class="bold">feature/refunds</span><span class="dim">  ¦  with </span>api</div>
-            <div class="ln dim">9 commits  ¦  14 files  ¦  web 6, api 8</div>
+            <div class="ln">  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
+            <div class="ln">  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="g">●</span> <span class="g">ready</span></div>
+            <div class="ln">  <span class="g">● ready</span><span class="dim">  ¦  built 2h ago  ¦  14 stops</span></div>
             <div class="ln"> </div>
-            <div class="ln bold">Partial refund of order o_1002</div>
-            <div class="ln">A partial refund posted from the order page reaches the ledger and the queue.</div>
+            <div class="ln">  <span class="bold">Partial refund of order o_1002</span></div>
+            <div class="ln">  A partial refund posted from the order page reaches the ledger and the queue.</div>
             <div class="ln"> </div>
-            <div class="ln"><span class="dim">Trigger   </span>request  ¦  POST /refunds with { order: o_1002, amount: 40 }</div>
-            <div class="ln"><span class="dim">Outcome   </span>a ledger row, and refund.created on the queue</div>
-            <div class="ln"><span class="dim">Repos     </span>web, api, worker</div>
-            <div class="ln dim">14 stops</div>
-            <div class="ln"><span class="r">⚠</span> 1 step likely wrong</div>
+            <div class="ln">  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order: o_1002, amount: 40 }</div>
+            <div class="ln">  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the queue</div>
+            <div class="ln"> </div>
+            <div class="ln">  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
+            <div class="ln">  <span class="dim">  The amount arrives in cents and is compared with the order total in units, so</span></div>
+            <div class="ln">  <span class="dim">  a 40 refund of a 50 order is refused.</span></div>
           </div>
-          <div class="foot"><span class="k">↵</span>: step here  <span class="dim">¦</span>  <span class="k">e</span>: step in Neovim  <span class="dim">¦</span>  <span class="k">b</span>: build again  <span class="dim">¦</span>  <span class="k">l</span>: builds  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
+          <div class="foot"><span class="bold">↵</span><span class="dim">: step here  ¦  </span><span class="bold">b</span><span class="dim">: build again  ¦  </span><span class="bold">l</span><span class="dim">: builds  ¦  </span><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
       </figure>
       <figure><figcaption>Stale</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web</span></span><span>feature/refunds<span class="dim">  ¦  9 commits since main  ¦  with </span>api</span></div>
+          <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › </span>web</span><span><span class="dim">feature/refunds  ¦  9 commits since main  ¦  api and worker passed through</span></span></div>
           <div class="pane">
-            <div class="ln"><span class="bold">feature/refunds</span><span class="dim">  ¦  with </span>api</div>
-            <div class="ln dim">9 commits  ¦  14 files  ¦  web 6, api 8</div>
+            <div class="ln">  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
+            <div class="ln">  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="y">≠</span> <span class="y">stale</span></div>
-            <div class="ln dim">  4 of 14 steps' files changed since it was built</div>
+            <div class="ln">  <span class="y">≠ stale</span><span class="dim">  ¦  built 2h ago  ¦  14 stops</span></div>
+            <div class="ln">  <span class="dim">  4 of 14 steps&#x27; files changed since it was built</span></div>
             <div class="ln"> </div>
-            <div class="ln bold">Partial refund of order o_1002</div>
-            <div class="ln">A partial refund posted from the order page reaches the ledger and the queue.</div>
+            <div class="ln">  <span class="bold">Partial refund of order o_1002</span></div>
+            <div class="ln">  A partial refund posted from the order page reaches the ledger and the queue.</div>
             <div class="ln"> </div>
-            <div class="ln"><span class="dim">Trigger   </span>request  ¦  POST /refunds with { order: o_1002, amount: 40 }</div>
-            <div class="ln"><span class="dim">Outcome   </span>a ledger row, and refund.created on the queue</div>
-            <div class="ln"><span class="dim">Repos     </span>web, api, worker</div>
-            <div class="ln dim">14 stops</div>
-            <div class="ln"><span class="r">⚠</span> 1 step likely wrong</div>
+            <div class="ln">  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order: o_1002, amount: 40 }</div>
+            <div class="ln">  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the queue</div>
+            <div class="ln"> </div>
+            <div class="ln">  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
+            <div class="ln">  <span class="dim">  The amount arrives in cents and is compared with the order total in units, so</span></div>
+            <div class="ln">  <span class="dim">  a 40 refund of a 50 order is refused.</span></div>
           </div>
-          <div class="foot"><span class="k">↵</span>: step it as it is  <span class="dim">¦</span>  <span class="k">e</span>: step in Neovim  <span class="dim">¦</span>  <span class="k">b</span>: update  <span class="dim">¦</span>  <span class="k">l</span>: builds  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
+          <div class="foot"><span class="bold">↵</span><span class="dim">: step it as it is  ¦  </span><span class="bold">b</span><span class="dim">: update  ¦  </span><span class="bold">l</span><span class="dim">: builds  ¦  </span><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
       </figure>
       <figure><figcaption>The build failed</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web</span></span><span>feature/refunds<span class="dim">  ¦  9 commits since main  ¦  with </span>api</span></div>
+          <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › </span>web</span><span><span class="dim">feature/refunds  ¦  9 commits since main  ¦  api and worker passed through</span></span></div>
           <div class="pane">
-            <div class="ln"><span class="bold">feature/refunds</span><span class="dim">  ¦  with </span>api</div>
-            <div class="ln dim">9 commits  ¦  14 files  ¦  web 6, api 8</div>
+            <div class="ln">  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
+            <div class="ln">  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="r">✕</span> <span class="r">build failed</span></div>
-            <div class="ln dim">  rejected s15: crosses from api to worker without citing worker</div>
-            <div class="ln dim">  stopped after 3 rejected rounds</div>
+            <div class="ln">  <span class="r">✕ build failed</span></div>
+            <div class="ln">  <span class="dim">  rejected s15: crosses from api to worker without citing worker</span></div>
+            <div class="ln">  <span class="dim">  stopped after 3 rejected rounds</span></div>
           </div>
-          <div class="foot"><span class="k">b</span>: build again  <span class="dim">¦</span>  <span class="k">l</span>: builds  <span class="dim">¦</span>  <span class="k">?</span>: keys</div>
+          <div class="foot"><span class="bold">b</span><span class="dim">: build again  ¦  </span><span class="bold">l</span><span class="dim">: builds  ¦  </span><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
       </figure>
       <figure><figcaption>No agent set</figcaption>
         <div class="term screen">
-          <div class="tb"><span><b>srctrek</b> <span class="dim">›</span> <span class="fg">web</span></span><span>feature/refunds<span class="dim">  ¦  9 commits since main  ¦  with </span>api</span></div>
+          <div class="tb"><span><span class="bold">srctrek</span><span class="dim"> › </span>web</span><span><span class="dim">feature/refunds  ¦  9 commits since main  ¦  api and worker passed through</span></span></div>
           <div class="pane">
-            <div class="ln"><span class="bold">feature/refunds</span><span class="dim">  ¦  with </span>api</div>
-            <div class="ln dim">9 commits  ¦  14 files  ¦  web 6, api 8</div>
+            <div class="ln">  <span class="bold">feature/refunds</span><span class="dim">  ¦  </span>api and worker<span class="dim"> passed through</span></div>
+            <div class="ln">  <span class="dim">9 commits since main  ¦  14 files  ¦  </span><span class="g">+126</span><span class="r"> −28</span></div>
             <div class="ln"> </div>
-            <div class="ln"><span class="dim">○</span> no trek yet</div>
-            <div class="ln dim">  set an agent in settings, or ask your agent for a trek in chat</div>
+            <div class="ln">  <span class="dim">○ no trek yet</span></div>
+            <div class="ln">  <span class="dim">  set an agent in settings, or ask your agent for a trek in chat</span></div>
           </div>
-          <div class="foot"><span class="k">?</span>: keys</div>
+          <div class="foot"><span class="bold">?</span><span class="dim">: keys</span></div>
         </div>
       </figure>
       <figure><figcaption>The code as it is — its ways in, each with its trek, then a trigger you name</figcaption>

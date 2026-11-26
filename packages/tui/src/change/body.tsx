@@ -6,22 +6,36 @@ import type {
   TrekStatus,
 } from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
-import { Overview } from "../stepping/ends"
-import { count } from "../ui/text"
+import { useNow } from "../ui/clock"
+import { SEPARATOR } from "../ui/separator"
+import { count, shortAge } from "../ui/text"
 import { useTones } from "../ui/theme"
 import type { StateLabel } from "../ui/state-labels"
 import { useStateText } from "../ui/turning"
 import { Building } from "./building"
 import { ChangeHeading } from "./line"
+import { TrekPreview } from "./preview"
 import { type Opened, statusBlock } from "./status-block"
 
-// Where the trek stands: its symbol and state in the state's tone, then dim lines saying why; a
-// trek whose work is done, how it ended.
+// What's said of a saved trek beside its state, dimmed: when it was built and how many stops it
+// has, "built 2h ago  ¦  14 stops"; nothing for one not built yet.
+function savedText(builtAt: string | undefined, overview: OverviewView | undefined, now: Date) {
+  if (overview === undefined) {
+    return ""
+  }
+
+  const built = builtAt === undefined ? [] : [`built ${shortAge(builtAt, now)}`]
+  return [...built, count(overview.count, "stop")].map((part) => `${SEPARATOR}${part}`).join("")
+}
+
+// Where the trek stands: its symbol and state in the state's tone, when it was built and how many
+// stops it has, then dim lines saying why; a trek whose work is done, how it ended.
 function StateBlock(props: {
   status: TrekStatus
   done: string | undefined
   canBuild: boolean
   open: Opened
+  saved: string
 }) {
   const tones = useTones()
   const block =
@@ -32,7 +46,10 @@ function StateBlock(props: {
 
   return (
     <box flexDirection="column">
-      <text fg={tones[block.tone]}>{text}</text>
+      <text fg={tones[block.tone]}>
+        {text}
+        <span fg={tones.dim}>{props.saved}</span>
+      </text>
       {block.details.map((line, i) => (
         <text key={i} fg={tones.dim}>{`  ${line}`}</text>
       ))}
@@ -41,17 +58,6 @@ function StateBlock(props: {
 }
 
 const doneBlock = (why: string): StateLabel => ({ symbol: "✓", state: why, tone: "dim" })
-
-// The steps the agent marked likely wrong, said before the trek is stepped.
-function Flags({ overview }: { overview: OverviewView }) {
-  const tones = useTones()
-  const high = overview.flags.high
-  if (high === 0) {
-    return undefined
-  }
-
-  return <text fg={tones.bad}>{`⚠ ${count(high, "step")} likely wrong`}</text>
-}
 
 // A repo the agent went into that the change doesn't hold, for the user to add or dismiss.
 function Proposal({ proposal }: { proposal: ProposedRepo }) {
@@ -85,6 +91,7 @@ export function ChangeBody({
   done,
   readBuild,
   canBuild,
+  builtAt,
   width,
 }: {
   summary: ChangeSummary | undefined
@@ -98,8 +105,11 @@ export function ChangeBody({
   // the latest build of the trek by this name, as it stands
   readBuild: (name: string) => Promise<BuildRead>
   canBuild: boolean
+  // when its trek was built, once it's saved
+  builtAt?: string | undefined
   width: number
 }) {
+  const now = useNow()
   return (
     <box flexDirection="column">
       {summary !== undefined && (
@@ -111,7 +121,13 @@ export function ChangeBody({
       {status.kind === "building" ? (
         <Building name={status.name} read={readBuild} width={width} />
       ) : (
-        <StateBlock status={status} done={done} canBuild={canBuild} open={openedOf(summary)} />
+        <StateBlock
+          status={status}
+          done={done}
+          canBuild={canBuild}
+          open={openedOf(summary)}
+          saved={savedText(builtAt, overview, now)}
+        />
       )}
       {proposal !== undefined && (
         <box flexDirection="column">
@@ -122,8 +138,7 @@ export function ChangeBody({
       {overview !== undefined && (
         <box flexDirection="column">
           <text> </text>
-          <Overview view={overview} width={width} />
-          <Flags overview={overview} />
+          <TrekPreview view={overview} width={width} />
         </box>
       )}
     </box>

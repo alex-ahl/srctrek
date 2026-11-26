@@ -24,6 +24,8 @@ type Props = Readonly<{
   proposal: ProposedRepo | undefined
   // a pull request's title, who opened it, and whether it's a draft, as last listed
   detailsFor: (choice: ChangeChoice) => PullRequestDetails | undefined
+  // when the trek by this name was built, once it's saved
+  builtAtOf: (name: string) => string | undefined
   // what the keys do to a change
   actionsFor: (change: OpenChange | undefined) => ChangeActions
   run: (work: Promise<void>) => void
@@ -130,6 +132,7 @@ export function useChangeBeside(props: Props): Beside | undefined {
         done={undefined}
         readBuild={props.readBuild}
         canBuild={actions.build !== undefined}
+        builtAt={props.builtAtOf(shown.status.name)}
         width={props.width}
       />
     ),

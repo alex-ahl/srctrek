@@ -13,6 +13,7 @@ const overview: OverviewView = {
   count: 4,
   repos: ["api", "web"],
   flags: { high: 1, medium: 0, low: 2 },
+  likely_wrong: [],
 }
 
 const end: EndView = {

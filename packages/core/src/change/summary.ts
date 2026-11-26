@@ -1,10 +1,10 @@
-import { commitsBetween, filesBetween } from "../git/refs"
+import { commitsBetween, sizeBetween } from "../git/refs"
 import { type RangeHead, rangeHead } from "./head"
 import { type RepoWithRange, type ResolvedChange, hasRange } from "./resolve"
 
 /**
- * A repo the change touches: where its range starts and ends, and how many commits it spans and
- * files it changes.
+ * A repo the change touches: where its range starts and ends, how many commits it spans, and the
+ * files it changes and the lines it adds and removes.
  */
 export type ChangedRepoSummary = Readonly<{
   repo: string
@@ -12,6 +12,8 @@ export type ChangedRepoSummary = Readonly<{
   head: RangeHead
   commits: number
   files: number
+  added: number
+  removed: number
 }>
 
 /**
@@ -32,12 +34,12 @@ export const findsWaysIn = (summary: Readonly<{ code: boolean; trigger?: string 
 
 async function summarizeRepo(repo: RepoWithRange): Promise<ChangedRepoSummary> {
   const { base, baseCommit, headCommit } = repo.range
-  const [commits, files] = await Promise.all([
+  const [commits, size] = await Promise.all([
     commitsBetween(repo.dir, baseCommit, headCommit),
-    filesBetween(repo.dir, baseCommit, headCommit),
+    sizeBetween(repo.dir, baseCommit, headCommit),
   ])
 
-  return { repo: repo.name, base, head: await rangeHead(repo), commits, files }
+  return { repo: repo.name, base, head: await rangeHead(repo), commits, ...size }
 }
 
 export async function summarizeChange(change: ResolvedChange): Promise<ChangeSummary> {

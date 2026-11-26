@@ -189,7 +189,17 @@ export function sizeText(
   return [...who, commitsText(changed), files, ...each].join(SEPARATOR)
 }
 
-/** The top of a change's screen: what the change is, then who opened it and how big it is. */
+// The lines the change adds and removes across its repos.
+function linesOf(summary: ChangeSummary) {
+  const total = (pick: (repo: ChangedRepoSummary) => number) =>
+    summary.changed.reduce((sum, repo) => sum + pick(repo), 0)
+  return { added: total((repo) => repo.added), removed: total((repo) => repo.removed) }
+}
+
+/**
+ * The top of a change's screen: what the change is, then who opened it and how big it is, with
+ * the lines it adds and removes in their colours.
+ */
 export function ChangeHeading({
   summary,
   details,
@@ -201,10 +211,19 @@ export function ChangeHeading({
 }) {
   const tones = useTones()
   const size = sizeText(summary, details)
+  const { added, removed } = linesOf(summary)
+  const lines = `+${String(added)} −${String(removed)}`
   return (
     <box flexDirection="column">
       <PartsText parts={fittedParts(titleParts(summary, details), width)} />
-      {size !== undefined && <text fg={tones.dim}>{fit(size, width)}</text>}
+      {size !== undefined && (
+        <text fg={tones.dim}>
+          {fit(size, width - SEPARATOR.length - lines.length)}
+          {SEPARATOR}
+          <span fg={tones.good}>{`+${String(added)}`}</span>
+          <span fg={tones.bad}>{` −${String(removed)}`}</span>
+        </text>
+      )}
     </box>
   )
 }

@@ -13,6 +13,8 @@ const summary: ChangeSummary = {
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 3,
       files: 5,
+      added: 45,
+      removed: 10,
     },
   ],
   unchanged: [],

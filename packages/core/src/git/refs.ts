@@ -65,8 +65,20 @@ export async function commitsBetween(dir: string, from: string, to: string): Pro
   return Number(await runGit(dir, ["rev-list", "--count", `${from}..${to}`]))
 }
 
-/** How many files differ between commits `from` and `to`. */
-export async function filesBetween(dir: string, from: string, to: string): Promise<number> {
-  const names = await runGit(dir, ["diff", "--name-only", from, to])
-  return names === "" ? 0 : names.split("\n").length
+/** How much differs between commits `from` and `to`: files, and lines added and removed. */
+export type DiffSize = Readonly<{ files: number; added: number; removed: number }>
+
+// A file's line of `git diff --numstat`, "12\t3\tpath"; a binary file's counts are "-".
+const linesOf = (count: string | undefined) => Number(count) || 0
+
+/** What differs between commits `from` and `to`, each file once however many commits touch it. */
+export async function sizeBetween(dir: string, from: string, to: string): Promise<DiffSize> {
+  const listed = await runGit(dir, ["diff", "--numstat", from, to])
+  const files = listed === "" ? [] : listed.split("\n").map((line) => line.split("\t"))
+
+  return {
+    files: files.length,
+    added: files.reduce((sum, [added]) => sum + linesOf(added), 0),
+    removed: files.reduce((sum, [, removed]) => sum + linesOf(removed), 0),
+  }
 }

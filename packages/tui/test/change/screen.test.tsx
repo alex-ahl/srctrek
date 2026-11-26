@@ -17,6 +17,8 @@ const summary: ChangeSummary = {
       head: { kind: "branch", name: "feature/refunds", uncommitted: false },
       commits: 9,
       files: 14,
+      added: 126,
+      removed: 28,
     },
   ],
   unchanged: [],
@@ -51,6 +53,8 @@ type Setup = Readonly<{
   actions?: Partial<ChangeActions>
   readBuild?: () => Promise<BuildRead>
   proposal?: ProposedRepo
+  // when its trek was built
+  builtAt?: string
 }>
 
 // Work a key starts runs here and is done with: reading where things stand again is the
@@ -68,6 +72,7 @@ function screen(root: string, status: TrekStatus, setup: Setup = {}) {
       actions={{ ...ACTIONS, ...setup.actions }}
       run={run}
       generation={0}
+      builtAt={setup.builtAt}
     />
   )
 }
@@ -78,13 +83,24 @@ const ready: TrekStatus = { kind: "ready", name: "pay" }
 test("leads with the change: its branch, then how big it is", async () => {
   const frame = await frameAfter(screen(".", missing), (_input, on) => on.shows("no trek yet"))
 
-  expect(frame).toMatch(/\n {2}feature\/refunds *\n {2}9 commits since main  ¦  14 files *\n/)
+  // the lines it adds and removes after the files
+  expect(frame).toMatch(
+    /\n {2}feature\/refunds *\n {2}9 commits since main  ¦  14 files  ¦  \+126 −28 *\n/,
+  )
 })
 
 test("a pull request leads with its number and title, then who opened it and how big it is", async () => {
   const pull: ChangeSummary = {
     changed: [
-      { repo: "web", base: "main", head: { kind: "pull", number: 12 }, commits: 3, files: 5 },
+      {
+        repo: "web",
+        base: "main",
+        head: { kind: "pull", number: 12 },
+        commits: 3,
+        files: 5,
+        added: 45,
+        removed: 10,
+      },
     ],
     unchanged: [],
     code: false,
@@ -105,7 +121,7 @@ test("a pull request leads with its number and title, then who opened it and how
   )
 
   expect(frame).toMatch(
-    /\n {2}#12 Add partial refunds *\n {2}alice  ¦  draft  ¦  3 commits  ¦  5 files *\n/,
+    /\n {2}#12 Add partial refunds *\n {2}alice  ¦  draft  ¦  3 commits  ¦  5 files  ¦  \+45 −10 *\n/,
   )
 })
 
@@ -118,6 +134,8 @@ test("a change across repos says how many files each changes", async () => {
         head: { kind: "branch", name: "feature/refunds", uncommitted: false },
         commits: 9,
         files: 6,
+        added: 54,
+        removed: 12,
       },
       {
         repo: "api",
@@ -125,6 +143,8 @@ test("a change across repos says how many files each changes", async () => {
         head: { kind: "branch", name: "refunds-api", uncommitted: false },
         commits: 2,
         files: 8,
+        added: 72,
+        removed: 16,
       },
     ],
     unchanged: [],
@@ -188,12 +208,30 @@ test("ready: the trek's overview, and enter steps it", async () => {
     30,
   )
 
-  expect(frame).toContain("● ready")
+  // its state on one line with how many stops it has
+  expect(frame).toContain("● ready  ¦  3 stops")
   expect(frame).toContain("Pay")
   expect(frame).toContain("main pays through a helper.")
-  expect(frame).toContain("⚠ 1 step likely wrong")
+  // where its scenario starts and ends, the end predicted
+  expect(frame).toMatch(/▶ Trigger +\S/)
+  expect(frame).toMatch(/■ Outcome, predicted +\S/)
+  // the step likely wrong named, by its stop, before it's stepped
+  expect(frame).toMatch(/⚠ stop \d+  ¦  /)
   expect(frame).toContain("↵: step here  ¦  b: build again  ¦  l: builds  ¦  ?: keys")
   expect(step).toHaveBeenCalled()
+})
+
+test("ready: says when the trek was built, beside its state", async () => {
+  const root = await repoWithTrek()
+  const builtAt = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+  const frame = await frameAfter(
+    screen(root, ready, { builtAt }),
+    (_input, on) => on.shows("3 stops"),
+    110,
+    30,
+  )
+
+  expect(frame).toContain("● ready  ¦  built 2h ago  ¦  3 stops")
 })
 
 test("ready, with an editor: e opens it", async () => {
