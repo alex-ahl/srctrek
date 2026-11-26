@@ -1,4 +1,5 @@
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
+import { canStep } from "../change/keys"
 import { useEffect, useState } from "react"
 import type { LandingRow, PullHead } from "./rows"
 
@@ -66,6 +67,38 @@ export function useStatuses(
       current = false
     }
   }, [rows, status, pullStatus])
+
+  return found
+}
+
+/**
+ * The treks listed that the agent marked a step of as likely wrong, by name, as `flagged` reads
+ * them: those that can be stepped, read again as they change or `flagged` is a new one.
+ */
+export function useFlagged(
+  statuses: ReadonlyMap<string, TrekStatus>,
+  flagged: ((name: string) => Promise<boolean>) | undefined,
+): ReadonlySet<string> {
+  const [found, setFound] = useState<ReadonlySet<string>>(new Set())
+  const names = [...statuses.values()].filter(canStep).map((status) => status.name)
+  const key = JSON.stringify(names)
+  useEffect(() => {
+    if (flagged === undefined) {
+      return undefined
+    }
+
+    let current = true
+    const flaggedName = async (name: string) =>
+      (await flagged(name).catch(() => false)) ? [name] : []
+    void Promise.all(names.map(flaggedName)).then(
+      (each) => current && setFound(new Set(each.flat())),
+    )
+    return () => {
+      current = false
+    }
+    // the names are read again only when they're other names, which their key says
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, flagged])
 
   return found
 }

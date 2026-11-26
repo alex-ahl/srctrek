@@ -29,25 +29,28 @@ export function Band({
 
 /**
  * One line of a list that can be selected: the marker after `indent`, then the line, on the band
- * when selected.
+ * when selected; with an `edge`, the selected line's marker is an edge in its colour.
  */
 export function Selectable({
   selected,
   tint,
   indent = "",
+  edge,
   children,
 }: {
   selected: boolean
   tint: RGBA | undefined
   indent?: string
+  edge?: RGBA | undefined
   children: ReactNode
 }) {
   const tones = useTones()
+  const marker = selected && edge !== undefined ? "▌ " : selectionMarker(selected, tint)
 
   return (
     <Band selected={selected} tint={tint}>
       <text fg={COLOUR.text}>
-        <span fg={tones.accent}>{`${indent}${selectionMarker(selected, tint)}`}</span>
+        <span fg={edge ?? tones.accent}>{`${indent}${marker}`}</span>
         {children}
       </text>
     </Band>

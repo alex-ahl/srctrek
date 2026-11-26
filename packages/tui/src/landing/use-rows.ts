@@ -23,6 +23,8 @@ export type LandingSources = {
   pullStatus: StatusOf["pullStatus"]
   // the saved treks, for when each was built
   entries: () => Promise<TrekEntry[]>
+  // whether the agent marked a step of the trek by this name as likely wrong
+  flagged?: ((name: string) => Promise<boolean>) | undefined
   // how often the pull requests are read again while the page is in front
   pullsEvery?: number | undefined
   // the treks whose work has landed or gone

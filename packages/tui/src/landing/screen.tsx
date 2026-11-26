@@ -3,7 +3,7 @@ import { useKeyboard, useTerminalDimensions } from "@opentui/react"
 import type { NearbyCheckout, RepoBranches, RepoPick } from "@srctrek/core"
 import { type ReactNode, useEffect, useRef, useState } from "react"
 import { LandingList } from "./list"
-import { choiceKey, rowKey } from "./statuses"
+import { choiceKey, rowKey, useFlagged } from "./statuses"
 import { type Ticked, toggled } from "./repos"
 import type { DropView } from "./drop-view"
 import { RepoSheet, sheetHeight } from "./sheet"
@@ -395,6 +395,7 @@ export function Landing(props: Props) {
     }),
   )
 
+  const flagged = useFlagged(statuses, props.flagged)
   const room = height - chromeLines(notice.text)
   const sheetLines = sheet.open ? sheetHeight(sheet.items, shownDrop, sheetMost(room)) : 0
   const list = (
@@ -409,6 +410,7 @@ export function Landing(props: Props) {
       opening={openingKey(props.opening)}
       height={room - sheetLines}
       namesOnly={split.split}
+      flagged={flagged}
       width={split.listWidth}
     />
   )

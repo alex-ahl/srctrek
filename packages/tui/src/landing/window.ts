@@ -4,9 +4,12 @@ import type { LandingRow } from "./rows"
 export const startsGroup = (previous: LandingRow | undefined, item: LandingRow) =>
   previous === undefined || previous.group !== item.group
 
-/** The note on the pull requests, with none to list yet, goes where they would: after own work. */
+/**
+ * The note on the pull requests, with none to list yet, goes where they would: after what's
+ * checked out.
+ */
 export function noteIndex(items: readonly LandingRow[]): number {
-  const after = items.findIndex((item) => item.group !== "your work")
+  const after = items.findIndex((item) => item.group !== "checked out")
   return after === -1 ? items.length : after
 }
 

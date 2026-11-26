@@ -247,7 +247,9 @@ the same way, with a dim `¦` and room around it: `3 commits  ¦  yours`.
 
 - **Landing page,** what `trek` opens on: what's yours. From 110 columns, the list sits beside
   the selected change's own screen, the same as it shows on its own: each row the change's name,
-  `⚑` after a pull request waiting on your review, and its trek's state as a symbol; what the
+  then its trek's state as a symbol and one mark after it, `⚠` where the agent marked a step
+  likely wrong, else `⚑` for a pull request waiting on your review (`● ⚠`, `○ ⚑`); the selected
+  row's edge, `▌`, in its state's colour; what the
   change holds and its trek's overview are on the right. Every change listed is worked out in
   the background, one at a time, and kept until the worktree moves on, a pull request until its
   head does, so moving to one shows it at once, a change of this repo then worked out again
@@ -261,11 +263,11 @@ the same way, with a dim `¦` and room around it: `3 commits  ¦  yours`.
   where it isn't the repo's, `into release/2.1`, and `draft`), and its trek's state (`● ready`,
   `≠ stale`, `○ no trek yet`), lined up at the right edge, with when the trek was built where there's
   room: `● ready  built 2h ago`. On a narrow terminal names are cut first, past half the row, and
-  what a change holds keeps at least 20 columns. The groups sit under their
-  names, dim, at the page's left, their rows set in under them, a blank line before each but the
-  first: your work first, the branch checked out with its uncommitted work set in under it, your
-  own open pull requests (`¦  yours`), and those waiting on your review, marked `review requested`
-  in the accent; then your branches, those with a commit of yours (by `user.email`) the base
+  what a change holds keeps at least 20 columns. The groups sit under their names, in the accent
+  with how many rows each holds (`pull requests 3`), at the page's left, their rows set in under
+  them, a blank line before each but the first: checked out first, the branch with its uncommitted
+  work set in under it as `uncommitted`; then pull requests, your own open ones (`¦  yours`) and
+  those waiting on your review, marked `review requested` in the accent; then your branches, those with a commit of yours (by `user.email`) the base
   doesn't have, latest committed first, the first 8; and code as it is, one row. A branch an open
   pull request was opened from is listed as that pull request alone, here and on `B`. Every other pull
   request and branch is on a view of its own, `p` and `B`, as the done treks are on `d`: treks

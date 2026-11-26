@@ -151,7 +151,16 @@ type Setup = Partial<{
   pullsEvery: number
   repoBranches: (path: string) => Promise<RepoBranches>
   nearby: NearbyCheckout[]
+  // beside a change's screen, as where there's room
+  split: boolean
+  flagged: (name: string) => Promise<boolean>
 }>
+
+// Beside a change's screen, and which treks are flagged, where the setup says.
+const besideOf = (setup: Setup) => ({
+  ...(setup.split === true ? { split: { beside: undefined } } : {}),
+  ...(setup.flagged === undefined ? {} : { flagged: setup.flagged }),
+})
 
 function landing(setup: Setup = {}) {
   return (
@@ -170,6 +179,7 @@ function landing(setup: Setup = {}) {
       onSettings={setup.onSettings ?? (() => undefined)}
       onQuit={setup.onQuit ?? (() => undefined)}
       tint={undefined}
+      {...besideOf(setup)}
     />
   )
 }
@@ -209,9 +219,9 @@ test("offers the user's own work first, then their branches, each saying what it
   const rows = landingRows(choices, open)
 
   expect(rows.map((row) => [row.group, row.label, row.detail])).toEqual([
-    ["your work", "feature/refunds", "3 commits"],
-    ["your work", "with uncommitted work", "2 files changed"],
-    ["your work", "#12 Add partial refunds", "3 commits"],
+    ["checked out", "feature/refunds", "3 commits"],
+    ["checked out", "uncommitted", "2 files changed"],
+    ["pull requests", "#12 Add partial refunds", "3 commits"],
     ["your branches", "fix/rounding", "1 commit"],
     ["your branches", "feature/partial-refunds", "5 commits"],
     ["code as it is", "its ways in", ""],
@@ -240,7 +250,7 @@ test("a branch an open pull request was opened from is listed as that pull reque
 
   expect(rows.map((row) => row.label)).toEqual([
     "feature/refunds",
-    "with uncommitted work",
+    "uncommitted",
     "#14 Round refunds to cents",
     "feature/partial-refunds",
     "its ways in",
@@ -256,6 +266,20 @@ test("the other branches leave out those an open pull request was opened from", 
   expect(otherBranchRows(withRemote, [fromTax])).toEqual([])
 })
 
+test("beside a change's screen, a mark follows each state: ⚠ for a likely-wrong step, ⚑ for a review waiting", async () => {
+  const frame = await frameAfter(
+    landing({ split: true, flagged: (name) => Promise.resolve(name === "feature-refunds") }),
+    listed,
+    130,
+    34,
+  )
+
+  expect(frame).toMatch(/feature\/refunds +● ⚠/)
+  expect(frame).toMatch(/#12 Add partial refunds +● ⚑/)
+  // the selected line's edge in its trek's state
+  expect(frame).toMatch(/▌ feature\/refunds/)
+})
+
 test("leaves out the uncommitted row when everything is committed", () => {
   const labels = landingRows({ ...choices, uncommittedFiles: 0 }, []).map((row) => row.label)
 
@@ -266,7 +290,7 @@ test("offers the open pull requests by number and title, with their commits and 
   const rows = [...yourPullRows(open, "main"), ...otherPullRows(open, "main")]
 
   expect(rows.map((row) => [row.group, row.label, row.detail, row.mark])).toEqual([
-    ["your work", "#12 Add partial refunds", "3 commits", "review requested"],
+    ["pull requests", "#12 Add partial refunds", "3 commits", "review requested"],
     ["pull requests", "#14 Round refunds to cents", "3 commits  ¦  draft", undefined],
   ])
 })
@@ -299,21 +323,23 @@ test("opens on the user's own branch, every change under its heading", async () 
 
   // what the changes are measured against, once
   expect(frame).toMatch(/srctrek › against main/)
-  // what needs the user first: their own work, then the pull requests waiting on their review
+  // what needs the user first: what's checked out, then the pull requests, each group counted
   expect(frame).toMatch(
-    /\n  your work *\s+▶ feature\/refunds +3 commits +● ready  built 2h ago\s+with uncommitted work +2 files changed +○ no trek yet\s+#12 Add partial refunds +3 commits  ¦  review requested +● ready/,
+    /\n  checked out 2 *\s+▶ feature\/refunds +3 commits +● ready  built 2h ago\s+uncommitted +2 files changed +○ no trek yet *\n *\n  pull requests 1 *\s+#12 Add partial refunds +3 commits  ¦  review requested +● ready/,
   )
   // uncommitted work set in under its branch
-  expect(frame).toMatch(/\n {8}with uncommitted work/)
+  expect(frame).toMatch(/\n {8}uncommitted/)
   // each group under its name, a blank line before it
-  expect(frame).toMatch(/● ready *\n *\n  your branches *\s+fix\/rounding +1 commit +○ no trek yet/)
+  expect(frame).toMatch(
+    /● ready *\n *\n  your branches 2 *\s+fix\/rounding +1 commit +○ no trek yet/,
+  )
   // the other pull requests wait on a view of their own
   expect(frame).not.toContain("#14 Round refunds")
-  expect(frame).toMatch(/\n  code as it is *\s+its ways in +○ not found yet/)
+  expect(frame).toMatch(/\n  code as it is 1 *\s+its ways in +○ not found yet/)
   // the done treks wait on a view of their own
   expect(frame).not.toMatch(/\n  done/)
   // a group's name at the page's left, its rows set in under it, nothing drawn
-  expect(frame).toMatch(/\n {2}your work *\n {4}▶ feature/)
+  expect(frame).toMatch(/\n {2}checked out 2 *\n {4}▶ feature/)
   // a ready trek says when it was built
   expect(frame).toMatch(/feature\/refunds +3 commits +● ready  built 2h ago/)
   // one table: every row's state in one column
@@ -437,7 +463,7 @@ test("d lists the treks whose work has landed on a view of their own; enter open
 
   // how a done trek's work ended is its state; the changes give way to them
   expect(frame).toMatch(/srctrek › done treks/)
-  expect(frame).toMatch(/\n  done *\s+▶ Applying a coupon +✓ merged/)
+  expect(frame).toMatch(/\n  done 2 *\s+▶ Applying a coupon +✓ merged/)
   expect(frame).toMatch(/Posting to the ledger +✓ branch gone/)
   expect(frame).not.toContain("feature/refunds")
   expect(frame).toContain("↵: open  ¦  esc: back")
@@ -472,7 +498,7 @@ test("S opens settings, and q quits", async () => {
 test("a slides up every repo beside this one under the changes, those with work first", async () => {
   const frame = await frameAfter(landing(), sheetOpen, 110, 34)
 
-  expect(frame).toMatch(/\n  your work *\s+▶ feature\/refunds/)
+  expect(frame).toMatch(/\n  checked out 2 *\s+▶ feature\/refunds/)
   expect(frame).toMatch(
     /ADD REPOS\s+▶ \[ \] api +\.\.\/api +refunds-api ▸ +4 commits\s+\[ \] docs +\.\.\/docs +main\s+\[ \] worker/,
   )
@@ -652,7 +678,7 @@ test("on a short terminal, the sheet scrolls to keep its selection in view", asy
 
   expect(frame).toMatch(/▶ \[ \] repo-19 /)
   expect(frame).toContain("ADD REPOS")
-  expect(frame).toMatch(/\n  your work/)
+  expect(frame).toMatch(/\n  checked out/)
 })
 
 test("a repo's drop: the few latest and the checked-out one, the rest under a count, then main", () => {
@@ -965,13 +991,13 @@ test("appears whole once the pull requests are in too, never without them first"
       await on.shows("reading this repo")
       before = await on.frame()
       pulls.resolve(open)
-      await on.shows(/\n  your work/)
+      await on.shows(/\n  checked out/)
     },
     110,
     34,
   )
 
-  expect(before).not.toMatch(/\n  your work/)
+  expect(before).not.toMatch(/\n  checked out/)
   expect(frame).toContain("#12 Add partial refunds")
   expect(frame).toContain("p: 1 pull request")
   expect(frame).toMatch(/feature\/refunds +3 commits +● ready/)
@@ -1032,7 +1058,7 @@ test("a change that couldn't be opened says why, until the next key", async () =
     34,
   )
 
-  expect(before).toMatch(/\n  your work/)
+  expect(before).toMatch(/\n  checked out/)
   expect(after).not.toContain("couldn't open")
 })
 
@@ -1087,9 +1113,9 @@ test("lists only what's the user's: their pull requests and branches, the rest b
     30,
   )
 
-  expect(frame).toMatch(/your work[\s\S]*#18 Export refund rows +4 commits  ¦  yours/)
+  expect(frame).toMatch(/checked out[\s\S]*#18 Export refund rows +4 commits  ¦  yours/)
   expect(frame).toMatch(/#12 Add partial refunds +3 commits  ¦  review requested/)
-  expect(frame).toMatch(/your branches\s+fix\/rounding/)
+  expect(frame).toMatch(/your branches 2\s+fix\/rounding/)
   expect(frame).not.toContain("#14 Round refunds")
   expect(frame).not.toContain("bo/tax")
   expect(frame).toContain("p: 1 pull request  ¦  B: 1 branch  ¦  d: 2 done treks")
@@ -1156,7 +1182,7 @@ test("typing on a view of its own narrows it; esc clears what's typed, then goes
       input.pressEscape()
       await on.shows("#14 Round refunds")
       input.pressEscape()
-      await on.shows("your work")
+      await on.shows("checked out")
     },
     120,
     30,

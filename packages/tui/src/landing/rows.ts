@@ -4,7 +4,7 @@ import { SEPARATOR } from "../ui/separator"
 
 /** The groups the landing page's rows sit in, by the names on their rules, in their order. */
 export type LandingGroup =
-  "your work" | "your branches" | "code as it is" | "pull requests" | "branches" | "done"
+  "checked out" | "your branches" | "code as it is" | "pull requests" | "branches" | "done"
 
 /** A trek whose work has landed or gone, by its name and title, and how its work ended. */
 export type DoneTrek = Readonly<{ name: string; title: string; why: string }>
@@ -37,7 +37,7 @@ function ownRows({ own, uncommittedFiles }: BranchChoices): LandingRow[] {
   const name = own?.name ?? "the checked-out commit"
   const detail = own === undefined ? "not on a branch" : commitsOf(own.commits)
   const branch: LandingRow = {
-    group: "your work",
+    group: "checked out",
     label: name,
     detail,
     choice: { kind: "own", uncommitted: false },
@@ -50,8 +50,8 @@ function ownRows({ own, uncommittedFiles }: BranchChoices): LandingRow[] {
   return [
     branch,
     {
-      group: "your work",
-      label: "with uncommitted work",
+      group: "checked out",
+      label: "uncommitted",
       detail: `${files} changed`,
       choice: { kind: "own", uncommitted: true },
     },
@@ -144,7 +144,7 @@ const pullRow =
 export function yourPullRows(open: readonly OpenPullRequest[], base: string): LandingRow[] {
   const mine = open.filter((pr) => pr.mine)
   const waiting = open.filter((pr) => pr.reviewRequested)
-  return [...latestFirst(mine), ...latestFirst(waiting)].map(pullRow("your work", base))
+  return [...latestFirst(mine), ...latestFirst(waiting)].map(pullRow("pull requests", base))
 }
 
 /** The other pull requests, on a view of their own, the latest changed first. */

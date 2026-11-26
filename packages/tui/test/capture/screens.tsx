@@ -239,7 +239,13 @@ function landingSplit(own: TrekStatus, proposal?: ProposedRepo) {
           .map((name, at) => ({ name, commits: at * 3 + 1, mine: true })),
       }),
     pullRequests: () => Promise.resolve(busyPulls),
-    overview: () => Promise.resolve(overview),
+    // the user's own branch's trek has a step likely wrong; the others none
+    overview: (name) =>
+      Promise.resolve(
+        name === "feature-refunds"
+          ? overview
+          : { ...overview, flags: { high: 0, medium: 0, low: 0 } },
+      ),
     pullRequest: () => Promise.reject(new Error("unread")),
     nearby: () => Promise.resolve([]),
     repoBranches: () => Promise.reject(new Error("unread")),

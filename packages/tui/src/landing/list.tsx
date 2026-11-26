@@ -162,57 +162,81 @@ function ChangeView({
   )
 }
 
-// Beside a change's screen, a mark is drawn as a flag after the name: what it says is there.
-const FLAG = " ⚑"
-
 // A state's symbol alone: "●" of "● ready".
 const symbolOf = (cell: StateCell) => cell.text.split(" ")[0] ?? ""
 
-// One change beside a change's screen: its name, flagged when it's marked, and its trek's state
-// as a symbol, lined up at the list's right.
+/** What sets a row apart after its state, beside a change's screen: one mark, or none. */
+type Mark = Readonly<{ symbol: string; tone: Tone }>
+
+// A likely-wrong step in its trek before a review waiting on the user: the one to look at first.
+const markOf = (row: LandingRow, flagged: boolean): Mark | undefined => {
+  if (flagged) {
+    return { symbol: "⚠", tone: "bad" }
+  }
+
+  return row.mark === undefined ? undefined : { symbol: "⚑", tone: "accent" }
+}
+
+// One change beside a change's screen: its name, then its trek's state as a symbol and its mark,
+// lined up at the list's right.
 function NameView({
   row,
   cell,
+  mark,
   width,
   muted,
 }: {
   row: LandingRow
   cell: StateCell
+  mark: Mark | undefined
   width: number
   muted: boolean
 }) {
   const tones = useTones()
-  const flag = row.mark === undefined ? "" : FLAG
-  const { indent, label, after } = nameCells(row, width - flag.length)
+  const { indent, label, after } = nameCells(row, width)
 
   return (
     <span>
       {indent}
       <span {...(muted ? { fg: tones.dim } : {})}>{label}</span>
-      <span fg={muted ? tones.dim : tones.accent}>{flag}</span>
       {after}
       {GAP}
       <span fg={tones[muted ? "dim" : cell.tone]}>{symbolOf(cell)}</span>
+      <span fg={tones[muted ? "dim" : (mark?.tone ?? "dim")]}>{` ${mark?.symbol ?? " "}`}</span>
     </span>
   )
 }
 
-// A group's name, dim, at the page's left, its rows set in under it, and what it says of a group
-// with nothing in it: "pull requests  none"; a blank line before it but the first.
-function Heading(props: { group: LandingGroup; first: boolean; note?: LandingNote | undefined }) {
+// A group's name in the accent, with how many rows it holds, at the page's left, its rows set in
+// under it, and what it says of a group with nothing in it: "pull requests  none"; a blank line
+// before it but the first.
+function Heading(props: {
+  group: LandingGroup
+  first: boolean
+  count?: number | undefined
+  note?: LandingNote | undefined
+}) {
   const tones = useTones()
-  const { note } = props
+  const { note, count } = props
 
   return (
     <box flexDirection="column" style={{ flexShrink: 0 }}>
       {!props.first && <text fg={COLOUR.text}> </text>}
-      <text fg={tones.dim}>
+      <text fg={tones.accent}>
         {props.group}
+        {count !== undefined && <span fg={tones.dim}>{` ${String(count)}`}</span>}
         {note !== undefined && <span fg={tones[note.tone]}>{`${GAP}${note.text}`}</span>}
       </text>
     </box>
   )
 }
+
+// How many rows each group holds, those scrolled out of view among them.
+const countsOf = (items: readonly LandingRow[]): ReadonlyMap<LandingGroup, number> =>
+  items.reduce(
+    (counts, item) => counts.set(item.group, (counts.get(item.group) ?? 0) + 1),
+    new Map(),
+  )
 
 // Whether a row's state is turning: a change being opened, or one still being worked out.
 const busy = (
@@ -271,10 +295,12 @@ function widthsOf(
 
 const NO_CELL: StateCell = { text: "", tone: "dim" }
 
+const NONE_FLAGGED: ReadonlySet<string> = new Set()
+
 // The names' room beside a change's screen: the list's, less the rows' indent, the marker, and a
-// state's symbol after its gap.
+// state's symbol and its mark after its gap.
 const namesWidth = (width: number) =>
-  width - 2 * PADDING - ROW_INDENT.length - MARKER - GAP.length - 1
+  width - 2 * PADDING - ROW_INDENT.length - MARKER - GAP.length - 3
 
 /**
  * Everything to open under its heading, the selected line on the tint; the note on the pull
@@ -291,6 +317,7 @@ export function LandingList({
   tint,
   height,
   namesOnly = false,
+  flagged = NONE_FLAGGED,
   width: shownWidth,
 }: {
   items: readonly LandingRow[]
@@ -308,6 +335,8 @@ export function LandingList({
   height: number
   // beside a change's screen: each change's name and its state's symbol, what it holds there
   namesOnly?: boolean
+  // the treks with a step the agent marked likely wrong, by name
+  flagged?: ReadonlySet<string>
   // the columns the list has, the terminal's unless given
   width?: number | undefined
 }) {
@@ -319,7 +348,10 @@ export function LandingList({
     const at = builtAt.get(name)
     return at === undefined ? undefined : shortAge(at, now)
   }
+  const tones = useTones()
   const cells = cellsOf(items, statuses, opening, turning, built)
+  const counts = countsOf(items)
+  const isFlagged = (item: LandingRow) => flagged.has(statuses.get(rowKey(item))?.name ?? "")
   const widths = widthsOf(items, cells, width)
   const noteAt = noteIndex(items)
   const start = firstShown(items, chosen, noteAt, note !== undefined, height)
@@ -332,13 +364,23 @@ export function LandingList({
           <box key={rowKey(item)} flexDirection="column" style={{ flexShrink: 0 }}>
             {index === noteAt && <Note note={note} first={index === 0} />}
             {(startsGroup(items[index - 1], item) || shown === 0) && (
-              <Heading group={item.group} first={index === start && noteAt !== index} />
+              <Heading
+                group={item.group}
+                count={counts.get(item.group)}
+                first={index === start && noteAt !== index}
+              />
             )}
-            <Selectable selected={index === chosen} tint={tint} indent={ROW_INDENT}>
+            <Selectable
+              selected={index === chosen}
+              tint={tint}
+              indent={ROW_INDENT}
+              edge={namesOnly ? tones[(cells.get(rowKey(item)) ?? NO_CELL).tone] : undefined}
+            >
               {namesOnly ? (
                 <NameView
                   row={item}
                   cell={cells.get(rowKey(item)) ?? NO_CELL}
+                  mark={markOf(item, isFlagged(item))}
                   width={namesWidth(width)}
                   muted={muted}
                 />

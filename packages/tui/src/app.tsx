@@ -182,6 +182,7 @@ export function App(props: Props) {
       nearby: () => sources.nearby(),
       done: () => sources.done(),
       entries: () => sources.entries(),
+      flagged: (name: string) => sources.overview(name).then((view) => (view?.flags.high ?? 0) > 0),
     }),
     // a new generation is a new set, for the page to ask again
     // oxlint-disable-next-line react-hooks/exhaustive-deps
