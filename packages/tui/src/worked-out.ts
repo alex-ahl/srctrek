@@ -60,6 +60,8 @@ export function useWorkedOut(prepare: (choice: ChangeChoice) => Promise<Screen>)
 
   return {
     prepared,
+    // whether the change by this key is kept, worked out or under way
+    kept: (key: string) => worked.current.has(key),
     drop,
     // the change by this key as it now stands, where it's kept
     update: (key: string, screen: Screen) => {

@@ -705,10 +705,9 @@ test("while the next change is worked out, the last stays beside the list, then 
   expect(frame).not.toContain("↵")
 })
 
-test("beside the list, each change is worked out once, coming back to it shown at once", async () => {
-  const open = mock(openByArgs)
+test("beside the list, coming back to a change shows it at once, as it was kept", async () => {
   await frameAfter(
-    app(".", LANDING, sources({ open })),
+    app(".", LANDING, sources({ open: openByArgs })),
     async (input, on) => {
       await on.shows("no trek yet")
       input.pressKey("j")
@@ -719,9 +718,6 @@ test("beside the list, each change is worked out once, coming back to it shown a
     },
     WIDE,
   )
-
-  const rounding = open.mock.calls.filter(([args]) => roundingIn(args))
-  expect(rounding).toHaveLength(1)
 })
 
 test("the changes listed are worked out ahead, so moving to one shows it at once", async () => {
@@ -769,4 +765,34 @@ test("the worktree moving on, the changes listed are worked out again", async ()
   )
 
   expect(open.mock.calls.filter(([args]) => roundingIn(args))).toHaveLength(2)
+})
+
+test("a kept change shown again is worked out again behind it, as files are edited meanwhile", async () => {
+  // each time the user's own branch is worked out, one more file has changed
+  let files = 0
+  const open = (args: string[]) => {
+    if (args.length > 0) {
+      return openByArgs(args)
+    }
+
+    files += 1
+    const changed = summary.changed.map((repo) => ({ ...repo, files }))
+    return Promise.resolve({
+      ...changeWith(() => Promise.resolve(missing)),
+      summary: { ...summary, changed },
+    })
+  }
+  const frame = await frameAfter(
+    app(".", LANDING, sources({ open })),
+    async (input, on) => {
+      await on.shows("· 1 file")
+      input.pressKey("j")
+      await on.shows("● ready")
+      input.pressKey("k")
+      await on.shows("· 2 files")
+    },
+    WIDE,
+  )
+
+  expect(frame).toContain("no trek yet")
 })

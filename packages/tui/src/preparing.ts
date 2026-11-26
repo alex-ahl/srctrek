@@ -132,13 +132,21 @@ export function usePreparing({ sources, settings, open, replace, landingInFront 
   }
 
   // what the selection rests on, once it's worked out, unless the selection has moved on
-  // meanwhile: one worked out ahead answers before the next frame
+  // meanwhile: one worked out ahead answers before the next frame. A change of this repo kept
+  // from before may have moved on since, as files are edited, so it's worked out again behind
+  // it; a pull request is left to its fetch, too slow to repeat on every look.
   const rest = (choice: ChangeChoice) => {
     const key = preparedKey(choice)
+    const kept = worked.kept(key)
     restedOn.current = choice
-    void worked
-      .prepared(choice)
-      .then((screen) => restedOn.current === choice && setRested({ key, choice, screen }))
+    const restOn = (screen: Screen) =>
+      restedOn.current === choice && setRested({ key, choice, screen })
+
+    void worked.prepared(choice).then(restOn)
+    if (kept && choice.kind !== "pull-request") {
+      worked.drop(key)
+      void worked.prepared(choice).then(restOn)
+    }
   }
 
   // where the trek of the change rested on stands now, kept with it
