@@ -905,3 +905,55 @@ test("beside the list, a pull request's title comes from the list, as it's read 
 
   expect(pullRequest).not.toHaveBeenCalled()
 })
+
+test("beside the list, the other pull requests show the one selected; typing still narrows them", async () => {
+  // someone else's pull request, on the view p opens
+  const theirs = { ...ownPull("h9"), number: 9, title: "Cache the provider config", mine: false }
+  const others = {
+    ...theirs,
+    number: 8,
+    title: "Upgrade the HTTP client",
+    url: "https://github.com/acme/web/pull/8",
+  }
+  const pullRequests = () =>
+    Promise.resolve([{ ...theirs, url: "https://github.com/acme/web/pull/9" }, others])
+  const open = (args: string[]) =>
+    args.some((arg) => arg.includes("/pull/8"))
+      ? Promise.resolve(changeWith(() => Promise.resolve(ready)))
+      : Promise.resolve(changeWith(() => Promise.resolve(missing)))
+  const root = await repoWithTrek()
+  const frame = await frameAfter(
+    app(root, LANDING, sources({ open, pullRequests, overview: (name) => overviewOf(root, name) })),
+    async (input, on) => {
+      await on.shows("p: 2 pull requests")
+      input.pressKey("p")
+      await on.shows("○ no trek yet")
+      await input.typeText("http")
+      await on.shows("3 stops")
+    },
+    WIDE,
+    30,
+  )
+
+  expect(frame).toContain("pull requests  ¦  1 of 2  / http")
+  expect(frame).toContain("↵: step here")
+})
+
+test("beside the list, a done trek shows how its work ended, and its trek", async () => {
+  const root = await repoWithTrek()
+  const doneTreks = () => Promise.resolve([{ name: "pay", title: "Pay", why: "merged" }])
+  const frame = await frameAfter(
+    app(root, LANDING, sources({ done: doneTreks, overview: (name) => overviewOf(root, name) })),
+    async (input, on) => {
+      await on.shows("d: 1 done trek")
+      input.pressKey("d")
+      await on.shows("3 stops")
+    },
+    WIDE,
+    30,
+  )
+
+  expect(frame).toMatch(/▌ Pay +✓ *│/)
+  expect(frame).toContain("✓ merged")
+  expect(frame).toContain("main pays through a helper.")
+})

@@ -16,9 +16,16 @@ import type { OpenChange } from "./open-change"
 import { type ChangeViewProps, useChangeView } from "./use-change-view"
 import { WaysIn, wayRows } from "./ways-in"
 
+type ChangeView = ReturnType<typeof useChangeView>
+
+/** A trek whose work is done, by its name, and how its work ended in a word. */
+export type DoneTrek = Readonly<{ name: string; why: string }>
+
 type Props = Readonly<{
   // the change the landing page's selection rests on, worked out
   rested: Rested | undefined
+  // a done trek the selection rests on instead, on the view of done treks
+  done: DoneTrek | undefined
   readOverview: (name: string) => Promise<OverviewView | undefined>
   readBuild: (name: string) => Promise<BuildRead>
   proposal: ProposedRepo | undefined
@@ -78,7 +85,12 @@ function waysInBeside(key: string, shown: ChangeOpen, props: Props): Beside {
   }
 }
 
-// What the change's view is driven from: the change rested on, or nothing while there's none.
+// Where a done trek stands: saved, to be stepped.
+const doneStatus = (done: DoneTrek | undefined): TrekStatus | undefined =>
+  done === undefined ? undefined : { kind: "ready", name: done.name }
+
+// What the view is driven from: the done trek or the change rested on, or nothing while there's
+// none.
 function viewOf(
   shown: ChangeOpen | undefined,
   props: Props,
@@ -87,13 +99,39 @@ function viewOf(
   return {
     readOverview: props.readOverview,
     summary: shown?.change.summary,
-    status: shown?.status ?? NOTHING,
+    status: doneStatus(props.done) ?? shown?.status ?? NOTHING,
     overview: shown?.overview,
     proposal: props.proposal,
     actions,
     run: props.run,
     generation: props.generation,
     enterBuilds: true,
+  }
+}
+
+// A done trek: how its work ended, and its trek, stepped with enter as from its own screen.
+function doneBeside(done: DoneTrek, view: ChangeView, props: Props): Beside {
+  return {
+    key: `trek ${done.name}`,
+    body: (
+      <ChangeBody
+        summary={undefined}
+        details={undefined}
+        status={{ kind: "ready", name: done.name }}
+        overview={view.overview}
+        proposal={undefined}
+        done={done.why}
+        readBuild={props.readBuild}
+        canBuild={false}
+        builtAt={props.builtAtOf(done.name)}
+        width={props.width}
+      />
+    ),
+    keys: view.keys,
+    hints: view.hints,
+    group: view.group,
+    asking: view.ask.asking,
+    closeAsk: view.ask.close,
   }
 }
 
@@ -107,6 +145,10 @@ export function useChangeBeside(props: Props): Beside | undefined {
   const shown = rested?.screen.kind === "change" ? rested.screen : undefined
   const actions = props.actionsFor(shown?.change)
   const view = useChangeView(viewOf(shown, props, actions))
+
+  if (props.done !== undefined) {
+    return doneBeside(props.done, view, props)
+  }
 
   if (rested === undefined) {
     return undefined

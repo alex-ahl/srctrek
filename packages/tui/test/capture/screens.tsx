@@ -227,6 +227,27 @@ const landingBusy = (
   />
 )
 
+// The pull request a change's args name, by its number, from its link; none for a branch.
+const pullIn = (args: readonly string[]) =>
+  Number(args.find((arg) => arg.includes("/pull/"))?.split("/pull/")[1] ?? Number.NaN)
+
+// A change as the args open it: a pull request with its own head and trek, else the user's own
+// branch, its trek where `own` says.
+function openedBy(args: readonly string[], own: TrekStatus) {
+  const number = pullIn(args)
+  if (Number.isNaN(number)) {
+    return { summary, status: () => Promise.resolve(own), build: done }
+  }
+
+  const head = { kind: "pull" as const, number }
+  const status = busyPullStates[number] ?? { kind: "missing", name: `pr-${String(number)}` }
+  return {
+    summary: { ...summary, changed: summary.changed.map((repo) => ({ ...repo, head })) },
+    status: () => Promise.resolve(status),
+    build: done,
+  }
+}
+
 // The busy repo's changes, opened from the landing page beside the list: the user's own branch,
 // its trek where `own` says, with a repo the agent proposes when given.
 function landingSplit(own: TrekStatus, proposal?: ProposedRepo) {
@@ -263,7 +284,7 @@ function landingSplit(own: TrekStatus, proposal?: ProposedRepo) {
     pullStatus: ({ number }) =>
       Promise.resolve(busyPullStates[number] ?? { kind: "missing", name: `pr-${number}` }),
     done: () => Promise.resolve([]),
-    open: () => Promise.resolve({ summary, status: () => Promise.resolve(own), build: done }),
+    open: (args) => Promise.resolve(openedBy(args, own)),
     stamp: () => Promise.resolve("still"),
     entries: () => Promise.resolve([]),
     proposals: () => Promise.resolve(proposal === undefined ? [] : [proposal]),

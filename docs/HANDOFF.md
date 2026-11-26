@@ -39,10 +39,25 @@
   the list, `enter` stepping its trek or building one. A proposed repo is added with `y`, leaving
   `a` to add repos. Narrower, the list is the page and `enter` opens the change. DECISIONS
   2026-11-25. The screen captures include the split.
+- Every listed change is worked out in the background and kept: a change of this repo worked out
+  again behind it as it's shown, a pull request until its head moves. Pull requests are listed by
+  one GraphQL query that counts their commits, a point a read, and their titles come from that
+  list.
+- Every separator on a line is a dim `¦`, the footer's.
+- The list's groups: checked out (the branch, and `uncommitted`), pull requests (yours, and those
+  waiting on your review), your branches, code as it is; headings in the accent with counts. Beside
+  a change's screen, a mark follows each state, `⚠` for a likely-wrong step, else `⚑` for a review
+  waiting; the selected row's edge, `▌`, in its state's colour.
+- A change's screen: its size with the lines added and removed in green and red; a saved trek's
+  state on one line with when it was built and its stops; `▶ Trigger` and `■ Outcome, predicted`;
+  each step likely wrong by its stop, name, and why. The overview carries those steps
+  (`likely_wrong`).
+- The `p`, `B`, and `d` views beside the selected change's screen, as the changes are.
 
 **Next**
 
-- The `p`, `B`, and `d` views beside the selected change's screen, as the changes are.
+- The agent marks the example's values in a trek's trigger and outcome, `{1250¢}`, checked when
+  the trek is saved; the change's screen tints them, the editors drop the braces or tint them too.
 - The editors split the parts of a line with `¦`, as the terminal does: the Neovim plugin's
   details, narration, and context, and the VS Code extension's pages, sidebar, and step text still
   use `·`.

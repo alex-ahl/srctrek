@@ -36,9 +36,9 @@ export type Beside = Readonly<{
   closeAsk: () => void
 }>
 
-// The key the change a line opens is worked out by; none for a trek whose change is gone.
-const keyOf = (picked: Pick | undefined) =>
-  picked === undefined || picked.kind === "trek" ? undefined : preparedKey(picked)
+/** The key of what's beside the list: a change, by the key it's worked out by, or a done trek. */
+export const besideKey = (picked: Pick): string =>
+  picked.kind === "trek" ? `trek ${picked.name}` : preparedKey(picked)
 
 type Keys = ReadonlyMap<string, () => void>
 
@@ -60,6 +60,9 @@ export type Split = Readonly<{
   group: KeyGroup | undefined
   // the change beside the list while it asks a question in the footer's place
   asker: Beside | undefined
+  // on a view, where letters narrow it: enter, and its hint; the change's beside the list
+  enterWith: (open: () => void) => () => void
+  enterHint: readonly KeyHint[]
 }>
 
 const LIST_ALONE: Split = {
@@ -70,35 +73,45 @@ const LIST_ALONE: Split = {
   hints: undefined,
   group: undefined,
   asker: undefined,
+  enterWith: (open) => open,
+  enterHint: [{ key: "enter", does: "open" }],
 }
 
-// Beside the selected change's screen: the list at its width; the change while it's the one
-// selected, its keys, their hints and group, and a question it asks; else the change shown last,
-// while the one selected, `key`, is worked out.
+// What the change beside the list brings while it's the one selected: its keys, their hints and
+// group, and a question it asks; none of them while the one selected is worked out, enter doing
+// nothing meanwhile.
+const actingOn = (beside: Beside | undefined) => ({
+  keysWith: (page: Keys) => splitKeys(page, beside?.keys),
+  hints: beside?.hints ?? [],
+  group: beside?.group,
+  asker: beside?.asking === undefined ? undefined : beside,
+  enterWith: () => () => beside?.keys.get("return")?.(),
+  enterHint: (beside?.hints ?? []).filter((hint) => hint.key === "enter"),
+})
+
+// Beside the selected change's screen: the list at its width, and the change while it's the one
+// selected; else the change shown last, while the one selected, `key`, is worked out.
 function besideChange(key: string | undefined, given: Beside | undefined): Split {
   const beside = given?.key === key ? given : undefined
   return {
     split: true,
     listWidth: LIST_WIDTH,
     pane: <BesidePane beside={given} waiting={beside === undefined ? key : undefined} />,
-    keysWith: (page) => splitKeys(page, beside?.keys),
-    // none of the change's while it's worked out, enter doing nothing meanwhile
-    hints: beside?.hints ?? [],
-    group: beside?.group,
-    asker: beside?.asking === undefined ? undefined : beside,
+    ...actingOn(beside),
   }
 }
 
 /**
- * The page's layout: where it's split, on the changes, the list beside the screen of the change
- * `picked` opens, as it's shown once worked out; else the list alone.
+ * The page's layout: where it's split, the list beside the screen of the change `picked` opens,
+ * or of the done trek it is, as it's shown once ready; else the list alone.
  */
 export const splitFor = (
   split: Readonly<{ beside: Beside | undefined }> | undefined,
-  onChanges: boolean,
   picked: Pick | undefined,
 ): Split =>
-  split !== undefined && onChanges ? besideChange(keyOf(picked), split.beside) : LIST_ALONE
+  split === undefined
+    ? LIST_ALONE
+    : besideChange(picked === undefined ? undefined : besideKey(picked), split.beside)
 
 // How long the change last shown stays while the one selected is worked out, before it says so.
 const OPENING_SHOWN_MS = 300

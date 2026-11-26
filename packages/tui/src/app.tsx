@@ -11,7 +11,7 @@ import {
 } from "@srctrek/core"
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BuildScreen } from "./build-view/screen"
-import { useChangeBeside } from "./change/beside"
+import { type DoneTrek, useChangeBeside } from "./change/beside"
 import type { ChangeActions } from "./change/keys"
 import type { OpenChange } from "./change/open-change"
 import { ChangeScreen } from "./change/screen"
@@ -76,6 +76,8 @@ export function App(props: Props) {
   const split = onLanding && width >= SPLIT_FROM
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
+  // a done trek the landing page's selection rests on, shown beside the list
+  const [restedDone, setRestedDone] = useState<DoneTrek | undefined>(undefined)
   // the pull requests as last listed, read again each minute: their titles, authors, and drafts
   const [pulls, setPulls] = useState<readonly OpenPullRequest[]>([])
   const detailsFor = (choice: ChangeChoice) =>
@@ -130,6 +132,17 @@ export function App(props: Props) {
     setGeneration((was) => was + 1)
   })
 
+  // the selection resting on a change works it out ahead; on a done trek, that's shown as it is
+  const restOn = (picked: Pick) => {
+    if (picked.kind === "trek") {
+      setRestedDone({ name: picked.name, why: picked.why })
+      return
+    }
+
+    setRestedDone(undefined)
+    preparing.rest(picked)
+  }
+
   const pick = (picked: Pick) => {
     if (picked.kind === "trek") {
       open({ kind: "done", name: picked.name, why: picked.why })
@@ -165,6 +178,7 @@ export function App(props: Props) {
   const readLatest = useCallback((name: string) => sources.readBuild(name, 0), [sources])
   const beside = useChangeBeside({
     rested: preparing.rested,
+    done: restedDone,
     readOverview: sources.overview,
     readBuild: readLatest,
     proposal,
@@ -313,7 +327,7 @@ export function App(props: Props) {
         status={sources.status}
         pullStatus={sources.pullStatus}
         opening={preparing.opening}
-        onRest={(choice) => choice.kind !== "trek" && preparing.rest(choice)}
+        onRest={restOn}
         onListed={preparing.ahead}
         onPick={pick}
         onSettings={() => open({ kind: "settings" })}

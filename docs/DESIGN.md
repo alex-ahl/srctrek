@@ -256,7 +256,10 @@ the same way, with a dim `¦` and room around it: `3 commits  ¦  yours`.
   behind it, in case its files have moved on; one not worked out yet keeps the change last shown, then says `◐ opening…` when that takes
   a while. The
   change's keys work from the list, `enter` stepping its trek or building one where there's none,
-  and the footer leads with them, then the page's. Narrower, the list is the page, as one table
+  and the footer leads with them, then the page's. The `p`, `B`, and `d` views sit beside the
+  change the same way; letters narrow a view, so there `enter` is the change's key and its others
+  are on its own screen; a done trek shows how its work ended, and its trek. Narrower, the list is
+  the page, as one table
   across the row, up to 120 columns. The title bar names what the changes are measured against, once:
   `srctrek › against main`. Each row is the change's name, taking
   the room what the rows hold doesn't need, its commits, dimmed (`9 commits`; a pull request's base

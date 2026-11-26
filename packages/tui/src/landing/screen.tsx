@@ -11,7 +11,7 @@ import { keyAt, selectedIndex } from "../ui/selection"
 import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
 import type { Listed } from "../worked-out"
-import { type Beside, LIST_WIDTH, splitFor } from "./beside"
+import { type Beside, LIST_WIDTH, type Split, splitFor } from "./beside"
 import { typed, useDrop } from "./use-drop"
 import { type LandingSources, useRows } from "./use-rows"
 import type { LandingRow, Pick } from "./rows"
@@ -202,19 +202,20 @@ function pageKeys(
   view: View,
   besides: Besides,
   query: string,
-  beside: readonly KeyHint[] | undefined,
+  split: Readonly<{ hints: Split["hints"]; enterHint: Split["enterHint"] }>,
 ): readonly KeyHint[] {
   if (sheet !== undefined) {
     return sheet
   }
 
-  return view === "changes" ? listKeys(besides, beside) : viewKeys(query)
+  return view === "changes" ? listKeys(besides, split.hints) : viewKeys(query, split.enterHint)
 }
 
-// A view's keys: letters narrow it, so esc clears what's typed before it goes back.
-const viewKeys = (query: string): readonly KeyHint[] => [
+// A view's keys: letters narrow it, so esc clears what's typed before it goes back; what enter
+// does, beside the list the change's.
+const viewKeys = (query: string, enter: readonly KeyHint[]): readonly KeyHint[] => [
   { key: "type", does: "narrow" },
-  { key: "enter", does: "open" },
+  ...enter,
   { key: "esc", does: query === "" ? "back" : "clear" },
 ]
 
@@ -328,7 +329,7 @@ export function Landing(props: Props) {
   useResting(active, picked, props.onRest)
   useListed(listedOf(rows, repos), props.onListed)
   // where there's room, the selected change's screen beside the list, once it's worked out
-  const split = splitFor(props.split, view === "changes", picked)
+  const split = splitFor(props.split, picked)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
@@ -350,7 +351,7 @@ export function Landing(props: Props) {
     setQuery("")
   }
   const viewActions = new Map([
-    ["return", enter],
+    ["return", split.enterWith(enter)],
     ["escape", () => (query === "" ? show("changes") : setQuery(""))],
     ["backspace", () => setQuery((was) => was.slice(0, -1))],
     ["down", () => move(1)],
@@ -441,9 +442,7 @@ export function Landing(props: Props) {
       notice={notice.text}
       footer={footerOf(
         drop.drop !== undefined,
-        help.footer(
-          pageKeys(sheet.open ? sheet.keys : undefined, view, besides, query, split.hints),
-        ),
+        help.footer(pageKeys(sheet.open ? sheet.keys : undefined, view, besides, query, split)),
       )}
       asker={split.asker}
       help={help.open}
