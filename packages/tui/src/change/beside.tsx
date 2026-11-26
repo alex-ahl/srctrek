@@ -1,4 +1,10 @@
-import type { OverviewView, ProposedRepo, TrekStatus } from "@srctrek/core"
+import type {
+  ChangeChoice,
+  OverviewView,
+  ProposedRepo,
+  PullRequestDetails,
+  TrekStatus,
+} from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
 import type { Beside } from "../landing/beside"
 import type { Rested } from "../preparing"
@@ -16,6 +22,8 @@ type Props = Readonly<{
   readOverview: (name: string) => Promise<OverviewView | undefined>
   readBuild: (name: string) => Promise<BuildRead>
   proposal: ProposedRepo | undefined
+  // a pull request's title, who opened it, and whether it's a draft, as last listed
+  detailsFor: (choice: ChangeChoice) => PullRequestDetails | undefined
   // what the keys do to a change
   actionsFor: (change: OpenChange | undefined) => ChangeActions
   run: (work: Promise<void>) => void
@@ -115,7 +123,7 @@ export function useChangeBeside(props: Props): Beside | undefined {
     body: (
       <ChangeBody
         summary={shown.change.summary}
-        details={shown.details}
+        details={props.detailsFor(shown.choice)}
         status={shown.status}
         overview={view.overview}
         proposal={props.proposal}

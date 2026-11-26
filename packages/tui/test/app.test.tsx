@@ -854,3 +854,36 @@ test("the worktree moving on, a pull request whose head hasn't moved isn't fetch
 test("a pull request whose head has moved is worked out again", async () => {
   expect(await openedAfterMoving(["h1", "h2"])).toBe(2)
 })
+
+// The user's pull request #7, as its change sums it up.
+const pullSummary: ChangeSummary = {
+  ...summary,
+  changed: summary.changed.map((repo) => ({ ...repo, head: { kind: "pull", number: 7 } })),
+}
+
+test("beside the list, a pull request's title comes from the list, as it's read again", async () => {
+  let moved = false
+  const pullRequest = mock(() => Promise.reject(new Error("not asked")))
+  const pullRequests = () =>
+    Promise.resolve([
+      { ...ownPull("h1"), title: moved ? "Retry refunds, rounded" : "Retry refunds" },
+    ])
+  const stamp = () => Promise.resolve(moved ? "moved" : "before")
+  const open = (args: string[]) =>
+    pullIn(args)
+      ? Promise.resolve({ ...changeWith(() => Promise.resolve(missing)), summary: pullSummary })
+      : openByArgs(args)
+  await frameAfter(
+    app(".", LANDING, sources({ open, stamp, pullRequests, pullRequest })),
+    async (input, on) => {
+      await on.shows("#7 Retry refunds")
+      input.pressKey("j")
+      await on.shows(/│ +#7 Retry refunds +\n/)
+      moved = true
+      await on.shows(/│ +#7 Retry refunds, rounded +\n/)
+    },
+    WIDE,
+  )
+
+  expect(pullRequest).not.toHaveBeenCalled()
+})

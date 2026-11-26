@@ -19,8 +19,9 @@ const after = (ms: number) =>
   new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), ms))
 
 /**
- * A pull request's title, who opened it, and whether it's a draft; none for any other change, or
- * when gh can't say, its screen then naming it by its number.
+ * A pull request's title, who opened it, and whether it's a draft, asked of gh, for one named on
+ * trek's command line rather than picked from the list; none for any other change, or when gh
+ * can't say, its screen then naming it by its number.
  */
 export function detailsOf(
   choice: ChangeChoice,
@@ -31,15 +32,18 @@ export function detailsOf(
     : Promise.resolve(undefined)
 }
 
-/** The change a choice opens, worked out with all its screen first shows: its trek's overview too. */
+/**
+ * The change a choice opens, worked out with all its screen first shows: its trek's overview too.
+ * A pull request's title, author, and whether it's a draft come from the list it's picked from.
+ */
 async function prepare(choice: ChangeChoice, sources: Sources): Promise<Screen> {
   try {
     const change = await sources.open(choiceArguments(choice))
-    const [status, details] = await Promise.all([change.status(), detailsOf(choice, sources)])
+    const status = await change.status()
     const overview = canStep(status)
       ? await sources.overview(status.name).catch(() => undefined)
       : undefined
-    return { kind: "change", choice, change, status, details, overview }
+    return { kind: "change", choice, change, status, overview }
   } catch (error) {
     return { kind: "pending", pending: { kind: "failed", choice, why: failureReason(error) } }
   }

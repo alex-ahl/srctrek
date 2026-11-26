@@ -1,6 +1,8 @@
 import { useRenderer, useTerminalDimensions } from "@opentui/react"
 import {
   type ChangeChoice,
+  type OpenPullRequest,
+  type PullRequestDetails,
   type Settings,
   type TrekEntry,
   type TrekStatus,
@@ -68,6 +70,10 @@ export function App(props: Props) {
   const split = onLanding && width >= SPLIT_FROM
   // moves on as the worktree does, for what's shown to be read again
   const [generation, setGeneration] = useState(0)
+  // the pull requests as last listed, read again each minute: their titles, authors, and drafts
+  const [pulls, setPulls] = useState<readonly OpenPullRequest[]>([])
+  const detailsFor = (choice: ChangeChoice) =>
+    choice.kind === "pull-request" ? listedDetails(pulls, choice.url) : undefined
   const [entries, setEntries] = useState<readonly TrekEntry[]>([])
   const { settings, changeSetting } = useSettings(props.firstSettings)
   const { tint, tones } = useTerminalTones(settings.colours)
@@ -156,6 +162,7 @@ export function App(props: Props) {
     readOverview: sources.overview,
     readBuild: readLatest,
     proposal,
+    detailsFor,
     actionsFor: changeActions,
     run,
     generation,
@@ -167,7 +174,11 @@ export function App(props: Props) {
   const landing = useMemo(
     () => ({
       load: () => sources.load(),
-      pullRequests: () => sources.pullRequests(),
+      pullRequests: () =>
+        sources.pullRequests().then((listed) => {
+          setPulls(listed)
+          return listed
+        }),
       nearby: () => sources.nearby(),
       done: () => sources.done(),
       entries: () => sources.entries(),
@@ -201,7 +212,7 @@ export function App(props: Props) {
       <ChangeScreen
         readOverview={sources.overview}
         summary={change.summary}
-        details={shown.details}
+        details={shown.details ?? detailsFor(choice)}
         overview={shown.overview}
         status={status}
         proposal={proposal}
@@ -308,6 +319,15 @@ export function App(props: Props) {
       )}
     </TonesContext.Provider>
   )
+}
+
+// A pull request's title, who opened it, and whether it's a draft, as last listed.
+function listedDetails(
+  pulls: readonly OpenPullRequest[],
+  url: string,
+): PullRequestDetails | undefined {
+  const pr = pulls.find((each) => each.url === url)
+  return pr && { title: pr.title, author: pr.author, draft: pr.draft }
 }
 
 // The change the landing page's selection rests on, as the change shown, once it's worked out.
