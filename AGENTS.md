@@ -19,7 +19,8 @@ migration layers. When something changes, change it everywhere at once.
 - **Predicted values are always labeled as predicted.** Never present them as real data.
 - **Every link between steps cites its evidence;** a link matched only by name is marked guessed.
 - **Prompts live in `packages/core/prompts/`,** never inline in code.
-- **A change to `packages/core/prompts/` waits for the evals.** Before it's committed, every
+- **A change to a prompt a trek is built from waits for the evals:** any in
+  `packages/core/prompts/` within `PROMPT_HASH`. Before it's committed, every
   fixture is run once against `evals/baseline.json` (`scripts/evals.sh`); a ✗ is understood before
   the commit, and a change meant to move the results takes the baseline again in the same change
   (`scripts/evals.sh --baseline`).

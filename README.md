@@ -104,9 +104,10 @@ agent reads the change at its exact revisions, builds the trek, and saves it to 
 To have `trek` build treks itself, it needs the command that runs your agent without a chat.
 Open settings (`S` on the landing page), choose Agent, and press `y`: it copies a request to paste
 into your agent's chat, and your agent saves its own command. Or type the command there with
-`enter`, including whatever it needs to use srctrek's tools without asking; settings checks that
-it starts and answers and keeps it in `~/.config/srctrek/settings.json`. `SRCTREK_AGENT`, when
-set, overrides the file. The instruction is appended as the last argument, so an option that
+`enter`, including whatever it needs to use srctrek's tools without asking and, if it has one,
+the option that ends its output with a JSON summary of its run; settings checks that it starts
+and answers and keeps it in `~/.config/srctrek/settings.json`. `SRCTREK_AGENT`, when set,
+overrides the file. The instruction is appended as the last argument, so an option that
 takes a list of values goes before the one that reads the prompt.
 
 `b` on a change's screen builds; turn on Build automatically in settings to start a build
