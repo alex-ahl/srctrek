@@ -63,14 +63,14 @@
 - The editors split the parts of a line with `¦`, as the terminal does: the Neovim plugin's
   details, narration, and context, and the VS Code extension's pages, sidebar, and step text still
   use `·`.
-- The "Start on" setting: the landing page, or what's checked out, with what's waiting elsewhere
-  said on the change's screen.
 - Plan C: several treks of one change, listed on its screen (`docs/design/trying.html`).
 - Later: a build started from an agent's own chat through `trek mcp` showing live on its change's
   screen.
 - The older-guide screen capture.
 - Parked: whether a failed build of a ready trek says so, rather than staying ready.
 - Parked: the landing page drawn at once from how it was last, then read again in place.
+- Parked: the "Start on" setting, the landing page or what's checked out (DECISIONS 2026-11-25);
+  beside the list, it may come down to the selection starting on what's checked out.
 
 ## 2026-11-22 — The landing page, and a screen per change
 
