@@ -293,11 +293,15 @@ or a test) serve only as ground truth in evals.
 Each fixture under `evals/fixtures/` is a base tree plus a patch per repo, and an
 expected.json: where to run `trek` and with which arguments, the route, the links and their
 evidence, the planted bugs, and the call stack expected at a few lines. The eval runner
-(`packages/evals/`) builds temporary git repos from them, runs the agent in `SRCTREK_AGENT` as
+(`packages/evals/`) builds temporary git repos from them, runs the agent `trek` builds with as
 a background build, and scores the saved trek: route entries reached and their order, links
 cited or guessed, bugs found (a bug line inside a step flagged high, or inside a context step
 whose step is), stacks as expected (every step showing the line under the expected frames, by
 file), and how many steps carry flags.
+
+`scripts/evals.sh` runs them with `trek` built from the tree: each fixture named, or every one,
+once against `evals/baseline.json`, or with `--baseline` two runs each, written as the new
+baseline.
 
 ## Distribution
 

@@ -20,8 +20,9 @@ migration layers. When something changes, change it everywhere at once.
 - **Every link between steps cites its evidence;** a link matched only by name is marked guessed.
 - **Prompts live in `packages/core/prompts/`,** never inline in code.
 - **A change to `packages/core/prompts/` waits for the evals.** Before it's committed, every
-  fixture is run once against `evals/baseline.json`; a ✗ is understood before the commit, and a
-  change meant to move the results takes the baseline again in the same change.
+  fixture is run once against `evals/baseline.json` (`scripts/evals.sh`); a ✗ is understood before
+  the commit, and a change meant to move the results takes the baseline again in the same change
+  (`scripts/evals.sh --baseline`).
 - **Typecheck, lint, tests, and the docs check pass on every commit** (`bun run check`).
 - **Stage only the files you changed;** never `git add -A`.
 - **Mocks live in `docs/design/terminal-screens.html`,** never published outside the repo. A change
@@ -30,15 +31,17 @@ migration layers. When something changes, change it everywhere at once.
 
 ## Commands
 
-| Command                    | Does                                                              |
-| -------------------------- | ----------------------------------------------------------------- |
-| `bun install`              | Install dependencies (Bun >= 1.3.14)                              |
-| `bun run check`            | Typecheck, lint, format check, tests, docs check                  |
-| `bun run format`           | Format everything with Prettier                                   |
-| `bun run build`            | Compile the `trek` binary into dist                               |
-| `bun run build:smoke`      | Compile the render smoke binary into dist                         |
-| `bun run check:docs`       | Verify paths and links in current docs, package READMEs           |
-| `bun run --cwd site build` | Build the website into site/dist (after `bun install --cwd site`) |
+| Command                       | Does                                                              |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `bun install`                 | Install dependencies (Bun >= 1.3.14)                              |
+| `bun run check`               | Typecheck, lint, format check, tests, docs check                  |
+| `bun run format`              | Format everything with Prettier                                   |
+| `bun run build`               | Compile the `trek` binary into dist                               |
+| `bun run build:smoke`         | Compile the render smoke binary into dist                         |
+| `bun run check:docs`          | Verify paths and links in current docs, package READMEs           |
+| `scripts/evals.sh`            | Run every eval fixture once against the baseline                  |
+| `scripts/evals.sh --baseline` | Take the eval baseline again                                      |
+| `bun run --cwd site build`    | Build the website into site/dist (after `bun install --cwd site`) |
 
 ## Layout
 

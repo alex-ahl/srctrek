@@ -8,7 +8,7 @@ expects.
 ## What it does, and does not
 
 Does: build a fixture's repos from `evals/fixtures/<name>/` into a temporary folder, start the
-agent in `SRCTREK_AGENT` there as a background build does, wait for it, and report the route
+agent `trek` builds with there (its settings, or `SRCTREK_AGENT`) as a background build does, wait for it, and report the route
 reached and its order, how each expected link was cited, how strongly steps flag each bug line, how many steps carry flags, any decoy repos the trek stepped into, the time
 taken, and the agent's last line of output: its numbers, when it is JSON.
 

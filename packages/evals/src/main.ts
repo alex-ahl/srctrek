@@ -2,10 +2,12 @@ import {
   type BuildMode,
   type Trek,
   BUILD_LOG_PREFIX,
+  agentSetting,
   buildLogTail,
   buildState,
   carryOver,
   changeFromArguments,
+  loadSettings,
   loadTrek,
   startBuild,
   trekPath,
@@ -27,10 +29,11 @@ import { scoreTrek } from "./score"
 const TREK_NAME = "eval"
 const POLL_MS = 2000
 
-function agentCommand(): string {
-  const command = process.env["SRCTREK_AGENT"]?.trim()
-  if (command === undefined || command === "") {
-    throw new Error("set SRCTREK_AGENT to the agent's headless command line")
+// The agent trek builds with: its settings, or SRCTREK_AGENT.
+async function agentCommand(): Promise<string> {
+  const { command } = agentSetting(await loadSettings())
+  if (command === undefined) {
+    throw new Error("no agent: set one in trek's settings, or SRCTREK_AGENT")
   }
 
   return command
@@ -222,9 +225,9 @@ if (import.meta.main) {
   }
 
   if (name === BASELINE) {
-    await takeBaseline(rest, agentCommand())
+    await takeBaseline(rest, await agentCommand())
   } else {
-    const result = await evalRun(name, agentCommand(), optionsFromArgs(rest))
+    const result = await evalRun(name, await agentCommand(), optionsFromArgs(rest))
     console.log(await reportWithBaseline(name, result))
   }
 }
