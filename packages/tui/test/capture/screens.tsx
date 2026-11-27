@@ -250,7 +250,7 @@ function openedBy(args: readonly string[], own: TrekStatus) {
 
 // The busy repo's changes, opened from the landing page beside the list: the user's own branch,
 // its trek where `own` says, with a repo the agent proposes when given.
-function landingSplit(own: TrekStatus, proposal?: ProposedRepo) {
+function landingSplit(own: TrekStatus, proposal?: ProposedRepo, more: OpenPullRequest[] = []) {
   const sources: Sources = {
     load: () =>
       Promise.resolve({
@@ -261,7 +261,7 @@ function landingSplit(own: TrekStatus, proposal?: ProposedRepo) {
           .slice(0, -1)
           .map((name, at) => ({ name, commits: at * 3 + 1, mine: true })),
       }),
-    pullRequests: () => Promise.resolve(busyPulls),
+    pullRequests: () => Promise.resolve([...more, ...busyPulls]),
     // the user's own branch's trek has a step likely wrong; the others none
     overview: (name) =>
       Promise.resolve(
@@ -386,6 +386,18 @@ export const SCREENS: Readonly<Record<string, ReactNode>> = {
   "landing-busy": landingBusy,
   "landing-split": landingSplit({ kind: "ready", name: "feature-refunds" }),
   "landing-split-missing": landingSplit({ kind: "missing", name: "feature-refunds" }),
+  // the branch checked out is a pull request: listed once, as that pull request
+  "landing-split-checked-out-pull": landingSplit(
+    { kind: "missing", name: "feature-refunds" },
+    undefined,
+    [
+      busyPull(20, "Partial refunds across payments", "you", {
+        mine: true,
+        branch: "feature/refunds",
+        commits: 9,
+      }),
+    ],
+  ),
   "landing-split-building": landingSplit(
     { kind: "building", name: "feature-refunds", logTail: buildLog },
     payments,

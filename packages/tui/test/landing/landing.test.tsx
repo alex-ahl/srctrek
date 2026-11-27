@@ -16,6 +16,7 @@ import {
   landingRows,
   otherBranchRows,
   otherPullRows,
+  withoutCheckedOut,
   yourPullRows,
 } from "../../src/landing/rows"
 import { Landing } from "../../src/landing/screen"
@@ -255,6 +256,32 @@ test("a branch an open pull request was opened from is listed as that pull reque
     "feature/partial-refunds",
     "its ways in",
   ])
+})
+
+test("the branch checked out is the pull request opened from it, listed once", () => {
+  const fromOwn: OpenPullRequest = {
+    ...fromTax,
+    number: 20,
+    title: "Partial refunds",
+    mine: true,
+    branch: "feature/refunds",
+  }
+  const withOwn = [fromOwn, ...open]
+  const rows = landingRows(choices, withOwn)
+
+  expect(rows.map((row) => [row.group, row.label])).toEqual([
+    ["checked out", "#20 Partial refunds"],
+    ["checked out", "uncommitted"],
+    ["pull requests", "#12 Add partial refunds"],
+    ["your branches", "fix/rounding"],
+    ["your branches", "feature/partial-refunds"],
+    ["code as it is", "its ways in"],
+  ])
+  // its trek is the pull request's
+  expect(rows[0]?.choice).toEqual({ kind: "pull-request", url: fromOwn.url })
+  // and it's on no view of its own besides
+  const others = otherPullRows(withoutCheckedOut(choices, withOwn), "main")
+  expect(others.map((row) => row.label)).not.toContain("#20 Partial refunds")
 })
 
 test("the other branches leave out those an open pull request was opened from", () => {

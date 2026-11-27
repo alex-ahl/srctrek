@@ -268,7 +268,8 @@ the same way, with a dim `¦` and room around it: `3 commits  ¦  yours`.
   room: `● ready  built 2h ago`. On a narrow terminal names are cut first, past half the row, and
   what a change holds keeps at least 20 columns. The groups sit under their names, in the accent
   with how many rows each holds (`pull requests 3`), at the page's left, their rows set in under
-  them, a blank line before each but the first: checked out first, the branch with its uncommitted
+  them, a blank line before each but the first: checked out first, the branch, or the open pull
+  request opened from it, listed only there and its trek the pull request's, with its uncommitted
   work set in under it as `uncommitted`; then pull requests, your own open ones (`¦  yours`) and
   those waiting on your review, marked `review requested` in the accent; then your branches, those with a commit of yours (by `user.email`) the base
   doesn't have, latest committed first, the first 8; and code as it is, one row. A branch an open

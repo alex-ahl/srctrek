@@ -32,16 +32,39 @@ export type LandingRow = Readonly<{
 // What a branch holds, its base named once, in the title bar.
 const commitsOf = (commits: number) => count(commits, "commit")
 
-// The user's own branch, then the same with what isn't committed yet, when there's any.
-function ownRows({ own, uncommittedFiles }: BranchChoices): LandingRow[] {
-  const name = own?.name ?? "the checked-out commit"
-  const detail = own === undefined ? "not on a branch" : commitsOf(own.commits)
-  const branch: LandingRow = {
+/**
+ * The open pull request the branch checked out was opened from, when there's one: that's what's
+ * checked out.
+ */
+const checkedOutPull = (choices: BranchChoices | undefined, pulls: readonly OpenPullRequest[]) =>
+  choices?.own === undefined ? undefined : pulls.find((pr) => pr.branch === choices.own?.name)
+
+/** The open pull requests but the one checked out, which is listed as what's checked out. */
+export const withoutCheckedOut = (
+  choices: BranchChoices | undefined,
+  pulls: readonly OpenPullRequest[],
+): OpenPullRequest[] => pulls.filter((pr) => pr !== checkedOutPull(choices, pulls))
+
+// The branch checked out: the pull request opened from it, its trek the pull request's, else the
+// branch itself.
+function checkedOutRow(choices: BranchChoices, pull: OpenPullRequest | undefined): LandingRow {
+  if (pull !== undefined) {
+    return pullRow("checked out", choices.base)(pull)
+  }
+
+  const { own } = choices
+  return {
     group: "checked out",
-    label: name,
-    detail,
+    label: own?.name ?? "the checked-out commit",
+    detail: own === undefined ? "not on a branch" : commitsOf(own.commits),
     choice: { kind: "own", uncommitted: false },
   }
+}
+
+// What's checked out, then the same with what isn't committed yet, when there's any.
+function ownRows(choices: BranchChoices, pull: OpenPullRequest | undefined): LandingRow[] {
+  const { uncommittedFiles } = choices
+  const branch = checkedOutRow(choices, pull)
   if (uncommittedFiles === 0) {
     return [branch]
   }
@@ -163,18 +186,20 @@ export const doneRows = (done: readonly DoneTrek[]): LandingRow[] =>
   }))
 
 /**
- * The changes in the order they're listed: the user's own work, with their pull requests and
- * those waiting on their review; their own branches; then code as it is.
+ * The changes in the order they're listed: what's checked out, a pull request when the branch is
+ * one; the user's pull requests and those waiting on their review; their own branches; then code
+ * as it is.
  */
 export function landingRows(
   choices: BranchChoices | undefined,
   pulls: readonly OpenPullRequest[],
 ): LandingRow[] {
-  const own = choices === undefined ? [] : ownRows(choices)
+  const own = choices === undefined ? [] : ownRows(choices, checkedOutPull(choices, pulls))
+  const listed = withoutCheckedOut(choices, pulls)
   const branches =
     choices === undefined
       ? []
       : yourBranches(branchesBeside(choices, pulls)).map(branchRow("your branches"))
 
-  return [...own, ...yourPullRows(pulls, choices?.base ?? ""), ...branches, CODE_ROW]
+  return [...own, ...yourPullRows(listed, choices?.base ?? ""), ...branches, CODE_ROW]
 }

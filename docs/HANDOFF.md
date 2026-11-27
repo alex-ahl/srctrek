@@ -53,6 +53,8 @@
   each step likely wrong by its stop, name, and why. The overview carries those steps
   (`likely_wrong`).
 - The `p`, `B`, and `d` views beside the selected change's screen, as the changes are.
+- The branch checked out, when an open pull request was opened from it, is that pull request:
+  listed once, under checked out, its trek the pull request's.
 
 **Next**
 
@@ -63,8 +65,6 @@
   use `·`.
 - The "Start on" setting: the landing page, or what's checked out, with what's waiting elsewhere
   said on the change's screen.
-- Plan B: a checked-out pull request is that pull request, listed once under your work, its trek
-  named for the pull request (`docs/design/trying.html`).
 - Plan C: several treks of one change, listed on its screen (`docs/design/trying.html`).
 - Later: a build started from an agent's own chat through `trek mcp` showing live on its change's
   screen.

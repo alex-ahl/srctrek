@@ -10,7 +10,14 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { LandingNote } from "./list"
 import { type StatusOf, statesKnown, useStatuses } from "./statuses"
-import { type DoneTrek, doneRows, landingRows, otherBranchRows, otherPullRows } from "./rows"
+import {
+  type DoneTrek,
+  doneRows,
+  landingRows,
+  otherBranchRows,
+  otherPullRows,
+  withoutCheckedOut,
+} from "./rows"
 
 /** What the landing page lists, and where each listed change's trek stands. */
 export type LandingSources = {
@@ -140,7 +147,7 @@ export function useRows(props: LandingSources) {
     const choices = foundOr(branches, undefined)
     const open = foundOr(pulls, [])
     const listed = landingRows(choices, open)
-    const pullsBesides = otherPullRows(open, choices?.base ?? "")
+    const pullsBesides = otherPullRows(withoutCheckedOut(choices, open), choices?.base ?? "")
     const branchesBesides = otherBranchRows(choices, open)
     return {
       rows: listed,
