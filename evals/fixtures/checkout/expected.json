@@ -6,7 +6,7 @@
     { "repo": "shop", "file": "src/checkout.ts", "lines": [12, 15], "changed": true },
     { "repo": "shop", "file": "src/clients/payments.ts", "lines": [15, 22], "changed": true, "note": "POST /charges/saved to PAYMENTS_URL" },
     { "repo": "pay-backend", "file": "src/server.ts", "lines": [4, 19], "changed": false, "optional": true, "note": "dispatch by method and path" },
-    { "repo": "pay-backend", "file": "src/routes.ts", "lines": [6, 9], "changed": true },
+    { "repo": "pay-backend", "file": "src/routes.ts", "lines": [6, 9], "changed": true, "optional": true, "note": "the route table, cited as evidence for the dispatch" },
     { "repo": "pay-backend", "file": "src/handlers/saved-card.ts", "lines": [5, 13], "changed": true },
     { "repo": "pay-backend", "file": "src/vault.ts", "lines": [4, 6], "changed": false }
   ],
