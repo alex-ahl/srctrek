@@ -1,5 +1,10 @@
 local M = {}
 
+-- The example's values, marked «so» in the trek, as a reader says them.
+function M.plain(text)
+  return (text:gsub("«", ""):gsub("»", ""))
+end
+
 function M.fit(text, width)
   if vim.fn.strdisplaywidth(text) <= width then
     return text

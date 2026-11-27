@@ -127,8 +127,9 @@ can check; never a bare "line 5".
   `reviewer` (an independent reading); `agent` is absent when core built the trek itself
 - `sources`: the specs read, each `{ kind, location }`
 - `trigger`: `{ kind, input }` — kind is a request, event, schedule, or command; input is the
-  scenario's concrete example
-- `outcome`: what the scenario ends in
+  scenario's concrete example, its values marked in pairs, `amount: «40»`; screens set them
+  apart, plain text drops the markers
+- `outcome`: what the scenario ends in, its values marked the same way
 - `repos`: `{ name, source, revision, range?, head? }[]` — `source` is a path or URL; a repo on
   the path without changes has no range. A changed repo's `head` names what its range ended at
   when the trek was built: `{ kind: "branch", name, uncommitted }`, or

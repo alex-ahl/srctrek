@@ -11,7 +11,7 @@ local M = {}
 function M.show(view)
   local doc = document.new()
   doc.add("End of trek", nil, "SrctrekHeading")
-  doc.extend(vim.split(view.outcome, "\n"))
+  doc.extend(vim.split(text.plain(view.outcome), "\n"))
   doc.add("")
   if #view.flags == 0 then
     doc.add("No flags.", nil, "SrctrekUnchanged")

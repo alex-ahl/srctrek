@@ -13,4 +13,6 @@ Make it concrete:
 - the trigger: the request, command, event, or schedule that starts it, with real example input (an id, an amount, a payload);
 - the outcome: what the scenario ends with (a response, a stored record, a message sent, a value shown).
 
+In the trigger's input and the outcome, mark each of the example's values with « and »: `POST /refunds with { order: «o_1002», amount: «40» }`, `a ledger row of «4000» cents`. Mark the ids, amounts, names, and messages a reader follows from the trigger to the outcome, not the words around them; every « is closed by a ».
+
 One scenario per trek. Mention other paths in a step's details instead of following them.

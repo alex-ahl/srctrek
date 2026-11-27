@@ -4,6 +4,7 @@ local FLAGS = require("srctrek.flags")
 local actions = require("srctrek.actions")
 local popup = require("srctrek.popup")
 local state = require("srctrek.state")
+local text = require("srctrek.text")
 
 local M = {}
 
@@ -32,8 +33,8 @@ function M.show(view)
   local doc = document.new()
   doc.extend(vim.split(view.overview, "\n"))
   doc.add("")
-  doc.add("Trigger   " .. view.trigger.kind .. " · " .. view.trigger.input)
-  doc.add("Outcome   " .. view.outcome)
+  doc.add("Trigger   " .. view.trigger.kind .. " · " .. text.plain(view.trigger.input))
+  doc.add("Outcome   " .. text.plain(view.outcome))
   doc.add("Repos     " .. table.concat(view.repos, ", "))
   doc.add("Flags     " .. flag_counts(view.flags))
   doc.add("")

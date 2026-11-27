@@ -1,9 +1,18 @@
 import { z } from "zod"
 import { trekRules } from "./rules"
+import { markerProblem } from "./values"
 
 export const FORMAT_VERSION = 1
 
 const nonEmpty = z.string().min(1)
+
+// Text with the example's values marked «so», each in a pair.
+const withValues = nonEmpty.superRefine((text, ctx) => {
+  const problem = markerProblem(text)
+  if (problem !== undefined) {
+    ctx.addIssue({ code: "custom", message: problem })
+  }
+})
 
 const Citation = z.object({
   repo: nonEmpty,
@@ -144,9 +153,9 @@ const TrekShape = z.object({
   sources: z.array(z.object({ kind: nonEmpty, location: nonEmpty })),
   trigger: z.object({
     kind: TriggerKindSchema,
-    input: nonEmpty,
+    input: withValues,
   }),
-  outcome: nonEmpty,
+  outcome: withValues,
   repos: z.array(Repo).min(1),
   steps: z.array(Step).min(1),
 })

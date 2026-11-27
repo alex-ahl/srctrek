@@ -12,6 +12,7 @@ export {
   type TrekStep,
 } from "./schema/trek"
 export { flagCounts } from "./schema/flags"
+export { type TextPart, markerProblem, valueParts, withoutMarkers } from "./schema/values"
 export { callStacks, type CallStacks } from "./schema/stacks"
 export { currentStep, openSession, type Position, type SteppingSession } from "./session/session"
 export {

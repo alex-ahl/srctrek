@@ -301,7 +301,7 @@ treks`. On a view, typing narrows it by name, the title bar saying how many of h
 stops`): no trek yet (what `b` does, or to set an agent in settings), building (the steps as
   they arrive and what the agent read last, a repo it proposes with `y` to add and `x` to
   dismiss), ready (the trek's title and story, then where its scenario starts and ends, `▶ Trigger`
-  and `■ Outcome, predicted`, each a line, and each step the agent marked likely wrong by its
+  and `■ Outcome, predicted`, each a line, the example's values in a muted amber, and each step the agent marked likely wrong by its
   stop and name with why under it, the first two, then how many more; enter steps it), stale (how
   many steps' files changed, then as ready; `b` updates it, enter steps it as it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
   with an older guide, nothing to trek. `b` always builds the trek: builds, updates, or builds

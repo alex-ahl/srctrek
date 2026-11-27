@@ -190,6 +190,9 @@
       .c {
         color: var(--t-cyan);
       }
+      .v {
+        color: #cdb88f;
+      }
       .a {
         color: var(--t-accent);
       }
@@ -381,9 +384,9 @@
             <div class="ln">      #15 Retry failed payouts w…  <span class="dim">○</span><span class="a"> ⚑</span>  <span class="dim">│</span>  and the queue.</div>
             <div class="ln">                                        <span class="dim">│</span></div>
             <div class="ln">  <span class="a">your branches</span><span class="dim"> 4</span>                       <span class="dim">│</span>  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order:</div>
-            <div class="ln">      fix/rounding                 <span class="y">≠</span>    <span class="dim">│</span>                         o_1002, amount: 40 }</div>
-            <div class="ln">      feature/partial-refunds      <span class="g">●</span>    <span class="dim">│</span>  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the</div>
-            <div class="ln">      chore/upgrade-bun            <span class="dim">○  </span>  <span class="dim">│</span>                         queue</div>
+            <div class="ln">      fix/rounding                 <span class="y">≠</span>    <span class="dim">│</span>                         <span class="v">o_1002</span>, amount: <span class="v">40</span> }</div>
+            <div class="ln">      feature/partial-refunds      <span class="g">●</span>    <span class="dim">│</span>  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row of <span class="v">4000</span> cents, and</div>
+            <div class="ln">      chore/upgrade-bun            <span class="dim">○  </span>  <span class="dim">│</span>                         <span class="v">refund.created</span> on the queue</div>
             <div class="ln">      feature/payout-retries       <span class="b">◐</span>    <span class="dim">│</span></div>
             <div class="ln">                                        <span class="dim">│</span>  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
             <div class="ln">  <span class="a">code as it is</span><span class="dim"> 1</span>                       <span class="dim">│</span>  <span class="dim">  The amount arrives in cents and is compared with the order</span></div>
@@ -482,9 +485,9 @@
             <div class="ln">                                        <span class="dim">│</span>  and the queue.</div>
             <div class="ln">                                        <span class="dim">│</span></div>
             <div class="ln">                                        <span class="dim">│</span>  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order:</div>
-            <div class="ln">                                        <span class="dim">│</span>                         o_1002, amount: 40 }</div>
-            <div class="ln">                                        <span class="dim">│</span>  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the</div>
-            <div class="ln">                                        <span class="dim">│</span>                         queue</div>
+            <div class="ln">                                        <span class="dim">│</span>                         <span class="v">o_1002</span>, amount: <span class="v">40</span> }</div>
+            <div class="ln">                                        <span class="dim">│</span>  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row of <span class="v">4000</span> cents, and</div>
+            <div class="ln">                                        <span class="dim">│</span>                         <span class="v">refund.created</span> on the queue</div>
             <div class="ln">                                        <span class="dim">│</span></div>
             <div class="ln">                                        <span class="dim">│</span>  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
             <div class="ln">                                        <span class="dim">│</span>  <span class="dim">  The amount arrives in cents and is compared with the order</span></div>
@@ -691,8 +694,8 @@
             <div class="ln">  <span class="bold">Partial refund of order o_1002</span></div>
             <div class="ln">  A partial refund posted from the order page reaches the ledger and the queue.</div>
             <div class="ln"> </div>
-            <div class="ln">  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order: o_1002, amount: 40 }</div>
-            <div class="ln">  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the queue</div>
+            <div class="ln">  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order: <span class="v">o_1002</span>, amount: <span class="v">40</span> }</div>
+            <div class="ln">  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row of <span class="v">4000</span> cents, and <span class="v">refund.created</span> on the queue</div>
             <div class="ln"> </div>
             <div class="ln">  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
             <div class="ln">  <span class="dim">  The amount arrives in cents and is compared with the order total in units, so</span></div>
@@ -714,8 +717,8 @@
             <div class="ln">  <span class="bold">Partial refund of order o_1002</span></div>
             <div class="ln">  A partial refund posted from the order page reaches the ledger and the queue.</div>
             <div class="ln"> </div>
-            <div class="ln">  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order: o_1002, amount: 40 }</div>
-            <div class="ln">  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row, and refund.created on the queue</div>
+            <div class="ln">  <span class="a">▶ </span><span class="dim">Trigger              </span>request  ¦  POST /refunds with { order: <span class="v">o_1002</span>, amount: <span class="v">40</span> }</div>
+            <div class="ln">  <span class="a">■ </span><span class="dim">Outcome, predicted   </span>a ledger row of <span class="v">4000</span> cents, and <span class="v">refund.created</span> on the queue</div>
             <div class="ln"> </div>
             <div class="ln">  <span class="r">⚠ stop 9  ¦  createRefund</span></div>
             <div class="ln">  <span class="dim">  The amount arrives in cents and is compared with the order total in units, so</span></div>

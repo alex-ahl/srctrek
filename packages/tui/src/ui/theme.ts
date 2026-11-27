@@ -7,7 +7,7 @@ export const COLOUR = {
 }
 
 /** The roles colour plays on screen: how a state stands, the selection, and secondary text. */
-export type Tone = "good" | "warn" | "bad" | "busy" | "accent" | "dim"
+export type Tone = "good" | "warn" | "bad" | "busy" | "accent" | "dim" | "value"
 
 export type Tones = Readonly<Record<Tone, RGBA>>
 
@@ -19,6 +19,7 @@ export const TERMINAL_TONES: Tones = {
   busy: RGBA.fromIndex(12),
   accent: RGBA.fromIndex(14),
   dim: RGBA.fromIndex(8),
+  value: RGBA.fromIndex(3),
 }
 
 // Colours chosen to stay apart from each other, as themes often draw green and yellow close: one
@@ -29,6 +30,8 @@ const DARK_TONES: Omit<Tones, "dim"> = {
   bad: RGBA.fromHex("#f2858a"),
   busy: RGBA.fromHex("#8fb5ff"),
   accent: RGBA.fromHex("#4fc1a8"),
+  // an example's values, set apart from the words around them without shouting
+  value: RGBA.fromHex("#cdb88f"),
 }
 
 const LIGHT_TONES: Omit<Tones, "dim"> = {
@@ -37,6 +40,7 @@ const LIGHT_TONES: Omit<Tones, "dim"> = {
   bad: RGBA.fromHex("#cf222e"),
   busy: RGBA.fromHex("#0969da"),
   accent: RGBA.fromHex("#1b7c83"),
+  value: RGBA.fromHex("#86672e"),
 }
 
 const channels = (hex: string) => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16))

@@ -2,6 +2,7 @@ import { stopIds } from "../build/status/stops"
 import type { RangeHead } from "../change/head"
 import type { Trek } from "../schema/trek"
 import { listTreks, loadTrekOrProblem, trekPath } from "./store"
+import { withoutMarkers } from "../schema/values"
 
 /**
  * A saved trek, for lists of treks: a valid one's title, what it follows and what starts it, stops,
@@ -16,7 +17,7 @@ export type TrekEntry =
       valid: true
       title: string
       overview: string
-      // what starts it, as the trek says: "POST /refunds with amount 499"
+      // what starts it, as the trek says it, its values unmarked: "POST /refunds with amount 499"
       trigger: string
       steps: number
       highFlags: number
@@ -40,7 +41,7 @@ function entryOf(name: string, path: string, trek: Trek): TrekEntry {
     valid: true,
     title: trek.title,
     overview: trek.overview,
-    trigger: trek.trigger.input,
+    trigger: withoutMarkers(trek.trigger.input),
     steps: stopIds(trek).size,
     highFlags,
     createdAt: trek.created_at,

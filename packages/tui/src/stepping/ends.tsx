@@ -2,16 +2,20 @@ import { TextAttributes } from "@opentui/core"
 import type { EndView, OverviewView } from "@srctrek/core"
 import { fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
+import { Valued, wrapValues } from "../ui/values"
 import { SEPARATOR } from "../ui/separator"
 
-// "Outcome   …" with the text wrapped under itself, past the label.
+// "Outcome   …" with the text wrapped under itself, past the label, its values in their tone.
 function Labelled({ label, text, width }: { label: string; text: string; width: number }) {
   const tones = useTones()
   const indent = 10
   return (
     <>
-      {wrap(text, Math.min(width, 100) - indent).map((line, i) => (
-        <text key={i} fg={tones.dim}>{`${(i === 0 ? label : "").padEnd(indent)}${line}`}</text>
+      {wrapValues(text, Math.min(width, 100) - indent).map((line, i) => (
+        <text key={i} fg={tones.dim}>
+          {(i === 0 ? label : "").padEnd(indent)}
+          <Valued line={line} />
+        </text>
       ))}
     </>
   )
@@ -49,9 +53,9 @@ export function End({ view, width }: { view: EndView; width: number }) {
   return (
     <box flexDirection="column">
       <text attributes={TextAttributes.BOLD}>End of trek</text>
-      {wrap(view.outcome, Math.min(width, 90)).map((line, i) => (
+      {wrapValues(view.outcome, Math.min(width, 90)).map((line, i) => (
         <text key={i} fg={COLOUR.text}>
-          {line}
+          <Valued line={line} />
         </text>
       ))}
       <text> </text>

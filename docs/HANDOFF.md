@@ -55,11 +55,12 @@
 - The `p`, `B`, and `d` views beside the selected change's screen, as the changes are.
 - The branch checked out, when an open pull request was opened from it, is that pull request:
   listed once, under checked out, its trek the pull request's.
+- The agent marks the example's values in a trek's trigger and outcome, `«40»`, checked in pairs
+  as the trek starts and as it's saved; the terminal tints them in a muted amber, the editors and
+  the trek list drop the markers.
 
 **Next**
 
-- The agent marks the example's values in a trek's trigger and outcome, `{1250¢}`, checked when
-  the trek is saved; the change's screen tints them, the editors drop the braces or tint them too.
 - The editors split the parts of a line with `¦`, as the terminal does: the Neovim plugin's
   details, narration, and context, and the VS Code extension's pages, sidebar, and step text still
   use `·`.

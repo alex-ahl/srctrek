@@ -81,6 +81,16 @@ describe("parseTrek", () => {
     ])
   })
 
+  test("rejects a trigger or an outcome whose values aren't marked in pairs", () => {
+    const trek = refundTrek()
+    trek.trigger.input = "POST /refunds with amount «40"
+    trek.outcome = "a ledger row of 4000» cents"
+    expect(issuesOf(trek)).toEqual([
+      "trigger.input: a value opened with « is never closed with »",
+      "outcome: » closes a value that was never opened with «",
+    ])
+  })
+
   test("rejects a cross-repo link that cites only the sending side", () => {
     const trek = refundTrek()
     step(trek, "s15").via = {

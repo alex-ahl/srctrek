@@ -234,6 +234,39 @@ test("ready: says when the trek was built, beside its state", async () => {
   expect(frame).toContain("● ready  ¦  built 2h ago  ¦  3 stops")
 })
 
+test("ready: the example's values, marked in the trek, read without their markers", async () => {
+  const root = await repoWithTrek()
+  const read = async (name: string) => {
+    const view = await overviewOf(root, name)
+    return (
+      view && {
+        ...view,
+        trigger: { kind: "command" as const, input: "pay with «250» cents" },
+        outcome: "a receipt for «$2.50»",
+      }
+    )
+  }
+  const frame = await frameAfter(
+    <ChangeScreen
+      readOverview={read}
+      summary={summary}
+      status={ready}
+      proposal={undefined}
+      readBuild={() => Promise.resolve(NO_BUILD)}
+      actions={ACTIONS}
+      run={run}
+      generation={0}
+    />,
+    (_input, on) => on.shows("3 stops"),
+    110,
+    30,
+  )
+
+  expect(frame).toContain("pay with 250 cents")
+  expect(frame).toContain("a receipt for $2.50")
+  expect(frame).not.toMatch(/[«»]/)
+})
+
 test("ready, with an editor: e opens it", async () => {
   const root = await repoWithTrek()
   const open = mock(noop)

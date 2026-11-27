@@ -47,6 +47,19 @@ test("the overview tells the story, its trigger and outcome, repos, flags, and t
   expect(html).toContain("4 stops · srctrek: Next Stop (F8 by default) to start")
 })
 
+test("the example's values, marked in the trek, read without their markers", () => {
+  const marked: OverviewView = {
+    ...overview,
+    trigger: { kind: "request", input: "POST /refunds with «40»" },
+    outcome: "a row of «4000» cents",
+  }
+  const html = trekPageHtml(marked, "n0nce")
+
+  expect(html).toContain("<td>request · POST /refunds with 40</td>")
+  expect(html).toContain("<td>a row of 4000 cents</td>")
+  expect(html).not.toMatch(/[«»]/)
+})
+
 test("the overview says once what the trek draws in the code", () => {
   const html = trekPageHtml(overview, "n0nce")
 

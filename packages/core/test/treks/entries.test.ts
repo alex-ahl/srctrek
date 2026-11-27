@@ -18,3 +18,16 @@ test("summarises valid treks and keeps invalid ones with their problem", async (
   expect(entries[0]).toMatchObject({ valid: false })
   expect(entries[1]).toMatchObject({ valid: true, steps: 17, highFlags: 4 })
 })
+
+test("lists a trek's trigger as a reader says it, without the markers around its values", async () => {
+  const root = await tempDir("treks-")
+  const trek = parseTrek(await Bun.file(REFUND_TREK_PATH).json(), REFUND_TREK_PATH)
+  await saveTrek(root, "refund", {
+    ...trek,
+    trigger: { ...trek.trigger, input: "POST /refunds with «40»" },
+  })
+
+  const [entry] = await loadTrekEntries(root)
+
+  expect(entry).toMatchObject({ trigger: "POST /refunds with 40" })
+})

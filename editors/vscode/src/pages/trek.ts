@@ -38,6 +38,9 @@ function placeNamed(ref: FlaggedStep): string {
   return `${placeText(ref)}${name}`
 }
 
+// The example's values, marked «so» in the trek, as a reader says them.
+const plainOf = (text: string) => text.replaceAll("«", "").replaceAll("»", "")
+
 function row(label: string, value: string): string {
   return `<tr><th>${label}</th><td>${escapeHtml(value)}</td></tr>`
 }
@@ -59,8 +62,8 @@ function overviewBody(view: OverviewView): string {
     `<h1>${escapeHtml(view.title)}</h1>`,
     `<p class="story">${escapeHtml(view.overview)}</p>`,
     "<table>",
-    row("Trigger", `${view.trigger.kind} · ${view.trigger.input}`),
-    row("Outcome", view.outcome),
+    row("Trigger", `${view.trigger.kind} · ${plainOf(view.trigger.input)}`),
+    row("Outcome", plainOf(view.outcome)),
     row("Repos", view.repos.join(", ")),
     row("Flags", flagCounts(view.flags)),
     "</table>",
@@ -94,7 +97,7 @@ function endBody(view: EndView): string {
   return [
     `<h1>${escapeHtml(view.title)}</h1>`,
     "<h2>End of the trek</h2>",
-    `<p class="story">${escapeHtml(view.outcome)}</p>`,
+    `<p class="story">${escapeHtml(plainOf(view.outcome))}</p>`,
     flags,
     `<p class="muted">a flag goes to its stop · srctrek: Previous Stop (Shift+F8 by default) back to the last stop</p>`,
   ].join("\n")
