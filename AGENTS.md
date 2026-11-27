@@ -19,6 +19,9 @@ migration layers. When something changes, change it everywhere at once.
 - **Predicted values are always labeled as predicted.** Never present them as real data.
 - **Every link between steps cites its evidence;** a link matched only by name is marked guessed.
 - **Prompts live in `packages/core/prompts/`,** never inline in code.
+- **A change to `packages/core/prompts/` waits for the evals.** Before it's committed, every
+  fixture is run once against `evals/baseline.json`; a ✗ is understood before the commit, and a
+  change meant to move the results takes the baseline again in the same change.
 - **Typecheck, lint, tests, and the docs check pass on every commit** (`bun run check`).
 - **Stage only the files you changed;** never `git add -A`.
 - **Mocks live in `docs/design/terminal-screens.html`,** never published outside the repo. A change
