@@ -1,4 +1,5 @@
 import { type TextPart, valueParts } from "@srctrek/core"
+import { Separated } from "./separated"
 import { wrap } from "./text"
 import { useTones } from "./theme"
 
@@ -37,7 +38,10 @@ export function wrapValues(text: string, width: number): TextPart[][] {
   })
 }
 
-/** A line of text, its values in their tone and the rest as the line around it draws. */
+/**
+ * A line of text, its values in their tone and the rest as the line around it draws, separators
+ * dimmed.
+ */
 export function Valued({ line }: { line: readonly TextPart[] }) {
   const tones = useTones()
   return (
@@ -48,7 +52,7 @@ export function Valued({ line }: { line: readonly TextPart[] }) {
             {part.text}
           </span>
         ) : (
-          part.text
+          <Separated key={at} text={part.text} />
         ),
       )}
     </>

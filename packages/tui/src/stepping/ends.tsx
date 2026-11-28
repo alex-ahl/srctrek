@@ -3,6 +3,7 @@ import type { EndView, OverviewView } from "@srctrek/core"
 import { fit, wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { Valued, wrapValues } from "../ui/values"
+import { Separated } from "../ui/separated"
 import { SEPARATOR } from "../ui/separator"
 
 // "Outcome   …" with the text wrapped under itself, past the label, its values in their tone.
@@ -62,10 +63,12 @@ export function End({ view, width }: { view: EndView; width: number }) {
       {view.flags.length === 0 && <text fg={tones.dim}>No flags.</text>}
       {view.flags.map((flag) => (
         <text key={flag.id} fg={flag.severity === "high" ? tones.bad : tones.warn}>
-          {fit(
-            `${String(flag.number)}${SEPARATOR}${flag.name ?? flag.file}${SEPARATOR}${flag.note}`,
-            width,
-          )}
+          <Separated
+            text={fit(
+              `${String(flag.number)}${SEPARATOR}${flag.name ?? flag.file}${SEPARATOR}${flag.note}`,
+              width,
+            )}
+          />
         </text>
       ))}
     </box>

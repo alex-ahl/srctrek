@@ -2,6 +2,7 @@ import { type RGBA, TextAttributes } from "@opentui/core"
 import { useKeyboard } from "@opentui/react"
 import type { StepView } from "@srctrek/core"
 import { useEffect, useState } from "react"
+import { Separated } from "../ui/separated"
 import { fit } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { type DetailLine, detailLines } from "./details"
@@ -130,7 +131,7 @@ function Detail({
         fg={line.tone === undefined ? COLOUR.text : tones[line.tone]}
         {...(line.bold === true ? { attributes: TextAttributes.BOLD } : {})}
       >
-        {text}
+        <Separated text={text} />
       </text>
     </box>
   )

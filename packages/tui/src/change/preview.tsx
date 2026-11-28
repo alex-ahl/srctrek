@@ -1,5 +1,6 @@
 import { TextAttributes } from "@opentui/core"
 import type { FlaggedStep, OverviewView } from "@srctrek/core"
+import { Separated } from "../ui/separated"
 import { SEPARATOR } from "../ui/separator"
 import { wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
@@ -46,7 +47,7 @@ function LikelyWrong({ flag, width }: { flag: FlaggedStep; width: number }) {
   return (
     <box flexDirection="column">
       <text fg={tones.bad}>
-        {`⚠ stop ${String(flag.number)}${SEPARATOR}${flag.name ?? flag.file}`}
+        <Separated text={`⚠ stop ${String(flag.number)}${SEPARATOR}${flag.name ?? flag.file}`} />
       </text>
       {wrap(flag.note, Math.min(width, PROSE_MOST) - 2).map((line, i) => (
         <text key={i} fg={tones.dim}>{`  ${line}`}</text>

@@ -24,6 +24,7 @@ import { useNow } from "../ui/clock"
 import { TextPrompt } from "../ui/text-prompt"
 import { TitleBar } from "../ui/title-bar"
 import { useTurning } from "../ui/turning"
+import { Separated } from "../ui/separated"
 import { SEPARATOR } from "../ui/separator"
 
 type Props = LandingSources & {
@@ -480,9 +481,11 @@ const VIEW_TITLES: Readonly<Record<Exclude<View, "changes">, string>> = {
 function titleOf(view: View, base: string | undefined, narrowed: Narrowed): ReactNode {
   if (view !== "changes") {
     const { query, shown, of } = narrowed
-    return query === ""
-      ? VIEW_TITLES[view]
-      : `${VIEW_TITLES[view]}${SEPARATOR}${shown} of ${of}  / ${query}▏`
+    return query === "" ? (
+      VIEW_TITLES[view]
+    ) : (
+      <Separated text={`${VIEW_TITLES[view]}${SEPARATOR}${shown} of ${of}  / ${query}▏`} />
+    )
   }
 
   return base === undefined ? undefined : <Against base={base} />
