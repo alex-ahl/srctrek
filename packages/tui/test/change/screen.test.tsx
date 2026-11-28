@@ -330,19 +330,31 @@ test("a failed build: the end of its log, and b builds again", async () => {
   expect(frame).not.toContain("enter")
 })
 
-test("a stopped build says how long ago it was stopped", async () => {
+test("a stopped build left no trek, and says when it was stopped", async () => {
   const stopped: TrekStatus = {
     kind: "failed",
     name: "feature-refunds",
     logTail: ["trek: stopped"],
   }
-  const twoDays = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+  const twoDays = new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000)
   const readBuild = () => Promise.resolve({ ...NO_BUILD, ended: twoDays })
   const frame = await frameAfter(screen(".", stopped, { readBuild }), (_input, on) =>
-    on.shows("2d ago"),
+    on.shows("a build was stopped 2d ago"),
   )
 
-  expect(frame).toContain("■ stopped  ¦  2d ago")
+  expect(frame).toContain("○ no trek yet")
+  expect(frame).not.toContain("■")
+})
+
+test("a failed build says when it ended", async () => {
+  const failed: TrekStatus = { kind: "failed", name: "feature-refunds", logTail: ["no trek saved"] }
+  const readBuild = () =>
+    Promise.resolve({ ...NO_BUILD, ended: new Date(Date.now() - 2.5 * 60 * 60 * 1000) })
+  const frame = await frameAfter(screen(".", failed, { readBuild }), (_input, on) =>
+    on.shows("2h ago"),
+  )
+
+  expect(frame).toContain("✕ build failed  ¦  2h ago")
 })
 
 test("a branch with no commits: nothing to trek, and no b", async () => {

@@ -61,6 +61,7 @@ function buildBlock(
   status: Of<"building" | "failed">,
   canBuild: boolean,
   open: Opened,
+  ago: string,
 ): StatusBlock {
   // trek mcp's own lines start "trek: ", which says nothing here
   const details = status.logTail.slice(-LOG_LINES).map((line) => line.replace(/^trek: /, ""))
@@ -72,12 +73,10 @@ function buildBlock(
     }
   }
 
-  // a build the user stopped ended as they asked; it didn't fail
+  // a build the user stopped ended as they asked, leaving no trek; it didn't fail
   if (buildProgress(status.logTail).stopped) {
-    return {
-      ...STATE_LABELS.stopped,
-      details: [],
-    }
+    const { details: _, ...none } = missingBlock(canBuild, open)
+    return { ...none, details: [`a build was stopped${ago === "" ? "" : ` ${ago}`}`] }
   }
 
   return {
@@ -129,14 +128,18 @@ function nameOnlyBlock(kind: NameOnly, canBuild: boolean, open: Opened): StatusB
   return missingBlock(canBuild, open)
 }
 
-/** The block for each state of the change's trek; `open` is what kind of thing it's a trek of. */
+/**
+ * The block for each state of the change's trek; `open` is what kind of thing it's a trek of, and
+ * `ago` when its last build ended, "2d ago", once known.
+ */
 export function statusBlock(
   status: TrekStatus,
   canBuild: boolean,
   open: Opened = A_CHANGE,
+  ago = "",
 ): StatusBlock {
   if (status.kind === "building" || status.kind === "failed") {
-    return buildBlock(status, canBuild, open)
+    return buildBlock(status, canBuild, open, ago)
   }
 
   if (status.kind === "stale") {

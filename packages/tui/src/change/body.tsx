@@ -1,9 +1,10 @@
-import type {
-  ChangeSummary,
-  OverviewView,
-  ProposedRepo,
-  PullRequestDetails,
-  TrekStatus,
+import {
+  type ChangeSummary,
+  type OverviewView,
+  type ProposedRepo,
+  type PullRequestDetails,
+  type TrekStatus,
+  buildProgress,
 } from "@srctrek/core"
 import type { BuildRead } from "../build-view/read"
 import { useNow } from "../ui/clock"
@@ -29,8 +30,8 @@ function savedText(builtAt: string | undefined, overview: OverviewView | undefin
   return [...built, count(overview.count, "stop")].map((part) => `${SEPARATOR}${part}`).join("")
 }
 
-// When the build that failed or was stopped ended, once read: "  ¦  2d ago"; nothing before.
-function useEndedText(
+// When the build that failed or was stopped ended, once read: "2d ago"; nothing before.
+function useEndedAgo(
   status: TrekStatus,
   readBuild: (name: string) => Promise<BuildRead>,
   now: Date,
@@ -53,8 +54,13 @@ function useEndedText(
   }, [name, readBuild])
 
   const at = ended?.name === name ? ended?.at : undefined
-  return at === undefined ? "" : `${SEPARATOR}${shortAge(at.toISOString(), now)}`
+  return at === undefined ? "" : shortAge(at.toISOString(), now)
 }
+
+// Beside a failed build's state, when it ended: "  ¦  2h ago". A stopped build left no trek, and
+// says when under it instead.
+const failedText = (status: Readonly<{ logTail: readonly string[] }>, ago: string) =>
+  buildProgress(status.logTail).stopped || ago === "" ? "" : `${SEPARATOR}${ago}`
 
 // Where the trek stands: its symbol and state in the state's tone, when it was built and how many
 // stops it has, then dim lines saying why; a trek whose work is done, how it ended.
@@ -64,11 +70,13 @@ function StateBlock(props: {
   canBuild: boolean
   open: Opened
   saved: string
+  // when its last build ended, "2d ago", once known
+  ago: string
 }) {
   const tones = useTones()
   const block =
     props.done === undefined
-      ? statusBlock(props.status, props.canBuild, props.open)
+      ? statusBlock(props.status, props.canBuild, props.open, props.ago)
       : { ...doneBlock(props.done), details: [] }
   const text = useStateText(block)
 
@@ -138,7 +146,7 @@ export function ChangeBody({
   width: number
 }) {
   const now = useNow()
-  const ended = useEndedText(status, readBuild, now)
+  const ago = useEndedAgo(status, readBuild, now)
   return (
     <box flexDirection="column">
       {summary !== undefined && (
@@ -155,7 +163,10 @@ export function ChangeBody({
           done={done}
           canBuild={canBuild}
           open={openedOf(summary)}
-          saved={status.kind === "failed" ? ended : savedText(builtAt, overview, now)}
+          saved={
+            status.kind === "failed" ? failedText(status, ago) : savedText(builtAt, overview, now)
+          }
+          ago={ago}
         />
       )}
       {proposal !== undefined && (
