@@ -1,5 +1,6 @@
 import type { ChangeChoice, TrekStatus } from "@srctrek/core"
 import { canStep } from "../change/keys"
+import { POLL_MS, isBuilding } from "../watch/use-build-watch"
 import { useEffect, useState } from "react"
 import type { LandingRow, PullHead } from "./rows"
 
@@ -43,7 +44,25 @@ export const statesKnown = (
   statuses: ReadonlyMap<string, TrekStatus>,
 ): boolean => rows.every((row) => !workedOut(row) || statuses.has(rowKey(row)))
 
-/** Each row's trek status as it's worked out; one that can't be worked out is left blank. */
+// Asks where each row's trek stands, handing each answer to `set` as it comes.
+function askAll(
+  rows: readonly LandingRow[],
+  read: StatusOf,
+  set: (key: string, status: TrekStatus) => void,
+): void {
+  for (const row of rows) {
+    void askOf(row, read)?.().then(
+      (each) => set(rowKey(row), each),
+      () => undefined,
+    )
+  }
+}
+
+/**
+ * Each row's trek status as it's worked out; one that can't be worked out is left blank. A row
+ * whose trek is being built is read again every couple of seconds, so it shows the build ending
+ * as soon as the change's own screen does.
+ */
 export function useStatuses(
   rows: readonly LandingRow[],
   { status, pullStatus }: StatusOf,
@@ -51,22 +70,41 @@ export function useStatuses(
   const [found, setFound] = useState<ReadonlyMap<string, TrekStatus>>(new Map())
   useEffect(() => {
     let current = true
-    for (const row of rows) {
-      const ask = askOf(row, { status, pullStatus })
-      if (ask === undefined) {
-        continue
+    askAll(rows, { status, pullStatus }, (key, each) => {
+      if (current) {
+        setFound((known) => new Map(known).set(key, each))
       }
-
-      void ask().then(
-        (each) => current && setFound((known) => new Map(known).set(rowKey(row), each)),
-        () => undefined,
-      )
-    }
+    })
 
     return () => {
       current = false
     }
   }, [rows, status, pullStatus])
+
+  const building = rows.filter((row) => isBuilding(found.get(rowKey(row))))
+  const buildingKey = JSON.stringify(building.map(rowKey))
+  useEffect(() => {
+    if (building.length === 0) {
+      return undefined
+    }
+
+    let current = true
+    const timer = setInterval(
+      () =>
+        askAll(building, { status, pullStatus }, (key, each) => {
+          if (current) {
+            setFound((known) => new Map(known).set(key, each))
+          }
+        }),
+      POLL_MS,
+    )
+    return () => {
+      current = false
+      clearInterval(timer)
+    }
+    // read again only when other rows are building, which their key says
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [buildingKey, status, pullStatus])
 
   return found
 }

@@ -394,6 +394,26 @@ test("says on each row whether a trek of it exists, as each is worked out", asyn
   expect(frame).toMatch(/feature\/partial-refunds +5 commits +[◐◓◑◒]/)
 })
 
+test("a row whose trek is being built shows the build ending, without the list read again", async () => {
+  let built = false
+  const building = (choice: ChangeChoice): Promise<TrekStatus> =>
+    choice.kind === "branch" && choice.name === "fix/rounding"
+      ? Promise.resolve(
+          built
+            ? { kind: "ready", name: "fix-rounding" }
+            : { kind: "building", name: "fix-rounding", logTail: [] },
+        )
+      : statusOf(choice)
+
+  const frame = await frameAfter(landing({ status: building }), async (_input, on) => {
+    await on.shows(/fix\/rounding +1 commit +[◐◓◑◒]/)
+    built = true
+    await on.shows(/fix\/rounding +1 commit +● ready/)
+  })
+
+  expect(frame).toMatch(/fix\/rounding +1 commit +● ready/)
+})
+
 test("enter opens the selected change", async () => {
   const onPick = mock((_pick: Pick) => undefined)
   await frameAfter(

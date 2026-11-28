@@ -1,11 +1,11 @@
 import type { TrekStatus } from "@srctrek/core"
 import { useEffect } from "react"
 
-// A build takes minutes, so checking every couple of seconds is plenty.
-const POLL_MS = 2000
+/** A build takes minutes, so checking every couple of seconds is plenty. */
+export const POLL_MS = 2000
 
-// Something is being built: the change's trek, or the trek of one of its triggers.
-function isBuilding(status: TrekStatus | undefined): boolean {
+/** Something is being built: the change's trek, or the trek of one of its triggers. */
+export function isBuilding(status: TrekStatus | undefined): boolean {
   if (status?.kind === "triggers") {
     return status.triggers.some(({ trek }) => trek.kind === "building")
   }
