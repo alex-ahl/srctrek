@@ -4,7 +4,7 @@ import { Separated } from "../ui/separated"
 import { SEPARATOR } from "../ui/separator"
 import { wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
-import { Valued, wrapValues } from "../ui/values"
+import { MoreLines, Valued, capped, wrapValues } from "../ui/values"
 
 // Where every line of the trek ends, its story as its trigger and outcome: a line a reader takes
 // in at once, on however wide a terminal.
@@ -16,14 +16,15 @@ const LABEL = "Outcome, predicted"
 // Likely-wrong steps named in full; past them, how many more.
 const FLAGS_SHOWN = 2
 
-// "▶ Trigger   …": a glyph in the accent, the label dimmed, and the text wrapped under itself, its
-// values in their tone.
+// "▶ Trigger   …": a glyph in the accent, the label dimmed, and the text wrapped under itself, a
+// new line at each ↵, its values in their tone; a long one cut short.
 function End(props: { glyph: string; label: string; text: string; width: number }) {
   const tones = useTones()
   const indent = 2 + LABEL.length + 3
+  const { shown, more } = capped(wrapValues(props.text, Math.min(props.width, PROSE_MOST) - indent))
   return (
     <>
-      {wrapValues(props.text, Math.min(props.width, PROSE_MOST) - indent).map((line, i) => (
+      {shown.map((line, i) => (
         <text key={i} fg={COLOUR.text}>
           {i === 0 ? (
             <span>
@@ -36,6 +37,7 @@ function End(props: { glyph: string; label: string; text: string; width: number 
           <Valued line={line} />
         </text>
       ))}
+      <MoreLines more={more} indent={indent} />
     </>
   )
 }
