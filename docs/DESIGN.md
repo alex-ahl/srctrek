@@ -246,7 +246,8 @@ does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
 the same way, with a dim `¦` and room around it: `3 commits  ¦  yours`.
 
 - **Landing page,** what `trek` opens on: what's yours. From 110 columns, the list sits beside
-  the selected change's own screen, the same as it shows on its own: each row the change's name,
+  the selected change's own screen, the same as it shows on its own, the list a quarter of the
+  terminal from 40 columns up to 52: each row the change's name,
   then its trek's state as a symbol and one mark after it, `⚠` where the agent marked a step
   likely wrong, else `⚑` for a pull request waiting on your review (`● ⚠`, `○ ⚑`); the selected
   row's edge, `▌`, in its state's colour; what the

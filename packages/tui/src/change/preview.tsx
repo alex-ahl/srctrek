@@ -6,8 +6,9 @@ import { wrap } from "../ui/text"
 import { COLOUR, useTones } from "../ui/theme"
 import { Valued, wrapValues } from "../ui/values"
 
-// Prose kept to a line a reader takes in at once, on however wide a terminal.
-const PROSE_MOST = 80
+// Where every line of the trek ends, its story as its trigger and outcome: a line a reader takes
+// in at once, on however wide a terminal.
+const PROSE_MOST = 92
 
 // The labels' room, so the trigger's text and the outcome's start in one column.
 const LABEL = "Outcome, predicted"
@@ -22,21 +23,19 @@ function End(props: { glyph: string; label: string; text: string; width: number 
   const indent = 2 + LABEL.length + 3
   return (
     <>
-      {wrapValues(props.text, Math.min(props.width, PROSE_MOST + indent) - indent).map(
-        (line, i) => (
-          <text key={i} fg={COLOUR.text}>
-            {i === 0 ? (
-              <span>
-                <span fg={tones.accent}>{`${props.glyph} `}</span>
-                <span fg={tones.dim}>{props.label.padEnd(indent - 2)}</span>
-              </span>
-            ) : (
-              " ".repeat(indent)
-            )}
-            <Valued line={line} />
-          </text>
-        ),
-      )}
+      {wrapValues(props.text, Math.min(props.width, PROSE_MOST) - indent).map((line, i) => (
+        <text key={i} fg={COLOUR.text}>
+          {i === 0 ? (
+            <span>
+              <span fg={tones.accent}>{`${props.glyph} `}</span>
+              <span fg={tones.dim}>{props.label.padEnd(indent - 2)}</span>
+            </span>
+          ) : (
+            " ".repeat(indent)
+          )}
+          <Valued line={line} />
+        </text>
+      ))}
     </>
   )
 }

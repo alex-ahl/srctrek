@@ -11,7 +11,7 @@ import { keyAt, selectedIndex } from "../ui/selection"
 import { useSheet } from "./use-sheet"
 import { type Pending, choiceName } from "../opening"
 import type { Listed } from "../worked-out"
-import { type Beside, LIST_WIDTH, type Split, splitFor } from "./beside"
+import { type Beside, type Split, listWidth, splitFor } from "./beside"
 import { typed, useDrop } from "./use-drop"
 import { type LandingSources, useRows } from "./use-rows"
 import type { LandingRow, Pick } from "./rows"
@@ -288,7 +288,7 @@ function dropView(
  * Opens on the user's own branch.
  */
 export function Landing(props: Props) {
-  const { height } = useTerminalDimensions()
+  const { width, height } = useTerminalDimensions()
   const {
     settled,
     statuses,
@@ -330,7 +330,7 @@ export function Landing(props: Props) {
   useResting(active, picked, props.onRest)
   useListed(listedOf(rows, repos), props.onListed)
   // where there's room, the selected change's screen beside the list, once it's worked out
-  const split = splitFor(props.split, picked)
+  const split = splitFor(props.split, picked, width)
   const drop = useDrop(props.repoBranches, props.fetchRepo, (pick) =>
     setTicked(new Map(ticked).set(pick.path, pick)),
   )
@@ -559,6 +559,7 @@ function LandingView(props: {
   groups: readonly KeyGroup[]
 }) {
   const tones = useTones()
+  const { width } = useTerminalDimensions()
   if (!props.active) {
     return null
   }
@@ -585,7 +586,7 @@ function LandingView(props: {
             style={
               props.beside === undefined
                 ? { flexGrow: 1 }
-                : { width: LIST_WIDTH - PADDING, flexShrink: 0, overflow: "hidden" }
+                : { width: listWidth(width) - PADDING, flexShrink: 0, overflow: "hidden" }
             }
           >
             {props.failed !== undefined && <text fg={tones.bad}>{`✕ ${props.failed}`}</text>}

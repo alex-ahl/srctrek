@@ -11,15 +11,18 @@ import { useTurning } from "../ui/turning"
 /** From this many columns, the selected change's screen is shown beside the list. */
 export const SPLIT_FROM = 110
 
-/** The list's columns beside a change's screen: names and states. */
-export const LIST_WIDTH = 40
+/**
+ * The list's columns beside a change's screen, names and states: a quarter of the terminal,
+ * from 40 up to 52, so a wide one shows a pull request's title whole.
+ */
+export const listWidth = (width: number) => Math.min(Math.max(40, Math.floor(width / 4)), 52)
 
 // The rule between the list and the change, and the room after it.
 const RULE = 1
 const RULE_GAP = 2
 
 /** How wide the change beside the list is drawn, on a terminal `width` wide. */
-export const besideWidth = (width: number) => width - LIST_WIDTH - RULE - RULE_GAP - PADDING
+export const besideWidth = (width: number) => width - listWidth(width) - RULE - RULE_GAP - PADDING
 
 /**
  * The selected change's screen beside the list: the key of the change it shows, its body, the
@@ -91,11 +94,11 @@ const actingOn = (beside: Beside | undefined) => ({
 
 // Beside the selected change's screen: the list at its width, and the change while it's the one
 // selected; else the change shown last, while the one selected, `key`, is worked out.
-function besideChange(key: string | undefined, given: Beside | undefined): Split {
+function besideChange(key: string | undefined, given: Beside | undefined, width: number): Split {
   const beside = given?.key === key ? given : undefined
   return {
     split: true,
-    listWidth: LIST_WIDTH,
+    listWidth: listWidth(width),
     pane: <BesidePane beside={given} waiting={beside === undefined ? key : undefined} />,
     ...actingOn(beside),
   }
@@ -108,10 +111,11 @@ function besideChange(key: string | undefined, given: Beside | undefined): Split
 export const splitFor = (
   split: Readonly<{ beside: Beside | undefined }> | undefined,
   picked: Pick | undefined,
+  width: number,
 ): Split =>
   split === undefined
     ? LIST_ALONE
-    : besideChange(picked === undefined ? undefined : besideKey(picked), split.beside)
+    : besideChange(picked === undefined ? undefined : besideKey(picked), split.beside, width)
 
 // How long the change last shown stays while the one selected is worked out, before it says so.
 const OPENING_SHOWN_MS = 300
