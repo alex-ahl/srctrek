@@ -304,7 +304,7 @@ stops`): no trek yet (what `b` does, or to set an agent in settings), building (
   dismiss), ready (the trek's title and story, then where its scenario starts and ends, `▶ Trigger`
   and `■ Outcome, predicted`, each a line, a text's line breaks kept up to 8 lines, the example's values in a muted amber, and each step the agent marked likely wrong by its
   stop and name with why under it, the first two, then how many more; enter steps it), stale (how
-  many steps' files changed, then as ready; `b` updates it, enter steps it as it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
+  many steps' files changed, then as ready; `b` updates it, enter steps it as it is), build failed or stopped (when, `2h ago`, and the end of its log), can't open (the repo that isn't where it was), built
   with an older guide, built with a newer guide by a newer trek (restart trek to see it), nothing to trek. `b` always builds the trek: builds, updates, or builds
   again. A trek saved meanwhile, by `b` or an agent's chat, shows once it's saved. A done trek
   opens on a screen of its own, with just the trek.

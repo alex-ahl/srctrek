@@ -12,6 +12,7 @@ import { count, shortAge } from "../ui/text"
 import { useTones } from "../ui/theme"
 import type { StateLabel } from "../ui/state-labels"
 import { useStateText } from "../ui/turning"
+import { useEffect, useState } from "react"
 import { Building } from "./building"
 import { ChangeHeading } from "./line"
 import { TrekPreview } from "./preview"
@@ -26,6 +27,33 @@ function savedText(builtAt: string | undefined, overview: OverviewView | undefin
 
   const built = builtAt === undefined ? [] : [`built ${shortAge(builtAt, now)}`]
   return [...built, count(overview.count, "stop")].map((part) => `${SEPARATOR}${part}`).join("")
+}
+
+// When the build that failed or was stopped ended, once read: "  ¦  2d ago"; nothing before.
+function useEndedText(
+  status: TrekStatus,
+  readBuild: (name: string) => Promise<BuildRead>,
+  now: Date,
+): string {
+  const name = status.kind === "failed" ? status.name : undefined
+  const [ended, setEnded] = useState<Readonly<{ name: string; at: Date | undefined }>>()
+  useEffect(() => {
+    if (name === undefined) {
+      return undefined
+    }
+
+    let current = true
+    void readBuild(name).then(
+      (read) => current && setEnded({ name, at: read.ended }),
+      () => undefined,
+    )
+    return () => {
+      current = false
+    }
+  }, [name, readBuild])
+
+  const at = ended?.name === name ? ended?.at : undefined
+  return at === undefined ? "" : `${SEPARATOR}${shortAge(at.toISOString(), now)}`
 }
 
 // Where the trek stands: its symbol and state in the state's tone, when it was built and how many
@@ -110,6 +138,7 @@ export function ChangeBody({
   width: number
 }) {
   const now = useNow()
+  const ended = useEndedText(status, readBuild, now)
   return (
     <box flexDirection="column">
       {summary !== undefined && (
@@ -126,7 +155,7 @@ export function ChangeBody({
           done={done}
           canBuild={canBuild}
           open={openedOf(summary)}
-          saved={savedText(builtAt, overview, now)}
+          saved={status.kind === "failed" ? ended : savedText(builtAt, overview, now)}
         />
       )}
       {proposal !== undefined && (
