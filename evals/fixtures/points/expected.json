@@ -26,6 +26,7 @@
       "summary": "Points are awarded on every save of an order: twice per checkout, and again on each admin note",
       "files": [
         { "repo": "app", "file": "app/plugins/loyalty.py", "line": 7 },
+        { "repo": "app", "file": "app/plugins/loyalty.py", "line": 9 },
         { "repo": "app", "file": "app/web/checkout.py", "line": 13 }
       ],
       "detail": "checkout saves the order while pending and again once paid; both pass the status check, so 499 SEK earns 998 points. app/web/admin.py:10 saves a paid order when a note is added, awarding 499 more each time."
