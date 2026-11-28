@@ -131,10 +131,20 @@ function hopCarriers(trek: Trek): Issue[] {
   })
 }
 
+const linksOf = (step: TrekStep, i: number) =>
+  step.kind === "context" ? contextLinks(step, i) : executionLinks(step, i)
+
 function linksByKind(trek: Trek): Issue[] {
-  return trek.steps.flatMap((step, i) =>
-    step.kind === "context" ? contextLinks(step, i) : executionLinks(step, i),
-  )
+  return trek.steps.flatMap(linksOf)
+}
+
+/**
+ * What a step's links lack where it sits, `i` among the trek's steps, as saving the trek would
+ * say: "from: missing: name the step execution came from". Also checked as steps are added, so a
+ * link left out is fixed in the call that left it out, not when the whole trek is saved.
+ */
+export function missingLinks(step: TrekStep, i: number): string[] {
+  return linksOf(step, i).map(({ path, message }) => `${String(path.at(-1))}: ${message}`)
 }
 
 // Execution never comes from a context step, which isn't executed.

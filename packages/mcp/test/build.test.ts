@@ -49,7 +49,7 @@ let client: McpTestClient | undefined
 afterEach(() => client?.close())
 
 describe("building a trek over trek mcp", () => {
-  test("checks steps on the way in, the trek as a whole at the end, then saves it", async () => {
+  test("checks steps' places and links on the way in, then saves the trek", async () => {
     const dir = await makeFeatureRepo()
     const repo = basename(dir)
     const { s1, s2, s2WithEvidence } = stepsFor(repo)
@@ -63,16 +63,13 @@ describe("building a trek over trek mcp", () => {
       text: `nothing was added:\ns2: ends at ${repo}/src/app.ts:9, past its last line (2)`,
       isError: true,
     })
+    expect(await client.call("add_steps", { steps: [s1, s2] })).toEqual({
+      text: "nothing was added:\ns2.via: missing evidence",
+      isError: true,
+    })
 
-    expect((await client.call("add_steps", { steps: [s1, s2] })).text).toBe(
+    expect((await client.call("add_steps", { steps: [s1, s2WithEvidence] })).text).toBe(
       "added s1, s2; the trek has s1, s2",
-    )
-    const unfinished = await client.call("finish_trek", { name: "total" })
-    expect(unfinished.isError).toBe(true)
-    expect(unfinished.text).toContain("steps.1 (s2).via: missing evidence")
-
-    expect((await client.call("add_steps", { steps: [s2WithEvidence] })).text).toBe(
-      "added s2; the trek has s1, s2",
     )
     const saved = await client.call("finish_trek", { name: "total" })
     // trek runs in the folder's real path; tmp is a symlink on macOS
@@ -84,6 +81,20 @@ describe("building a trek over trek mcp", () => {
       ["s2", false],
     ])
     expect(trek.repos[0]?.range).toMatch(/^[0-9a-f]{40}\.\.[0-9a-f]{40}$/)
+  })
+
+  test("checks the trek as a whole when it's finished", async () => {
+    const dir = await makeFeatureRepo()
+    const { s1, s2WithEvidence } = stepsFor(basename(dir))
+    client = new McpTestClient(dir)
+    await client.initialize()
+    await client.call("open_change", { args: [] })
+    await client.call("start_trek", header)
+    await client.call("add_steps", { steps: [s1, { ...s2WithEvidence, from: "s9" }] })
+
+    const unfinished = await client.call("finish_trek", { name: "total" })
+    expect(unfinished.isError).toBe(true)
+    expect(unfinished.text).toContain("steps.1 (s2).from: comes from unknown step s9")
   })
 
   test("stops the build at the third rejected round", async () => {

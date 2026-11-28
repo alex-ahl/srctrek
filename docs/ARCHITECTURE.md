@@ -182,7 +182,8 @@ The user's agent builds the trek through `trek mcp`:
 4. `propose_repo`: a repo on the route that the change doesn't include, with its evidence;
    see Sources.
 5. Submission: `start_trek` (trigger, outcome, overview), `add_steps`, `finish_trek`. Each
-   call is validated; the TUI shows the overview as soon as `start_trek` lands and steps as
+   call is validated: `add_steps` checks each step's lines and links (where execution came from,
+   its evidence) as it's added, `finish_trek` the trek as a whole; the TUI shows the overview as soon as `start_trek` lands and steps as
    they arrive.
 
 Setting up: `set_agent_command` saves the command that runs the agent headless to the user's

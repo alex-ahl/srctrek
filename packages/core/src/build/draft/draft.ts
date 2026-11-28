@@ -3,6 +3,7 @@ import { rangeHead } from "../../change/head"
 import { type ResolvedChange, type ResolvedRepo, hasRange } from "../../change/resolve"
 import { PROMPT_HASH } from "../../prompts/texts"
 import { FORMAT_VERSION, type Trek, type TrekHeader, type TrekStep } from "../../schema/trek"
+import { missingLinks } from "../../schema/rules"
 import { citationProblems } from "./citations"
 import { type SubmittedStep, completeStep } from "./complete"
 
@@ -37,6 +38,17 @@ function withStep(steps: readonly TrekStep[], step: TrekStep): readonly TrekStep
   return steps.map((existing) => (existing.id === step.id ? step : existing))
 }
 
+// What the added steps' links lack, each where it sits among the draft's steps once added.
+function linkProblems(draft: Draft, added: readonly TrekStep[]): string[] {
+  const ordered = orderedSteps(draft)
+  return added.flatMap((step) =>
+    missingLinks(
+      step,
+      ordered.findIndex((each) => each.id === step.id),
+    ).map((problem) => `${step.id}.${problem}`),
+  )
+}
+
 /** Checks the steps and adds them, all or none: when any has a problem, every problem. */
 export async function addSteps(draft: Draft, steps: SubmittedStep[]): Promise<Added> {
   const perStep = await Promise.all(steps.map((step) => citationProblems(draft.change, step)))
@@ -46,8 +58,13 @@ export async function addSteps(draft: Draft, steps: SubmittedStep[]): Promise<Ad
   }
 
   const completed = await Promise.all(steps.map((step) => completeStep(draft.change, step)))
+  const added = { ...draft, steps: completed.reduce(withStep, draft.steps) }
+  const missing = linkProblems(added, completed)
+  if (missing.length > 0) {
+    return { draft, problems: missing }
+  }
 
-  return { draft: { ...draft, steps: completed.reduce(withStep, draft.steps) }, problems: [] }
+  return { draft: added, problems: [] }
 }
 
 // Where a step goes: its place in an updated trek's order; steps not in it after, as added.
