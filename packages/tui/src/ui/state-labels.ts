@@ -8,6 +8,7 @@ export const STATE_LABELS = {
   ready: { symbol: "●", state: "ready", tone: "good" },
   stale: { symbol: "≠", state: "stale", tone: "warn" },
   "older-guide": { symbol: "↻", state: "older guide", tone: "warn" },
+  "newer-guide": { symbol: "↻", state: "newer guide", tone: "warn" },
   missing: { symbol: "○", state: "no trek yet", tone: "dim" },
   empty: { symbol: "○", state: "nothing to trek", tone: "dim" },
   building: { symbol: "◐", state: "building", tone: "busy" },

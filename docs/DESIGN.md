@@ -238,7 +238,7 @@ the states (good, stale, failed, building) and the accent are srctrek's, a brigh
 background and deeper ones on a light one, and secondary text is mixed 60% of the way from the
 terminal's background to its text; until then, or if it never reports them, the terminal's own
 bright ANSI colours and its dim grey. Each state also has its own symbol: `●` ready,
-`≠` stale, `↻` older guide, `✕` failed or can't open, `◐` building, `■` stopped, `✓` done, `○` none yet, `◇` the ways in
+`≠` stale, `↻` older or newer guide, `✕` failed or can't open, `◐` building, `■` stopped, `✓` done, `○` none yet, `◇` the ways in
 found.
 Every screen's footer lists its keys, each key bold in the text's colour, then a colon and what it
 does dimmed, split from the next by a dim `¦`, with `enter` drawn as `↵`:
@@ -304,7 +304,7 @@ stops`): no trek yet (what `b` does, or to set an agent in settings), building (
   and `■ Outcome, predicted`, each a line, the example's values in a muted amber, and each step the agent marked likely wrong by its
   stop and name with why under it, the first two, then how many more; enter steps it), stale (how
   many steps' files changed, then as ready; `b` updates it, enter steps it as it is), build failed (the end of its log), can't open (the repo that isn't where it was), built
-  with an older guide, nothing to trek. `b` always builds the trek: builds, updates, or builds
+  with an older guide, built with a newer guide by a newer trek (restart trek to see it), nothing to trek. `b` always builds the trek: builds, updates, or builds
   again. A trek saved meanwhile, by `b` or an agent's chat, shows once it's saved. A done trek
   opens on a screen of its own, with just the trek.
 - **Code as it is:** its ways in, `○ ways in not found yet` until `b` finds them; then each way

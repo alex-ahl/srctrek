@@ -100,7 +100,7 @@ function unreachableBlock({ unreachable }: Of<"unreachable">): StatusBlock {
   return { ...STATE_LABELS.unreachable, details }
 }
 
-type NameOnly = "ready" | "older-guide" | "missing" | "empty"
+type NameOnly = "ready" | "older-guide" | "newer-guide" | "missing" | "empty"
 
 // The states that are a name and nothing more.
 function nameOnlyBlock(kind: NameOnly, canBuild: boolean, open: Opened): StatusBlock {
@@ -110,6 +110,13 @@ function nameOnlyBlock(kind: NameOnly, canBuild: boolean, open: Opened): StatusB
 
   if (kind === "older-guide") {
     return { ...STATE_LABELS["older-guide"], details: ["built before the guide last changed"] }
+  }
+
+  if (kind === "newer-guide") {
+    return {
+      ...STATE_LABELS["newer-guide"],
+      details: ["built by a newer trek: restart trek to see it"],
+    }
   }
 
   if (kind === "empty") {

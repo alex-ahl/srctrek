@@ -42,7 +42,7 @@ branch's):
 | `treks(args?)`      | Every saved trek (name, title, overview, trigger, stops, likely-wrong flags, when it |
 |                     | was built, whether it follows code as it is, each changed repo's                     |
 |                     | branch or pull request) and where the change's trek stands: ready,                   |
-|                     | built with an older guide, can't be opened (a local repo it names                    |
+|                     | built with an older or a newer guide, can't be opened (a local repo it names         |
 |                     | isn't there or lacks its commit), stale, unreadable, building,                       |
 |                     | failed, missing                                                                      |
 | `build(args?)`      | Starts the user's agent on the change's trek (settings, or                           |

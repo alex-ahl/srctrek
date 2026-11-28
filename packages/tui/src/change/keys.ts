@@ -39,7 +39,12 @@ export type KeyContext = Readonly<{
   enterBuilds?: boolean | undefined
 }>
 
-const STEPPABLE: ReadonlySet<TrekStatus["kind"]> = new Set(["ready", "older-guide", "stale"])
+const STEPPABLE: ReadonlySet<TrekStatus["kind"]> = new Set([
+  "ready",
+  "older-guide",
+  "newer-guide",
+  "stale",
+])
 
 // No trek yet, or nothing to trek: no build to look at.
 const UNBUILT: ReadonlySet<TrekStatus["kind"]> = new Set(["missing", "empty"])
@@ -56,6 +61,7 @@ export const BUILD_VERBS: Partial<Readonly<Record<TrekStatus["kind"], string>>> 
   stale: "update",
   ready: "build again",
   "older-guide": "build again",
+  "newer-guide": "build again",
   unreadable: "build again",
   failed: "build again",
 }

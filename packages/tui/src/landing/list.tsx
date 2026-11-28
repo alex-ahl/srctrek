@@ -52,7 +52,12 @@ const cellText = (cell: StateCell, ages: boolean) =>
   !ages || cell.age === undefined ? cell.text : `${cell.text}${GAP}${cell.age}`
 
 // The states a trek is saved in, whose age is when it was built.
-const BUILT_KINDS: ReadonlySet<TrekStatus["kind"]> = new Set(["ready", "stale", "older-guide"])
+const BUILT_KINDS: ReadonlySet<TrekStatus["kind"]> = new Set([
+  "ready",
+  "stale",
+  "older-guide",
+  "newer-guide",
+])
 
 // "● ready", "≠ stale", "○ no trek yet": in the words and colours a change's screen uses; code
 // as it is says where finding its ways in stands; a done trek how its work ended, "✓ merged";

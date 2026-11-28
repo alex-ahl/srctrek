@@ -174,8 +174,19 @@ describe("trekStatus", () => {
     const change = await changeOf(dir)
     await saveTrekOf(dir, change, "my-refunds")
     await editSavedTrek(dir, "my-refunds", "prompt_hash", "an-older-guide")
+    await editSavedTrek(dir, "my-refunds", "created_at", "2026-10-22T09:00:00Z")
 
     expect(await trekStatus(dir, change)).toEqual({ kind: "older-guide", name: "my-refunds" })
+  })
+
+  test("is built with a newer guide when one built since this trek started has other prompts", async () => {
+    const dir = await makeBranchRepo()
+    const change = await changeOf(dir)
+    await saveTrekOf(dir, change, "my-refunds")
+    await editSavedTrek(dir, "my-refunds", "prompt_hash", "a-newer-guide")
+    await editSavedTrek(dir, "my-refunds", "created_at", new Date().toISOString())
+
+    expect(await trekStatus(dir, change)).toEqual({ kind: "newer-guide", name: "my-refunds" })
   })
 
   test("is building while a trek built with an older guide is rebuilt, and failed if that fails", async () => {

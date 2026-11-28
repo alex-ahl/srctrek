@@ -14,15 +14,15 @@ import { trekState } from "./trek-state"
 
 /**
  * Where a change's trek stands: saved and ready, or built with an older guide than today's, or
- * saved but unreachable, naming a local repo that can't be opened here;
- * stale, saved at commits the change has moved on from, with how many of its stops cite files
- * changed since; unreadable, saved under the change's name but not a valid trek, with its first
- * problem; being built or failed (each with the end of the build's log); missing, never built;
- * or empty: the change has no commits, so nothing to trek. For code with no trigger named, the
- * triggers found instead of a trek.
+ * with a newer one, by a trek newer than this one; or saved but unreachable, naming a local repo
+ * that can't be opened here; stale, saved at commits the change has moved on from, with how many
+ * of its stops cite files changed since; unreadable, saved under the change's name but not a
+ * valid trek, with its first problem; being built or failed (each with the end of the build's
+ * log); missing, never built; or empty: the change has no commits, so nothing to trek. For code
+ * with no trigger named, the triggers found instead of a trek.
  */
 export type TrekStatus = Readonly<
-  | { kind: "ready" | "older-guide" | "missing" | "empty"; name: string }
+  | { kind: "ready" | "older-guide" | "newer-guide" | "missing" | "empty"; name: string }
   | { kind: "unreadable"; name: string; problem: string }
   | { kind: "unreachable"; name: string; unreachable: UnreachableRepo }
   // how many stops changed isn't known for a pull request read from its listing alone
@@ -113,6 +113,14 @@ async function savedStatus(
   return { kind: "stale", name, staleStops, stops: stops.size }
 }
 
+// When this trek started: a trek saved since with a guide other than its own was built by a newer
+// trek, such as the one an agent runs after an upgrade, so building again wouldn't change it.
+const STARTED_AT = Date.now()
+
+// The guide a trek was built with, when not today's.
+const guideOf = (trek: Trek) =>
+  Date.parse(trek.created_at) > STARTED_AT ? "newer-guide" : "older-guide"
+
 // A trek of the change: unreachable when it names a repo that can't be opened here, as nothing
 // else matters until it can; else building while it's built again. A rebuild that failed says
 // more than a trek built with an older guide, which it was to replace; a trek of today's guide
@@ -133,7 +141,7 @@ async function readyStatus(root: string, name: string): Promise<TrekStatus> {
     return { kind: "ready", name }
   }
 
-  return state === "failed" ? buildStatus(root, name) : { kind: "older-guide", name }
+  return state === "failed" ? buildStatus(root, name) : { kind: guideOf(trek), name }
 }
 
 // With no trek of the change as it is: a build under way or failed comes first, as it's what
